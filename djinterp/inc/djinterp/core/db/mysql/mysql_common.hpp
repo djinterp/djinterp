@@ -2,77 +2,64 @@
 * djinterp [core]                                               mysql_common.hpp
 *
 * djinterp MySQL-family common connection module:
-*   This header provides the shared CRTP connection base for the MySQL-
-* compatible database family (Oracle MySQL and MariaDB). It sits between
-* the generic database_connection template and the concrete vendor-specific
-* implementations (mysql_connection, mariadb_connection), providing:
-*   - character set management (set_charset, get_charset)
-*   - multi-result set iteration (next_result, more_results)
-*   - result set mode selection (store vs stream)
-*   - MySQL-specific options API wrapper
-*   - server diagnostics (stat, thread_id, warning_count, sqlstate)
-*   - MySQL-style string escaping
-*   - database selection (select_db)
-*   - user switching (change_user)
-*   - client flags and connect attributes
-*   - compile-time gating via D_ENV_MYSQL_COMMON_* macros
-*
-*   The MySQL-family C API (libmysqlclient / MariaDB Connector/C) uses
-* the MYSQL* opaque handle type, shared by both products. This module
-* declares the interface methods that wrap the shared C API surface;
-* actual C API calls are left to the vendor-specific _helper methods in
-* the final CRTP leaf class.
-*
-*   LAYER DIAGRAM:
-*   mysql_connection_helper (vendor-specific)
-*     -> mysql_common_connection<mysql_connection_helper, database_type::mysql>
-*       -> database_connection<mysql_connection_helper, database_type::mysql>
-*         -> connection_template<mysql_connection_helper, database_type::mysql>
-*           -> connection<mysql_connection_helper>
-*
-*   The _helper class must provide the following MySQL-specific methods
-* (in addition to those required by database_connection):
-*   - void        set_charset_helper(const std::string&)
-*   - std::string get_charset_helper() const
-*   - int         next_result_helper()
-*   - bool        more_results_helper() const
-*   - std::string escape_string_helper(const std::string&) const
-*   - std::string get_stat_helper() const
-*   - unsigned long get_thread_id_helper() const
-*   - unsigned int  get_warning_count_helper() const
-*   - std::string   get_sqlstate_helper() const
-*
-*   PORTABILITY:
-*   This header requires C++17 or later. It does not include the MySQL C API
-* headers; concrete implementations include <mysql.h> or <mariadb/mysql.h>
-* themselves.
-*
-*
-*   DETECTION:
-*   Also carries this database's capability-detection traits and C++20 concepts
-* (trailing sections), folded in from mysql_common_traits.hpp and the matching *_concepts.hpp;
-* detection now lives with the connection. Concepts gated on concept support.
+*   The connection MariaDB and Oracle's MySQL share, mysql_common_connection,
+* over the MariaDB layer's C++ face (c/db/mariadb/mariadb_face.hpp), whose
+* connection it holds: the layer serves both servers through either client,
+* MariaDB Connector/C or libmysqlclient. Every operation is the layer's, and
+* core/db adds exceptions, result sets that outlive their query, and
+* prepared statements that close with the connection. Beside the
+* operations every connection has, the family's own: the character set,
+* scripts of several statements, escaping, the current database, changing
+* user, the server's diagnostics, the default storage engine, client
+* options and flags, connect attributes, and the schema's tables.
+*     mariadb_connection, mysql_connection (the leaves)
+*       -> mysql_common_connection<leaf, X>     this file
+*         -> database_connection<leaf, X>
+*           -> connection_template<leaf, X>
+*             -> connection<leaf>
+*   Each leaf adds its settings and its session set-up through two hooks
+* (mysql_common_connection's description), and instantiates this template's
+* members explicitly in its source. The header needs C++17 and includes no
+* client header: env includes mysql.h only where a program asks for env's
+* detection (D_CFG_ENV_USING_MARIADB, D_CFG_ENV_USING_MYSQL). Its trailing
+* sections carry the family's capability-detection traits and C++20
+* concepts.
 *
 *
 * path:      /inc/djinterp/core/db/mysql/mysql_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 #ifndef DJINTERP_DB_MYSQL_MYSQL_COMMON_HPP
-#define DJINTERP_DB_MYSQL_MYSQL_COMMON_HPP
+#define DJINTERP_DB_MYSQL_MYSQL_COMMON_HPP 1
 
 // djinterp
 #include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
+// std
+#include <chrono>   // std::chrono::milliseconds
+#include <cstddef>  // std::size_t
+#include <cstring>  // std::strlen
+#include <deque>    // std::deque
+#include <map>      // std::map
+#include <string>   // std::string, std::to_string
+#include <utility>  // std::pair
+#include <vector>   // std::vector
 // djinterp
-#include "../../../djinterp.hpp"
-#include "../../meta/type_utility.hpp"  // clean_t, self
-#include "../../../env/db/mysql/env_mysql_common.h"
-#include "../database_connection.hpp"
+#include "../../../djinterp.hpp"                   // framework root
+#include "../../../c/db/mariadb/mariadb_face.hpp"  // face::mariadb, the layer
+#include "../../../config/c/db/mariadb/cfg_mariadb_common.h"  // the charset
+#include "../../../env/db/mysql/env_mysql_common.h"  // D_ENV_MYSQL_*
+#include "../../meta/type_utility.hpp"             // clean_t
+#include "../database_connection.hpp"              // database_connection
+#include "../database_statement.hpp"               // prepared_statement,
+                                                   // failure_kind
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t
 
 
 NS_DJINTERP
@@ -152,18 +139,21 @@ D_INLINE constexpr mysql_client_flag& operator|=(
 // ===========================================================================
 
 // mysql_connect_config
-//   struct: extended configuration for MySQL-family connections.
-// Augments the generic connection_config with MySQL-specific fields.
+//   struct: what a MySQL-family connection needs beyond connection_config:
+// the client flags, the Unix socket, the character set, an init command,
+// compression, LOAD DATA LOCAL, and connect attributes. multi_statements is
+// refused at connect: the layer runs several statements through
+// execute_script, which turns the client's mode on for that call alone.
 struct mysql_connect_config
 {
     connection_config base;
     mysql_client_flag client_flags;
     std::string       unix_socket;
-    std::string       default_charset;
+    std::string       default_charset;   // "utf8mb4"
     std::string       init_command;
     bool              use_compression;
     bool              use_local_infile;
-    bool              multi_statements;
+    bool              multi_statements;  // refused: execute_script instead
 
     std::map<std::string, std::string> connect_attributes;
 
@@ -173,16 +163,18 @@ struct mysql_connect_config
           use_compression(false),
           use_local_infile(false),
           multi_statements(false)
-    {};
+    {}
 
-    explicit mysql_connect_config(const connection_config& _base)
+    explicit mysql_connect_config(
+        const connection_config& _base
+    )
         : base(_base),
           client_flags(mysql_client_flag::none),
           default_charset("utf8mb4"),
           use_compression(false),
           use_local_infile(false),
           multi_statements(false)
-    {};
+    {}
 };
 
 
@@ -190,415 +182,1560 @@ struct mysql_connect_config
 // III. MYSQL-FAMILY COMMON CONNECTION TEMPLATE
 // ===========================================================================
 
+// mariadb_layer
+//   struct: the MariaDB layer, which serves MariaDB and MySQL through either
+// client, as database_statement.hpp's templates take a layer. A result
+// means the connection was lost when it is the client's 2006 (gone away),
+// 2013 (lost) or 2055 (lost, with a system error), MySQL's 4031 (dropped
+// for inactivity), MariaDB's 1927 (killed) or either server's 1053 (shutting
+// down). A point in time is bound as its UTC date and time alone, which
+// neither server reads an offset in before MySQL 8.0.19.
+struct mariadb_layer
+{
+    using statement_face = face::mariadb_statement;
+    using handle_type    = struct ::d_mariadb*;
+
+    static constexpr const char* utc_offset = "";
+
+    static constexpr bool
+    connection_lost(
+        int _result
+    ) noexcept
+    {
+        return ( (_result == 2006) ||
+                 (_result == 2013) ||
+                 (_result == 2055) ||
+                 (_result == 4031) ||
+                 (_result == 1927) ||
+                 (_result == 1053) );
+    }
+
+    /**
+     * @brief Describes a failed call of the MariaDB layer, as raise does.
+     *
+     * @note The connection's message describes its latest failure only
+     *       until the next call on it, which is why an operation that must
+     *       call again before it throws -- change_user's ping -- describes
+     *       the failure first.
+     *
+     * @param[in] _db         the connection the call ran on; may be `NULL`.
+     * @param[in] _operation  the operation's name.
+     * @param[in] _result     the call's result.
+     * @return the server's name, the operation, the connection's message --
+     *         the result's own, for a result of the layer's -- the result,
+     *         and an SQLSTATE that says more than the number.
+     * @throws std::bad_alloc when memory runs out.
+     */
+    static std::string describe(handle_type _db,
+                                const char* _operation,
+                                int         _result);
+
+    /**
+     * @brief Throws the exception for a failure already described.
+     *
+     * @param[in] _kind     which exception to throw, unless `_result` means
+     *                      the connection was lost.
+     * @param[in] _message  the failure, as describe gives it.
+     * @param[in] _result   the call's result.
+     * @throws connection_exception for a lost connection, otherwise as
+     *         `_kind` says, with `_message` and `_result` as its error_code().
+     */
+    [[noreturn]] static void raise_as(failure_kind       _kind,
+                                      const std::string& _message,
+                                      int                _result);
+
+    /**
+     * @brief Throws the exception for a failed call of the MariaDB layer.
+     *
+     * @param[in] _db         the connection the call ran on; may be `NULL`.
+     * @param[in] _kind       which exception to throw, unless `_result`
+     *                        means the connection was lost.
+     * @param[in] _operation  the operation's name, for the message.
+     * @param[in] _result     the call's result.
+     * @throws connection_exception for a lost connection, otherwise as
+     *         `_kind` says, with `_result` as its error_code() and, for a
+     *         client or server error, the connection's message and SQLSTATE.
+     */
+    [[noreturn]] static void raise(handle_type  _db,
+                                   failure_kind _kind,
+                                   const char*  _operation,
+                                   int          _result);
+};
+
+// prepared_statement<mariadb_layer>
+//   class: MariaDB's and MySQL's prepared statements, instantiated once, in
+// mysql_common.cpp.
+extern template class prepared_statement<mariadb_layer>;
+
+// internal::mariadb_settings
+//   class: the layer's client settings for one connect, with the text they
+// point to kept alive beside them, in a std::deque whose elements never
+// move. Not copyable.
+NS_INTERNAL
+
+    class mariadb_settings
+    {
+    public:
+        mariadb_settings() = default;
+
+        mariadb_settings(const mariadb_settings&)            = delete;
+        mariadb_settings& operator=(const mariadb_settings&) = delete;
+
+        // adding -- a number, a text, a connect attribute, or a native
+        // option; each throws std::bad_alloc when memory runs out
+        void
+        add_number(
+            enum d_mariadb_setting_name _name,
+            unsigned long               _number
+        )
+        {
+            m_settings.push_back(
+                d_mariadb_setting{ _name, _number, nullptr, nullptr });
+
+            return;
+        }
+
+        void
+        add_text(
+            enum d_mariadb_setting_name _name,
+            const std::string&          _text
+        )
+        {
+            internal::refuse_nul_setting(_text, "connect", "a setting");
+            m_texts.push_back(_text);
+            m_settings.push_back(
+                d_mariadb_setting{ _name, 0ul, m_texts.back().c_str(),
+                                   nullptr });
+
+            return;
+        }
+
+        void
+        add_attribute(
+            const std::string& _name,
+            const std::string& _value
+        )
+        {
+            internal::refuse_nul_setting(_name,
+                                         "connect",
+                                         "a connect attribute's name");
+            internal::refuse_nul_setting(_value, "connect", _name.c_str());
+            m_texts.push_back(_name);
+
+            const char* const name = m_texts.back().c_str();
+
+            m_texts.push_back(_value);
+            m_settings.push_back(
+                d_mariadb_setting{ D_MARIADB_SETTING_CONNECT_ATTRIBUTE, 0ul,
+                                   name, m_texts.back().c_str() });
+
+            return;
+        }
+
+        void
+        add_native(
+            int         _option,
+            const void* _value
+        )
+        {
+            m_settings.push_back(
+                d_mariadb_setting{ D_MARIADB_SETTING_NATIVE,
+                                   static_cast<unsigned long>(_option),
+                                   nullptr,
+                                   _value });
+
+            return;
+        }
+
+        // reading -- whether a setting of a name is there, and the array
+        bool
+        has(
+            enum d_mariadb_setting_name _name
+        ) const noexcept
+        {
+            // any setting of the name
+            for (const d_mariadb_setting& setting : m_settings)
+            {
+                if (setting.name == _name)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        const d_mariadb_setting*
+        data() const noexcept
+        {
+            return m_settings.data();
+        }
+
+        std::size_t
+        size() const noexcept
+        {
+            return m_settings.size();
+        }
+
+    private:
+        std::vector<d_mariadb_setting> m_settings;
+        std::deque<std::string>        m_texts;
+    };
+
+NS_END  // internal
+
 // mysql_common_connection
-//   class template: shared CRTP base for MySQL-family connections.
-// Provides the MySQL-specific interface methods shared by both Oracle
-// MySQL and MariaDB. Concrete vendor implementations derive from this
-// template.
-//
-// Template parameters:
-//   _helper:   the concrete CRTP implementation class
-//   DbType: database_type::mysql or database_type::mariadb
-template<typename      _helper,
+//   class template: the connection MariaDB and MySQL share, over the MariaDB
+// layer's face, which it holds and which closes the connection when it
+// goes. Derived is mariadb_connection or mysql_connection, DbType its
+// database_type; each adds its own settings and session set-up through two
+// hooks, add_settings_helper(internal::mariadb_settings&), which may also
+// refuse what the layer cannot apply, and on_connected_helper(face::mariadb&),
+// run on the new connection before the object takes it.
+//   Connecting applies connection_config and mysql_connect_config: where and
+// as whom; the timeouts, in seconds rounded up, 0 leaving the client's; TLS,
+// REQUIRED with enable_ssl, VERIFY_IDENTITY with verify_ssl too; the files;
+// compression; LOAD DATA LOCAL; an init command; connect attributes; client
+// flags beyond those the other settings stand for; native options
+// (set_option); and, once connected, a character set other than the
+// layer's. max_packet_size is left to the client. Parameters are written
+// `?`. Each statement reads every result it produces, so next_result has no
+// result left to read. Not copyable; movable.
+template<typename      Derived,
          database_type DbType>
 class mysql_common_connection
-    : public database_connection<_helper, DbType>
+    : public database_connection<Derived, DbType>
 {
 public:
-    using base_type     = database_connection<_helper, DbType>;
-    using traits_type   = typename base_type::traits_type;
-
-    mysql_common_connection()
-        : base_type()
-    {};
-
-    explicit mysql_common_connection(const connection_config& _config)
-        : base_type(_config)
-    {};
-
-    explicit mysql_common_connection(const mysql_connect_config& _config)
-        : base_type(_config.base)
-        , m_mysql_config(_config)
-    {};
-
-    ~mysql_common_connection() = default;
-
-    // disable copying
-    mysql_common_connection(const mysql_common_connection&)            = delete;
-    mysql_common_connection& operator=(const mysql_common_connection&) = delete;
-
-    // enable moving
-    mysql_common_connection(mysql_common_connection&&) noexcept            = default;
-    mysql_common_connection& operator=(mysql_common_connection&&) noexcept = default;
+    using base_type      = database_connection<Derived, DbType>;
+    using traits_type    = typename base_type::traits_type;
+    using layer_type     = mariadb_layer;
+    using statement_type = prepared_statement<mariadb_layer>;
 
     // -----------------------------------------------------------------
     // character set management
     // -----------------------------------------------------------------
 
-    // set_charset
-    //   function: sets the connection character set.
-    // wraps mysql_set_character_set().
-    void set_charset(const std::string& _charset)
-    {
-        this->ensure_connected();
-
-        try
-        {
-            self().set_charset_helper(_charset);
-        }
-        catch (const std::exception& _e)
-        {
-            this->capture_error(-1, _e.what());
-
-            throw connection_exception(_e.what());
-        }
-    }
-
-    // get_charset
-    //   function: returns the current connection character set name.
-    std::string get_charset() const
-    {
-        return self().get_charset_helper();
-    }
+    // character set -- the session's, as the client sets it, so that
+    // escaping follows it; set keeps it for the next connect too
+    void        set_charset(const std::string& _charset);
+    std::string get_charset() const;
 
     // -----------------------------------------------------------------
-    // multi-result set iteration
+    // multi-result sets and scripts
     // -----------------------------------------------------------------
 
-    // next_result
-    //   function: advances to the next result set from a multi-
-    // statement query or stored procedure call. Returns 0 on
-    // success, >0 on error, -1 when no more results.
-    int next_result()
-    {
-        this->ensure_connected();
+    // results -- every statement reads all the results it produces, so
+    // next_result answers -1, no more, and more_results false
+    int  next_result();
+    bool more_results() const;
 
-        return self().next_result_helper();
-    }
-
-    // more_results
-    //   function: tests whether additional result sets remain.
-    bool more_results() const
-    {
-        return self().more_results_helper();
-    }
+    // execute_script -- several statements, separated by semicolons, the
+    // client's multi-statement mode on for that call alone
+    void execute_script(const std::string& _sql);
 
     // -----------------------------------------------------------------
     // string escaping
     // -----------------------------------------------------------------
 
-    // escape_string
-    //   function: escapes a string for safe inclusion in SQL using
-    // the connection's current character set.
-    // wraps mysql_real_escape_string().
-    std::string escape_string(const std::string& _input) const
-    {
-        return self().escape_string_helper(_input);
-    }
+    /**
+     * @brief Escapes text for a string literal, as the connection's
+     *        character set and SQL mode require (mysql_real_escape_string),
+     *        without the quotes around it.
+     *
+     * @param[in] _input  the text.
+     * @return the escaped text.
+     * @throws query_exception with D_DB_INVALID_ARGUMENT for text that holds
+     *         a NUL, and with the client's number when it refuses; as every
+     *         operation when the connection is not open.
+     */
+    std::string escape_string(const std::string& _input) const;
 
     // -----------------------------------------------------------------
-    // database selection
+    // database selection and users
     // -----------------------------------------------------------------
 
-    // select_db
-    //   function: switches the active database on this connection.
-    // wraps mysql_select_db().
-    void select_db(const std::string& _database)
-    {
-        this->ensure_connected();
+    // use_database -- the connection's current database, which the
+    // configuration then names
+    void use_database(const std::string& _database);
 
-        try
-        {
-            self().select_db_helper(_database);
-
-            // update config to reflect the new database
-            this->m_config.database = _database;
-        }
-        catch (const std::exception& _e)
-        {
-            this->capture_error(-1, _e.what());
-
-            throw connection_exception(_e.what());
-        }
-    }
-
-    // -----------------------------------------------------------------
-    // user switching
-    // -----------------------------------------------------------------
-
-    // change_user
-    //   function: changes the authenticated user on an established
-    // connection. wraps mysql_change_user().
+    /**
+     * @brief Changes the user the connection is authenticated as.
+     *
+     * @note MariaDB keeps the connection when the server refuses the user;
+     *       MySQL closes it, which is then lost.
+     *
+     * @param[in] _user      the user.
+     * @param[in] _password  the password.
+     * @param[in] _database  the current database to take; "" for none.
+     * @throws connection_exception when the refusal closed the connection;
+     *         query_exception, with the client's number, when it did not.
+     */
     void change_user(const std::string& _user,
                      const std::string& _password,
-                     const std::string& _database)
-    {
-        this->ensure_connected();
-
-        try
-        {
-            self().change_user_helper(_user, _password, _database);
-
-            // update config to reflect the new credentials
-            this->m_config.username = _user;
-            this->m_config.password = _password;
-
-            if (!_database.empty())
-            {
-                this->m_config.database = _database;
-            }
-        }
-        catch (const std::exception& _e)
-        {
-            this->capture_error(-1, _e.what());
-
-            throw connection_exception(_e.what());
-        }
-    }
+                     const std::string& _database);
 
     // -----------------------------------------------------------------
-    // server diagnostics
+    // server diagnostics and settings
     // -----------------------------------------------------------------
 
-    // get_stat
-    //   function: returns the server status string.
-    // wraps mysql_stat().
-    std::string get_stat() const
-    {
-        return self().get_stat_helper();
-    }
+    // diagnostics -- the server's summary of itself (mysql_stat), which
+    // throws as every operation; the connection's id on the server, the
+    // latest statement's warning count and SQLSTATE, as the client keeps
+    // them, 0 and "" when closed
+    std::string   get_stat() const;
+    unsigned long get_thread_id() const noexcept;
+    unsigned int  get_warning_count() const noexcept;
+    std::string   get_sqlstate() const;
 
-    // get_thread_id
-    //   function: returns this connection's thread identifier on
-    // the server.
-    unsigned long get_thread_id() const
-    {
-        return self().get_thread_id_helper();
-    }
+    // engine -- the session's default storage engine
+    std::string get_engine() const;
+    void        set_engine(const std::string& _engine);
 
-    // get_warning_count
-    //   function: returns the number of warnings generated by the
-    // most recent statement.
-    unsigned int get_warning_count() const
-    {
-        return self().get_warning_count_helper();
-    }
-
-    // get_sqlstate
-    //   function: returns the SQLSTATE error code for the most
-    // recent statement.
-    std::string get_sqlstate() const
-    {
-        return self().get_sqlstate_helper();
-    }
+    // set_autocommit -- set_auto_commit's MySQL spelling
+    void set_autocommit(bool _enabled);
 
     // -----------------------------------------------------------------
-    // auto-commit
+    // options, flags and attributes, for the next connect
     // -----------------------------------------------------------------
 
-    // set_autocommit
-    //   function: enables or disables auto-commit mode.
-    // wraps mysql_autocommit().
-    void set_autocommit(bool _enabled)
-    {
-        this->ensure_connected();
+    // set_option -- a mysql_options option and its argument, applied as
+    // given at each connect from now on; the argument must outlive them
+    void set_option(int         _option,
+                    const void* _value);
 
-        try
-        {
-            self().set_autocommit_helper(_enabled);
-            this->m_auto_commit = _enabled;
-        }
-        catch (const std::exception& _e)
-        {
-            this->capture_error(-1, _e.what());
+    // client flags -- CLIENT_* bits the next connect asks for
+    mysql_client_flag get_client_flags() const noexcept;
+    void              set_client_flags(mysql_client_flag _flags) noexcept;
+    void              add_client_flag(mysql_client_flag _flag) noexcept;
+    bool              has_client_flag(mysql_client_flag _flag) const noexcept;
 
-            throw connection_exception(_e.what());
-        }
-    }
-
-    // -----------------------------------------------------------------
-    // MySQL-specific options
-    // -----------------------------------------------------------------
-
-    // set_option
-    //   function: sets a MySQL connection option. Should be called
-    // before connect(). wraps mysql_options().
-    void set_option(int _option, const void* _value)
-    {
-        self().set_option_helper(_option, _value);
-    }
-
-    // -----------------------------------------------------------------
-    // client flag helpers
-    // -----------------------------------------------------------------
-
-    // get_client_flags
-    //   function: returns the configured client flags.
-    mysql_client_flag get_client_flags() const noexcept
-    {
-        return m_mysql_config.client_flags;
-    }
-
-    // set_client_flags
-    //   function: replaces the client flags. Must be called before
-    // connect().
-    void set_client_flags(mysql_client_flag _flags) noexcept
-    {
-        m_mysql_config.client_flags = _flags;
-    }
-
-    // add_client_flag
-    //   function: adds a client flag to the current set. Must be
-    // called before connect().
-    void add_client_flag(mysql_client_flag _flag) noexcept
-    {
-        m_mysql_config.client_flags |= _flag;
-    }
-
-    // has_client_flag
-    //   function: tests whether a specific client flag is set.
-    bool has_client_flag(mysql_client_flag _flag) const noexcept
-    {
-        return static_cast<unsigned long>(
-            m_mysql_config.client_flags & _flag) != 0;
-    }
-
-    // -----------------------------------------------------------------
-    // connect attributes
-    // -----------------------------------------------------------------
-
-    // set_connect_attribute
-    //   function: sets a key-value connect attribute. Must be called
-    // before connect().
+    // connect attributes -- name and value, which performance_schema shows
     void set_connect_attribute(const std::string& _key,
-                               const std::string& _value)
-    {
-        m_mysql_config.connect_attributes[_key] = _value;
-    }
-
-    // get_connect_attributes
-    //   function: returns the current connect attribute map.
+                               const std::string& _value);
     const std::map<std::string, std::string>&
-    get_connect_attributes() const noexcept
-    {
-        return m_mysql_config.connect_attributes;
-    }
+         get_connect_attributes() const noexcept;
+
+    // configuration -- the family's settings; setting them replaces the
+    // generic configuration with theirs, for the next connect
+    const mysql_connect_config& get_mysql_config() const noexcept;
+    void                        set_mysql_config(
+                                    const mysql_connect_config& _config);
 
     // -----------------------------------------------------------------
-    // MySQL-specific configuration access
+    // schema introspection
     // -----------------------------------------------------------------
 
-    // get_mysql_config
-    //   function: returns the MySQL-specific connection configuration.
-    const mysql_connect_config&
-    get_mysql_config() const noexcept
-    {
-        return m_mysql_config;
-    }
-
-    // set_mysql_config
-    //   function: replaces the MySQL-specific connection
-    // configuration. Must be called before connect().
-    void set_mysql_config(
-        const mysql_connect_config& _config
-    )
-    {
-        m_mysql_config = _config;
-        this->m_config = _config.base;
-    }
+    // schema -- whether a table of the current database exists, which
+    // throws when it cannot tell; and its tables' names, sorted by bytes
+    bool                     has_table(const std::string& _table_name) const;
+    std::vector<std::string> list_tables() const;
 
     // -----------------------------------------------------------------
     // compile-time vendor queries
     // -----------------------------------------------------------------
 
-    // is_mysql_family
-    //   function: returns true (this is always a MySQL-family
-    // connection).
-    static constexpr bool is_mysql_family() noexcept
+    static constexpr bool
+    is_mysql_family() noexcept
     {
         return true;
     }
 
-    // is_mariadb
-    //   function: returns true if this connection targets MariaDB.
-    static constexpr bool is_mariadb() noexcept
+    static constexpr bool
+    is_mariadb() noexcept
     {
         return (DbType == database_type::mariadb);
     }
 
-    // is_oracle_mysql
-    //   function: returns true if this connection targets Oracle
-    // MySQL.
-    static constexpr bool is_oracle_mysql() noexcept
+    static constexpr bool
+    is_oracle_mysql() noexcept
     {
         return (DbType == database_type::mysql);
     }
 
+    // get_face -- the MariaDB layer's face, for the layer's other calls;
+    // closing or replacing the connection through it is the connection's to
+    // do, not the face's
+    face::mariadb&       get_face() noexcept;
+    const face::mariadb& get_face() const noexcept;
+
+    // -----------------------------------------------------------------
+    // hooks: database_connection calls these, programs the operations
+    // they implement
+    // -----------------------------------------------------------------
+
+    void            connect_helper();
+    void            disconnect_helper() noexcept;
+    bool            is_connected_helper() const noexcept;
+    bool            ping_helper() const noexcept;
+    face::rows      execute_query_helper(const std::string& _query);
+    re_std::int64_t execute_update_helper(const std::string& _query);
+    face::mariadb_statement
+                    prepare_helper(const std::string& _query);
+    std::string     get_server_version_helper() const;
+    re_std::int64_t get_last_insert_id_helper() const noexcept;
+    void            begin_transaction_helper();
+    void            begin_transaction_helper(isolation_level _isolation);
+    void            commit_helper();
+    void            rollback_helper();
+    bool            in_transaction_helper() const noexcept;
+    isolation_level get_isolation_level_helper() const;
+    void            set_isolation_level_helper(isolation_level _level);
+    void            create_savepoint_helper(const std::string& _name);
+    void            release_savepoint_helper(const std::string& _name);
+    void            rollback_to_savepoint_helper(const std::string& _name);
+    void            set_auto_commit_helper(bool _enabled);
+    bool            get_auto_commit_helper() const;
+    struct ::d_mariadb*
+                    native_handle_helper() const noexcept;
+
 protected:
+    mysql_common_connection();
+    explicit mysql_common_connection(const connection_config& _config);
+    explicit mysql_common_connection(const mysql_connect_config& _config);
+
+    /**
+     * @brief Closes the connection, its prepared statements first.
+     */
+    ~mysql_common_connection();
+
+    mysql_common_connection(const mysql_common_connection&)            = delete;
+    mysql_common_connection& operator=(const mysql_common_connection&) = delete;
+
+    mysql_common_connection(mysql_common_connection&&) noexcept = default;
+    mysql_common_connection&
+    operator=(mysql_common_connection&&) noexcept = default;
+
+    // m_check -- nothing for 0; otherwise what the layer raises
+    void m_check(int          _result,
+                 failure_kind _kind,
+                 const char*  _operation) const;
+
     mysql_connect_config m_mysql_config;
 
-    // build_client_flags
-    //   function: assembles the final CLIENT_* flags from the
-    // configuration. Called by vendor connect_helper() before
-    // mysql_real_connect().
-    unsigned long build_client_flags() const noexcept
-    {
-        unsigned long flags =
-            static_cast<unsigned long>(m_mysql_config.client_flags);
-
-        if (m_mysql_config.use_compression)
-        {
-            flags |= static_cast<unsigned long>(
-                mysql_client_flag::compress);
-        }
-
-        if (m_mysql_config.multi_statements)
-        {
-            flags |= static_cast<unsigned long>(
-                mysql_client_flag::multi_statements);
-            flags |= static_cast<unsigned long>(
-                mysql_client_flag::multi_results);
-        }
-
-        if (this->m_config.enable_ssl)
-        {
-            flags |= static_cast<unsigned long>(
-                mysql_client_flag::ssl);
-        }
-
-        if (!this->m_config.database.empty())
-        {
-            flags |= static_cast<unsigned long>(
-                mysql_client_flag::connect_with_db);
-        }
-
-        return flags;
-    }
-
-    // get_unix_socket_ptr
-    //   function: returns the unix socket path as a C string, or
-    // nullptr if not configured. Used by vendor connect_helper().
-    const char* get_unix_socket_ptr() const noexcept
-    {
-        if (m_mysql_config.unix_socket.empty())
-        {
-            return nullptr;
-        }
-
-        return m_mysql_config.unix_socket.c_str();
-    }
-
 private:
-    _helper& self()
+    // m_derived -- the leaf, for its two hooks
+    Derived& m_derived() noexcept;
+
+    face::mariadb                            m_db;
+    std::vector<std::pair<int, const void*>> m_native_options;
+};
+
+
+// ===========================================================================
+// III.b MYSQL-FAMILY COMMON CONNECTION DEFINITIONS
+// ===========================================================================
+// mysql_common_connection's members, which each leaf's source instantiates
+// explicitly for its leaf, and its header declares that instantiation
+// extern.
+
+NS_INTERNAL
+
+    // mysql_isolation_to_layer, mysql_isolation_from_layer
+    //   function: isolation_level and the layer's levels, both ways; the
+    // default level is the layer's default, repeatable read.
+    inline enum d_mariadb_isolation
+    mysql_isolation_to_layer(
+        isolation_level _level
+    ) noexcept
     {
-        return static_cast<_helper&>(*this);
+        // the four the standard names
+        switch (_level)
+        {
+            case isolation_level::read_uncommitted:
+                return D_MARIADB_ISOLATION_READ_UNCOMMITTED;
+
+            case isolation_level::read_committed:
+                return D_MARIADB_ISOLATION_READ_COMMITTED;
+
+            case isolation_level::serializable:
+                return D_MARIADB_ISOLATION_SERIALIZABLE;
+
+            case isolation_level::repeatable_read:
+            case isolation_level::default_level:
+            default:
+                return D_MARIADB_ISOLATION_REPEATABLE_READ;
+        }
     }
 
-    const _helper& self() const
+    inline isolation_level
+    mysql_isolation_from_layer(
+        enum d_mariadb_isolation _level
+    ) noexcept
     {
-        return static_cast<const _helper&>(*this);
+        // the four the servers have
+        switch (_level)
+        {
+            case D_MARIADB_ISOLATION_READ_UNCOMMITTED:
+                return isolation_level::read_uncommitted;
+
+            case D_MARIADB_ISOLATION_READ_COMMITTED:
+                return isolation_level::read_committed;
+
+            case D_MARIADB_ISOLATION_SERIALIZABLE:
+                return isolation_level::serializable;
+
+            case D_MARIADB_ISOLATION_REPEATABLE_READ:
+            default:
+                return isolation_level::repeatable_read;
+        }
     }
-};
+
+    // mysql_seconds
+    //   function: a timeout in whole seconds, rounded up, as the client
+    // takes one.
+    inline unsigned long
+    mysql_seconds(
+        std::chrono::milliseconds _timeout
+    ) noexcept
+    {
+        return static_cast<unsigned long>(
+            (_timeout.count() + 999) / 1000);
+    }
+
+    // mysql_or_null
+    //   function: a string the client reads as a C string, NULL for empty,
+    // which it reads as its default.
+    inline const char*
+    mysql_or_null(
+        const std::string& _text
+    ) noexcept
+    {
+        return (_text.empty()) ? nullptr
+                               : _text.c_str();
+    }
+
+NS_END  // internal
+
+template<typename      Derived,
+         database_type DbType>
+mysql_common_connection<Derived, DbType>::mysql_common_connection()
+    : base_type(),
+      m_mysql_config(),
+      m_db(),
+      m_native_options()
+{
+    m_mysql_config.base = this->m_config;
+}
+
+template<typename      Derived,
+         database_type DbType>
+mysql_common_connection<Derived, DbType>::mysql_common_connection(
+    const connection_config& _config
+)
+    : base_type(_config),
+      m_mysql_config(_config),
+      m_db(),
+      m_native_options()
+{
+    m_mysql_config.base = this->m_config;
+}
+
+template<typename      Derived,
+         database_type DbType>
+mysql_common_connection<Derived, DbType>::mysql_common_connection(
+    const mysql_connect_config& _config
+)
+    : base_type(_config.base),
+      m_mysql_config(_config),
+      m_db(),
+      m_native_options()
+{
+    m_mysql_config.base = this->m_config;
+}
+
+/*
+mysql_common_connection::~mysql_common_connection
+  This class holds the face, so it closes the session: by the time the base's
+destructor runs, the face is gone, and the leaf's is gone already, so no
+hook is called.
+*/
+template<typename      Derived,
+         database_type DbType>
+mysql_common_connection<Derived, DbType>::~mysql_common_connection()
+{
+    this->close_session_noexcept();
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::set_charset(
+    const std::string& _charset
+)
+{
+    this->run_guarded(
+        [this, &_charset]() -> void
+        {
+            internal::refuse_nul(_charset, "set_charset", "the name");
+            m_check(m_db.set_charset(_charset),
+                    failure_kind::query,
+                    "set_charset");
+
+            return;
+        });
+
+    m_mysql_config.default_charset = _charset;
+    this->m_config.charset         = _charset;
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::string
+mysql_common_connection<Derived, DbType>::get_charset() const
+{
+    return this->ask_guarded(
+        [this]() -> std::string
+        {
+            std::string charset;
+
+            m_check(m_db.get_charset(charset),
+                    failure_kind::query,
+                    "get_charset");
+
+            return charset;
+        });
+}
+
+template<typename      Derived,
+         database_type DbType>
+int
+mysql_common_connection<Derived, DbType>::next_result()
+{
+    this->ensure_connected();
+
+    return -1;
+}
+
+template<typename      Derived,
+         database_type DbType>
+bool
+mysql_common_connection<Derived, DbType>::more_results() const
+{
+    return false;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::execute_script(
+    const std::string& _sql
+)
+{
+    this->run_guarded(
+        [this, &_sql]() -> void
+        {
+            internal::refuse_nul(_sql, "execute_script", "the SQL");
+            m_check(m_db.exec_script(_sql),
+                    failure_kind::query,
+                    "execute_script");
+
+            return;
+        });
+
+    return;
+}
+
+/*
+mysql_common_connection::escape_string
+  The client quotes a literal whole; the quotes it adds are taken off, so
+that the text goes between a caller's own.
+*/
+template<typename      Derived,
+         database_type DbType>
+std::string
+mysql_common_connection<Derived, DbType>::escape_string(
+    const std::string& _input
+) const
+{
+    // the layer takes a C string, which a NUL would end
+    if (_input.find('\0') != std::string::npos)
+    {
+        throw query_exception(std::string(traits_type::display_name) +
+                              " escape_string: the text holds a NUL "
+                              "character",
+                              D_DB_INVALID_ARGUMENT);
+    }
+
+    return this->ask_guarded(
+        [this, &_input]() -> std::string
+        {
+            face::text quoted;
+
+            m_db.quote_literal(_input, quoted);
+
+            const std::size_t length = (quoted.is_null())
+                                           ? 0u
+                                           : std::strlen(quoted.c_str());
+
+            // the client refused, for memory or for the text
+            if (length < 2u)
+            {
+                m_check(D_DB_INVALID_ARGUMENT,
+                        failure_kind::query,
+                        "escape_string");
+            }
+
+            // the literal without its quotes
+            return std::string(quoted.c_str() + 1, length - 2u);
+        });
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::use_database(
+    const std::string& _database
+)
+{
+    this->run_guarded(
+        [this, &_database]() -> void
+        {
+            internal::refuse_nul(_database, "use_database", "the name");
+            m_check(m_db.use_database(_database),
+                    failure_kind::query,
+                    "use_database");
+
+            return;
+        });
+
+    this->m_config.database = _database;
+
+    return;
+}
+
+/*
+mysql_common_connection::change_user
+  MySQL closes the connection when it refuses the new user, MariaDB does not;
+a ping after a refusal tells which happened, so that a closed connection is
+reported as lost rather than left looking open. The refusal is described
+before the ping, whose success would leave the client no words for it.
+*/
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::change_user(
+    const std::string& _user,
+    const std::string& _password,
+    const std::string& _database
+)
+{
+    this->run_guarded(
+        [this, &_user, &_password, &_database]() -> void
+        {
+            internal::refuse_nul(_user, "change_user", "the user");
+            internal::refuse_nul(_password, "change_user", "the password");
+            internal::refuse_nul(_database, "change_user", "the database");
+
+            const int result = m_db.change_user(
+                _user,
+                _password,
+                internal::mysql_or_null(_database));
+
+            // a refusal, which closed the connection when the ping fails
+            if (result != 0)
+            {
+                const std::string message =
+                    mariadb_layer::describe(m_db.handle(),
+                                            "change_user",
+                                            result);
+
+                mariadb_layer::raise_as((m_db.ping() != 0)
+                                            ? failure_kind::connection
+                                            : failure_kind::query,
+                                        message,
+                                        result);
+            }
+
+            return;
+        });
+
+    this->m_config.username = _user;
+    this->m_config.password = _password;
+
+    // a database named, or none
+    if (!_database.empty())
+    {
+        this->m_config.database = _database;
+    }
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::string
+mysql_common_connection<Derived, DbType>::get_stat() const
+{
+    return this->ask_guarded(
+        [this]() -> std::string
+        {
+            std::string status;
+
+            m_check(m_db.server_status(status),
+                    failure_kind::query,
+                    "get_stat");
+
+            return status;
+        });
+}
+
+template<typename      Derived,
+         database_type DbType>
+unsigned long
+mysql_common_connection<Derived, DbType>::get_thread_id() const noexcept
+{
+    return m_db.connection_id();
+}
+
+template<typename      Derived,
+         database_type DbType>
+unsigned int
+mysql_common_connection<Derived, DbType>::get_warning_count() const noexcept
+{
+    return m_db.warning_count();
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::string
+mysql_common_connection<Derived, DbType>::get_sqlstate() const
+{
+    const char* const state = m_db.sqlstate();
+
+    return (state) ? state
+                   : "";
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::string
+mysql_common_connection<Derived, DbType>::get_engine() const
+{
+    return this->ask_guarded(
+        [this]() -> std::string
+        {
+            std::string engine;
+
+            m_check(m_db.get_variable("default_storage_engine", engine),
+                    failure_kind::query,
+                    "get_engine");
+
+            return engine;
+        });
+}
+
+/*
+mysql_common_connection::set_engine
+  The layer takes a variable's value as SQL, so the name goes as a quoted
+literal, which both servers read for an engine, and which nothing in it can
+break out of.
+*/
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::set_engine(
+    const std::string& _engine
+)
+{
+    // the layer takes a C string, which a NUL would end
+    if (_engine.find('\0') != std::string::npos)
+    {
+        throw query_exception(std::string(traits_type::display_name) +
+                              " set_engine: the name holds a NUL character",
+                              D_DB_INVALID_ARGUMENT);
+    }
+
+    this->run_guarded(
+        [this, &_engine]() -> void
+        {
+            face::text quoted;
+
+            m_db.quote_literal(_engine, quoted);
+
+            // the client refused, for memory or for the text
+            if (quoted.is_null())
+            {
+                m_check(D_DB_INVALID_ARGUMENT,
+                        failure_kind::query,
+                        "set_engine");
+            }
+
+            m_check(m_db.set_variable("default_storage_engine",
+                                      quoted.c_str()),
+                    failure_kind::query,
+                    "set_engine");
+
+            return;
+        });
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::set_autocommit(
+    bool _enabled
+)
+{
+    this->set_auto_commit(_enabled);
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::set_option(
+    int         _option,
+    const void* _value
+)
+{
+    m_native_options.emplace_back(_option, _value);
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+mysql_client_flag
+mysql_common_connection<Derived, DbType>::get_client_flags() const noexcept
+{
+    return m_mysql_config.client_flags;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::set_client_flags(
+    mysql_client_flag _flags
+) noexcept
+{
+    m_mysql_config.client_flags = _flags;
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::add_client_flag(
+    mysql_client_flag _flag
+) noexcept
+{
+    m_mysql_config.client_flags |= _flag;
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+bool
+mysql_common_connection<Derived, DbType>::has_client_flag(
+    mysql_client_flag _flag
+) const noexcept
+{
+    return (static_cast<unsigned long>(m_mysql_config.client_flags & _flag) !=
+            0ul);
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::set_connect_attribute(
+    const std::string& _key,
+    const std::string& _value
+)
+{
+    m_mysql_config.connect_attributes[_key] = _value;
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+const std::map<std::string, std::string>&
+mysql_common_connection<Derived, DbType>::get_connect_attributes()
+    const noexcept
+{
+    return m_mysql_config.connect_attributes;
+}
+
+template<typename      Derived,
+         database_type DbType>
+const mysql_connect_config&
+mysql_common_connection<Derived, DbType>::get_mysql_config() const noexcept
+{
+    return m_mysql_config;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::set_mysql_config(
+    const mysql_connect_config& _config
+)
+{
+    m_mysql_config = _config;
+    this->m_config = _config.base;
+
+    // the vendor's port where the configuration names none
+    if (this->m_config.port == 0u)
+    {
+        this->m_config.port = traits_type::default_port;
+    }
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+bool
+mysql_common_connection<Derived, DbType>::has_table(
+    const std::string& _table_name
+) const
+{
+    return this->ask_guarded(
+        [this, &_table_name]() -> bool
+        {
+            bool exists = false;
+
+            internal::refuse_nul(_table_name, "has_table", "the name");
+            m_check(m_db.has_table_s(face::string_arg(), _table_name, exists),
+                    failure_kind::query,
+                    "has_table");
+
+            return exists;
+        });
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::vector<std::string>
+mysql_common_connection<Derived, DbType>::list_tables() const
+{
+    return this->ask_guarded(
+        [this]() -> std::vector<std::string>
+        {
+            std::vector<std::string> names;
+
+            m_check(m_db.list_tables(face::string_arg(), names),
+                    failure_kind::query,
+                    "list_tables");
+
+            return names;
+        });
+}
+
+template<typename      Derived,
+         database_type DbType>
+face::mariadb&
+mysql_common_connection<Derived, DbType>::get_face() noexcept
+{
+    return m_db;
+}
+
+template<typename      Derived,
+         database_type DbType>
+const face::mariadb&
+mysql_common_connection<Derived, DbType>::get_face() const noexcept
+{
+    return m_db;
+}
+
+/*
+mysql_common_connection::connect_helper
+  The leaf's settings go first, so that a TLS mode of its own stands in for
+enable_ssl's; the connection opens into a face of its own, is set up there --
+the character set, the leaf's session settings -- and only then does the
+object take it, so that a failure at any step leaves the old state and the
+new connection closed. A failed connect is described by the client's own
+words, which the layer copies before it closes what failed.
+*/
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::connect_helper()
+{
+    const connection_config&   config = this->m_config;
+    internal::mariadb_settings settings;
+    const unsigned long        handled =
+        static_cast<unsigned long>(mysql_client_flag::compress        |
+                                   mysql_client_flag::ssl             |
+                                   mysql_client_flag::connect_with_db |
+                                   mysql_client_flag::local_files     |
+                                   mysql_client_flag::multi_results);
+    const unsigned long        flags =
+        static_cast<unsigned long>(m_mysql_config.client_flags) & ~handled;
+
+    // several statements a call are execute_script's, for that call alone
+    if ( (m_mysql_config.multi_statements) ||
+         ( (flags &
+            static_cast<unsigned long>(mysql_client_flag::multi_statements))
+           != 0ul ) )
+    {
+        throw connection_exception(std::string(traits_type::display_name) +
+                                   " connect: multi_statements is not "
+                                   "supported; execute_script runs several "
+                                   "statements",
+                                   D_DB_UNSUPPORTED);
+    }
+
+    // settings the client has no keyword for; a URI's scheme is none
+    for (const std::pair<const std::string, std::string>& option :
+         config.custom_options)
+    {
+        if (option.first != "scheme")
+        {
+            throw connection_exception(std::string(traits_type::display_name) +
+                                       " connect: the custom option '" +
+                                       option.first + "' is not supported; "
+                                       "set the client's option with "
+                                       "set_option",
+                                       D_DB_UNSUPPORTED);
+        }
+    }
+
+    internal::refuse_nul_setting(m_mysql_config.unix_socket,
+                                 "connect",
+                                 "unix_socket");
+    internal::refuse_nul_setting(m_mysql_config.default_charset,
+                                 "connect",
+                                 "default_charset");
+    m_derived().add_settings_helper(settings);
+
+    // the timeouts the configuration gives
+    if (config.connect_timeout.count() > 0)
+    {
+        settings.add_number(D_MARIADB_SETTING_CONNECT_TIMEOUT,
+                            internal::mysql_seconds(config.connect_timeout));
+    }
+
+    if (config.read_timeout.count() > 0)
+    {
+        settings.add_number(D_MARIADB_SETTING_READ_TIMEOUT,
+                            internal::mysql_seconds(config.read_timeout));
+    }
+
+    if (config.write_timeout.count() > 0)
+    {
+        settings.add_number(D_MARIADB_SETTING_WRITE_TIMEOUT,
+                            internal::mysql_seconds(config.write_timeout));
+    }
+
+    // TLS, where the leaf named no mode of its own, and the files
+    if ( (config.enable_ssl) &&
+         (!settings.has(D_MARIADB_SETTING_SSL_MODE)) )
+    {
+        settings.add_number(
+            D_MARIADB_SETTING_SSL_MODE,
+            static_cast<unsigned long>((config.verify_ssl)
+                                           ? D_MARIADB_SSL_VERIFY_IDENTITY
+                                           : D_MARIADB_SSL_REQUIRED));
+    }
+
+    if (config.ssl_key)
+    {
+        settings.add_text(D_MARIADB_SETTING_SSL_KEY, *config.ssl_key);
+    }
+
+    if (config.ssl_cert)
+    {
+        settings.add_text(D_MARIADB_SETTING_SSL_CERT, *config.ssl_cert);
+    }
+
+    if (config.ssl_ca)
+    {
+        settings.add_text(D_MARIADB_SETTING_SSL_CA, *config.ssl_ca);
+    }
+
+    // the family's own settings
+    if (m_mysql_config.use_compression)
+    {
+        settings.add_number(D_MARIADB_SETTING_COMPRESS, 1ul);
+    }
+
+    if (m_mysql_config.use_local_infile)
+    {
+        settings.add_number(D_MARIADB_SETTING_LOCAL_INFILE, 1ul);
+    }
+
+    if (!m_mysql_config.init_command.empty())
+    {
+        settings.add_text(D_MARIADB_SETTING_INIT_COMMAND,
+                          m_mysql_config.init_command);
+    }
+
+    for (const std::pair<const std::string, std::string>& attribute :
+         m_mysql_config.connect_attributes)
+    {
+        settings.add_attribute(attribute.first, attribute.second);
+    }
+
+    if (flags != 0ul)
+    {
+        settings.add_number(D_MARIADB_SETTING_CLIENT_FLAGS, flags);
+    }
+
+    for (const std::pair<int, const void*>& option : m_native_options)
+    {
+        settings.add_native(option.first, option.second);
+    }
+
+    const struct d_mariadb_options options =
+    {
+        internal::mysql_or_null(config.host),
+        internal::mysql_or_null(config.username),
+        internal::mysql_or_null(config.password),
+        internal::mysql_or_null(config.database),
+        static_cast<unsigned>(config.port),
+        internal::mysql_or_null(m_mysql_config.unix_socket)
+    };
+    face::mariadb opened;
+    face::text    reason;
+    const int     result = opened.connect_with(&options,
+                                               settings.data(),
+                                               settings.size(),
+                                               reason);
+
+    // a failure, in the client's words where it gave some
+    if (result != 0)
+    {
+        throw connection_exception(
+            std::string(traits_type::display_name) + " connect: " +
+                ((reason.is_null()) ? d_mariadb_result_message(result)
+                                    : reason.c_str()) +
+                " (" + std::to_string(result) + ")",
+            result);
+    }
+
+    const std::string charset = (config.charset)
+                                    ? *config.charset
+                                    : m_mysql_config.default_charset;
+
+    // a character set other than the one the layer asked for
+    if ( (!charset.empty()) &&
+         (charset != D_CFG_MARIADB_CHARSET) )
+    {
+        const int changed = opened.set_charset(charset);
+
+        if (changed != 0)
+        {
+            mariadb_layer::raise(opened.handle(),
+                                 failure_kind::connection,
+                                 "set_charset",
+                                 changed);
+        }
+    }
+
+    m_derived().on_connected_helper(opened);
+    m_db.swap(opened);
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::disconnect_helper() noexcept
+{
+    (void)m_db.close();
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+bool
+mysql_common_connection<Derived, DbType>::is_connected_helper()
+    const noexcept
+{
+    return m_db.is_open();
+}
+
+/*
+mysql_common_connection::ping_helper
+  A ping is a round trip that changes nothing a caller can see, and the
+face's is not const, so the face is reached through const_cast.
+*/
+template<typename      Derived,
+         database_type DbType>
+bool
+mysql_common_connection<Derived, DbType>::ping_helper() const noexcept
+{
+    return (const_cast<face::mariadb&>(m_db).ping() == 0);
+}
+
+template<typename      Derived,
+         database_type DbType>
+face::rows
+mysql_common_connection<Derived, DbType>::execute_query_helper(
+    const std::string& _query
+)
+{
+    face::rows found;
+
+    m_check(m_db.query_rows(found, _query),
+            failure_kind::query,
+            "execute_query");
+
+    return found;
+}
+
+template<typename      Derived,
+         database_type DbType>
+re_std::int64_t
+mysql_common_connection<Derived, DbType>::execute_update_helper(
+    const std::string& _query
+)
+{
+    re_std::int64_t changes = 0;
+
+    m_check(m_db.exec_changes(changes, _query),
+            failure_kind::query,
+            "execute_update");
+
+    return changes;
+}
+
+template<typename      Derived,
+         database_type DbType>
+face::mariadb_statement
+mysql_common_connection<Derived, DbType>::prepare_helper(
+    const std::string& _query
+)
+{
+    face::mariadb_statement prepared;
+
+    m_check(m_db.prepare(prepared, _query), failure_kind::query, "prepare");
+
+    return prepared;
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::string
+mysql_common_connection<Derived, DbType>::get_server_version_helper() const
+{
+    const char* const version = m_db.server_version();
+
+    return (version) ? version
+                     : "";
+}
+
+template<typename      Derived,
+         database_type DbType>
+re_std::int64_t
+mysql_common_connection<Derived, DbType>::get_last_insert_id_helper()
+    const noexcept
+{
+    return static_cast<re_std::int64_t>(m_db.last_insert_id());
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::begin_transaction_helper()
+{
+    m_check(m_db.begin_transaction(face::mariadb::default_transaction_mode()),
+            failure_kind::transaction,
+            "begin_transaction");
+
+    return;
+}
+
+/*
+mysql_common_connection::begin_transaction_helper (isolation_level)
+  SET TRANSACTION ISOLATION LEVEL without SESSION sets the next transaction's
+level alone, so the session's own level is untouched; the default level sets
+nothing.
+*/
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::begin_transaction_helper(
+    isolation_level _isolation
+)
+{
+    // the next transaction's level, where one is asked for
+    if (_isolation != isolation_level::default_level)
+    {
+        m_check(m_db.set_next_isolation_level(
+                    internal::mysql_isolation_to_layer(_isolation)),
+                failure_kind::transaction,
+                "begin_transaction");
+    }
+
+    begin_transaction_helper();
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::commit_helper()
+{
+    m_check(m_db.commit(), failure_kind::transaction, "commit");
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::rollback_helper()
+{
+    m_check(m_db.rollback(), failure_kind::transaction, "rollback");
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+bool
+mysql_common_connection<Derived, DbType>::in_transaction_helper()
+    const noexcept
+{
+    return m_db.in_transaction();
+}
+
+template<typename      Derived,
+         database_type DbType>
+isolation_level
+mysql_common_connection<Derived, DbType>::get_isolation_level_helper() const
+{
+    enum d_mariadb_isolation level = D_MARIADB_ISOLATION_REPEATABLE_READ;
+
+    m_check(m_db.get_isolation_level(level),
+            failure_kind::transaction,
+            "get_isolation_level");
+
+    return internal::mysql_isolation_from_layer(level);
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::set_isolation_level_helper(
+    isolation_level _level
+)
+{
+    m_check(m_db.set_isolation_level(
+                internal::mysql_isolation_to_layer(_level)),
+            failure_kind::transaction,
+            "set_isolation_level");
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::create_savepoint_helper(
+    const std::string& _name
+)
+{
+    m_check(m_db.create_savepoint(_name),
+            failure_kind::transaction,
+            "create_savepoint");
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::release_savepoint_helper(
+    const std::string& _name
+)
+{
+    m_check(m_db.release_savepoint(_name),
+            failure_kind::transaction,
+            "release_savepoint");
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::rollback_to_savepoint_helper(
+    const std::string& _name
+)
+{
+    m_check(m_db.rollback_to_savepoint(_name),
+            failure_kind::transaction,
+            "rollback_to_savepoint");
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::set_auto_commit_helper(
+    bool _enabled
+)
+{
+    m_check(m_db.set_autocommit(_enabled),
+            failure_kind::transaction,
+            "set_auto_commit");
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+bool
+mysql_common_connection<Derived, DbType>::get_auto_commit_helper() const
+{
+    bool enabled = true;
+
+    m_check(m_db.get_autocommit(enabled),
+            failure_kind::transaction,
+            "get_auto_commit");
+
+    return enabled;
+}
+
+template<typename      Derived,
+         database_type DbType>
+struct ::d_mariadb*
+mysql_common_connection<Derived, DbType>::native_handle_helper()
+    const noexcept
+{
+    return m_db.handle();
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::m_check(
+    int          _result,
+    failure_kind _kind,
+    const char*  _operation
+) const
+{
+    // only a failure throws
+    if (_result != 0)
+    {
+        mariadb_layer::raise(m_db.handle(), _kind, _operation, _result);
+    }
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+Derived&
+mysql_common_connection<Derived, DbType>::m_derived() noexcept
+{
+    return static_cast<Derived&>(*this);
+}
 
 
 // ===========================================================================
@@ -746,11 +1883,11 @@ using mysql_escape_string_t =
     decltype(std::declval<const Type&>().escape_string(
         std::declval<const std::string&>()));
 
-// mysql_select_db_t
-//   detector: select_db(const std::string&) method.
+// mysql_use_database_t
+//   detector: use_database(const std::string&) method.
 // wraps mysql_select_db() for switching the active database.
 template<typename Type>
-using mysql_select_db_t = decltype(std::declval<Type&>().select_db(
+using mysql_use_database_t = decltype(std::declval<Type&>().use_database(
     std::declval<const std::string&>()));
 
 // mysql_change_user_t
@@ -1044,15 +2181,15 @@ template<typename Type>
 constexpr bool mysql_can_escape_string<Type,
     std::void_t<mysql_escape_string_t<Type>>> = true;
 
-// mysql_can_select_db
-//   tagless trait: true if Type has select_db().
+// mysql_can_use_database
+//   tagless trait: true if Type has use_database().
 template<typename Type,
          typename = void>
-constexpr bool mysql_can_select_db = false;
+constexpr bool mysql_can_use_database = false;
 
 template<typename Type>
-constexpr bool mysql_can_select_db<Type,
-    std::void_t<mysql_select_db_t<Type>>> = true;
+constexpr bool mysql_can_use_database<Type,
+    std::void_t<mysql_use_database_t<Type>>> = true;
 
 // mysql_can_change_user
 //   tagless trait: true if Type has change_user().
@@ -1226,11 +2363,11 @@ concept mysql_engine_connection =
 // B.  capability concepts
 // -------------------------------------------------------------------------
 
-// mysql_select_db_connection
-//   concept: constrains types exposing select_db(database).
+// mysql_use_database_connection
+//   concept: constrains types exposing use_database(database).
 template<typename Type>
-concept mysql_select_db_connection =
-    is_detected<mysql_select_db_t, clean_t<Type>>::value;
+concept mysql_use_database_connection =
+    is_detected<mysql_use_database_t, clean_t<Type>>::value;
 
 // mysql_autocommit_connection
 //   concept: constrains types exposing set_autocommit(bool).
@@ -1372,7 +2509,7 @@ concept mysql_string_escapable =
 //   concept: constrains types satisfying the tagless select-db capability.
 template<typename Type>
 concept mysql_database_selectable =
-    mysql_can_select_db<clean_t<Type>>;
+    mysql_can_use_database<clean_t<Type>>;
 
 // mysql_user_switchable
 //   concept: constrains types satisfying the tagless change-user capability.

@@ -1,430 +1,485 @@
 /*******************************************************************************
 * djinterp [core]                                             postgres_table.hpp
 *
-* djinterp PostgreSQL table module:
-*   PostgreSQL-specific database_table subclass providing vendor features
-* beyond the generic database_table base, including:
-*   - double-quote identifier quoting (SQL-standard, vs MySQL backticks)
-*   - PostgreSQL-native type mappings (JSONB, native UUID, INET, arrays,
-*     SERIAL, BYTEA, NUMERIC)
-*   - COPY protocol hints for bulk refresh / commit acceleration
-*   - VACUUM and ANALYZE maintenance operations
-*   - RETURNING clause helpers for INSERT / UPDATE / DELETE round-trips
-*   - schema-qualified table names (schema.table)
-*   - LISTEN / NOTIFY invalidation hook for cache staleness
-*
-*   LAYER DIAGRAM:
-*     postgres_table<Config>
-*       -> database_table<pg_connection, value, Config>
-*
-*   NOTE: this header forward-declares pg_connection. The concrete class
-* definition lives in postgres.hpp. Include postgres.hpp before
-* constructing instances.
-*
-*   PORTABILITY:
-*   Requires C++17 or later.
+* A table of a PostgreSQL database held in memory: database_table over a
+* pg_connection, with what PostgreSQL adds.
+*   postgres_table is database_table<pg_connection> -- the cache, refresh,
+* commit and the table's operations, through the PostgreSQL layer -- and
+* adds: the schema the table lives in; COPY, for the rows a commit inserts;
+* and upkeep through the layer: VACUUM, VACUUM FULL, ANALYZE and REINDEX of
+* the table.
 *
 *
 * path:      /inc/djinterp/core/db/postgres/postgres_table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.23
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  IDENTIFIERS
+    -----------
+    1.  double_quote
+2.  POSTGRESQL TABLE
+    ----------------
+    1.  The class
+         1.  postgres_table
+*/
+
 #ifndef DJINTERP_DB_POSTGRES_POSTGRES_TABLE_HPP
-#define DJINTERP_DB_POSTGRES_POSTGRES_TABLE_HPP
+#define DJINTERP_DB_POSTGRES_POSTGRES_TABLE_HPP 1
 
 // djinterp
 #include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
+// std
+#include <chrono>       // std::chrono::system_clock
+#include <cstddef>      // std::size_t
+#include <string>       // std::string
+#include <type_traits>  // std::is_same_v, std::decay_t
+#include <utility>      // std::move
+#include <variant>      // std::visit, std::monostate
+#include <vector>       // std::vector
 // djinterp
-#include "../../../djinterp.hpp"
-#include "./postgres.hpp"
-#include "../database_table.hpp"
+#include "../../../djinterp.hpp"  // framework root
+#include "../database_table.hpp"  // database_table, table_schema, sync_config
+#include "./postgres.hpp"         // pg_connection, D_POSTGRES_FULL,
+                                  // D_POSTGRES_CONCURRENTLY
+// re_std
+#include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::int32_t, int64_t,
+                                                   // uint8_t
 
 
 NS_DJINTERP
 
 
-    // =========================================================================
-    // I.   POSTGRESQL IDENTIFIER QUOTING
-    // =========================================================================
+//==============================================================================
+// 1.  IDENTIFIERS
+//==============================================================================
 
-    // double_quote
-    //   function: wraps an identifier in double quotes for PostgreSQL /
-    // SQL-standard identifier quoting. Escapes embedded double quotes by
-    // doubling them.
-    inline std::string double_quote(const std::string& _id)
+
+// 1.1    double_quote
+//------------------------------------------------------------------------------
+// double_quote
+//   function: an identifier quoted as PostgreSQL and the standard quote one,
+// in double quotes, each double quote inside doubled.
+inline std::string
+double_quote(
+    const std::string& _id
+)
+{
+    std::string quoted;
+
+    quoted.reserve(_id.size() + 2u);
+    quoted += '"';
+
+    // each double quote doubled
+    for (const char c : _id)
     {
-        std::string result;
-        result.reserve(_id.size() + 2);
-        result += '"';
-
-        for (char c : _id)
+        if (c == '"')
         {
-            if (c == '"')
-            {
-                result += "\"\"";
-            }
-            else
-            {
-                result += c;
-            }
+            quoted += '"';
         }
 
-        result += '"';
-
-        return result;
+        quoted += c;
     }
 
+    quoted += '"';
 
-    // =========================================================================
-    // II.  POSTGRES TABLE
-    // =========================================================================
+    return quoted;
+}
 
-    // pg_connection
-    //   class: forward declaration of the PostgreSQL connection
-    // implementation. Defined in postgres.hpp.
-    class pg_connection;
 
-    // postgres_table
-    //   class: PostgreSQL-specific database table. Extends the generic
-    // database_table with PostgreSQL DDL, identifier quoting, COPY
-    // acceleration, and VACUUM / ANALYZE maintenance.
-    template<typename Config = void>
-    class postgres_table
-        : public database_table<pg_connection,
-                                value,
-                                Config>
+//==============================================================================
+// 2.  POSTGRESQL TABLE
+//==============================================================================
+
+
+// 2.1    The class
+//------------------------------------------------------------------------------
+// 2.1.1
+// postgres_table
+//   class template: a table of a PostgreSQL database, as the banner
+// describes. Its schema is set_schema_name's, "" for the current one, the
+// search path's first that exists. With COPY on, a commit sends the rows it
+// inserts as one COPY ... FROM STDIN, rows of text, unless one of them
+// leaves a value to the database -- a NULL a default or an identity fills,
+// a generated column's -- which only an INSERT can: such a commit inserts
+// row by row. Each member throws as database_table's do. Not copyable;
+// movable.
+//
+// Usage:
+//     postgres_table<> events(db, "events");
+//
+//     events.set_schema_name("audit");
+//     events.fetch_schema();
+//     events.set_use_copy_on_commit(true);
+//     ...                                // rows added
+//     events.commit();                   // one COPY
+template<typename Config = void>
+class postgres_table : public database_table<pg_connection, value, Config>
+{
+private:
+    using base_type = database_table<pg_connection, value, Config>;
+
+public:
+    using typename base_type::size_type;
+    using typename base_type::value_type;
+    using typename base_type::row_type;
+    using typename base_type::connection_type;
+    using typename base_type::schema_type;
+    using self_type = postgres_table<Config>;
+
+    using type_support    = pg_type_support;
+    using feature_support = pg_feature_support;
+    using version_info    = pg_version_info;
+
+    // construction -- as database_table's
+    postgres_table()
+        : base_type(),
+          m_use_copy_on_commit(false)
+    {}
+
+    explicit postgres_table(
+        pg_connection& _conn,
+        std::string    _table_name,
+        table_kind     _kind = table_kind::base_table
+    )
+        : base_type(_conn, std::move(_table_name), _kind),
+          m_use_copy_on_commit(false)
+    {}
+
+    explicit postgres_table(
+        pg_connection& _conn,
+        table_schema   _schema,
+        table_kind     _kind = table_kind::base_table
+    )
+        : base_type(_conn, std::move(_schema), _kind),
+          m_use_copy_on_commit(false)
+    {}
+
+    explicit postgres_table(
+        pg_connection&     _conn,
+        table_schema       _schema,
+        table_kind         _kind,
+        const sync_config& _sync
+    )
+        : base_type(_conn, std::move(_schema), _kind, _sync),
+          m_use_copy_on_commit(false)
+    {}
+
+    ~postgres_table() = default;
+
+    postgres_table(const postgres_table&)            = delete;
+    postgres_table& operator=(const postgres_table&) = delete;
+
+    postgres_table(postgres_table&&) noexcept            = default;
+    postgres_table& operator=(postgres_table&&) noexcept = default;
+
+    // get_schema_name -- the table's schema, as schema_name()
+    const std::string&
+    get_schema_name() const noexcept
     {
-    private:
-        using base_type = database_table<pg_connection,
-                                         value,
-                                         Config>;
+        return this->schema_name();
+    }
 
-    public:
-        using typename base_type::size_type;
-        using typename base_type::value_type;
-        using typename base_type::row_type;
-        using typename base_type::connection_type;
-        using typename base_type::schema_type;
-        using self_type = postgres_table<Config>;
+    // qualified_table_name -- the table's name for SQL, as qualified_name()
+    std::string
+    qualified_table_name() const
+    {
+        return this->qualified_name();
+    }
 
-        using type_support    = pg_type_support;
-        using feature_support = pg_feature_support;
-        using version_info    = pg_version_info;
+    // COPY -- whether a commit sends the rows it inserts as one COPY
+    void
+    set_use_copy_on_commit(
+        bool _enabled
+    ) noexcept
+    {
+        m_use_copy_on_commit = _enabled;
 
+        return;
+    }
 
-        // =================================================================
-        //  constructors
-        // =================================================================
+    bool
+    uses_copy_on_commit() const noexcept
+    {
+        return m_use_copy_on_commit;
+    }
 
-        // postgres_table()
-        //   constructor: default - empty, disconnected table.
-        postgres_table()
-            : base_type()
-            , m_use_copy_on_refresh(false)
-            , m_use_copy_on_commit(false)
+    /**
+     * @brief Writes the cache's changes to the table, as database_table's
+     *        commit does, the rows it inserts sent as one COPY where COPY is
+     *        on and no row leaves a value to the database.
+     *
+     * @throws as database_table's commit; a row the server refuses fails the
+     *         COPY, with its SQLSTATE, and the whole commit is rolled back.
+     */
+    void
+    commit()
+    {
+        // without COPY, as every table commits
+        if (!m_use_copy_on_commit)
         {
-        }
-
-        // postgres_table(connection, name)
-        //   constructor: binds to a PostgreSQL connection and table name.
-        explicit postgres_table(
-                pg_connection& _conn,
-                std::string    _table_name,
-                table_kind     _kind = table_kind::base_table
-            )
-                : base_type(_conn,
-                            std::move(_table_name),
-                            _kind)
-                , m_use_copy_on_refresh(false)
-                , m_use_copy_on_commit(false)
-        {
-        }
-
-        // postgres_table(connection, schema)
-        //   constructor: binds with an explicit schema.
-        explicit postgres_table(
-                pg_connection& _conn,
-                table_schema   _schema,
-                table_kind     _kind = table_kind::base_table
-            )
-                : base_type(_conn,
-                            std::move(_schema),
-                            _kind)
-                , m_use_copy_on_refresh(false)
-                , m_use_copy_on_commit(false)
-        {
-        }
-
-        // postgres_table(connection, schema, sync)
-        //   constructor: binds with schema and sync policy.
-        explicit postgres_table(
-                pg_connection&     _conn,
-                table_schema       _schema,
-                table_kind         _kind,
-                const sync_config& _sync
-            )
-                : base_type(_conn,
-                            std::move(_schema),
-                            _kind,
-                            _sync)
-                , m_use_copy_on_refresh(false)
-                , m_use_copy_on_commit(false)
-        {
-        }
-
-        // non-virtual: the base is not a polymorphic type.
-        ~postgres_table() = default;
-
-        // disable copying
-        postgres_table(const postgres_table&)            = delete;
-        postgres_table& operator=(const postgres_table&) = delete;
-
-        // enable moving
-        postgres_table(postgres_table&&) noexcept            = default;
-        postgres_table& operator=(postgres_table&&) noexcept = default;
-
-
-        // =================================================================
-        //  schema qualification
-        // =================================================================
-
-        // set_schema_name
-        //   function: sets the PostgreSQL schema (namespace) to which the
-        // table belongs. Produces schema.table qualification in generated
-        // SQL.
-        void set_schema_name(std::string _schema_name)
-        {
-            m_schema_name = std::move(_schema_name);
+            base_type::commit();
 
             return;
         }
 
-        // get_schema_name
-        //   function: returns the configured schema name, or empty string
-        // if unqualified (defaulting to the search_path).
-        const std::string& get_schema_name() const noexcept
-        {
-            return m_schema_name;
-        }
-
-        // qualified_table_name
-        //   function: returns the fully-qualified, double-quoted table
-        // identifier suitable for use in generated SQL.
-        std::string qualified_table_name() const
-        {
-            if (m_schema_name.empty())
+        this->commit_with(
+            [this](const std::vector<const row_type*>& _rows) -> bool
             {
-                return double_quote(this->m_schema.table_name);
-            }
+                return m_copy_rows(_rows);
+            });
 
-            return double_quote(m_schema_name)
-                 + "."
-                 + double_quote(this->m_schema.table_name);
-        }
+        return;
+    }
 
+    // upkeep -- through the layer: ANALYZE, for the planner's statistics;
+    // VACUUM, reclaiming dead rows' space, and VACUUM FULL, rewriting the
+    // table under an exclusive lock, neither inside a transaction (25001);
+    // REINDEX TABLE, CONCURRENTLY from PostgreSQL 12 (D_DB_UNSUPPORTED
+    // before), without blocking writes, and then outside a transaction. Each
+    // throws as database_table's members do.
+    void
+    analyze_table()
+    {
+        this->validate_connected("analyze_table");
 
-        // =================================================================
-        //  COPY protocol acceleration
-        // =================================================================
-
-        // set_use_copy_on_refresh
-        //   function: enables use of the COPY protocol for bulk refresh,
-        // which is significantly faster than row-by-row SELECT for large
-        // tables. Requires the connection to support COPY.
-        void set_use_copy_on_refresh(bool _enabled) noexcept
-        {
-            m_use_copy_on_refresh = _enabled;
-
-            return;
-        }
-
-        // set_use_copy_on_commit
-        //   function: enables use of COPY FROM STDIN for commit of new
-        // rows. Much faster than batched INSERT for large change sets.
-        void set_use_copy_on_commit(bool _enabled) noexcept
-        {
-            m_use_copy_on_commit = _enabled;
-
-            return;
-        }
-
-        // uses_copy_on_refresh
-        //   function: returns whether COPY acceleration is enabled for
-        // refresh.
-        bool uses_copy_on_refresh() const noexcept
-        {
-            return m_use_copy_on_refresh;
-        }
-
-        // uses_copy_on_commit
-        //   function: returns whether COPY acceleration is enabled for
-        // commit.
-        bool uses_copy_on_commit() const noexcept
-        {
-            return m_use_copy_on_commit;
-        }
-
-
-        // =================================================================
-        //  RETURNING clause support
-        // =================================================================
-
-        // set_returning_columns
-        //   function: configures a RETURNING clause to be appended to
-        // INSERT / UPDATE / DELETE statements. The named columns are
-        // returned to the client after the write completes, enabling
-        // round-trip-free retrieval of generated values (serials,
-        // defaults, trigger-computed fields).
-        void set_returning_columns(std::vector<std::string> _cols)
-        {
-            m_returning_columns = std::move(_cols);
-
-            return;
-        }
-
-        // clear_returning_columns
-        //   function: removes any configured RETURNING clause.
-        void clear_returning_columns() noexcept
-        {
-            m_returning_columns.clear();
-
-            return;
-        }
-
-        // get_returning_columns
-        //   function: returns the current RETURNING columns, if any.
-        const std::vector<std::string>& get_returning_columns()
-            const noexcept
-        {
-            return m_returning_columns;
-        }
-
-
-        // =================================================================
-        //  PostgreSQL maintenance operations
-        // =================================================================
-
-        // analyze_table
-        //   function: runs ANALYZE to update planner statistics for the
-        // table.
-        void analyze_table()
-        {
-            this->validate_connected("analyze_table");
-
-            this->m_connection->execute(
-                "ANALYZE " + qualified_table_name());
-
-            return;
-        }
-
-        // vacuum_table
-        //   function: runs VACUUM to reclaim storage for the table.
-        void vacuum_table()
-        {
-            this->validate_connected("vacuum_table");
-
-            this->m_connection->execute(
-                "VACUUM " + qualified_table_name());
-
-            return;
-        }
-
-        // vacuum_full_table
-        //   function: runs VACUUM FULL to fully rewrite the table and
-        // release disk space. Acquires an ACCESS EXCLUSIVE lock.
-        void vacuum_full_table()
-        {
-            this->validate_connected("vacuum_full_table");
-
-            this->m_connection->execute(
-                "VACUUM FULL " + qualified_table_name());
-
-            return;
-        }
-
-        // reindex_table
-        //   function: rebuilds all indexes on the table.
-        void reindex_table()
-        {
-            this->validate_connected("reindex_table");
-
-            this->m_connection->execute(
-                "REINDEX TABLE " + qualified_table_name());
-
-            return;
-        }
-
-
-    protected:
-
-        // =================================================================
-        //  protected helpers (concrete — not overrides)
-        // =================================================================
-
-        // field_type_to_sql
-        //   function: concrete vendor type mapping for PostgreSQL. Uses
-        // PostgreSQL-native types (JSONB, native UUID, BYTEA, TIMESTAMPTZ)
-        // rather than the defaults.
-        const char* field_type_to_sql(field_type _type) const
-        {
-            switch (_type)
+        this->m_connection->run_layer(
+            "analyze",
+            [this](face::postgres& _db) -> int
             {
-                case field_type::boolean:
-                    return "BOOLEAN";
-                case field_type::integer:
-                    return "INTEGER";
-                case field_type::big_integer:
-                    return "BIGINT";
-                case field_type::floating_point:
-                    return "DOUBLE PRECISION";
-                case field_type::decimal:
-                    return "NUMERIC";
-                case field_type::string:
-                    return "TEXT";
-                case field_type::binary:
-                    return "BYTEA";
-                case field_type::date:
-                    return "DATE";
-                case field_type::time:
-                    return "TIME";
-                case field_type::datetime:
-                    return "TIMESTAMP";
-                case field_type::timestamp:
-                    return "TIMESTAMP WITH TIME ZONE";
-                case field_type::json:
-                    // prefer JSONB over JSON for indexing / operator support
-                    return "JSONB";
-                case field_type::xml:
-                    return "XML";
-                case field_type::uuid:
-                    // PostgreSQL has native UUID type
-                    return "UUID";
-                case field_type::array:
-                    // base element type should be specified by caller
-                    return "ANYARRAY";
-                case field_type::null:
-                case field_type::custom:
-                default:
-                    // common types defer to the connection's type mapping
-                    return field_type_to_pg_sql(_type);
+                return _db.analyze(this->layer_scope(),
+                                   face::string_arg(this->table_name()));
+            });
+
+        return;
+    }
+
+    void
+    vacuum_table()
+    {
+        m_vacuum("vacuum_table", 0u);
+
+        return;
+    }
+
+    void
+    vacuum_full_table()
+    {
+        m_vacuum("vacuum_full_table", D_POSTGRES_FULL);
+
+        return;
+    }
+
+    void
+    reindex_table(
+        bool _concurrently = false
+    )
+    {
+        this->validate_connected("reindex_table");
+
+        this->m_connection->run_layer(
+            "reindex",
+            [this, _concurrently](face::postgres& _db) -> int
+            {
+                return _db.reindex(this->layer_scope(),
+                                   face::string_arg(this->table_name()),
+                                   (_concurrently) ? D_POSTGRES_CONCURRENTLY
+                                                   : 0u);
+            });
+
+        return;
+    }
+
+protected:
+    bool m_use_copy_on_commit;
+
+private:
+    // m_vacuum -- VACUUM of the table, with the layer's flags
+    void
+    m_vacuum(
+        const char* _caller,
+        unsigned    _flags
+    )
+    {
+        this->validate_connected(_caller);
+
+        this->m_connection->run_layer(
+            "vacuum",
+            [this, _flags](face::postgres& _db) -> int
+            {
+                return _db.vacuum(this->layer_scope(),
+                                  face::string_arg(this->table_name()),
+                                  _flags);
+            });
+
+        return;
+    }
+
+    /**
+     * @brief Inserts rows with one COPY, or row by row where a row leaves a
+     *        value to the database.
+     *
+     * @param[in] _rows  the rows.
+     * @return whether a value was left to the database.
+     * @throws what the COPY throws, after ending it.
+     */
+    bool
+    m_copy_rows(
+        const std::vector<const row_type*>& _rows
+    )
+    {
+        const std::vector<size_type> keys = this->key_columns();
+
+        // a row that leaves a value to the database needs an INSERT, which
+        // can leave a column out; COPY writes every column
+        for (const row_type* record : _rows)
+        {
+            for (size_type c = 0; c < this->cols(); ++c)
+            {
+                if (this->left_to_database((*record)[c], c, keys))
+                {
+                    return this->insert_cached_rows(_rows);
+                }
             }
         }
 
+        pg_connection& db      = *this->m_connection;
+        std::string    columns;
 
-        // =================================================================
-        //  protected members
-        // =================================================================
+        for (size_type c = 0; c < this->cols(); ++c)
+        {
+            columns += (c > 0) ? ", " : "";
+            columns += double_quote(this->get_schema().columns[c].name);
+        }
 
-        std::string              m_schema_name;
-        std::vector<std::string> m_returning_columns;
-        bool                     m_use_copy_on_refresh;
-        bool                     m_use_copy_on_commit;
-    };
+        db.copy_in_start("COPY " + this->qualified_name() + " (" + columns +
+                         ") FROM STDIN");
+
+        try
+        {
+            std::string chunk;
+
+            // rows of text, a tab between cells, sent in chunks
+            for (const row_type* record : _rows)
+            {
+                for (size_type c = 0; c < this->cols(); ++c)
+                {
+                    chunk += (c > 0) ? "\t" : "";
+                    m_append_copy_text(chunk, (*record)[c]);
+                }
+
+                chunk += '\n';
+
+                if (chunk.size() >= 65536u)
+                {
+                    db.copy_data(chunk.data(), chunk.size());
+                    chunk.clear();
+                }
+            }
+
+            if (!chunk.empty())
+            {
+                db.copy_data(chunk.data(), chunk.size());
+            }
+
+            (void)db.copy_end();
+        }
+        catch (...)
+        {
+            // a COPY still waiting for rows is ended, keeping none
+            try
+            {
+                db.copy_abort("the commit failed");
+            }
+            catch (...)
+            {
+                // the COPY ended already; the first failure is the one
+            }
+
+            throw;
+        }
+
+        return false;
+    }
+
+    // m_append_copy_text -- a cell as COPY's text format writes it: \N for
+    // NULL, t or f, numbers as value_to_string writes them, bytes as bytea's
+    // hexadecimal, a point in time in UTC, and every backslash, tab, newline
+    // and carriage return escaped
+    static void
+    m_append_copy_text(
+        std::string&      _text,
+        const value_type& _cell
+    )
+    {
+        std::visit(
+            [&_text](const auto& _held) -> void
+            {
+                using held_t = std::decay_t<decltype(_held)>;
+
+                if constexpr (std::is_same_v<held_t, std::monostate>)
+                {
+                    _text += "\\N";
+                }
+                else if constexpr (std::is_same_v<held_t, bool>)
+                {
+                    _text += (_held) ? "t" : "f";
+                }
+                else if constexpr (std::is_same_v<
+                                       held_t,
+                                       std::vector<re_std::uint8_t>>)
+                {
+                    // bytea's \x, its backslash escaped for COPY
+                    _text += "\\\\x" + value_to_string(value(_held));
+                }
+                else if constexpr (std::is_same_v<
+                                       held_t,
+                                       std::chrono::system_clock::time_point>)
+                {
+                    _text += value_to_string(value(_held)) +
+                             postgres_layer::utc_offset;
+                }
+                else
+                {
+                    m_append_escaped(_text, value_to_string(value(_held)));
+                }
+
+                return;
+            },
+            _cell);
+
+        return;
+    }
+
+    // m_append_escaped -- text with COPY's escapes
+    static void
+    m_append_escaped(
+        std::string&       _text,
+        const std::string& _raw
+    )
+    {
+        for (const char c : _raw)
+        {
+            switch (c)
+            {
+                case '\\': _text += "\\\\"; break;
+                case '\t': _text += "\\t";  break;
+                case '\n': _text += "\\n";  break;
+                case '\r': _text += "\\r";  break;
+                default:   _text += c;      break;
+            }
+        }
+
+        return;
+    }
+};
 
 
 NS_END  // djinterp

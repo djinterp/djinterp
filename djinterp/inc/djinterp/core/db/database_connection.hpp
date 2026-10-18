@@ -1,652 +1,1613 @@
 /*******************************************************************************
 * djinterp [core]                                        database_connection.hpp
 *
-* djinterp database connection module:
-*   This header provides a rudimentary but functional database connection
-* abstraction built on the connection_template CRTP base. It augments the
-* vendor-parameterized template with common operational patterns that all
-* database connections share, including:
-*   - connect-from-config with state tracking
-*   - automatic reconnection with attempt tracking
-*   - connection state machine (disconnected -> connecting -> connected)
-*   - error state capture and propagation
-*   - compile-time interface verification via static_assert
-*   - RAII-based connection lifetime management
-*   - convenience query helpers (execute_scalar, execute_single_row)
-*
-*   This module is the intended base class for all concrete vendor
-* connection implementations. It sits between connection_template (which
-* provides vendor metadata and native handle scaffolding) and the
-* vendor-specific implementation class (which provides the actual
-* connect/disconnect/execute logic against a specific C API).
-*
-*   LAYER DIAGRAM:
-*     vendor_helper (e.g. mysql_connection_helper)
-*       -> database_connection<vendor_helper, database_type::mysql>
-*         -> connection_template<vendor_helper, database_type::mysql>
-*           -> connection<vendor_helper>
-*
-*   PORTABILITY:
-*   This header requires C++17 or later. It does not include any
-* vendor-specific headers.
+* The connection every djinterp C++17 database connection derives from, its
+* operations written once for every vendor.
+*   database_connection implements connection's operations over hooks of the
+* vendor's class -- connect_helper, execute_update_helper, and so on, each
+* named after its operation -- and around each call keeps what every vendor
+* shares: the connection's state, the error each failure threw, the rows the
+* latest statement changed, and the session its prepared statements belong
+* to, which closes them before the connection closes.
+*   A failure throws, with the layer's result (database.hpp, section 2); a
+* connection_exception -- a connection that could not be made, or that the
+* database dropped -- leaves the connection in connection_state::error, which
+* reconnect() leaves. A connection never reconnects on its own.
+*   A vendor's class derives from database_connection<Derived, X>, Derived
+* being itself, and provides the hooks the class's description lists, public
+* so that the gated operations can tell which it has; programs call the
+* operations, never the hooks. The class that holds the face closes the
+* session in its own destructor (close_session_noexcept), since by the time
+* database_connection's destructor runs the face is gone; database_connection
+* itself never calls a hook from its destructor.
+*     vendor class (sqlite_connection, ...)
+*       database_connection<vendor class, X>    this header
+*         connection_template<vendor class, X>   the vendor's traits
+*           connection<vendor class>             the interface
 *
 *
 * path:      /inc/djinterp/core/db/database_connection.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  DATABASE CONNECTION
+    -------------------
+    1.  The class
+         1.  database_connection
+    2.  Definitions
+*/
+
 #ifndef DJINTERP_DB_DATABASE_CONNECTION_HPP
-#define DJINTERP_DB_DATABASE_CONNECTION_HPP
+#define DJINTERP_DB_DATABASE_CONNECTION_HPP 1
 
 // djinterp
 #include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
-// re_std
-#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
-#include <atomic>
-#include <utility>
+#include <cstddef>      // std::size_t
+#include <memory>       // std::shared_ptr, std::make_shared, std::unique_ptr
+#include <optional>     // std::optional
+#include <string>       // std::string, std::to_string
+#include <type_traits>  // std::is_void_v
+#include <utility>      // std::move, std::pair
 // djinterp
-#include "../../djinterp.hpp"
-#include "./database.hpp"
-#include "./database_connection_template.hpp"
+#include "../../djinterp.hpp"                  // framework root
+#include "../meta/type_traits.hpp"             // is_detected
+#include "./database.hpp"                      // the vocabulary, connection
+#include "./database_connection_template.hpp"  // connection_template
+#include "./database_statement.hpp"            // internal::session,
+                                               // buffered_result_set,
+                                               // prepared_statement
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t
 
 
 NS_DJINTERP
 
 
-// ===========================================================================
-// I.   DATABASE CONNECTION
-// ===========================================================================
+//==============================================================================
+// 1.  DATABASE CONNECTION
+//==============================================================================
 
+
+// 1.1    The class
+//------------------------------------------------------------------------------
+// 1.1.1
 // database_connection
-//   class template: operational connection base with state management,
-// reconnection tracking, and convenience query helpers. Concrete vendor
-// implementations derive from this class.
-//
-// Template parameters:
-//   _helper:   the concrete CRTP implementation class
-//   DbType: the database_type enumerator identifying the vendor
-//
-// The implementation class (_helper) must provide the following methods:
-//   void connect_helper()         - establish a connection using m_config
-//   void disconnect_helper()      - tear down the native connection
-//   bool is_connected_helper()    - test if the native connection is alive
-//   bool ping_helper()            - lightweight liveness check
-//   std::string get_server_version_helper()
-//   std::string get_last_error_helper()
-//   int         get_last_error_code_helper()
-//
-// The _helper suffix convention avoids name collisions with the CRTP
-// forwarding methods in the base classes.
-template<typename      _helper,
+//   class template: the connection, for the vendor DbType, over the hooks of
+// Derived, which derives from it. Derived provides:
+//     layer_type                  the layer's description, as
+//                                 database_statement.hpp says
+//     connect_helper()            opens the connection the configuration
+//                                 names, or throws
+//     disconnect_helper()         closes it; noexcept
+//     is_connected_helper()       whether it is open; const, noexcept
+//     ping_helper()               whether the database answers; const
+//     execute_query_helper(sql)   runs one statement: its face::rows
+//     execute_update_helper(sql)  runs SQL: the rows it changed
+//     prepare_helper(sql)         prepares one statement: a statement_face
+//     get_server_version_helper() the server's or library's version; const
+//     get_last_insert_id_helper() the latest generated id; const
+//     begin_transaction_helper(), commit_helper(), rollback_helper()
+//     in_transaction_helper()     whether a transaction is open; const,
+//                                 noexcept
+//     native_handle_helper()      the handle (connection_template)
+// and, for the gated operations, which exist where their hooks do:
+//     begin_transaction_helper(isolation_level), get_isolation_level_helper(),
+//     set_isolation_level_helper(isolation_level), create_savepoint_helper(
+//     name), release_savepoint_helper(name), rollback_to_savepoint_helper(
+//     name), set_auto_commit_helper(bool), get_auto_commit_helper(); and
+//     get_face(), the layer's face, const and not, through which run_layer
+//     and ask_layer call the layer, raising through layer_type's raise.
+// A hook reports a failure by throwing, through its layer's raise. Not
+// copyable; movable, the connection moved from disconnected.
+template<typename      Derived,
          database_type DbType>
-class database_connection
-    : public connection_template<_helper, DbType>
+class database_connection : public connection_template<Derived, DbType>
 {
 public:
-    using base_type          = connection_template<_helper, DbType>;
+    using base_type          = connection_template<Derived, DbType>;
     using traits_type        = typename base_type::traits_type;
     using native_handle_type = typename base_type::native_handle_type;
 
-    database_connection()
-        : base_type(),
-          m_reconnect_attempts(0),
-          m_max_reconnect_attempts(3),
-          m_last_error_code(0)
-    {}
+    /**
+     * @brief Opens the connection the configuration names, unless it is
+     *        open already.
+     *
+     * @throws connection_exception with D_DB_UNSUPPORTED when the
+     *         configuration asks for auto_reconnect, which core/db never
+     *         does; connection_exception, with the layer's result, when the
+     *         connection cannot be made.
+     * @post On success the connection is connected, outside any transaction,
+     *       in auto-commit mode, and the reconnect counter is 0; on failure it
+     *       is in connection_state::error.
+     */
+    void connect();
 
-    explicit database_connection(const connection_config& _config)
-        : base_type(_config),
-          m_reconnect_attempts(0),
-          m_max_reconnect_attempts(3),
-          m_last_error_code(0)
-    {}
+    /**
+     * @brief Replaces the configuration, the vendor's port standing in for a
+     *        port of 0, and opens the connection it names.
+     *
+     * @param[in] _config  the configuration.
+     * @throws as connect().
+     */
+    void connect(const connection_config& _config);
 
-    ~database_connection()
-    {
-        // ensure clean disconnection
-        if (this->m_state == connection_state::connected)
-        {
-            try
-            {
-                self().disconnect_helper();
-            }
-            catch (...)
-            {
-                // suppress exceptions in destructor
-            }
-        }
-    }
+    /**
+     * @brief Closes the connection: its prepared statements first, then the
+     *        connection itself.
+     *
+     * @post The connection is disconnected; every statement prepared on it
+     *       is closed.
+     */
+    void disconnect() noexcept;
 
-    // disable copying
+    /**
+     * @brief Closes the connection, if it is open or in error, and opens it
+     *        again.
+     *
+     * @throws connection_exception when as many reconnections in a row as
+     *         get_max_reconnect_attempts() allows have failed already; and as
+     *         connect().
+     * @post As connect(); every statement prepared on the old connection is
+     *       closed.
+     */
+    void reconnect();
+
+    // liveness -- whether the connection is open, as the vendor sees it;
+    // whether the database answers, false for any failure; and the state,
+    // `error` once a statement found the connection lost
+    bool             is_connected() const noexcept;
+    bool             ping() const noexcept;
+    connection_state get_state() const noexcept;
+
+    /**
+     * @brief Runs one statement, and returns its rows.
+     *
+     * @param[in] _query  the statement.
+     * @return the rows, all of them, held apart from the connection.
+     * @throws connection_exception when the connection is not open, or the
+     *         database drops it; query_exception, with the layer's result,
+     *         when the statement fails.
+     */
+    std::unique_ptr<buffered_result_set> execute_query(
+        const std::string& _query);
+
+    /**
+     * @brief Runs SQL, and counts the rows it changed.
+     *
+     * @note SQLite and PostgreSQL run several statements separated by
+     *       semicolons, and count the last; MariaDB and MySQL run one.
+     *
+     * @param[in] _query  the SQL.
+     * @return the rows it inserted, updated or deleted, or returned for a
+     *         statement that returns rows, as the layer counts them;
+     *         get_affected_rows() answers the same until another statement
+     *         runs.
+     * @throws as execute_query.
+     */
+    re_std::int64_t execute_update(const std::string& _query);
+
+    /**
+     * @brief Runs SQL, as execute_update does.
+     *
+     * @param[in] _query  the SQL.
+     * @return true; a failure throws, as execute_update's does.
+     */
+    bool execute(const std::string& _query);
+
+    /**
+     * @brief Prepares one statement.
+     *
+     * @param[in] _query  the statement, its parameters written as the
+     *                    database writes them (prepared_statement).
+     * @return the statement, which belongs to this connection's session:
+     *         closing the connection closes it.
+     * @throws as execute_query.
+     */
+    auto prepare(const std::string& _query);
+
+    /**
+     * @brief Runs a query, and reads the first column of its first row.
+     *
+     * @param[in] _query  the query.
+     * @return the value, NULL among them; std::nullopt when there is no row.
+     * @throws as execute_query.
+     */
+    std::optional<value> execute_scalar(const std::string& _query);
+
+    /**
+     * @brief Runs a query, and reads its first row by column name.
+     *
+     * @param[in] _query  the query.
+     * @return the row; std::nullopt when there is none.
+     * @throws as execute_query.
+     */
+    std::optional<row> execute_single_row(const std::string& _query);
+
+    /**
+     * @brief Calls the layer, through the vendor's face, as one of this
+     *        connection's operations: once the connection is open, its state
+     *        `executing` meanwhile, and a failure raised and recorded as the
+     *        vendor's own operations raise and record theirs; gated (a
+     *        vendor with a layer).
+     *
+     * @note For the layer's calls the connection has no member of its own
+     *       for: get_face() lends the face for any of them, but leaves their
+     *       results to the caller.
+     *
+     * @param[in] _operation  the operation's name, for the message.
+     * @param[in] _function   called once with the face (Derived's
+     *                        get_face()); returns the layer's result, 0 for
+     *                        success, and keeps what a call writes through
+     *                        a parameter in what it captured.
+     * @param[in] _kind       which exception a failure throws, unless its
+     *                        result means the connection was lost.
+     * @throws connection_exception when the connection is not open, or when
+     *         the result means the database dropped it; otherwise what
+     *         `_kind` names, with the layer's result as its error_code(),
+     *         described as the vendor describes its failures.
+     */
+    template<typename Function,
+             typename Type = Derived,
+             typename      = internal::face_hook_t<Type>>
+    void run_layer(const char*  _operation,
+                   Function&&   _function,
+                   failure_kind _kind = failure_kind::query);
+
+    /**
+     * @brief Calls the layer, as run_layer does, for calls that only ask:
+     *        the face is lent const, and the state is left as it is; gated.
+     *
+     * @param[in] _operation  the operation's name, for the message.
+     * @param[in] _function   called once with the face, const.
+     * @param[in] _kind       as run_layer's.
+     * @throws as run_layer; a connection_exception marks the connection
+     *         lost.
+     */
+    template<typename Function,
+             typename Type = Derived,
+             typename      = internal::face_hook_t<Type>>
+    void ask_layer(const char*  _operation,
+                   Function&&   _function,
+                   failure_kind _kind = failure_kind::query) const;
+
+    /**
+     * @brief Begins a transaction, in the vendor's default mode.
+     *
+     * @throws connection_exception when the connection is not open, or the
+     *         database drops it; transaction_exception, with the layer's
+     *         result, when the transaction cannot begin -- one already open
+     *         among the reasons.
+     */
+    void begin_transaction();
+
+    /**
+     * @brief Begins a transaction at an isolation level; gated.
+     *
+     * @note A vendor may run it at a stronger level, as isolation_level
+     *       says; default_level begins it as begin_transaction() does.
+     *
+     * @param[in] _isolation  the level.
+     * @throws as begin_transaction().
+     */
+    template<typename Type = Derived,
+             typename      = internal::begin_transaction_level_hook_t<Type>>
+    void begin_transaction(isolation_level _isolation);
+
+    // ending -- commit and rollback end the transaction, and throw as
+    // begin_transaction() does when the database refuses; PostgreSQL's commit
+    // of a failed transaction rolls it back and throws, 25P02
+    void commit();
+    void rollback();
+
+    // in_transaction -- whether a transaction is open, as the vendor sees it:
+    // one begun with SQL counts too
+    bool in_transaction() const noexcept;
+
+    // isolation -- the level of the transactions the session begins from
+    // now on; each gated, and throwing as begin_transaction() does
+    template<typename Type = Derived,
+             typename      = internal::get_isolation_level_hook_t<Type>>
+    isolation_level get_isolation_level() const;
+
+    template<typename Type = Derived,
+             typename      = internal::set_isolation_level_hook_t<Type>>
+    void set_isolation_level(isolation_level _level);
+
+    // savepoints -- by name, inside a transaction; each gated, and throwing
+    // as begin_transaction() does
+    template<typename Type = Derived,
+             typename      = internal::create_savepoint_hook_t<Type>>
+    void create_savepoint(const std::string& _name);
+
+    template<typename Type = Derived,
+             typename      = internal::release_savepoint_hook_t<Type>>
+    void release_savepoint(const std::string& _name);
+
+    template<typename Type = Derived,
+             typename      = internal::rollback_to_savepoint_hook_t<Type>>
+    void rollback_to_savepoint(const std::string& _name);
+
+    // metadata -- the server's version, read once when the connection opens
+    // ("" while it is closed); the configured database; the id the latest
+    // INSERT generated on this connection, 0 when none has, throwing as
+    // execute_query does; and the rows the latest statement run on it
+    // changed, through the connection or a prepared statement, 0 before any
+    std::string     get_server_version() const;
+    std::string     get_database_name() const;
+    re_std::int64_t get_last_insert_id() const;
+    re_std::int64_t get_affected_rows() const noexcept;
+
+    /**
+     * @brief Turns auto-commit mode on or off; gated (MariaDB and MySQL).
+     *
+     * @param[in] _enabled  whether each statement commits on its own.
+     * @throws as begin_transaction().
+     */
+    template<typename Type = Derived,
+             typename      = internal::set_auto_commit_hook_t<Type>>
+    void set_auto_commit(bool _enabled);
+
+    /**
+     * @brief Says whether each statement commits on its own: the session's
+     *        setting where the vendor has one, and otherwise whether no
+     *        transaction is open.
+     *
+     * @return the mode; for a closed connection, the mode it opens in.
+     * @throws as execute_query, where the vendor asks the server.
+     */
+    bool get_auto_commit() const;
+
+    // errors -- the latest failure an operation threw: its message and the
+    // layer's result, until clear_error() or the next connect()
+    std::string get_last_error() const;
+    int         get_last_error_code() const noexcept;
+    bool        has_error() const noexcept;
+    void        clear_error() noexcept;
+
+    // reconnection -- how many failed reconnections in a row reconnect()
+    // allows (3 by default), and how many there have been
+    std::size_t get_max_reconnect_attempts() const noexcept;
+    void        set_max_reconnect_attempts(std::size_t _max) noexcept;
+    std::size_t get_reconnect_attempts() const noexcept;
+    void        reset_reconnect_counter() noexcept;
+
+protected:
+    database_connection();
+    explicit database_connection(const connection_config& _config);
+
+    ~database_connection() = default;
+
     database_connection(const database_connection&)            = delete;
     database_connection& operator=(const database_connection&) = delete;
 
-    // enable moving
-    database_connection(database_connection&& _other) noexcept
-        : base_type(std::move(_other)),
-          m_reconnect_attempts(_other.m_reconnect_attempts),
-          m_max_reconnect_attempts(_other.m_max_reconnect_attempts),
-          m_last_error_code(_other.m_last_error_code),
-          m_last_error(_other.m_last_error),
-          m_server_version(std::move(_other.m_server_version))
+    database_connection(database_connection&& _other) noexcept;
+    database_connection& operator=(database_connection&& _other) noexcept;
+
+    // ensure_connected -- connection_exception unless the connection is open
+    // and no statement found it lost
+    void ensure_connected() const;
+
+    // capture_error -- records a failure as the latest, for vendor members
+    // that report one without throwing it
+    void capture_error(int                _code,
+                       const std::string& _message) const;
+    void capture_error(int         _code,
+                       const char* _message) const;
+
+    /**
+     * @brief Runs a vendor operation as every operation here runs: once the
+     *        connection is open, its state `executing` meanwhile, and its
+     *        failure recorded.
+     *
+     * @param[in] _function  the operation; called once.
+     * @return what the operation returns.
+     * @throws connection_exception when the connection is not open; and what
+     *         the operation throws, a connection_exception leaving the
+     *         connection in connection_state::error.
+     */
+    template<typename Function>
+    auto run_guarded(Function&& _function) -> decltype(_function());
+
+    /**
+     * @brief Runs a vendor operation that only asks, as run_guarded does,
+     *        without the `executing` state; a connection_exception marks the
+     *        connection lost.
+     *
+     * @param[in] _function  the operation; called once.
+     * @return what the operation returns.
+     * @throws as run_guarded.
+     */
+    template<typename Function>
+    auto ask_guarded(Function&& _function) const -> decltype(_function());
+
+    // record_changes -- the rows a vendor operation changed, as
+    // get_affected_rows() then answers
+    void record_changes(re_std::int64_t _changes) noexcept;
+
+    /**
+     * @brief Closes every statement prepared on the connection, and marks it
+     *        disconnected, without calling a hook: for the destructor of the
+     *        class that holds the face, before the face closes.
+     *
+     * @post Every statement prepared on the connection is closed.
+     */
+    void close_session_noexcept() noexcept;
+
+private:
+    // m_close_quietly -- the statements, then the connection; nothing thrown
+    void m_close_quietly() noexcept;
+
+    // m_refuse_nul_settings -- connection_exception with
+    // D_DB_INVALID_ARGUMENT for a setting of the generic configuration that
+    // holds a NUL, which the layer would read cut short
+    void m_refuse_nul_settings() const;
+
+    // m_effective_state -- the state, `error` where a statement found the
+    // connection lost
+    connection_state m_effective_state() const noexcept;
+
+    // m_capture -- records a core/db exception as the latest failure
+    void m_capture(const exception& _exception) const;
+
+    Derived&       m_self() noexcept;
+    const Derived& m_self() const noexcept;
+
+    std::shared_ptr<internal::session> m_session;
+    std::size_t                        m_reconnect_attempts;
+    std::size_t                        m_max_reconnect_attempts;
+    mutable int                        m_last_error_code;
+    mutable std::string                m_last_error;
+    std::string                        m_server_version;
+};
+
+// 1.2    Definitions
+//------------------------------------------------------------------------------
+
+template<typename      Derived,
+         database_type DbType>
+database_connection<Derived, DbType>::database_connection()
+    : base_type(),
+      m_session(),
+      m_reconnect_attempts(0),
+      m_max_reconnect_attempts(3),
+      m_last_error_code(0)
+{}
+
+template<typename      Derived,
+         database_type DbType>
+database_connection<Derived, DbType>::database_connection(
+    const connection_config& _config
+)
+    : base_type(_config),
+      m_session(),
+      m_reconnect_attempts(0),
+      m_max_reconnect_attempts(3),
+      m_last_error_code(0)
+{}
+
+/*
+database_connection::database_connection (move)
+  The session moves with the connection, so that the statements prepared on
+it, which hold the session and not the connection, still belong to it. The
+connection moved from is left disconnected, with no session: its next
+connect() makes one.
+*/
+template<typename      Derived,
+         database_type DbType>
+database_connection<Derived, DbType>::database_connection(
+    database_connection&& _other
+) noexcept
+    : base_type(std::move(_other)),
+      m_session(std::move(_other.m_session)),
+      m_reconnect_attempts(_other.m_reconnect_attempts),
+      m_max_reconnect_attempts(_other.m_max_reconnect_attempts),
+      m_last_error_code(_other.m_last_error_code),
+      m_last_error(std::move(_other.m_last_error)),
+      m_server_version(std::move(_other.m_server_version))
+{
+    _other.m_state              = connection_state::disconnected;
+    _other.m_in_transaction     = false;
+    _other.m_reconnect_attempts = 0;
+    _other.m_last_error_code    = 0;
+    _other.m_last_error.clear();
+}
+
+/*
+database_connection::operator= (move)
+  This connection closes first, through its hooks, while the whole object is
+alive; the class that holds the face then moves the face, whose move closes
+nothing more, the connection being closed already.
+*/
+template<typename      Derived,
+         database_type DbType>
+database_connection<Derived, DbType>&
+database_connection<Derived, DbType>::operator=(
+    database_connection&& _other
+) noexcept
+{
+    // a connection assigned to itself keeps what it has
+    if (this != &_other)
     {
+        m_close_quietly();
+
+        base_type::operator=(std::move(_other));
+
+        m_session                = std::move(_other.m_session);
+        m_reconnect_attempts     = _other.m_reconnect_attempts;
+        m_max_reconnect_attempts = _other.m_max_reconnect_attempts;
+        m_last_error_code        = _other.m_last_error_code;
+        m_last_error             = std::move(_other.m_last_error);
+        m_server_version         = std::move(_other.m_server_version);
+
+        _other.m_state              = connection_state::disconnected;
+        _other.m_in_transaction     = false;
         _other.m_reconnect_attempts = 0;
         _other.m_last_error_code    = 0;
-
         _other.m_last_error.clear();
     }
 
-    database_connection& operator=(database_connection&& _other) noexcept
+    return *this;
+}
+
+/*
+database_connection::connect
+  The session is made before the connection opens: making it can fail for
+memory, and a failure after the open would leave an open connection marked
+otherwise. A connection in error -- one a statement found lost, or one that
+failed to open -- is closed first, so that its old handle goes.
+*/
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::connect()
+{
+    // an open connection stays as it is
+    if (m_effective_state() == connection_state::connected)
     {
-        if (this != &_other)
-        {
-            // disconnect current connection if active
-            if (this->m_state == connection_state::connected)
-            {
-                try
-                {
-                    self().disconnect_helper();
-                }
-                catch (...)
-                {
-                    // suppress
-                }
-            }
-
-            base_type::operator=(std::move(_other));
-
-            m_reconnect_attempts     = _other.m_reconnect_attempts;
-            m_max_reconnect_attempts = _other.m_max_reconnect_attempts;
-            m_last_error_code        = _other.m_last_error_code;
-            m_last_error             = _other.m_last_error;
-            m_server_version         = std::move(_other.m_server_version);
-
-            _other.m_reconnect_attempts = 0;
-            _other.m_last_error_code    = 0;
-            _other.m_last_error.clear();
-        }
-
-        return *this;
+        return;
     }
 
-    // -----------------------------------------------------------------
-    // connection management
-    // -----------------------------------------------------------------
-
-    // connect
-    //   function: establishes a connection using the current
-    // configuration. Updates connection state and captures the server
-    // version on success, or captures the error on failure.
-    void
-    connect()
+    // core/db never reconnects behind a program's back
+    if (this->m_config.auto_reconnect)
     {
-        if (this->m_state == connection_state::connected)
+        throw connection_exception(std::string(traits_type::display_name) +
+                                   " connect: auto_reconnect is not "
+                                   "supported; reconnect() reconnects",
+                                   D_DB_UNSUPPORTED);
+    }
+
+    // what is left of an earlier connection goes first: one in error, or
+    // one a statement found lost
+    if (this->m_state != connection_state::disconnected)
+    {
+        m_close_quietly();
+    }
+
+    // a session for the statements to come, made or renewed
+    if (m_session)
+    {
+        m_session->renew();
+    }
+    else
+    {
+        m_session = std::make_shared<internal::session>();
+    }
+
+    this->m_state = connection_state::connecting;
+    clear_error();
+
+    try
+    {
+        m_refuse_nul_settings();
+        m_self().connect_helper();
+    }
+    catch (const exception& _e)
+    {
+        this->m_state = connection_state::error;
+        m_capture(_e);
+
+        throw;
+    }
+    catch (...)
+    {
+        this->m_state = connection_state::error;
+
+        throw;
+    }
+
+    this->m_state          = connection_state::connected;
+    this->m_in_transaction = false;
+    this->m_auto_commit    = true;
+    m_reconnect_attempts   = 0;
+
+    try
+    {
+        m_server_version = m_self().get_server_version_helper();
+    }
+    catch (...)
+    {
+        // the version is for reading later; not having it costs nothing
+        m_server_version.clear();
+    }
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::connect(
+    const connection_config& _config
+)
+{
+    this->m_config = _config;
+
+    // the vendor's port where the configuration names none
+    if (this->m_config.port == 0)
+    {
+        this->m_config.port = traits_type::default_port;
+    }
+
+    connect();
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::disconnect() noexcept
+{
+    // nothing open to close
+    if ( (this->m_state == connection_state::disconnected) ||
+         (this->m_state == connection_state::closed) )
+    {
+        return;
+    }
+
+    m_close_quietly();
+
+    this->m_state          = connection_state::disconnected;
+    this->m_in_transaction = false;
+
+    return;
+}
+
+/*
+database_connection::reconnect
+  The counter counts reconnections in a row that did not succeed; connect()
+sets it to 0 when one does.
+*/
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::reconnect()
+{
+    // as many failures in a row as allowed is enough
+    if (m_reconnect_attempts >= m_max_reconnect_attempts)
+    {
+        throw connection_exception(std::string(traits_type::display_name) +
+                                   " reconnect: the maximum of " +
+                                   std::to_string(m_max_reconnect_attempts) +
+                                   " reconnection attempts is reached");
+    }
+
+    ++m_reconnect_attempts;
+
+    // the old connection goes, whether open or in error
+    if (this->m_state != connection_state::disconnected)
+    {
+        m_close_quietly();
+
+        this->m_state = connection_state::disconnected;
+    }
+
+    connect();
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+bool
+database_connection<Derived, DbType>::is_connected() const noexcept
+{
+    // only a connection open and not found lost can be connected
+    if (m_effective_state() != connection_state::connected)
+    {
+        return false;
+    }
+
+    try
+    {
+        return m_self().is_connected_helper();
+    }
+    catch (...)
+    {
+        return false;
+    }
+}
+
+template<typename      Derived,
+         database_type DbType>
+bool
+database_connection<Derived, DbType>::ping() const noexcept
+{
+    // a closed connection answers nothing
+    if (m_effective_state() != connection_state::connected)
+    {
+        return false;
+    }
+
+    try
+    {
+        return m_self().ping_helper();
+    }
+    catch (...)
+    {
+        return false;
+    }
+}
+
+template<typename      Derived,
+         database_type DbType>
+connection_state
+database_connection<Derived, DbType>::get_state() const noexcept
+{
+    return m_effective_state();
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::unique_ptr<buffered_result_set>
+database_connection<Derived, DbType>::execute_query(
+    const std::string& _query
+)
+{
+    return run_guarded(
+        [this, &_query]() -> std::unique_ptr<buffered_result_set>
         {
+            internal::refuse_nul(_query, "execute_query", "the SQL");
+
+            return std::make_unique<buffered_result_set>(
+                m_self().execute_query_helper(_query));
+        });
+}
+
+template<typename      Derived,
+         database_type DbType>
+re_std::int64_t
+database_connection<Derived, DbType>::execute_update(
+    const std::string& _query
+)
+{
+    return run_guarded(
+        [this, &_query]() -> re_std::int64_t
+        {
+            internal::refuse_nul(_query, "execute_update", "the SQL");
+
+            const re_std::int64_t changes =
+                m_self().execute_update_helper(_query);
+
+            m_session->record(changes);
+
+            return changes;
+        });
+}
+
+template<typename      Derived,
+         database_type DbType>
+bool
+database_connection<Derived, DbType>::execute(
+    const std::string& _query
+)
+{
+    (void)execute_update(_query);
+
+    return true;
+}
+
+/*
+database_connection::prepare
+  The statement shares the session, never the connection object, which can
+move while the statement lives.
+*/
+template<typename      Derived,
+         database_type DbType>
+auto
+database_connection<Derived, DbType>::prepare(
+    const std::string& _query
+)
+{
+    using layer_type     = typename Derived::layer_type;
+    using statement_type = prepared_statement<layer_type>;
+
+    return run_guarded(
+        [this, &_query]() -> std::unique_ptr<statement_type>
+        {
+            internal::refuse_nul(_query, "prepare", "the SQL");
+
+            return std::make_unique<statement_type>(
+                m_session,
+                m_self().prepare_helper(_query));
+        });
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::optional<value>
+database_connection<Derived, DbType>::execute_scalar(
+    const std::string& _query
+)
+{
+    std::unique_ptr<buffered_result_set> found = execute_query(_query);
+
+    // the first column of the first row, when there is a row
+    if ( (found->next()) &&
+         (found->column_count() > 0u) )
+    {
+        return found->get_value(static_cast<std::size_t>(0));
+    }
+
+    return std::nullopt;
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::optional<row>
+database_connection<Derived, DbType>::execute_single_row(
+    const std::string& _query
+)
+{
+    std::unique_ptr<buffered_result_set> found = execute_query(_query);
+
+    // the first row, when there is one
+    if (found->next())
+    {
+        return found->get_current_row();
+    }
+
+    return std::nullopt;
+}
+
+template<typename      Derived,
+         database_type DbType>
+template<typename Function,
+         typename Type,
+         typename>
+void
+database_connection<Derived, DbType>::run_layer(
+    const char*  _operation,
+    Function&&   _function,
+    failure_kind _kind
+)
+{
+    run_guarded(
+        [this, _operation, &_function, _kind]() -> void
+        {
+            auto&     face   = m_self().get_face();
+            const int result = _function(face);
+
+            // a failure, raised as the vendor raises its own
+            if (result != 0)
+            {
+                Derived::layer_type::raise(face.handle(),
+                                           _kind,
+                                           _operation,
+                                           result);
+            }
+
+            return;
+        });
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+template<typename Function,
+         typename Type,
+         typename>
+void
+database_connection<Derived, DbType>::ask_layer(
+    const char*  _operation,
+    Function&&   _function,
+    failure_kind _kind
+) const
+{
+    ask_guarded(
+        [this, _operation, &_function, _kind]() -> void
+        {
+            const auto& face   = m_self().get_face();
+            const int   result = _function(face);
+
+            // a failure, raised as the vendor raises its own
+            if (result != 0)
+            {
+                Derived::layer_type::raise(face.handle(),
+                                           _kind,
+                                           _operation,
+                                           result);
+            }
+
+            return;
+        });
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::begin_transaction()
+{
+    run_guarded(
+        [this]() -> void
+        {
+            m_self().begin_transaction_helper();
+
+            return;
+        });
+
+    this->m_in_transaction = true;
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+template<typename Type,
+         typename>
+void
+database_connection<Derived, DbType>::begin_transaction(
+    isolation_level _isolation
+)
+{
+    run_guarded(
+        [this, _isolation]() -> void
+        {
+            m_self().begin_transaction_helper(_isolation);
+
+            return;
+        });
+
+    this->m_in_transaction = true;
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::commit()
+{
+    run_guarded(
+        [this]() -> void
+        {
+            m_self().commit_helper();
+
+            return;
+        });
+
+    this->m_in_transaction = false;
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::rollback()
+{
+    run_guarded(
+        [this]() -> void
+        {
+            m_self().rollback_helper();
+
+            return;
+        });
+
+    this->m_in_transaction = false;
+
+    return;
+}
+
+/*
+database_connection::in_transaction
+  A vendor whose connection can say -- every one with a layer -- is asked,
+so that a transaction begun with SQL counts; one that cannot is answered
+from what this class saw begin and end.
+*/
+template<typename      Derived,
+         database_type DbType>
+bool
+database_connection<Derived, DbType>::in_transaction() const noexcept
+{
+    // the vendor's own answer, where it has one
+    if constexpr (is_detected<internal::in_transaction_hook_t,
+                              Derived>::value)
+    {
+        return ( (m_effective_state() == connection_state::connected) &&
+                 (m_self().in_transaction_helper()) );
+    }
+    else
+    {
+        return this->m_in_transaction;
+    }
+}
+
+template<typename      Derived,
+         database_type DbType>
+template<typename Type,
+         typename>
+isolation_level
+database_connection<Derived, DbType>::get_isolation_level() const
+{
+    return ask_guarded(
+        [this]() -> isolation_level
+        {
+            return m_self().get_isolation_level_helper();
+        });
+}
+
+template<typename      Derived,
+         database_type DbType>
+template<typename Type,
+         typename>
+void
+database_connection<Derived, DbType>::set_isolation_level(
+    isolation_level _level
+)
+{
+    run_guarded(
+        [this, _level]() -> void
+        {
+            m_self().set_isolation_level_helper(_level);
+
+            return;
+        });
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+template<typename Type,
+         typename>
+void
+database_connection<Derived, DbType>::create_savepoint(
+    const std::string& _name
+)
+{
+    run_guarded(
+        [this, &_name]() -> void
+        {
+            internal::refuse_nul(_name, "create_savepoint", "the name");
+            m_self().create_savepoint_helper(_name);
+
+            return;
+        });
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+template<typename Type,
+         typename>
+void
+database_connection<Derived, DbType>::release_savepoint(
+    const std::string& _name
+)
+{
+    run_guarded(
+        [this, &_name]() -> void
+        {
+            internal::refuse_nul(_name, "release_savepoint", "the name");
+            m_self().release_savepoint_helper(_name);
+
+            return;
+        });
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+template<typename Type,
+         typename>
+void
+database_connection<Derived, DbType>::rollback_to_savepoint(
+    const std::string& _name
+)
+{
+    run_guarded(
+        [this, &_name]() -> void
+        {
+            internal::refuse_nul(_name, "rollback_to_savepoint", "the name");
+            m_self().rollback_to_savepoint_helper(_name);
+
+            return;
+        });
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::string
+database_connection<Derived, DbType>::get_server_version() const
+{
+    return m_server_version;
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::string
+database_connection<Derived, DbType>::get_database_name() const
+{
+    return this->m_config.database;
+}
+
+template<typename      Derived,
+         database_type DbType>
+re_std::int64_t
+database_connection<Derived, DbType>::get_last_insert_id() const
+{
+    return ask_guarded(
+        [this]() -> re_std::int64_t
+        {
+            return m_self().get_last_insert_id_helper();
+        });
+}
+
+template<typename      Derived,
+         database_type DbType>
+re_std::int64_t
+database_connection<Derived, DbType>::get_affected_rows() const noexcept
+{
+    return (m_session) ? m_session->changes()
+                       : 0;
+}
+
+template<typename      Derived,
+         database_type DbType>
+template<typename Type,
+         typename>
+void
+database_connection<Derived, DbType>::set_auto_commit(
+    bool _enabled
+)
+{
+    run_guarded(
+        [this, _enabled]() -> void
+        {
+            m_self().set_auto_commit_helper(_enabled);
+
+            return;
+        });
+
+    this->m_auto_commit = _enabled;
+
+    return;
+}
+
+/*
+database_connection::get_auto_commit
+  SQLite and PostgreSQL have no auto-commit setting: a statement outside a
+transaction commits on its own, so the mode is whether none is open.
+*/
+template<typename      Derived,
+         database_type DbType>
+bool
+database_connection<Derived, DbType>::get_auto_commit() const
+{
+    // a closed connection opens in the mode it was last set to, or on
+    if (!is_connected())
+    {
+        return this->m_auto_commit;
+    }
+
+    // the session's setting, where the vendor has one
+    if constexpr (is_detected<internal::get_auto_commit_hook_t,
+                              Derived>::value)
+    {
+        return ask_guarded(
+            [this]() -> bool
+            {
+                return m_self().get_auto_commit_helper();
+            });
+    }
+    else
+    {
+        return !in_transaction();
+    }
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::string
+database_connection<Derived, DbType>::get_last_error() const
+{
+    return m_last_error;
+}
+
+template<typename      Derived,
+         database_type DbType>
+int
+database_connection<Derived, DbType>::get_last_error_code() const noexcept
+{
+    return m_last_error_code;
+}
+
+template<typename      Derived,
+         database_type DbType>
+bool
+database_connection<Derived, DbType>::has_error() const noexcept
+{
+    return ( (m_last_error_code != 0) ||
+             (!m_last_error.empty()) );
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::clear_error() noexcept
+{
+    m_last_error_code = 0;
+    m_last_error.clear();
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::size_t
+database_connection<Derived, DbType>::get_max_reconnect_attempts()
+    const noexcept
+{
+    return m_max_reconnect_attempts;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::set_max_reconnect_attempts(
+    std::size_t _max
+) noexcept
+{
+    m_max_reconnect_attempts = _max;
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+std::size_t
+database_connection<Derived, DbType>::get_reconnect_attempts() const noexcept
+{
+    return m_reconnect_attempts;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::reset_reconnect_counter() noexcept
+{
+    m_reconnect_attempts = 0;
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::ensure_connected() const
+{
+    // only an open connection, not found lost, runs anything
+    if (m_effective_state() != connection_state::connected)
+    {
+        throw connection_exception(std::string("not connected to ") +
+                                   traits_type::display_name);
+    }
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::capture_error(
+    int                _code,
+    const std::string& _message
+) const
+{
+    m_last_error_code = _code;
+    m_last_error      = _message;
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::capture_error(
+    int         _code,
+    const char* _message
+) const
+{
+    m_last_error_code = _code;
+    m_last_error      = (_message) ? _message
+                                   : "";
+
+    return;
+}
+
+/*
+database_connection::run_guarded
+  The state is put back on every path out: `connected` after success or a
+failure of the statement's own, `error` after a connection_exception, and
+`connected` after anything else that propagates -- a std::bad_alloc among
+it -- which is rethrown untouched.
+*/
+template<typename      Derived,
+         database_type DbType>
+template<typename Function>
+auto
+database_connection<Derived, DbType>::run_guarded(
+    Function&& _function
+) -> decltype(_function())
+{
+    ensure_connected();
+
+    this->m_state = connection_state::executing;
+
+    try
+    {
+        // the operation, its result kept across the state's restoring
+        if constexpr (std::is_void_v<decltype(_function())>)
+        {
+            _function();
+
+            this->m_state = connection_state::connected;
+
             return;
         }
-
-        this->m_state = connection_state::connecting;
-        clear_error();
-
-        try
+        else
         {
-            self().connect_helper();
-
-            this->m_state        = connection_state::connected;
-            m_reconnect_attempts = 0;
-
-            // cache server version on successful connection
-            try
-            {
-                m_server_version = self().get_server_version_helper();
-            }
-            catch (...)
-            {
-                // non-fatal: version query failure does not
-                // invalidate the connection
-            }
-        }
-        catch (const connection_exception& _e)
-        {
-            this->m_state = connection_state::error;
-            capture_error(_e.error_code(), _e.what());
-
-            throw;
-        }
-        catch (const std::exception& _e)
-        {
-            this->m_state = connection_state::error;
-            capture_error(-1, _e.what());
-
-            throw connection_exception(_e.what());
-        }
-    }
-
-    // connect (config overload)
-    //   function: replaces the current configuration and connects.
-    void
-    connect(const connection_config& _config)
-    {
-        this->m_config = _config;
-
-        // apply vendor default port if not specified
-        if (this->m_config.port == 0)
-        {
-            this->m_config.port = traits_type::default_port;
-        }
-
-        connect();
-    }
-
-    // disconnect
-    //   function: tears down the current connection and resets state.
-    void
-    disconnect()
-    {
-        if ( (this->m_state == connection_state::disconnected) ||
-             (this->m_state == connection_state::closed) )
-        {
-            return;
-        }
-
-        try
-        {
-            self().disconnect_helper();
-        }
-        catch (const std::exception& _e)
-        {
-            capture_error(-1, _e.what());
-        }
-
-        this->m_state        = connection_state::disconnected;
-        this->m_in_transaction = false;
-    }
-
-    // reconnect
-    //   function: disconnects (if connected) and re-establishes the
-    // connection using the current configuration. Tracks reconnection
-    // attempts and throws if the maximum is exceeded.
-    void
-    reconnect()
-    {
-        if (m_reconnect_attempts >= m_max_reconnect_attempts)
-        {
-            throw connection_exception(
-                "maximum reconnection attempts exceeded ("
-                + std::to_string(m_max_reconnect_attempts) + ")");
-        }
-
-        ++m_reconnect_attempts;
-
-        // disconnect if currently connected
-        if ( (this->m_state == connection_state::connected) ||
-             (this->m_state == connection_state::error) )
-        {
-            try
-            {
-                self().disconnect_helper();
-            }
-            catch (...)
-            {
-                // suppress: we are reconnecting anyway
-            }
-
-            this->m_state = connection_state::disconnected;
-        }
-
-        connect();
-    }
-
-    // is_connected
-    //   function: tests whether the connection is alive by delegating
-    // to the implementation's is_connected_helper method.
-    bool
-    is_connected() const noexcept
-    {
-        if (this->m_state != connection_state::connected)
-        {
-            return false;
-        }
-
-        try
-        {
-            return self().is_connected_helper();
-        }
-        catch (...)
-        {
-            return false;
-        }
-    }
-
-    // ping
-    //   function: performs a lightweight liveness check against the
-    // server.
-    bool
-    ping() const
-    {
-        if (this->m_state != connection_state::connected)
-        {
-            return false;
-        }
-
-        try
-        {
-            return self().ping_helper();
-        }
-        catch (...)
-        {
-            return false;
-        }
-    }
-
-    // -----------------------------------------------------------------
-    // query execution wrappers
-    // -----------------------------------------------------------------
-
-    // execute_query
-    //   function: executes a query and returns a result set. Updates
-    // the connection state to executing for the duration.
-    auto
-    execute_query(
-        const std::string& _query
-    )
-    {
-        ensure_connected();
-
-        this->m_state = connection_state::executing;
-
-        try
-        {
-            auto result = self().execute_query_helper(_query);
+            auto result = _function();
 
             this->m_state = connection_state::connected;
 
             return result;
         }
-        catch (const query_exception& _e)
-        {
-            this->m_state = connection_state::connected;
-            capture_error(_e.error_code(), _e.what());
-
-            throw;
-        }
-        catch (const std::exception& _e)
-        {
-            this->m_state = connection_state::connected;
-            capture_error(-1, _e.what());
-
-            throw query_exception(_e.what());
-        }
     }
-
-    // execute_update
-    //   function: executes an update/insert/delete statement and
-    // returns the number of affected rows.
-    re_std::int64_t
-    execute_update(
-        const std::string& _query
-    )
+    catch (const connection_exception& _e)
     {
-        ensure_connected();
+        this->m_state = connection_state::error;
+        m_capture(_e);
 
-        this->m_state = connection_state::executing;
-
-        try
-        {
-            re_std::int64_t rows = self().execute_update_helper(_query);
-
-            this->m_state = connection_state::connected;
-
-            return rows;
-        }
-        catch (const query_exception& _e)
-        {
-            this->m_state = connection_state::connected;
-            capture_error(_e.error_code(), _e.what());
-
-            throw;
-        }
-        catch (const std::exception& _e)
-        {
-            this->m_state = connection_state::connected;
-            capture_error(-1, _e.what());
-
-            throw query_exception(_e.what());
-        }
+        throw;
     }
-
-    // execute
-    //   function: executes a statement that does not return a result
-    // set (DDL, DCL, etc.). Returns true on success.
-    bool execute(
-        const std::string& _query
-    )
+    catch (const exception& _e)
     {
-        ensure_connected();
+        this->m_state = connection_state::connected;
+        m_capture(_e);
 
-        this->m_state = connection_state::executing;
-
-        try
-        {
-            bool result = self().execute_helper(_query);
-
-            this->m_state = connection_state::connected;
-
-            return result;
-        }
-        catch (const std::exception& _e)
-        {
-            this->m_state = connection_state::connected;
-            capture_error(-1, _e.what());
-
-            throw query_exception(_e.what());
-        }
+        throw;
     }
-
-    // -----------------------------------------------------------------
-    // metadata
-    // -----------------------------------------------------------------
-
-    // get_server_version
-    //   function: returns the cached server version string, or queries
-    // the server if not yet cached.
-    std::string
-    get_server_version() const
+    catch (...)
     {
-        if (!m_server_version.empty())
+        this->m_state = connection_state::connected;
+
+        throw;
+    }
+}
+
+/*
+database_connection::ask_guarded
+  A const operation cannot change the state; the session, which it reaches
+through a pointer, carries the loss instead, and m_effective_state reads it.
+*/
+template<typename      Derived,
+         database_type DbType>
+template<typename Function>
+auto
+database_connection<Derived, DbType>::ask_guarded(
+    Function&& _function
+) const -> decltype(_function())
+{
+    ensure_connected();
+
+    try
+    {
+        return _function();
+    }
+    catch (const connection_exception& _e)
+    {
+        // the loss is the session's to keep until the next connect
+        if (m_session)
         {
-            return m_server_version;
+            m_session->mark_lost();
         }
 
-        if (this->m_state == connection_state::connected)
-        {
-            return self().get_server_version_helper();
-        }
+        m_capture(_e);
 
-        return "";
+        throw;
     }
-
-    // get_database_name
-    //   function: returns the database name from the current config.
-    std::string
-    get_database_name() const
+    catch (const exception& _e)
     {
-        return this->m_config.database;
+        m_capture(_e);
+
+        throw;
     }
+}
 
-    // -----------------------------------------------------------------
-    // error handling
-    // -----------------------------------------------------------------
-
-    // get_last_error
-    //   function: returns the last error message.
-    std::string
-    get_last_error() const
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::record_changes(
+    re_std::int64_t _changes
+) noexcept
+{
+    // only a connection that ran something has a session to tell
+    if (m_session)
     {
-        return m_last_error;
+        m_session->record(_changes);
     }
 
-    // get_last_error_code
-    //   function: returns the last vendor error code.
-    int
-    get_last_error_code() const noexcept
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::close_session_noexcept() noexcept
+{
+    // the statements go while the connection they run on is still there
+    if (m_session)
     {
-        return m_last_error_code;
+        m_session->close_all();
     }
 
-    // has_error
-    //   function: returns true if an error has been captured.
-    bool
-    has_error() const noexcept
+    this->m_state          = connection_state::disconnected;
+    this->m_in_transaction = false;
+
+    return;
+}
+
+/*
+database_connection::m_refuse_nul_settings
+  Every text field of the configuration reaches a layer as a C string, a
+file's path or a host's name among them, which a NUL would end early.
+*/
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::m_refuse_nul_settings() const
+{
+    const connection_config& config    = this->m_config;
+    const std::string        operation =
+        std::string(traits_type::display_name) + " connect";
+
+    internal::refuse_nul_setting(config.host, operation.c_str(), "host");
+    internal::refuse_nul_setting(config.database, operation.c_str(),
+                                 "database");
+    internal::refuse_nul_setting(config.username, operation.c_str(),
+                                 "username");
+    internal::refuse_nul_setting(config.password, operation.c_str(),
+                                 "password");
+    internal::refuse_nul_setting(config.charset.value_or(std::string()),
+                                 operation.c_str(),
+                                 "charset");
+    internal::refuse_nul_setting(config.schema.value_or(std::string()),
+                                 operation.c_str(),
+                                 "schema");
+    internal::refuse_nul_setting(config.ssl_cert.value_or(std::string()),
+                                 operation.c_str(),
+                                 "ssl_cert");
+    internal::refuse_nul_setting(config.ssl_key.value_or(std::string()),
+                                 operation.c_str(),
+                                 "ssl_key");
+    internal::refuse_nul_setting(config.ssl_ca.value_or(std::string()),
+                                 operation.c_str(),
+                                 "ssl_ca");
+
+    // each custom option, by name and value
+    for (const std::pair<const std::string, std::string>& option :
+         config.custom_options)
     {
-        return (m_last_error_code != 0) ||
-               (!m_last_error.empty());
+        internal::refuse_nul_setting(option.first,
+                                     operation.c_str(),
+                                     "a custom option's name");
+        internal::refuse_nul_setting(option.second,
+                                     operation.c_str(),
+                                     option.first.c_str());
     }
 
-    // clear_error
-    //   function: clears the captured error state.
-    void
-    clear_error() noexcept
+    return;
+}
+
+/*
+database_connection::m_close_quietly
+  Statements first: PostgreSQL's must be deallocated on a live connection,
+and none may be finalized after its connection closes.
+*/
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::m_close_quietly() noexcept
+{
+    // the statements go while the connection they run on is still there
+    if (m_session)
     {
-        m_last_error_code = 0;
-        m_last_error.clear();
+        m_session->close_all();
     }
 
-    // -----------------------------------------------------------------
-    // reconnection configuration
-    // -----------------------------------------------------------------
-
-    // get_max_reconnect_attempts
-    //   function: returns the maximum number of reconnection attempts.
-    std::size_t
-    get_max_reconnect_attempts() const noexcept
+    try
     {
-        return m_max_reconnect_attempts;
+        m_self().disconnect_helper();
     }
-
-    // set_max_reconnect_attempts
-    //   function: sets the maximum number of reconnection attempts.
-    void
-    set_max_reconnect_attempts(std::size_t _max) noexcept
+    catch (...)
     {
-        m_max_reconnect_attempts = _max;
+        // closing has nothing to report: the connection is gone either way
     }
 
-    // get_reconnect_attempts
-    //   function: returns the number of reconnection attempts since the
-    // last successful connection.
-    std::size_t
-    get_reconnect_attempts() const noexcept
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+connection_state
+database_connection<Derived, DbType>::m_effective_state() const noexcept
+{
+    // a statement may have found the connection lost
+    if ( (this->m_state == connection_state::connected) &&
+         (m_session)                                    &&
+         (m_session->lost()) )
     {
-        return m_reconnect_attempts;
+        return connection_state::error;
     }
 
-    // reset_reconnect_counter
-    //   function: resets the reconnection attempt counter.
-    void reset_reconnect_counter() noexcept
-    {
-        m_reconnect_attempts = 0;
-    }
+    return this->m_state;
+}
 
-    // -----------------------------------------------------------------
-    // convenience helpers
-    // -----------------------------------------------------------------
+template<typename      Derived,
+         database_type DbType>
+void
+database_connection<Derived, DbType>::m_capture(
+    const exception& _exception
+) const
+{
+    capture_error(_exception.error_code(), _exception.what());
 
-    // execute_scalar
-    //   function: executes a query and returns the first column of the
-    // first row as a value. Returns std::nullopt if no rows are
-    // returned.
-    std::optional<value>
-    execute_scalar(const std::string& _query)
-    {
-        auto rs = execute_query(_query);
+    return;
+}
 
-        if ( (rs) &&
-             (rs->next()) )
-        {
-            return rs->get_value(static_cast<std::size_t>(0));
-        }
+template<typename      Derived,
+         database_type DbType>
+Derived&
+database_connection<Derived, DbType>::m_self() noexcept
+{
+    return static_cast<Derived&>(*this);
+}
 
-        return std::nullopt;
-    }
-
-    // execute_single_row
-    //   function: executes a query and returns the first row as a
-    // map. Returns std::nullopt if no rows are returned.
-    std::optional<row>
-    execute_single_row(const std::string& _query)
-    {
-        auto rs = execute_query(_query);
-
-        if ( (rs) &&
-             (rs->next()) )
-        {
-            return rs->get_current_row();
-        }
-
-        return std::nullopt;
-    }
-
-protected:
-    // ensure_connected
-    //   function: throws if the connection is not in a connected state.
-    void
-    ensure_connected() const
-    {
-        if (this->m_state != connection_state::connected)
-        {
-            throw connection_exception(
-                "not connected to " + std::string(traits_type::display_name)
-            );
-        }
-    }
-
-    // capture_error
-    //   function: captures a vendor error code and message.
-    void
-    capture_error(
-        int                _code,
-        const std::string& _message
-    )
-    {
-        m_last_error_code = _code;
-        m_last_error      = _message;
-    }
-
-    // capture_error (const char* overload)
-    //   function: captures a vendor error code and message.
-    void capture_error
-    (
-        int         _code,
-        const char* _message)
-    {
-        m_last_error_code = _code;
-        m_last_error      = _message ? _message : "";
-    }
-
-    std::size_t m_reconnect_attempts;
-    std::size_t m_max_reconnect_attempts;
-    int         m_last_error_code;
-    std::string m_last_error;
-    std::string m_server_version;
-
-private:
-    _helper& self()
-    {
-        return static_cast<_helper&>(*this);
-    }
-
-    const _helper& self() const
-    {
-        return static_cast<const _helper&>(*this);
-    }
-};
+template<typename      Derived,
+         database_type DbType>
+const Derived&
+database_connection<Derived, DbType>::m_self() const noexcept
+{
+    return static_cast<const Derived&>(*this);
+}
 
 
 NS_END  // djinterp

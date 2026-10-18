@@ -1218,13 +1218,13 @@ public:
         return self().delete_row_impl(_keyspace, _table, _key);
     }
 
-    // row_exists
+    // has_row
     //   function: returns true if a row matching the given key exists.
-    bool row_exists(const std::string& _keyspace,
+    bool has_row(const std::string& _keyspace,
                     const std::string& _table,
                     const row&         _key) const
     {
-        return self().row_exists_impl(_keyspace, _table, _key);
+        return self().has_row_impl(_keyspace, _table, _key);
     }
 
 
@@ -1694,7 +1694,7 @@ public:
     bool         delete_row_impl(const std::string& _keyspace,
                                  const std::string& _table,
                                  const row&         _key);
-    bool         row_exists_impl(const std::string& _keyspace,
+    bool         has_row_impl(const std::string& _keyspace,
                                  const std::string& _table,
                                  const row&         _key) const;
 
@@ -2080,12 +2080,12 @@ using cassandra_delete_row_t =
         std::declval<const std::string&>(),
         std::declval<const row&>()));
 
-// cassandra_row_exists_t
-//   detector: row_exists(keyspace, table, key) const method.
+// cassandra_has_row_t
+//   detector: has_row(keyspace, table, key) const method.
 // SELECT COUNT(*) WHERE <key> — note Cassandra COUNTs are bounded.
 template<typename Type>
-using cassandra_row_exists_t =
-    decltype(std::declval<const Type&>().row_exists(
+using cassandra_has_row_t =
+    decltype(std::declval<const Type&>().has_row(
         std::declval<const std::string&>(),
         std::declval<const std::string&>(),
         std::declval<const row&>()));
@@ -2441,14 +2441,14 @@ struct has_cassandra_table_management : djinterp::conjunction<
 
 // has_cassandra_data_ops
 //   trait: checks if type Type supports core data operations
-// (insert_row + select_rows + update_row + delete_row + row_exists).
+// (insert_row + select_rows + update_row + delete_row + has_row).
 template<typename Type>
 struct has_cassandra_data_ops : djinterp::conjunction<
     is_detected<cassandra_insert_row_t, clean_t<Type>>,
     is_detected<cassandra_select_rows_t, clean_t<Type>>,
     is_detected<cassandra_update_row_t, clean_t<Type>>,
     is_detected<cassandra_delete_row_t, clean_t<Type>>,
-    is_detected<cassandra_row_exists_t, clean_t<Type>>>
+    is_detected<cassandra_has_row_t, clean_t<Type>>>
 {
 };
 
@@ -2912,7 +2912,7 @@ constexpr bool cassandra_does_data_ops<Type, std::void_t<
     cassandra_select_rows_t<Type>,
     cassandra_update_row_t<Type>,
     cassandra_delete_row_t<Type>,
-    cassandra_row_exists_t<Type>>> = true;
+    cassandra_has_row_t<Type>>> = true;
 
 // cassandra_does_lwt
 //   tagless trait: true if Type supports the full LWT surface.
@@ -3145,7 +3145,7 @@ concept cassandra_table_admin_connection =
 
 // cassandra_data_connection
 //   concept: constrains Cassandra connections supporting core data
-// operations (INSERT / SELECT / UPDATE / DELETE / row_exists).
+// operations (INSERT / SELECT / UPDATE / DELETE / has_row).
 template<typename Type>
 concept cassandra_data_connection =
     has_cassandra_data_ops<clean_t<Type>>::value;

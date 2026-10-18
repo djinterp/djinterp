@@ -909,13 +909,13 @@ public:
                                         _sort_key);
     }
 
-    // delete_table
+    // drop_table
     //   function: DeleteTable.
-    bool delete_table(const std::string& _table)
+    bool drop_table(const std::string& _table)
     {
         this->ensure_connected();
 
-        return self().delete_table_impl(_table);
+        return self().drop_table_impl(_table);
     }
 
     // describe_table
@@ -1360,7 +1360,7 @@ public:
     bool         create_table_impl(const std::string& _table,
                                    const std::string& _partition_key,
                                    const std::string& _sort_key);
-    bool         delete_table_impl(const std::string& _table);
+    bool         drop_table_impl(const std::string& _table);
     std::string  describe_table_impl(const std::string& _table) const;
     bool         update_table_impl(const std::string& _table,
                                    const std::string& _spec);
@@ -1694,12 +1694,12 @@ using dynamodb_create_table_t =
         std::declval<const std::string&>(),
         std::declval<const std::string&>()));
 
-// dynamodb_delete_table_t
-//   detector: delete_table(table) method.
+// dynamodb_drop_table_t
+//   detector: drop_table(table) method.
 // wraps DeleteTable.
 template<typename Type>
-using dynamodb_delete_table_t =
-    decltype(std::declval<Type&>().delete_table(
+using dynamodb_drop_table_t =
+    decltype(std::declval<Type&>().drop_table(
         std::declval<const std::string&>()));
 
 // dynamodb_describe_table_t
@@ -2048,12 +2048,12 @@ struct has_dynamodb_conditional_writes : djinterp::conjunction<
 
 // has_dynamodb_table_management
 //   trait: checks if type Type supports table management
-// (create_table + delete_table + describe_table + update_table +
+// (create_table + drop_table + describe_table + update_table +
 // list_tables).
 template<typename Type>
 struct has_dynamodb_table_management : djinterp::conjunction<
     is_detected<dynamodb_create_table_t, clean_t<Type>>,
-    is_detected<dynamodb_delete_table_t, clean_t<Type>>,
+    is_detected<dynamodb_drop_table_t, clean_t<Type>>,
     is_detected<dynamodb_describe_table_t, clean_t<Type>>,
     is_detected<dynamodb_update_table_t, clean_t<Type>>,
     is_detected<dynamodb_list_tables_t, clean_t<Type>>>
@@ -2460,7 +2460,7 @@ constexpr bool dynamodb_does_table_management = false;
 template<typename Type>
 constexpr bool dynamodb_does_table_management<Type, std::void_t<
     dynamodb_create_table_t<Type>,
-    dynamodb_delete_table_t<Type>,
+    dynamodb_drop_table_t<Type>,
     dynamodb_describe_table_t<Type>,
     dynamodb_update_table_t<Type>,
     dynamodb_list_tables_t<Type>>> = true;

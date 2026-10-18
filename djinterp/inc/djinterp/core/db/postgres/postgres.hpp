@@ -2,58 +2,35 @@
 * djinterp [core]                                                   postgres.hpp
 *
 * djinterp PostgreSQL connection module:
-*   This header provides the PostgreSQL-specific connection implementation
-* and associated data type infrastructure for the djinterp database
-* module, including:
-*   - PostgreSQL OID-based type system (well-known OID constants for all
-*     built-in types: integer family, text, bytea, boolean, date/time,
-*     numeric, JSON/JSONB, UUID, arrays, range, composite, geometry)
-*   - OID-to-field_type mapping with version-gated awareness for types
-*     introduced in later releases (JSONB 9.4, multirange 14, etc.)
-*   - compile-time type and feature availability via D_ENV_PG_* macros
-*     covering data types, SQL features, indexes, partitioning,
-*     replication, parallel query, extensions, and security
-*   - PostgreSQL-specific connection configuration (SSL mode, search_path,
-*     application_name, connection string / keyword-value API)
-*   - the concrete pg_connection CRTP leaf class with asynchronous query
-*     dispatch, pipeline mode, COPY protocol, LISTEN/NOTIFY, parameterized
-*     queries, large objects, escaping, and schema introspection
-*   - version-gated method declarations for pipeline (14+), chunked
-*     results (17+), and close-prepared (17+)
-*
-*   PostgreSQL's type system is fundamentally different from MySQL/SQLite:
-*   - every type has a unique OID (Object Identifier)
-*   - PQftype() returns the OID for each result column
-*   - OIDs are stable across versions for built-in types
-*   - user-defined types (enums, composites, domains) get dynamically
-*     assigned OIDs that must be queried from pg_type at runtime
-*   - arrays have their own OIDs (e.g. int4[] = OID 1007)
-*
-*   LAYER DIAGRAM:
+*   The PostgreSQL connection, pg_connection, over the PostgreSQL layer's C++
+* face (c/db/postgres/postgres_face.hpp), whose libpq connection it holds:
+* every operation is the layer's, and core/db adds exceptions, result sets
+* that outlive their query, and prepared statements that close with the
+* connection. Beside the operations every connection has, it sends SQL
+* without waiting, runs statements with parameters, copies rows in, listens
+* for notifications, and quotes values and names. With it, PostgreSQL's
+* types and how they map to field_type -- every built-in type has an OID,
+* stable across versions, arrays their own -- and the SQL features each
+* version has, at compile time from env_postgres.h.
 *     pg_connection (this file)
 *       -> database_connection<pg_connection, database_type::postgresql>
 *         -> connection_template<pg_connection, database_type::postgresql>
 *           -> connection<pg_connection>
-*
-*   PORTABILITY:
-*   This header requires C++17 or later. It does not include <libpq-fe.h>;
-* the concrete _impl method definitions in postgres.cpp include it.
-*
-*
-*   DETECTION:
-*   Also carries this database's capability-detection traits and C++20 concepts
-* (trailing sections), folded in from postgres_traits.hpp and the matching *_concepts.hpp;
-* detection now lives with the connection. Concepts gated on concept support.
+*   The hooks are defined in postgres.cpp. The header needs C++17 and
+* includes no client header: env_postgres.h includes libpq-fe.h only where a
+* program asks for env's detection (D_CFG_ENV_USING_POSTGRESQL), which the
+* compile-time feature queries read. Its trailing sections carry
+* PostgreSQL's capability-detection traits and C++20 concepts.
 *
 *
 * path:      /inc/djinterp/core/db/postgres/postgres.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.26
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 #ifndef DJINTERP_DB_POSTGRES_POSTGRES_HPP
-#define DJINTERP_DB_POSTGRES_POSTGRES_HPP
+#define DJINTERP_DB_POSTGRES_POSTGRES_HPP 1
 
 // djinterp
 #include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
@@ -63,11 +40,23 @@
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
+// std
+#include <cstddef>   // std::size_t
+#include <map>       // std::map
+#include <memory>    // std::unique_ptr
+#include <optional>  // std::optional
+#include <string>    // std::string
+#include <vector>    // std::vector
 // djinterp
-#include "../../../djinterp.hpp"
-#include "../../meta/type_utility.hpp"  // clean_t, self
-#include "../database_connection.hpp"
-#include "../../../env/db/postgres/env_postgres.h"  // D_ENV_PG_DETECTED, D_ENV_PG_HAS_*
+#include "../../../djinterp.hpp"                     // framework root
+#include "../../../c/db/postgres/postgres_face.hpp"  // face::postgres, the
+                                                     // layer
+#include "../../../env/db/postgres/env_postgres.h"   // D_ENV_PG_*
+#include "../../meta/type_utility.hpp"               // clean_t
+#include "../database_connection.hpp"                // database_connection
+#include "../database_statement.hpp"                 // prepared_statement,
+                                                     // failure_kind,
+                                                     // buffered_result_set
 
 
 NS_DJINTERP
@@ -867,53 +856,89 @@ enum class pg_ssl_mode : re_std::uint8_t
 // =============================================================================
 
 // pg_connect_config
-//   struct: PostgreSQL-specific connection configuration extending the
-// generic connection_config with libpq connection parameters.
+//   struct: what a PostgreSQL connection needs beyond connection_config, as
+// libpq's connection keywords. A field left as it was made leaves its
+// keyword to libpq -- its environment variables (PGHOST, PGSSLMODE, ...),
+// its password and service files -- and to the layer's defaults, UTF8 and a
+// bounded connect timeout; a field set gives its keyword. connection_string,
+// keywords ("host=db.example dbname=app") or a URI, has the last word: what
+// it names overrides every field, and the fields fill in what it leaves out,
+// base.database among them. Constructed from a string alone, the
+// configuration names nothing else, not even base's host, which libpq then
+// chooses as for any program given that string.
+//   ssl_mode            sslmode, where not prefer, libpq's own default; else,
+//                       with base.enable_ssl, verify-full, or require without
+//                       base.verify_ssl
+//   application_name    application_name
+//   search_path         the session's search path, set once connected, as
+//                       SQL writes the list ("app, public"); where it is
+//                       empty, base.schema names a single schema, or,
+//                       holding a comma, is such a list
+//   client_encoding     client_encoding; where it is empty, base.charset
+//   options             options, the server's command-line options
+//                       ("-c work_mem=64MB"), which replace the layer's own
+//   connect_timeout_seconds
+//                       connect_timeout; where 0, base.connect_timeout
+//   statement_timeout_ms
+//                       the session's statement_timeout, set once connected,
+//                       where not 0
+//   use_binary_results  ignored: results arrive as text, which the layer
+//                       reads into the values binary would give
+//   extra_params        any keyword libpq knows, by its name, given after
+//                       the fields and base.custom_options, which are given
+//                       the same way, "scheme" left out:
+//                       "target_session_attrs", "sslrootcert"
+// base.host may list several hosts, each with its port, as a URI writes
+// them ("a:5432,b:5433"), which libpq is given as its two lists. base's
+// ssl_cert, ssl_key and ssl_ca are sslcert, sslkey and sslrootcert; base's
+// read_timeout, write_timeout and max_packet_size have no keyword in libpq,
+// and go unused.
 struct pg_connect_config
 {
     connection_config       base;
-    pg_ssl_mode             ssl_mode;
+    pg_ssl_mode             ssl_mode;                 // prefer
     std::string             application_name;
     std::string             search_path;
-    std::string             client_encoding;
+    std::string             client_encoding;          // "": the layer's UTF8
     std::string             options;
     std::string             connection_string;
-    int                     connect_timeout_seconds;
-    int                     statement_timeout_ms;
-    bool                    use_binary_results;
+    int                     connect_timeout_seconds;  // 0: base's
+    int                     statement_timeout_ms;     // 0: the server's
+    bool                    use_binary_results;       // ignored
 
     std::map<std::string, std::string> extra_params;
 
     pg_connect_config()
-        : ssl_mode(pg_ssl_mode::prefer)
-        , client_encoding("UTF8")
-        , connect_timeout_seconds(10)
-        , statement_timeout_ms(0)
-        , use_binary_results(false)
+        : ssl_mode(pg_ssl_mode::prefer),
+          connect_timeout_seconds(0),
+          statement_timeout_ms(0),
+          use_binary_results(false)
     {
-        base.host   = "localhost";
-        base.port   = 5432;
-        base.schema = "public";
+        base.host = "localhost";
+        base.port = 5432;
     }
 
-    explicit pg_connect_config(const connection_config& _base)
-        : base(_base)
-        , ssl_mode(pg_ssl_mode::prefer)
-        , client_encoding("UTF8")
-        , connect_timeout_seconds(10)
-        , statement_timeout_ms(0)
-        , use_binary_results(false)
-    {
-    }
+    explicit pg_connect_config(
+        const connection_config& _base
+    )
+        : base(_base),
+          ssl_mode(pg_ssl_mode::prefer),
+          connect_timeout_seconds(0),
+          statement_timeout_ms(0),
+          use_binary_results(false)
+    {}
 
-    explicit pg_connect_config(const std::string& _conn_string)
-        : ssl_mode(pg_ssl_mode::prefer)
-        , client_encoding("UTF8")
-        , connection_string(_conn_string)
-        , connect_timeout_seconds(10)
-        , statement_timeout_ms(0)
-        , use_binary_results(false)
+    explicit pg_connect_config(
+        const std::string& _conn_string
+    )
+        : ssl_mode(pg_ssl_mode::prefer),
+          connection_string(_conn_string),
+          connect_timeout_seconds(0),
+          statement_timeout_ms(0),
+          use_binary_results(false)
     {
+        // the string alone says where: libpq's defaults for what it does not
+        base.host.clear();
     }
 };
 
@@ -922,55 +947,162 @@ struct pg_connect_config
 // VII. POSTGRESQL CONNECTION
 // =============================================================================
 
+// pg_notification
+//   struct: a notification that arrived on a channel the connection listens
+// on: the channel, the payload ("" for none), and the process id of the
+// sender's backend, as pg_backend_pid() names it there.
+struct pg_notification
+{
+    std::string channel;
+    std::string payload;
+    int         backend_pid;
+};
+
+// postgres_layer
+//   struct: the PostgreSQL layer, as database_statement.hpp's templates take
+// a layer. A result means the connection was lost when the layer says so
+// (08006), when the server says the connection does not exist (08003), or
+// when the server ended the session: 57P01 (an administrator's command),
+// 57P02 (a crash), 57P03 (no connections now), 57P04 (its database
+// dropped), 57P05 (idle too long) or 25P03 (idle too long in a
+// transaction). A point in time is bound as its UTC date and time with the
+// offset "+00:00", which timestamptz reads as the instant it is, and
+// timestamp as that date and time.
+struct postgres_layer
+{
+    using statement_face = face::postgres_statement;
+    using handle_type    = struct ::pg_conn*;
+
+    static constexpr const char* utc_offset = "+00:00";
+
+    static constexpr bool
+    connection_lost(
+        int _result
+    ) noexcept
+    {
+        return ( (_result == D_POSTGRES_SQLSTATE_CONNECTION_FAILURE)          ||
+                 (_result == D_POSTGRES_SQLSTATE('0', '8', '0', '0', '3'))    ||
+                 (_result == D_POSTGRES_SQLSTATE('5', '7', 'P', '0', '1'))    ||
+                 (_result == D_POSTGRES_SQLSTATE('5', '7', 'P', '0', '2'))    ||
+                 (_result == D_POSTGRES_SQLSTATE('5', '7', 'P', '0', '3'))    ||
+                 (_result == D_POSTGRES_SQLSTATE('5', '7', 'P', '0', '4'))    ||
+                 (_result == D_POSTGRES_SQLSTATE('5', '7', 'P', '0', '5'))    ||
+                 (_result == D_POSTGRES_SQLSTATE('2', '5', 'P', '0', '3')) );
+    }
+
+    /**
+     * @brief Describes a failed call of the PostgreSQL layer, as raise does.
+     *
+     * @note The connection's message describes its latest failure only until
+     *       the next call on it, which is why an operation that must call
+     *       again before it throws describes the failure first.
+     *
+     * @param[in] _db         the connection the call ran on; may be `NULL`.
+     * @param[in] _operation  the operation's name.
+     * @param[in] _result     the call's result.
+     * @return "PostgreSQL", the operation, and the failure: the server's or
+     *         libpq's message, its severity left out, where the connection
+     *         has one about it, the result's own description otherwise; then
+     *         the SQLSTATE, or the number for a result of db_common.h's; then
+     *         the lines that follow the message, its DETAIL and HINT among
+     *         them.
+     * @throws std::bad_alloc when memory runs out.
+     */
+    static std::string describe(handle_type _db,
+                                const char* _operation,
+                                int         _result);
+
+    /**
+     * @brief Throws the exception for a failure already described.
+     *
+     * @param[in] _kind     which exception to throw, unless `_result` means
+     *                      the connection was lost.
+     * @param[in] _message  the failure, as describe gives it.
+     * @param[in] _result   the call's result.
+     * @throws connection_exception for a lost connection, otherwise as
+     *         `_kind` says, with `_message` and `_result` as its error_code().
+     */
+    [[noreturn]] static void raise_as(failure_kind       _kind,
+                                      const std::string& _message,
+                                      int                _result);
+
+    /**
+     * @brief Throws the exception for a failed call of the PostgreSQL layer.
+     *
+     * @param[in] _db         the connection the call ran on; may be `NULL`.
+     * @param[in] _kind       which exception to throw, unless `_result`
+     *                        means the connection was lost.
+     * @param[in] _operation  the operation's name, for the message.
+     * @param[in] _result     the call's result.
+     * @throws connection_exception for a lost connection, otherwise as
+     *         `_kind` says, with `_result` -- the SQLSTATE packed, or a
+     *         negative D_DB_* -- as its error_code().
+     */
+    [[noreturn]] static void raise(handle_type  _db,
+                                   failure_kind _kind,
+                                   const char*  _operation,
+                                   int          _result);
+};
+
+// prepared_statement<postgres_layer>
+//   class: PostgreSQL's prepared statements, instantiated once, in
+// postgres.cpp.
+extern template class prepared_statement<postgres_layer>;
+
 // pg_connection
-//   class: concrete PostgreSQL connection implementation via libpq.
-// This is the CRTP leaf class; _impl methods are defined in
-// postgres.cpp which includes <libpq-fe.h>.
+//   class: a connection to a PostgreSQL server, through libpq, over the
+// PostgreSQL layer's face, which it holds and which closes the connection
+// when it goes. Connecting gives libpq what pg_connect_config names, in the
+// order it describes, and then sets the session's search path and statement
+// timeout where they are named; a connection is either open with all of it
+// or not open. Parameters are written $1, $2, ...; a prepared statement is
+// the server's, deallocated when it closes. Transactions begin at the
+// session's isolation level, READ COMMITTED unless set_isolation_level or
+// the server says otherwise, or at the level begin_transaction asks for:
+// read_uncommitted runs as READ COMMITTED, as PostgreSQL runs it. A
+// statement that fails inside a transaction leaves it failed, as in any
+// PostgreSQL client: everything but a rollback, whole or to a savepoint,
+// throws query_exception with 25P02 until then. There is no auto-commit
+// mode to turn off: outside a transaction every statement commits on its
+// own. The members the connection adds -- statements sent without waiting,
+// parameters, COPY, notifications, escaping, the server's parameters, the
+// schema -- throw as the operations do (database_connection.hpp). Not
+// copyable; movable.
 //
 // Usage:
-//   pg_connection conn;
-//   conn.connect(pg_connect_config("host=localhost dbname=mydb"));
+//   pg_connection conn("host=localhost dbname=mydb");
+//   conn.connect();
 //   auto rs = conn.execute_query("SELECT 1");
 class pg_connection
     : public database_connection<pg_connection,
                                  database_type::postgresql>
 {
 public:
-    using base_type      = database_connection<
-        pg_connection, database_type::postgresql>;
-    using type_support   = pg_type_support;
+    using base_type       = database_connection<pg_connection,
+                                                database_type::postgresql>;
+    using layer_type      = postgres_layer;
+    using statement_type  = prepared_statement<postgres_layer>;
+    using type_support    = pg_type_support;
     using feature_support = pg_feature_support;
-    using version_info   = pg_version_info;
+    using version_info    = pg_version_info;
 
-    pg_connection()
-        : base_type()
-    {
-    }
+    // construction -- with pg_connect_config's defaults (localhost, 5432);
+    // with a generic configuration; with a PostgreSQL one; or with a
+    // connection string, keywords or a URI, alone, libpq's defaults standing
+    // in for what it leaves out
+    pg_connection();
+    explicit pg_connection(const connection_config& _config);
+    explicit pg_connection(const pg_connect_config& _config);
+    explicit pg_connection(const std::string& _conn_string);
 
-    explicit pg_connection(const connection_config& _config)
-        : base_type(_config)
-    {
-    }
+    /**
+     * @brief Closes the connection, its prepared statements first.
+     */
+    ~pg_connection();
 
-    explicit pg_connection(const pg_connect_config& _config)
-        : base_type(_config.base)
-        , m_pg_config(_config)
-    {
-    }
-
-    explicit pg_connection(const std::string& _conn_string)
-        : base_type()
-        , m_pg_config(_conn_string)
-    {
-    }
-
-    ~pg_connection() = default;
-
-    // disable copying
     pg_connection(const pg_connection&)            = delete;
     pg_connection& operator=(const pg_connection&) = delete;
 
-    // enable moving
     pg_connection(pg_connection&&) noexcept            = default;
     pg_connection& operator=(pg_connection&&) noexcept = default;
 
@@ -978,188 +1110,170 @@ public:
     // asynchronous query dispatch
     // -----------------------------------------------------------------
 
-    // send_query
-    //   function: dispatches a query asynchronously.
-    // wraps PQsendQuery().
-    bool send_query(const std::string& _query)
-    {
-        this->ensure_connected();
+    /**
+     * @brief Sends SQL -- one statement or several, separated by
+     *        semicolons -- without waiting for it to run.
+     *
+     * @param[in] _query  the SQL.
+     * @return true; a failure throws.
+     * @throws query_exception with 08000 while SQL sent before still has
+     *         results to read, or a COPY is in progress; as every operation
+     *         when the connection is not open, or is lost.
+     * @post Until get_result returns no result, nothing else can be sent;
+     *       an operation that runs SQL first reads, and discards, the
+     *       results still to come.
+     */
+    bool send_query(const std::string& _query);
 
-        return self().send_query_impl(_query);
-    }
+    /**
+     * @brief Reads the next result of the SQL sent, waiting for it.
+     *
+     * @return the next statement's rows -- none, and no columns, for a
+     *         statement that returns none -- whose count get_affected_rows()
+     *         then answers; nullptr once every result has been read.
+     * @throws query_exception with the SQLSTATE of a statement that failed,
+     *         after which only nullptr follows; as every operation when the
+     *         connection is not open, or is lost.
+     */
+    std::unique_ptr<buffered_result_set> get_result();
 
-    // get_result
-    //   function: retrieves the next result from an async query.
-    // wraps PQgetResult(). Returns nullptr when no more results.
-    auto get_result()
-    {
-        return self().get_result_impl();
-    }
-
-    // is_busy
-    //   function: checks if the server is still processing.
-    // wraps PQisBusy().
-    bool is_busy() const
-    {
-        return self().is_busy_impl();
-    }
-
-    // consume_input
-    //   function: reads available data from the server socket.
-    // wraps PQconsumeInput().
-    bool consume_input()
-    {
-        return self().consume_input_impl();
-    }
+    // waiting -- is_busy says whether the next result has yet to arrive,
+    // get_result then waiting for it, false when nothing was sent or the
+    // connection is not open; consume_input reads what the server has
+    // sent, without waiting, and returns true, throwing as every operation
+    bool is_busy() const noexcept;
+    bool consume_input();
 
     // -----------------------------------------------------------------
     // parameterized queries
     // -----------------------------------------------------------------
 
-    // exec_params
-    //   function: executes a parameterized query.
-    // wraps PQexecParams(). Parameters use $1, $2, ... syntax.
-    auto exec_params(const std::string&              _query,
-                     const std::vector<std::string>&  _params)
-    {
-        this->ensure_connected();
-
-        return self().exec_params_impl(_query, _params);
-    }
+    /**
+     * @brief Runs one statement with values for its parameters, $1 the
+     *        first, and returns its rows.
+     *
+     * @param[in] _query   the statement.
+     * @param[in] _params  the values, as text the parameters' types read;
+     *                     in the second form std::nullopt for NULL.
+     * @return the rows, all of them, held apart from the connection.
+     * @throws query_exception with D_DB_INVALID_ARGUMENT for a value that
+     *         holds a NUL, and with the server's SQLSTATE when the statement
+     *         fails; as every operation when the connection is not open.
+     */
+    std::unique_ptr<buffered_result_set> exec_params(
+        const std::string&              _query,
+        const std::vector<std::string>& _params);
+    std::unique_ptr<buffered_result_set> exec_params(
+        const std::string&                              _query,
+        const std::vector<std::optional<std::string>>& _params);
 
     // -----------------------------------------------------------------
     // COPY protocol
     // -----------------------------------------------------------------
 
-    // copy_in_start
-    //   function: initiates a COPY ... FROM STDIN operation.
-    void copy_in_start(const std::string& _copy_sql)
-    {
-        this->ensure_connected();
-        self().copy_in_start_impl(_copy_sql);
-    }
+    /**
+     * @brief Runs a COPY ... FROM STDIN, which then waits for rows.
+     *
+     * @param[in] _copy_sql  the COPY, as written ("COPY t (a, b) FROM
+     *                       STDIN", "COPY t FROM STDIN (FORMAT csv)").
+     * @throws query_exception with D_DB_INVALID_ARGUMENT for SQL that is no
+     *         COPY FROM STDIN -- which has run, done what it does --, with
+     *         D_DB_UNSUPPORTED for a COPY to the client, and with the
+     *         server's SQLSTATE when it fails; as every operation when the
+     *         connection is not open.
+     * @post The connection runs nothing but copy_data, copy_end and
+     *       copy_abort until the second or the third ends the COPY.
+     */
+    void copy_in_start(const std::string& _copy_sql);
 
-    // copy_data
-    //   function: sends a chunk of data during COPY IN.
-    // wraps PQputCopyData().
+    // copy_data -- bytes of rows in the COPY's format, in chunks that may
+    // end anywhere, a row's middle included; query_exception with 08000
+    // when no COPY is in progress. A row the server cannot read is
+    // copy_end's failure, which the server's refusal reaches
     void copy_data(const char*  _data,
-                   std::size_t  _length)
-    {
-        self().copy_data_impl(_data, _length);
-    }
+                   std::size_t  _length);
 
-    // copy_end
-    //   function: completes a COPY IN operation.
-    // wraps PQputCopyEnd().
-    void copy_end()
-    {
-        self().copy_end_impl();
-    }
+    /**
+     * @brief Ends the COPY in progress, keeping every row sent.
+     *
+     * @return how many rows the COPY took, which get_affected_rows() then
+     *         answers.
+     * @throws query_exception with the server's SQLSTATE for rows it
+     *         refused (22P02, 23505, ...), none of them kept; with 08000 when
+     *         no COPY is in progress.
+     */
+    re_std::int64_t copy_end();
+
+    // copy_abort -- ends the COPY in progress keeping none of its rows, the
+    // reason the server's message for it; query_exception with 08000 when
+    // no COPY is in progress
+    void copy_abort(const std::string& _reason);
 
     // -----------------------------------------------------------------
     // LISTEN / NOTIFY
     // -----------------------------------------------------------------
 
-    // listen
-    //   function: subscribes to a notification channel.
-    // executes LISTEN <channel>.
-    void listen(const std::string& _channel)
-    {
-        this->ensure_connected();
-        self().listen_impl(_channel);
-    }
-
-    // notify
-    //   function: sends a notification on a channel with optional
-    // payload. wraps pg_notify() or NOTIFY <channel>, '<payload>'.
+    // channels -- listen subscribes the connection to a channel, unlisten
+    // ends that, unlisten_all every subscription; inside a transaction each
+    // takes effect when it commits. notify sends a notification, with a
+    // payload of up to 7999 bytes, to every connection listening, this one
+    // included. Each throws query_exception with D_DB_INVALID_ARGUMENT for
+    // an empty channel or text that holds a NUL, and with the server's
+    // SQLSTATE (22023 for a payload too long)
+    void listen(const std::string& _channel);
+    void unlisten(const std::string& _channel);
+    void unlisten_all();
     void notify(const std::string& _channel,
-                const std::string& _payload = "")
-    {
-        this->ensure_connected();
-        self().notify_impl(_channel, _payload);
-    }
+                const std::string& _payload = "");
 
-    // get_notification
-    //   function: retrieves a pending notification (non-blocking).
-    // wraps PQnotifies(). Call consume_input() first.
-    auto get_notification()
-    {
-        return self().get_notification_impl();
-    }
+    /**
+     * @brief Reads the next notification to have arrived, without waiting
+     *        for one.
+     *
+     * @return the notification; std::nullopt when none has arrived.
+     * @throws as every operation when the connection is not open, or is
+     *         lost.
+     */
+    std::optional<pg_notification> get_notification();
 
     // -----------------------------------------------------------------
     // escaping
     // -----------------------------------------------------------------
 
-    // escape_literal
-    //   function: escapes a string literal for inclusion in SQL.
-    // wraps PQescapeLiteral(). Returns the escaped string including
-    // surrounding quotes.
-    std::string escape_literal(const std::string& _input) const
-    {
-        return self().escape_literal_impl(_input);
-    }
-
-    // escape_identifier
-    //   function: escapes an identifier (table/column name).
-    // wraps PQescapeIdentifier(). Returns the escaped string
-    // including surrounding double-quotes.
-    std::string escape_identifier(const std::string& _input) const
-    {
-        return self().escape_identifier_impl(_input);
-    }
+    // escaping -- escape_literal quotes text as a string literal, for the
+    // connection's encoding, the quotes included ('it''s'); escape_identifier
+    // quotes a name in double quotes, any double quote doubled ("a""b"),
+    // and needs no connection. Each throws query_exception with
+    // D_DB_INVALID_ARGUMENT for text that holds a NUL; escape_literal throws
+    // as every operation when the connection is not open
+    std::string escape_literal(const std::string& _input) const;
+    std::string escape_identifier(const std::string& _input) const;
 
     // -----------------------------------------------------------------
     // connection diagnostics
     // -----------------------------------------------------------------
 
-    // get_backend_pid
-    //   function: returns the server process ID for this connection.
-    // wraps PQbackendPID().
-    int get_backend_pid() const
-    {
-        return self().get_backend_pid_impl();
-    }
-
-    // get_transaction_status
-    //   function: returns the transaction status as a char
-    // ('I' = idle, 'T' = in transaction, 'E' = in failed
-    // transaction).
-    // wraps PQtransactionStatus().
-    char get_transaction_status() const
-    {
-        return self().get_transaction_status_impl();
-    }
-
-    // get_parameter_status
-    //   function: returns the value of a server parameter (e.g.
-    // "server_version", "server_encoding", "TimeZone").
-    // wraps PQparameterStatus().
-    std::string get_parameter_status(
-        const std::string& _name) const
-    {
-        return self().get_parameter_status_impl(_name);
-    }
+    // diagnostics, with no round trip -- the process id of the server's
+    // backend for the connection, 0 when it is not open; where the
+    // connection stands: 'I' idle, 'A' with SQL sent still running or its
+    // results to read, or a COPY in progress, 'T' in a transaction, 'E' in
+    // a failed one, 'U' not open or lost; and a parameter the server
+    // reports ("server_version", "server_encoding", "TimeZone",
+    // "application_name", ...), "" for one it does not, or when the
+    // connection is not open
+    int         get_backend_pid() const noexcept;
+    char        get_transaction_status() const noexcept;
+    std::string get_parameter_status(const std::string& _name) const;
 
     // -----------------------------------------------------------------
     // schema introspection
     // -----------------------------------------------------------------
 
-    // table_exists
-    //   function: tests whether a table (or view) exists in the
-    // current search_path.
-    bool table_exists(const std::string& _table_name) const
-    {
-        return self().table_exists_impl(_table_name);
-    }
-
-    // get_table_names
-    //   function: returns a vector of all user table names in the
-    // current schema.
-    std::vector<std::string> get_table_names() const
-    {
-        return self().get_table_names_impl();
-    }
+    // schema -- whether a table of the current schema exists (the first of
+    // the search path that does, as current_schema() names it), which
+    // throws when it cannot tell; and its tables' names, sorted
+    bool                     has_table(const std::string& _table_name) const;
+    std::vector<std::string> list_tables() const;
 
     // -----------------------------------------------------------------
     // feature queries (compile-time)
@@ -1238,75 +1352,49 @@ public:
     // PostgreSQL-specific configuration
     // -----------------------------------------------------------------
 
-    const pg_connect_config& get_pg_config() const noexcept
-    {
-        return m_pg_config;
-    }
+    // configuration -- the PostgreSQL settings, base among them, which
+    // connect(config) replaces; setting them replaces the generic
+    // configuration with theirs, for the next connect
+    const pg_connect_config& get_pg_config() const noexcept;
+    void                     set_pg_config(const pg_connect_config& _config);
 
-    void set_pg_config(const pg_connect_config& _config)
-    {
-        m_pg_config    = _config;
-        this->m_config = _config.base;
-    }
+    // get_face -- the PostgreSQL layer's face, for the layer's other calls;
+    // closing or replacing the connection through it is the connection's to
+    // do, not the face's
+    face::postgres&       get_face() noexcept;
+    const face::postgres& get_face() const noexcept;
 
     // -----------------------------------------------------------------
-    // _impl methods (defined in postgres.cpp)
+    // hooks (postgres.cpp): database_connection calls these, programs the
+    // operations they implement
     // -----------------------------------------------------------------
 
-    void        connect_helper();
-    void        disconnect_helper();
-    bool        is_connected_helper() const;
-    bool        ping_helper() const;
-
-    auto        execute_query_helper(const std::string& _query)
-                    -> std::unique_ptr<
-                        result_set<struct pg_result_set_impl>>;
+    void            connect_helper();
+    void            disconnect_helper() noexcept;
+    bool            is_connected_helper() const noexcept;
+    bool            ping_helper() const noexcept;
+    face::rows      execute_query_helper(const std::string& _query);
     re_std::int64_t execute_update_helper(const std::string& _query);
-    bool        execute_helper(const std::string& _query);
+    face::postgres_statement
+                    prepare_helper(const std::string& _query);
+    std::string     get_server_version_helper() const;
+    re_std::int64_t get_last_insert_id_helper() const;
+    void            begin_transaction_helper();
+    void            begin_transaction_helper(isolation_level _isolation);
+    void            commit_helper();
+    void            rollback_helper();
+    bool            in_transaction_helper() const noexcept;
+    isolation_level get_isolation_level_helper() const;
+    void            set_isolation_level_helper(isolation_level _level);
+    void            create_savepoint_helper(const std::string& _name);
+    void            release_savepoint_helper(const std::string& _name);
+    void            rollback_to_savepoint_helper(const std::string& _name);
+    struct ::pg_conn*
+                    native_handle_helper() const noexcept;
 
-    auto        prepare_impl(const std::string& _query)
-                    -> std::unique_ptr<
-                        statement<struct pg_statement_impl>>;
-
-    std::string  get_server_version_helper() const;
-    std::string  get_last_error_helper() const;
-    int          get_last_error_code_helper() const;
-    re_std::int64_t get_last_insert_id_impl() const;
-    re_std::int64_t get_affected_rows_impl() const;
-
-    // PostgreSQL-specific _impl methods
-    bool send_query_impl(const std::string& _query);
-    auto get_result_impl()
-        -> std::unique_ptr<result_set<struct pg_result_set_impl>>;
-    bool is_busy_impl() const;
-    bool consume_input_impl();
-    auto exec_params_impl(
-        const std::string& _query,
-        const std::vector<std::string>& _params)
-        -> std::unique_ptr<result_set<struct pg_result_set_impl>>;
-    void copy_in_start_impl(const std::string& _copy_sql);
-    void copy_data_impl(const char* _data, std::size_t _length);
-    void copy_end_impl();
-    void listen_impl(const std::string& _channel);
-    void notify_impl(const std::string& _channel,
-                     const std::string& _payload);
-    auto get_notification_impl() -> std::optional<std::string>;
-    std::string escape_literal_impl(const std::string& _input) const;
-    std::string escape_identifier_impl(
-        const std::string& _input) const;
-    int  get_backend_pid_impl() const;
-    char get_transaction_status_impl() const;
-    std::string get_parameter_status_impl(
-        const std::string& _name) const;
-    bool table_exists_impl(const std::string& _name) const;
-    std::vector<std::string> get_table_names_impl() const;
-
-    // transaction _impl methods
-    void begin_transaction_impl();
-    void commit_impl();
-    void rollback_impl();
-
-    // version-gated methods
+    // version-gated methods: declared where env detects the feature in
+    // libpq's header, and not yet defined -- the PostgreSQL layer has no
+    // pipeline, chunked results or closing by name for them to stand on
 
 #if D_ENV_PG_DETECTED
     #if D_ENV_PG_HAS_LIBPQ_PIPELINE
@@ -1333,33 +1421,20 @@ public:
 #endif  // D_ENV_PG_DETECTED
 
 private:
+    // m_check -- nothing for 0; otherwise what the layer raises
+    void m_check(int          _result,
+                 failure_kind _kind,
+                 const char*  _operation) const;
+
+    // m_exec_params -- the rows of one statement run with values for its
+    // parameters, NULL for SQL NULL
+    std::unique_ptr<buffered_result_set> m_exec_params(
+        const std::string&              _query,
+        const std::vector<const char*>& _values);
+
     pg_connect_config m_pg_config;
-
-    pg_connection& self()
-    {
-        return *this;
-    }
-
-    const pg_connection& self() const
-    {
-        return *this;
-    }
+    face::postgres    m_db;
 };
-
-
-// =============================================================================
-// VIII. FORWARD DECLARATIONS
-// =============================================================================
-
-// pg_result_set_impl
-//   struct: forward declaration of the PostgreSQL result set
-// implementation.
-struct pg_result_set_impl;
-
-// pg_statement_impl
-//   struct: forward declaration of the PostgreSQL prepared statement
-// implementation.
-struct pg_statement_impl;
 
 
 // ===========================================================================
@@ -1370,7 +1445,7 @@ struct pg_statement_impl;
 // concepts appear under C++20.
 
 // =============================================================================
-// IX.   EXPRESSION DETECTORS
+// VIII. EXPRESSION DETECTORS
 // =============================================================================
 
 // -------------------------------------------------------------------------
@@ -1537,18 +1612,18 @@ using pg_field_type_oid_t =
 // H.  schema introspection
 // -------------------------------------------------------------------------
 
-// pg_table_exists_t
-//   detector: table_exists(const std::string&) const method.
+// pg_has_table_t
+//   detector: has_table(const std::string&) const method.
 template<typename T>
-using pg_table_exists_t =
-    decltype(std::declval<const T&>().table_exists(
+using pg_has_table_t =
+    decltype(std::declval<const T&>().has_table(
         std::declval<const std::string&>()));
 
-// pg_get_table_names_t
-//   detector: get_table_names() const method.
+// pg_list_tables_t
+//   detector: list_tables() const method.
 template<typename T>
-using pg_get_table_names_t =
-    decltype(std::declval<const T&>().get_table_names());
+using pg_list_tables_t =
+    decltype(std::declval<const T&>().list_tables());
 
 // -------------------------------------------------------------------------
 // I.  escape
@@ -1589,7 +1664,7 @@ using pg_lo_export_t = decltype(std::declval<T&>().lo_export(
 
 
 // =============================================================================
-// X.  TAGGED CAPABILITY TRAITS (struct-based)
+// IX.  TAGGED CAPABILITY TRAITS (struct-based)
 // =============================================================================
 
 // has_pg_async
@@ -1708,11 +1783,11 @@ struct has_pg_large_objects : djinterp::conjunction<
 
 // has_pg_schema_query
 //   trait: checks if type T supports schema introspection
-// (table_exists + get_table_names).
+// (has_table + list_tables).
 template<typename T>
 struct has_pg_schema_query : djinterp::conjunction<
-    is_detected<pg_table_exists_t, clean_t<T>>,
-    is_detected<pg_get_table_names_t, clean_t<T>>>
+    is_detected<pg_has_table_t, clean_t<T>>,
+    is_detected<pg_list_tables_t, clean_t<T>>>
 {
 };
 
@@ -1743,7 +1818,7 @@ struct is_pg_connection : djinterp::conjunction<
 
 
 // =============================================================================
-// XI. TAGLESS CAPABILITY TRAITS (constexpr bool)
+// X.   TAGLESS CAPABILITY TRAITS (constexpr bool)
 // =============================================================================
 
 // -------------------------------------------------------------------------
@@ -1821,14 +1896,14 @@ constexpr bool pg_can_escape_literal<T,
     std::void_t<pg_escape_literal_t<T>>> = true;
 
 // pg_can_query_schema
-//   tagless trait: true if T has table_exists().
+//   tagless trait: true if T has has_table().
 template<typename T,
          typename = void>
 constexpr bool pg_can_query_schema = false;
 
 template<typename T>
 constexpr bool pg_can_query_schema<T,
-    std::void_t<pg_table_exists_t<T>>> = true;
+    std::void_t<pg_has_table_t<T>>> = true;
 
 // -------------------------------------------------------------------------
 // B.  compound capability tags
@@ -1895,7 +1970,7 @@ constexpr bool pg_is_full_connection =
 
 
 // =============================================================================
-// XII.  SFINAE HELPERS
+// XI.  SFINAE HELPERS
 // =============================================================================
 
 // enable_if_pg_connection
@@ -1930,7 +2005,7 @@ using enable_if_has_pg_listen_notify =
 
 
 // ===========================================================================
-// XIII.   C++20 CONCEPTS
+// XII. C++20 CONCEPTS
 // ===========================================================================
 //   The PostgreSQL classification concepts, folded in from the former
 // postgres_concepts.hpp.  Each forwards to a trait / tagless capability declared
@@ -2132,17 +2207,17 @@ template<typename Type>
 concept postgres_field_oid_introspection_connection =
     is_detected<pg_field_type_oid_t, clean_t<Type>>::value;
 
-// postgres_table_exists_query
-//   concept: constrains types exposing table_exists(name) const.
+// postgres_has_table_query
+//   concept: constrains types exposing has_table(name) const.
 template<typename Type>
-concept postgres_table_exists_query =
+concept postgres_has_table_query =
     pg_can_query_schema<clean_t<Type>>;
 
 // postgres_table_names_query
-//   concept: constrains types exposing get_table_names() const.
+//   concept: constrains types exposing list_tables() const.
 template<typename Type>
 concept postgres_table_names_query =
-    is_detected<pg_get_table_names_t, clean_t<Type>>::value;
+    is_detected<pg_list_tables_t, clean_t<Type>>::value;
 
 // postgres_escape_literal_connection
 //   concept: constrains types exposing escape_literal(text) const.

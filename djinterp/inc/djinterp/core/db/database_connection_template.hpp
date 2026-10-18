@@ -1,111 +1,133 @@
 /*******************************************************************************
 * djinterp [core]                               database_connection_template.hpp
 *
-* djinterp database connection template module:
-*   This header provides the vendor-parameterized connection template that
-* serves as the bridge between the generic CRTP connection base in
-* database.hpp and concrete vendor-specific implementations. It
-* includes:
-*   - vendor_traits specializations for all supported database vendors
-*   - connection_template CRTP base with vendor-aware defaults
-*   - native handle management scaffolding
-*   - default configuration factories per vendor
-*
-*   Vendor modules (e.g. mysql_connection, pg_connection) derive from
-* connection_template<_helper, database_type::mysql> rather than from
-* connection<_helper> directly. This automatically wires in the correct
-* native handle type, default port, vendor metadata, and other
-* vendor-specific configuration.
-*
-*   VENDOR SPECIALIZATION:
-*   Each vendor_traits<database_type::X> specialization declares:
-*   - native_handle_type:  the vendor's C API handle type
-*   - default_port:        standard TCP port for the vendor
-*   - name / display_name: vendor identification strings
-*   - is_relational:       true for RDBMS vendors
-*   - is_embedded:         true for embedded databases (SQLite)
-*   - supports_ssl:        true if SSL/TLS is available
-*   - get_info():          returns a populated vendor_info struct
-*   - make_default_config(): returns vendor-appropriate connection_config
-*
-*   PORTABILITY:
-*   This header requires C++17 or later. Vendor-specific C API headers
-* are NOT included here; concrete vendor connection implementations
-* include those headers themselves. The native_handle_type is forward-
-* declared as void* when the vendor header is not present.
+* Each vendor's compile-time identity, and the connection base that carries
+* it.
+*   vendor_traits<database_type::X> names a vendor's native handle type,
+* default port, names and defaults; connection_template<Derived, X> is the
+* CRTP base that gives a connection those traits: the vendor's metadata,
+* resolved at compile time, its default configuration, and its native handle,
+* which the vendor's connection lends with get_native_handle(). A vendor's
+* connection derives from it through database_connection.
+*   The handles are the C layers' own -- an SQLite connection is SQLite's
+* struct sqlite3, a MariaDB or MySQL one the layer's struct d_mariadb, whose
+* MYSQL* d_mariadb_native lends, a PostgreSQL one libpq's struct pg_conn --
+* declared here without the clients' headers, which this header does not
+* include. A vendor no layer stands behind yet keeps a void*.
 *
 *
 * path:      /inc/djinterp/core/db/database_connection_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+1.  VENDOR TRAITS
+    -------------
+    1.  Shared
+         1.  internal::vendor_traits_info
+    2.  Vendors
+         1.  vendor_traits<database_type::mariadb>
+         2.  vendor_traits<database_type::mysql>
+         3.  vendor_traits<database_type::postgresql>
+         4.  vendor_traits<database_type::sqlite>
+         5.  vendor_traits<database_type::mongodb>
+         6.  vendor_traits<database_type::arangodb>
+         7.  vendor_traits<database_type::oracle>
+         8.  vendor_traits<database_type::redis>
+         9.  vendor_traits<database_type::mssql>
+2.  CONNECTION TEMPLATE
+    -------------------
+    1.  The template
+         1.  connection_template
+*/
+
 #ifndef DJINTERP_DB_DATABASE_CONNECTION_TEMPLATE_HPP
-#define DJINTERP_DB_DATABASE_CONNECTION_TEMPLATE_HPP
+#define DJINTERP_DB_DATABASE_CONNECTION_TEMPLATE_HPP 1
 
 // djinterp
 #include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
-// re_std
-#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint16_t
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-// std
-#include <type_traits>
 // djinterp
-#include "./database.hpp"
+#include "../../djinterp.hpp"  // framework root
+#include "./database.hpp"      // vendor_traits, connection, connection_config
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // re_std::uint16_t
+
+
+// the C layers' connection handles, as their headers declare them: SQLite's
+// own, the MariaDB layer's, libpq's PGconn
+struct sqlite3;
+struct d_mariadb;
+struct pg_conn;
 
 
 NS_DJINTERP
 
-// ===========================================================================
-// I.   VENDOR TRAITS SPECIALIZATIONS
-// ===========================================================================
-// Each specialization provides compile-time metadata for a specific
-// database vendor. The primary template in database.hpp provides
-// safe defaults for unknown vendors.
-//
-// Native handle types are declared as void* here because this header
-// does not include vendor-specific C API headers. Concrete vendor
-// connection implementations reinterpret_cast to the actual handle
-// type (e.g. MYSQL*, PGconn*, sqlite3*) after including the
-// appropriate vendor header.
+
+//==============================================================================
+// 1.  VENDOR TRAITS
+//==============================================================================
+// The primary template, in database.hpp, describes an unknown vendor; each
+// specialization here describes one, for connection_template to carry.
 
 
-// -------------------------------------------------------------------------
+// 1.1    Shared
+//------------------------------------------------------------------------------
+// 1.1.1
+// internal::vendor_traits_info
+//   trait: get_info() for a vendor_traits specialization Traits, read from
+// its constants, which every specialization would otherwise restate.
+NS_INTERNAL
+
+    template<typename Traits>
+    struct vendor_traits_info
+    {
+        static vendor_info
+        get_info()
+        {
+            vendor_info info;
+
+            info.type          = Traits::db_type;
+            info.name          = Traits::name;
+            info.display_name  = Traits::display_name;
+            info.default_port  = Traits::default_port;
+            info.is_relational = Traits::is_relational;
+            info.is_embedded   = Traits::is_embedded;
+            info.supports_ssl  = Traits::supports_ssl;
+
+            return info;
+        }
+    };
+
+NS_END  // internal
+
+// 1.2    Vendors
+//------------------------------------------------------------------------------
+// 1.2.1
 // vendor_traits<database_type::mariadb>
-//   trait: vendor configuration for MariaDB connections.
-// -------------------------------------------------------------------------
+//   trait: MariaDB, through the MariaDB layer's connection.
 template<>
 struct vendor_traits<database_type::mariadb>
+    : internal::vendor_traits_info<vendor_traits<database_type::mariadb>>
 {
-    using native_handle_type = void*;
+    using native_handle_type = struct ::d_mariadb*;
 
-    static constexpr database_type db_type        = database_type::mariadb;
-    static constexpr re_std::uint16_t default_port   = 3306;
-    static constexpr const char*   name           = "mariadb";
-    static constexpr const char*   display_name   = "MariaDB";
-    static constexpr bool          is_relational  = true;
-    static constexpr bool          is_embedded    = false;
-    static constexpr bool          supports_ssl   = true;
+    static constexpr database_type    db_type       = database_type::mariadb;
+    static constexpr re_std::uint16_t default_port  = 3306;
+    static constexpr const char*      name          = "mariadb";
+    static constexpr const char*      display_name  = "MariaDB";
+    static constexpr bool             is_relational = true;
+    static constexpr bool             is_embedded   = false;
+    static constexpr bool             supports_ssl  = true;
 
-    static vendor_info get_info()
-    {
-        vendor_info info;
-
-        info.type          = db_type;
-        info.name          = name;
-        info.display_name  = display_name;
-        info.default_port  = default_port;
-        info.is_relational = is_relational;
-        info.is_embedded   = is_embedded;
-        info.supports_ssl  = supports_ssl;
-
-        return info;
-    }
-
-    static connection_config make_default_config()
+    static connection_config
+    make_default_config()
     {
         connection_config config;
 
@@ -117,39 +139,26 @@ struct vendor_traits<database_type::mariadb>
     }
 };
 
-// -------------------------------------------------------------------------
+// 1.2.2
 // vendor_traits<database_type::mysql>
-//   trait: vendor configuration for Oracle MySQL connections.
-// -------------------------------------------------------------------------
+//   trait: Oracle's MySQL, through the MariaDB layer's connection, which
+// serves both servers.
 template<>
 struct vendor_traits<database_type::mysql>
+    : internal::vendor_traits_info<vendor_traits<database_type::mysql>>
 {
-    using native_handle_type = void*;
+    using native_handle_type = struct ::d_mariadb*;
 
-    static constexpr database_type db_type        = database_type::mysql;
-    static constexpr re_std::uint16_t default_port   = 3306;
-    static constexpr const char*   name           = "mysql";
-    static constexpr const char*   display_name   = "MySQL";
-    static constexpr bool          is_relational  = true;
-    static constexpr bool          is_embedded    = false;
-    static constexpr bool          supports_ssl   = true;
+    static constexpr database_type    db_type       = database_type::mysql;
+    static constexpr re_std::uint16_t default_port  = 3306;
+    static constexpr const char*      name          = "mysql";
+    static constexpr const char*      display_name  = "MySQL";
+    static constexpr bool             is_relational = true;
+    static constexpr bool             is_embedded   = false;
+    static constexpr bool             supports_ssl  = true;
 
-    static vendor_info get_info()
-    {
-        vendor_info info;
-
-        info.type          = db_type;
-        info.name          = name;
-        info.display_name  = display_name;
-        info.default_port  = default_port;
-        info.is_relational = is_relational;
-        info.is_embedded   = is_embedded;
-        info.supports_ssl  = supports_ssl;
-
-        return info;
-    }
-
-    static connection_config make_default_config()
+    static connection_config
+    make_default_config()
     {
         connection_config config;
 
@@ -161,39 +170,25 @@ struct vendor_traits<database_type::mysql>
     }
 };
 
-// -------------------------------------------------------------------------
+// 1.2.3
 // vendor_traits<database_type::postgresql>
-//   trait: vendor configuration for PostgreSQL connections.
-// -------------------------------------------------------------------------
+//   trait: PostgreSQL, through libpq's own connection.
 template<>
 struct vendor_traits<database_type::postgresql>
+    : internal::vendor_traits_info<vendor_traits<database_type::postgresql>>
 {
-    using native_handle_type = void*;
+    using native_handle_type = struct ::pg_conn*;
 
-    static constexpr database_type db_type        = database_type::postgresql;
-    static constexpr re_std::uint16_t default_port   = 5432;
-    static constexpr const char*   name           = "postgresql";
-    static constexpr const char*   display_name   = "PostgreSQL";
-    static constexpr bool          is_relational  = true;
-    static constexpr bool          is_embedded    = false;
-    static constexpr bool          supports_ssl   = true;
+    static constexpr database_type    db_type       = database_type::postgresql;
+    static constexpr re_std::uint16_t default_port  = 5432;
+    static constexpr const char*      name          = "postgresql";
+    static constexpr const char*      display_name  = "PostgreSQL";
+    static constexpr bool             is_relational = true;
+    static constexpr bool             is_embedded   = false;
+    static constexpr bool             supports_ssl  = true;
 
-    static vendor_info get_info()
-    {
-        vendor_info info;
-
-        info.type          = db_type;
-        info.name          = name;
-        info.display_name  = display_name;
-        info.default_port  = default_port;
-        info.is_relational = is_relational;
-        info.is_embedded   = is_embedded;
-        info.supports_ssl  = supports_ssl;
-
-        return info;
-    }
-
-    static connection_config make_default_config()
+    static connection_config
+    make_default_config()
     {
         connection_config config;
 
@@ -205,43 +200,29 @@ struct vendor_traits<database_type::postgresql>
     }
 };
 
-// -------------------------------------------------------------------------
+// 1.2.4
 // vendor_traits<database_type::sqlite>
-//   trait: vendor configuration for SQLite connections.
-// -------------------------------------------------------------------------
+//   trait: SQLite, through SQLite's own connection; the configuration's
+// `database` is the file.
 template<>
 struct vendor_traits<database_type::sqlite>
+    : internal::vendor_traits_info<vendor_traits<database_type::sqlite>>
 {
-    using native_handle_type = void*;
+    using native_handle_type = struct ::sqlite3*;
 
-    static constexpr database_type db_type        = database_type::sqlite;
-    static constexpr re_std::uint16_t default_port   = 0;
-    static constexpr const char*   name           = "sqlite";
-    static constexpr const char*   display_name   = "SQLite";
-    static constexpr bool          is_relational  = true;
-    static constexpr bool          is_embedded    = true;
-    static constexpr bool          supports_ssl   = false;
+    static constexpr database_type    db_type       = database_type::sqlite;
+    static constexpr re_std::uint16_t default_port  = 0;
+    static constexpr const char*      name          = "sqlite";
+    static constexpr const char*      display_name  = "SQLite";
+    static constexpr bool             is_relational = true;
+    static constexpr bool             is_embedded   = true;
+    static constexpr bool             supports_ssl  = false;
 
-    static vendor_info get_info()
-    {
-        vendor_info info;
-
-        info.type          = db_type;
-        info.name          = name;
-        info.display_name  = display_name;
-        info.default_port  = default_port;
-        info.is_relational = is_relational;
-        info.is_embedded   = is_embedded;
-        info.supports_ssl  = supports_ssl;
-
-        return info;
-    }
-
-    static connection_config make_default_config()
+    static connection_config
+    make_default_config()
     {
         connection_config config;
 
-        // SQLite uses the database field as the file path
         config.host = "";
         config.port = 0;
 
@@ -249,39 +230,25 @@ struct vendor_traits<database_type::sqlite>
     }
 };
 
-// -------------------------------------------------------------------------
+// 1.2.5
 // vendor_traits<database_type::mongodb>
-//   trait: vendor configuration for MongoDB connections.
-// -------------------------------------------------------------------------
+//   trait: MongoDB; no layer stands behind it yet.
 template<>
 struct vendor_traits<database_type::mongodb>
+    : internal::vendor_traits_info<vendor_traits<database_type::mongodb>>
 {
     using native_handle_type = void*;
 
-    static constexpr database_type db_type        = database_type::mongodb;
-    static constexpr re_std::uint16_t default_port   = 27017;
-    static constexpr const char*   name           = "mongodb";
-    static constexpr const char*   display_name   = "MongoDB";
-    static constexpr bool          is_relational  = false;
-    static constexpr bool          is_embedded    = false;
-    static constexpr bool          supports_ssl   = true;
+    static constexpr database_type    db_type       = database_type::mongodb;
+    static constexpr re_std::uint16_t default_port  = 27017;
+    static constexpr const char*      name          = "mongodb";
+    static constexpr const char*      display_name  = "MongoDB";
+    static constexpr bool             is_relational = false;
+    static constexpr bool             is_embedded   = false;
+    static constexpr bool             supports_ssl  = true;
 
-    static vendor_info get_info()
-    {
-        vendor_info info;
-
-        info.type          = db_type;
-        info.name          = name;
-        info.display_name  = display_name;
-        info.default_port  = default_port;
-        info.is_relational = is_relational;
-        info.is_embedded   = is_embedded;
-        info.supports_ssl  = supports_ssl;
-
-        return info;
-    }
-
-    static connection_config make_default_config()
+    static connection_config
+    make_default_config()
     {
         connection_config config;
 
@@ -292,39 +259,25 @@ struct vendor_traits<database_type::mongodb>
     }
 };
 
-// -------------------------------------------------------------------------
+// 1.2.6
 // vendor_traits<database_type::arangodb>
-//   trait: vendor configuration for ArangoDB connections.
-// -------------------------------------------------------------------------
+//   trait: ArangoDB; no layer stands behind it yet.
 template<>
 struct vendor_traits<database_type::arangodb>
+    : internal::vendor_traits_info<vendor_traits<database_type::arangodb>>
 {
     using native_handle_type = void*;
 
-    static constexpr database_type db_type        = database_type::arangodb;
-    static constexpr re_std::uint16_t default_port   = 8529;
-    static constexpr const char*   name           = "arangodb";
-    static constexpr const char*   display_name   = "ArangoDB";
-    static constexpr bool          is_relational  = false;
-    static constexpr bool          is_embedded    = false;
-    static constexpr bool          supports_ssl   = true;
+    static constexpr database_type    db_type       = database_type::arangodb;
+    static constexpr re_std::uint16_t default_port  = 8529;
+    static constexpr const char*      name          = "arangodb";
+    static constexpr const char*      display_name  = "ArangoDB";
+    static constexpr bool             is_relational = false;
+    static constexpr bool             is_embedded   = false;
+    static constexpr bool             supports_ssl  = true;
 
-    static vendor_info get_info()
-    {
-        vendor_info info;
-
-        info.type          = db_type;
-        info.name          = name;
-        info.display_name  = display_name;
-        info.default_port  = default_port;
-        info.is_relational = is_relational;
-        info.is_embedded   = is_embedded;
-        info.supports_ssl  = supports_ssl;
-
-        return info;
-    }
-
-    static connection_config make_default_config()
+    static connection_config
+    make_default_config()
     {
         connection_config config;
 
@@ -336,39 +289,25 @@ struct vendor_traits<database_type::arangodb>
     }
 };
 
-// -------------------------------------------------------------------------
+// 1.2.7
 // vendor_traits<database_type::oracle>
-//   trait: vendor configuration for Oracle Database connections.
-// -------------------------------------------------------------------------
+//   trait: Oracle Database; no layer stands behind it yet.
 template<>
 struct vendor_traits<database_type::oracle>
+    : internal::vendor_traits_info<vendor_traits<database_type::oracle>>
 {
     using native_handle_type = void*;
 
-    static constexpr database_type db_type        = database_type::oracle;
-    static constexpr re_std::uint16_t default_port   = 1521;
-    static constexpr const char*   name           = "oracle";
-    static constexpr const char*   display_name   = "Oracle Database";
-    static constexpr bool          is_relational  = true;
-    static constexpr bool          is_embedded    = false;
-    static constexpr bool          supports_ssl   = true;
+    static constexpr database_type    db_type       = database_type::oracle;
+    static constexpr re_std::uint16_t default_port  = 1521;
+    static constexpr const char*      name          = "oracle";
+    static constexpr const char*      display_name  = "Oracle Database";
+    static constexpr bool             is_relational = true;
+    static constexpr bool             is_embedded   = false;
+    static constexpr bool             supports_ssl  = true;
 
-    static vendor_info get_info()
-    {
-        vendor_info info;
-
-        info.type          = db_type;
-        info.name          = name;
-        info.display_name  = display_name;
-        info.default_port  = default_port;
-        info.is_relational = is_relational;
-        info.is_embedded   = is_embedded;
-        info.supports_ssl  = supports_ssl;
-
-        return info;
-    }
-
-    static connection_config make_default_config()
+    static connection_config
+    make_default_config()
     {
         connection_config config;
 
@@ -379,39 +318,25 @@ struct vendor_traits<database_type::oracle>
     }
 };
 
-// -------------------------------------------------------------------------
+// 1.2.8
 // vendor_traits<database_type::redis>
-//   trait: vendor configuration for Redis connections.
-// -------------------------------------------------------------------------
+//   trait: Redis; no layer stands behind it yet.
 template<>
 struct vendor_traits<database_type::redis>
+    : internal::vendor_traits_info<vendor_traits<database_type::redis>>
 {
     using native_handle_type = void*;
 
-    static constexpr database_type db_type        = database_type::redis;
-    static constexpr re_std::uint16_t default_port   = 6379;
-    static constexpr const char*   name           = "redis";
-    static constexpr const char*   display_name   = "Redis";
-    static constexpr bool          is_relational  = false;
-    static constexpr bool          is_embedded    = false;
-    static constexpr bool          supports_ssl   = true;
+    static constexpr database_type    db_type       = database_type::redis;
+    static constexpr re_std::uint16_t default_port  = 6379;
+    static constexpr const char*      name          = "redis";
+    static constexpr const char*      display_name  = "Redis";
+    static constexpr bool             is_relational = false;
+    static constexpr bool             is_embedded   = false;
+    static constexpr bool             supports_ssl  = true;
 
-    static vendor_info get_info()
-    {
-        vendor_info info;
-
-        info.type          = db_type;
-        info.name          = name;
-        info.display_name  = display_name;
-        info.default_port  = default_port;
-        info.is_relational = is_relational;
-        info.is_embedded   = is_embedded;
-        info.supports_ssl  = supports_ssl;
-
-        return info;
-    }
-
-    static connection_config make_default_config()
+    static connection_config
+    make_default_config()
     {
         connection_config config;
 
@@ -423,39 +348,25 @@ struct vendor_traits<database_type::redis>
     }
 };
 
-// -------------------------------------------------------------------------
+// 1.2.9
 // vendor_traits<database_type::mssql>
-//   trait: vendor configuration for Microsoft SQL Server connections.
-// -------------------------------------------------------------------------
+//   trait: Microsoft SQL Server; reserved, as database_type says.
 template<>
 struct vendor_traits<database_type::mssql>
+    : internal::vendor_traits_info<vendor_traits<database_type::mssql>>
 {
     using native_handle_type = void*;
 
-    static constexpr database_type db_type        = database_type::mssql;
-    static constexpr re_std::uint16_t default_port   = 1433;
-    static constexpr const char*   name           = "mssql";
-    static constexpr const char*   display_name   = "Microsoft SQL Server";
-    static constexpr bool          is_relational  = true;
-    static constexpr bool          is_embedded    = false;
-    static constexpr bool          supports_ssl   = true;
+    static constexpr database_type    db_type       = database_type::mssql;
+    static constexpr re_std::uint16_t default_port  = 1433;
+    static constexpr const char*      name          = "mssql";
+    static constexpr const char*      display_name  = "Microsoft SQL Server";
+    static constexpr bool             is_relational = true;
+    static constexpr bool             is_embedded   = false;
+    static constexpr bool             supports_ssl  = true;
 
-    static vendor_info get_info()
-    {
-        vendor_info info;
-
-        info.type          = db_type;
-        info.name          = name;
-        info.display_name  = display_name;
-        info.default_port  = default_port;
-        info.is_relational = is_relational;
-        info.is_embedded   = is_embedded;
-        info.supports_ssl  = supports_ssl;
-
-        return info;
-    }
-
-    static connection_config make_default_config()
+    static connection_config
+    make_default_config()
     {
         connection_config config;
 
@@ -468,55 +379,113 @@ struct vendor_traits<database_type::mssql>
 };
 
 
-// ===========================================================================
-// II.  CONNECTION TEMPLATE
-// ===========================================================================
+//==============================================================================
+// 2.  CONNECTION TEMPLATE
+//==============================================================================
 
+
+// 2.1    The template
+//------------------------------------------------------------------------------
+// 2.1.1
 // connection_template
-//   class template: vendor-parameterized CRTP base for database connections.
-// Extends the generic connection<_helper> base with vendor-specific defaults,
-// native handle scaffolding, and vendor metadata. Concrete vendor
-// implementations derive from this template rather than from
-// connection<_helper> directly.
-//
-// Template parameters:
-//   _helper:   the concrete CRTP implementation class
-//   DbType: the database_type enumerator identifying the vendor
-//
-// Example usage (vendor implementation):
-//   class mysql_connection_helper
-//       : public connection_template<mysql_connection_helper,
-//                                    database_type::mysql>
-//   { ... };
-template<typename      _helper,
+//   class template: connection<Derived> with a vendor's traits: its
+// metadata at compile time, its default configuration, and its native
+// handle. Derived lends the handle through native_handle_helper(), which
+// returns native_handle_type, and is needed only where get_native_handle()
+// is called. Made with no configuration, a connection has the vendor's
+// defaults; made with one, the vendor's port where it names none. Not
+// copyable; movable.
+template<typename      Derived,
          database_type DbType>
-class connection_template : public connection<_helper>
+class connection_template : public connection<Derived>
 {
 public:
-    // vendor type aliases
     using traits_type        = vendor_traits<DbType>;
     using native_handle_type = typename traits_type::native_handle_type;
-    using base_type          = connection<_helper>;
+    using base_type          = connection<Derived>;
 
     // db_type
-    //   value: the database_type enumerator for this connection.
+    //   constant: the vendor this connection serves.
     static constexpr database_type db_type = DbType;
 
-    connection_template()
-        : base_type(),
-          m_native_handle(native_handle_type{})
+    // vendor metadata -- resolved at compile time
+    database_type
+    get_database_type() const noexcept
     {
-        // apply vendor defaults to base config
+        return db_type;
+    }
+
+    const char*
+    get_vendor_name() const noexcept
+    {
+        return traits_type::name;
+    }
+
+    const char*
+    get_vendor_display_name() const noexcept
+    {
+        return traits_type::display_name;
+    }
+
+    vendor_info
+    get_vendor_info() const
+    {
+        return traits_type::get_info();
+    }
+
+    re_std::uint16_t
+    get_default_port() const noexcept
+    {
+        return traits_type::default_port;
+    }
+
+    /**
+     * @brief Lends the connection's native handle, for calls of the C layer
+     *        or of the client itself.
+     *
+     * @return the handle, or `NULL` while the connection is closed; it stays
+     *         the connection's, and is invalid once the connection closes.
+     */
+    native_handle_type
+    get_native_handle() const noexcept
+    {
+        return static_cast<const Derived&>(*this).native_handle_helper();
+    }
+
+    // compile-time vendor queries
+    static constexpr bool
+    is_relational() noexcept
+    {
+        return traits_type::is_relational;
+    }
+
+    static constexpr bool
+    is_embedded() noexcept
+    {
+        return traits_type::is_embedded;
+    }
+
+    static constexpr bool
+    vendor_supports_ssl() noexcept
+    {
+        return traits_type::supports_ssl;
+    }
+
+protected:
+    connection_template()
+        : base_type()
+    {
         this->m_config = traits_type::make_default_config();
     }
 
-    explicit connection_template(const connection_config& _config)
+    explicit connection_template(
+        const connection_config& _config
+    )
         : base_type()
-        , m_native_handle(native_handle_type{})
     {
         this->m_config = _config;
 
-        // apply vendor default port if not specified
+        // the vendor's port where the configuration names none
         if (this->m_config.port == 0)
         {
             this->m_config.port = traits_type::default_port;
@@ -525,118 +494,11 @@ public:
 
     ~connection_template() = default;
 
-    // disable copying
     connection_template(const connection_template&)            = delete;
     connection_template& operator=(const connection_template&) = delete;
 
-    // enable moving
-    connection_template(connection_template&& _other) noexcept
-        : base_type(std::move(_other))
-        , m_native_handle(_other.m_native_handle)
-    {
-        _other.m_native_handle = native_handle_type{};
-    }
-
-    connection_template& operator=(connection_template&& _other) noexcept
-    {
-        if (this != &_other)
-        {
-            base_type::operator=(std::move(_other));
-
-            m_native_handle        = _other.m_native_handle;
-            _other.m_native_handle = native_handle_type{};
-        }
-
-        return *this;
-    }
-
-    // -----------------------------------------------------------------
-    // vendor metadata (non-virtual, compile-time resolved)
-    // -----------------------------------------------------------------
-
-    // get_database_type
-    //   function: returns the vendor's database_type enumerator.
-    database_type get_database_type() const noexcept
-    {
-        return db_type;
-    }
-
-    // get_vendor_name
-    //   function: returns the vendor's short identifier string.
-    const char* get_vendor_name() const noexcept
-    {
-        return traits_type::name;
-    }
-
-    // get_vendor_display_name
-    //   function: returns the vendor's human-readable display name.
-    const char* get_vendor_display_name() const noexcept
-    {
-        return traits_type::display_name;
-    }
-
-    // get_vendor_info
-    //   function: returns a populated vendor_info struct.
-    vendor_info get_vendor_info() const
-    {
-        return traits_type::get_info();
-    }
-
-    // get_default_port
-    //   function: returns the vendor's default TCP port.
-    re_std::uint16_t get_default_port() const noexcept
-    {
-        return traits_type::default_port;
-    }
-
-    // -----------------------------------------------------------------
-    // native handle access
-    // -----------------------------------------------------------------
-
-    // get_native_handle
-    //   function: returns the vendor's native connection handle.
-    // The returned pointer should be reinterpret_cast to the actual
-    // vendor handle type (e.g. MYSQL*, PGconn*) by vendor-specific
-    // code.
-    native_handle_type get_native_handle() noexcept
-    {
-        return m_native_handle;
-    }
-
-    // get_native_handle (const)
-    //   function: returns the vendor's native connection handle (const).
-    native_handle_type get_native_handle() const noexcept
-    {
-        return m_native_handle;
-    }
-
-    // -----------------------------------------------------------------
-    // compile-time vendor queries
-    // -----------------------------------------------------------------
-
-    // is_relational
-    //   function: returns true if this is a relational database.
-    static constexpr bool is_relational() noexcept
-    {
-        return traits_type::is_relational;
-    }
-
-    // is_embedded
-    //   function: returns true if this is an embedded database.
-    static constexpr bool is_embedded() noexcept
-    {
-        return traits_type::is_embedded;
-    }
-
-    // vendor_supports_ssl
-    //   function: returns true if the vendor supports SSL/TLS.
-    static constexpr bool vendor_supports_ssl() noexcept
-    {
-        return traits_type::supports_ssl;
-    }
-
-protected:
-    native_handle_type m_native_handle;
+    connection_template(connection_template&&) noexcept            = default;
+    connection_template& operator=(connection_template&&) noexcept = default;
 };
 
 

@@ -866,26 +866,26 @@ public:
     // catalog / schema introspection
     // -----------------------------------------------------------------
 
-    // table_exists
+    // has_table
     //   function: returns true if the named table exists (SYSCAT.TABLES).
-    bool table_exists(const std::string& _table_name) const
+    bool has_table(const std::string& _table_name) const
     {
-        return self().table_exists_impl(_table_name);
+        return self().has_table_impl(_table_name);
     }
 
-    // get_table_names
+    // list_tables
     //   function: returns the table names visible under the current
     // schema (SYSCAT.TABLES).
-    std::vector<std::string> get_table_names() const
+    std::vector<std::string> list_tables() const
     {
-        return self().get_table_names_impl();
+        return self().list_tables_impl();
     }
 
-    // get_schema_names
+    // list_schemas
     //   function: returns the schema names (SYSCAT.SCHEMATA).
-    std::vector<std::string> get_schema_names() const
+    std::vector<std::string> list_schemas() const
     {
-        return self().get_schema_names_impl();
+        return self().list_schemas_impl();
     }
 
 
@@ -1155,9 +1155,9 @@ public:
     void         begin_compound_impl(bool _atomic);
     void         add_compound_impl(const std::string& _sql);
     re_std::int64_t end_compound_impl();
-    bool         table_exists_impl(const std::string& _name) const;
-    std::vector<std::string> get_table_names_impl() const;
-    std::vector<std::string> get_schema_names_impl() const;
+    bool         has_table_impl(const std::string& _name) const;
+    std::vector<std::string> list_tables_impl() const;
+    std::vector<std::string> list_schemas_impl() const;
     std::string  escape_literal_impl(const std::string& _input) const;
     std::string  escape_identifier_impl(
                      const std::string& _input) const;
@@ -1317,27 +1317,27 @@ using db2_end_compound_t =
 // D.  catalog / schema introspection
 // -------------------------------------------------------------------------
 
-// db2_table_exists_t
-//   detector: table_exists(const std::string&) const method.
+// db2_has_table_t
+//   detector: has_table(const std::string&) const method.
 // probes SYSCAT.TABLES.
 template<typename T>
-using db2_table_exists_t =
-    decltype(std::declval<const T&>().table_exists(
+using db2_has_table_t =
+    decltype(std::declval<const T&>().has_table(
         std::declval<const std::string&>()));
 
-// db2_get_table_names_t
-//   detector: get_table_names() const method.
+// db2_list_tables_t
+//   detector: list_tables() const method.
 // queries SYSCAT.TABLES.
 template<typename T>
-using db2_get_table_names_t =
-    decltype(std::declval<const T&>().get_table_names());
+using db2_list_tables_t =
+    decltype(std::declval<const T&>().list_tables());
 
-// db2_get_schema_names_t
-//   detector: get_schema_names() const method.
+// db2_list_schemas_t
+//   detector: list_schemas() const method.
 // queries SYSCAT.SCHEMATA.
 template<typename T>
-using db2_get_schema_names_t =
-    decltype(std::declval<const T&>().get_schema_names());
+using db2_list_schemas_t =
+    decltype(std::declval<const T&>().list_schemas());
 
 // -------------------------------------------------------------------------
 // E.  escaping
@@ -1498,12 +1498,12 @@ struct has_db2_compound : djinterp::conjunction<
 
 // has_db2_schema_query
 //   trait: checks if type T supports catalog introspection
-// (table_exists + get_table_names + get_schema_names).
+// (has_table + list_tables + list_schemas).
 template<typename T>
 struct has_db2_schema_query : djinterp::conjunction<
-    is_detected<db2_table_exists_t, clean_t<T>>,
-    is_detected<db2_get_table_names_t, clean_t<T>>,
-    is_detected<db2_get_schema_names_t, clean_t<T>>>
+    is_detected<db2_has_table_t, clean_t<T>>,
+    is_detected<db2_list_tables_t, clean_t<T>>,
+    is_detected<db2_list_schemas_t, clean_t<T>>>
 {
 };
 
@@ -1662,14 +1662,14 @@ constexpr bool db2_can_compound<T,
     std::void_t<db2_begin_compound_t<T>>> = true;
 
 // db2_can_query_schema
-//   tagless trait: true if T has table_exists().
+//   tagless trait: true if T has has_table().
 template<typename T,
          typename = void>
 constexpr bool db2_can_query_schema = false;
 
 template<typename T>
 constexpr bool db2_can_query_schema<T,
-    std::void_t<db2_table_exists_t<T>>> = true;
+    std::void_t<db2_has_table_t<T>>> = true;
 
 // db2_can_escape_literal
 //   tagless trait: true if T has escape_literal().
@@ -1767,9 +1767,9 @@ constexpr bool db2_does_schema_query = false;
 
 template<typename T>
 constexpr bool db2_does_schema_query<T, std::void_t<
-    db2_table_exists_t<T>,
-    db2_get_table_names_t<T>,
-    db2_get_schema_names_t<T>>> = true;
+    db2_has_table_t<T>,
+    db2_list_tables_t<T>,
+    db2_list_schemas_t<T>>> = true;
 
 // db2_does_diagnostics
 //   tagless trait: true if T supports the full diagnostics surface.
@@ -1972,7 +1972,7 @@ concept db2_compound_capable_connection =
     db2_can_compound<clean_t<Type>>;
 
 // db2_schema_queryable_connection
-//   concept: constrains types exposing table_exists(name).
+//   concept: constrains types exposing has_table(name).
 template<typename Type>
 concept db2_schema_queryable_connection =
     db2_can_query_schema<clean_t<Type>>;

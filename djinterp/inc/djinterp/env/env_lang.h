@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/env/env_lang.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 
 /*
@@ -37,6 +37,7 @@ TABLE OF CONTENTS
               4.  D_ENV_LANG_CPP_STANDARD_CPP17
               5.  D_ENV_LANG_CPP_STANDARD_CPP20
               6.  D_ENV_LANG_CPP_STANDARD_CPP23
+              7.  D_ENV_LANG_CPP_STANDARD_CPP26
 2.  LANGUAGE DETECTION
     ------------------
     1.  Automatic detection
@@ -57,6 +58,7 @@ TABLE OF CONTENTS
          5.  D_ENV_LANG_IS_CPP17_OR_HIGHER
          6.  D_ENV_LANG_IS_CPP20_OR_HIGHER
          7.  D_ENV_LANG_IS_CPP23_OR_HIGHER
+         8.  D_ENV_LANG_IS_CPP26_OR_HIGHER
     2.  C
          1.  D_ENV_LANG_USING_C
          2.  D_ENV_LANG_IS_C95_OR_HIGHER
@@ -152,6 +154,13 @@ TABLE OF CONTENTS
 //   constant: __cplusplus value for C++23.
 #define D_ENV_LANG_CPP_STANDARD_CPP23   202302L
 
+// 1.2.1.7
+// D_ENV_LANG_CPP_STANDARD_CPP26
+//   constant: __cplusplus value for C++26 as the compilers give it until the
+// standard is published (GCC and Clang, -std=c++2c and -std=c++26); the
+// published value will be larger, and every comparison here is >=.
+#define D_ENV_LANG_CPP_STANDARD_CPP26   202400L
+
 
 //==============================================================================
 // 2.  LANGUAGE DETECTION
@@ -187,7 +196,10 @@ TABLE OF CONTENTS
         // D_ENV_LANG_CPP_STANDARD
         //   constant: the detected C++ standard, one of the 1.2 identifiers,
         // with D_ENV_LANG_CPP_STANDARD_NAME its name.
-        #if D_INTERNAL_ENV_LANG_CPLUSPLUS >= D_ENV_LANG_CPP_STANDARD_CPP23
+        #if D_INTERNAL_ENV_LANG_CPLUSPLUS >= D_ENV_LANG_CPP_STANDARD_CPP26
+            #define D_ENV_LANG_CPP_STANDARD      D_ENV_LANG_CPP_STANDARD_CPP26
+            #define D_ENV_LANG_CPP_STANDARD_NAME "C++26"
+        #elif D_INTERNAL_ENV_LANG_CPLUSPLUS >= D_ENV_LANG_CPP_STANDARD_CPP23
             #define D_ENV_LANG_CPP_STANDARD      D_ENV_LANG_CPP_STANDARD_CPP23
             #define D_ENV_LANG_CPP_STANDARD_NAME "C++23"
         #elif D_INTERNAL_ENV_LANG_CPLUSPLUS >= D_ENV_LANG_CPP_STANDARD_CPP20
@@ -267,7 +279,10 @@ TABLE OF CONTENTS
     // 2.2.1
     // D_ENV_DETECTED_CPP* overrides
     //   the newest D_ENV_DETECTED_CPPnn defined selects the C++ standard.
-    #ifdef D_ENV_DETECTED_CPP23
+    #if defined(D_ENV_DETECTED_CPP26)
+        #define D_ENV_LANG_CPP_STANDARD      D_ENV_LANG_CPP_STANDARD_CPP26
+        #define D_ENV_LANG_CPP_STANDARD_NAME "C++26"
+    #elif defined(D_ENV_DETECTED_CPP23)
         #define D_ENV_LANG_CPP_STANDARD      D_ENV_LANG_CPP_STANDARD_CPP23
         #define D_ENV_LANG_CPP_STANDARD_NAME "C++23"
     #elif defined(D_ENV_DETECTED_CPP20)
@@ -285,7 +300,7 @@ TABLE OF CONTENTS
     #elif defined(D_ENV_DETECTED_CPP98)
         #define D_ENV_LANG_CPP_STANDARD      D_ENV_LANG_CPP_STANDARD_CPP98
         #define D_ENV_LANG_CPP_STANDARD_NAME "C++98"
-    #endif  // D_ENV_DETECTED_CPP23
+    #endif  // D_ENV_DETECTED_CPP26
 
     // 2.2.2
     // D_ENV_DETECTED_C* overrides
@@ -365,6 +380,13 @@ TABLE OF CONTENTS
     //   macro: evaluates to 1 if detected C++ standard is C++23 or later.
     #define D_ENV_LANG_IS_CPP23_OR_HIGHER                                      \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP23)
+
+    // 3.1.8
+    // D_ENV_LANG_IS_CPP26_OR_HIGHER
+    //   macro: evaluates to 1 if detected C++ standard is C++26 or later, as
+    // the compilers give it before its publication (1.2.1.7).
+    #define D_ENV_LANG_IS_CPP26_OR_HIGHER                                      \
+        (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP26)
 #else
     #define D_ENV_LANG_USING_CPP 0
 
@@ -376,6 +398,7 @@ TABLE OF CONTENTS
     #define D_ENV_LANG_IS_CPP17_OR_HIGHER           0
     #define D_ENV_LANG_IS_CPP20_OR_HIGHER           0
     #define D_ENV_LANG_IS_CPP23_OR_HIGHER           0
+    #define D_ENV_LANG_IS_CPP26_OR_HIGHER           0
 #endif  // D_ENV_LANG_CPP_STANDARD
 
 // 3.2    C

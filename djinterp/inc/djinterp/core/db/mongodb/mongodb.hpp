@@ -985,14 +985,14 @@ public:
         self().drop_collection_impl(_name);
     }
 
-    bool collection_exists(const std::string& _name) const
+    bool has_collection(const std::string& _name) const
     {
-        return self().collection_exists_impl(_name);
+        return self().has_collection_impl(_name);
     }
 
-    std::vector<std::string> list_collection_names() const
+    std::vector<std::string> list_collections() const
     {
-        return self().list_collection_names_impl();
+        return self().list_collections_impl();
     }
 
     // -----------------------------------------------------------------
@@ -1229,8 +1229,8 @@ public:
                                 const std::string& _pipeline);
     void create_collection_impl(const std::string& _name);
     void drop_collection_impl(const std::string& _name);
-    bool collection_exists_impl(const std::string& _name) const;
-    std::vector<std::string> list_collection_names_impl() const;
+    bool has_collection_impl(const std::string& _name) const;
+    std::vector<std::string> list_collections_impl() const;
     void create_index_impl(const std::string& _collection,
                             const std::string& _keys);
     std::string list_indexes_impl(
@@ -1394,18 +1394,18 @@ using mongo_drop_collection_t =
     decltype(std::declval<T&>().drop_collection(
         std::declval<const std::string&>()));
 
-// mongo_collection_exists_t
-//   detector: collection_exists(const std::string&) const method.
+// mongo_has_collection_t
+//   detector: has_collection(const std::string&) const method.
 template<typename T>
-using mongo_collection_exists_t =
-    decltype(std::declval<const T&>().collection_exists(
+using mongo_has_collection_t =
+    decltype(std::declval<const T&>().has_collection(
         std::declval<const std::string&>()));
 
-// mongo_list_collection_names_t
-//   detector: list_collection_names() const method.
+// mongo_list_collections_t
+//   detector: list_collections() const method.
 template<typename T>
-using mongo_list_collection_names_t =
-    decltype(std::declval<const T&>().list_collection_names());
+using mongo_list_collections_t =
+    decltype(std::declval<const T&>().list_collections());
 
 // -------------------------------------------------------------------------
 // C.  aggregation
@@ -1582,8 +1582,8 @@ template<typename T>
 struct has_mongo_collections : djinterp::conjunction<
     is_detected<mongo_create_collection_t, clean_t<T>>,
     is_detected<mongo_drop_collection_t, clean_t<T>>,
-    is_detected<mongo_collection_exists_t, clean_t<T>>,
-    is_detected<mongo_list_collection_names_t, clean_t<T>>>
+    is_detected<mongo_has_collection_t, clean_t<T>>,
+    is_detected<mongo_list_collections_t, clean_t<T>>>
 {
 };
 
@@ -1902,16 +1902,16 @@ concept mongo_drop_collection_connection =
     is_detected<mongo_drop_collection_t, clean_t<Type>>::value;
 
 // mongo_collection_query_connection
-//   concept: constrains MongoDB connections exposing collection_exists().
+//   concept: constrains MongoDB connections exposing has_collection().
 template<typename Type>
 concept mongo_collection_query_connection =
-    is_detected<mongo_collection_exists_t, clean_t<Type>>::value;
+    is_detected<mongo_has_collection_t, clean_t<Type>>::value;
 
 // mongo_collection_list_connection
-//   concept: constrains MongoDB connections exposing list_collection_names().
+//   concept: constrains MongoDB connections exposing list_collections().
 template<typename Type>
 concept mongo_collection_list_connection =
-    is_detected<mongo_list_collection_names_t, clean_t<Type>>::value;
+    is_detected<mongo_list_collections_t, clean_t<Type>>::value;
 
 // mongo_watch_collection_connection
 //   concept: constrains MongoDB connections exposing watch_collection().
