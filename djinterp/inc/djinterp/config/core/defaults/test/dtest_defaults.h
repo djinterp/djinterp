@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include "../../../../c/djinterp.h"
 #include "../../../../c/memory/dmemory.h"
-#include "../../../../c/fs/dfile.h"
+#include "../../../../c/filesys/dfile.h"
 #include "../../../../c/dstring.h"
 #include "../../../../c/dtime.h"
 #include "../../../../test/c/test_common.h"

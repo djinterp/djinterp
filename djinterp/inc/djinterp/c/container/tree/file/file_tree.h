@@ -92,7 +92,7 @@ VIII. UTILITY
 #include "../../../djinterp.h"
 #include "../../container.h"
 #include "../../../dstring.h"
-#include "../../../fs/dfile.h"
+#include "../../../filesys/dfile.h"
 // re_std
 #include "../../../../../re_std/cstdint/dstdint.h"  // int64_t, uint32_t,
                                                     // uint64_t

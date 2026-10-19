@@ -1,0 +1,3 @@
+tests/dawk/fixtures/c_style/width_alias.h:17:9: a macro djinterp defines is D_-prefixed
+tests/dawk/fixtures/c_style/width_alias.h:21:1: a function-like macro outside c/util/macro/ needs a reason
+tests/dawk/fixtures/c_style/width_alias.h:21:9: a macro djinterp defines is D_-prefixed
