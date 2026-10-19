@@ -27,7 +27,7 @@
 // djinterp
 #include "../../c/djinterp.h"
 #include "../../c/memory/dmemory.h"
-#include "../../c/fs/dfile.h"
+#include "../../c/filesys/dfile.h"
 #include "../../c/dtime.h"
 #include "../../c/string_fn.h"
 #include "../../c/event/event.h"

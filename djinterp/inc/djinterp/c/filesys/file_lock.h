@@ -1,0 +1,102 @@
+/*******************************************************************************
+* djinterp [c]                                                       file_lock.h
+*
+* Advisory file locking.
+*   ADVISORY, and the word is load-bearing: a lock here is a convention among
+* programs that agree to ask. A process that never calls d_file_lock_fd writes
+* the file regardless, and nothing reports it. There is no portable mandatory
+* locking; if that is what you need, this module cannot supply it.
+*   Except that on Windows the lock IS enforced, by Windows: while one handle
+* holds an exclusive lock, every other handle's reads and writes of the file
+* fail -- another process's, and this one's through a second descriptor --
+* and while any handle holds a shared lock nobody may write, its holder
+* included. Code that writes through a descriptor it has share-locked, or
+* through a second one while it holds a lock, works on POSIX and fails there.
+*   The semantics depend on the backend, and they are not interchangeable --
+* see cfg_file_lock.h. In short: flock's lock lives on the open file
+* description, fcntl's lives on the process and is dropped when ANY descriptor
+* to the file closes. Query with D_FILE_LOCK_IS_PER_DESCRIPTION.
+*
+*
+* path:      /inc/djinterp/c/filesys/file_lock.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
+*                                                            revised: 2026.10.18
+*******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  LOCKING
+    -------
+    1.  Advisory locks
+*/
+
+#ifndef DJINTERP_C_FILESYS_FILE_LOCK_H
+#define DJINTERP_C_FILESYS_FILE_LOCK_H 1
+
+// std
+#include <stdio.h>  // FILE
+// djinterp
+#include "./file_common.h"                         // foundation, D_LOCK_*
+#include "../../config/c/filesys/cfg_file_lock.h"  // module configuration
+
+
+D_EXTERN_C_BEGIN
+
+
+//==============================================================================
+// 1.  LOCKING
+//==============================================================================
+// Operations come from file_common.h: D_LOCK_SH, D_LOCK_EX or D_LOCK_UN,
+// optionally OR'd with D_LOCK_NB to fail rather than block. On the ISO C
+// backend, which has no descriptors, both functions fail with ENOSYS.
+
+
+// 1.1    Advisory locks
+//------------------------------------------------------------------------------
+/**
+ * @brief Takes or releases an advisory lock on a descriptor.
+ *
+ * @note Only processes that ask are coordinated (on POSIX; see the banner for
+ *       Windows). The lock's lifetime follows the backend: with flock it
+ *       belongs to the open file description, with fcntl to the process, and
+ *       closing ANY descriptor to the file drops it, on Windows to the
+ *       descriptor's handle, which a child process does not share.
+ *       D_FILE_LOCK_IS_PER_DESCRIPTION says which.
+ * @note A request replaces the lock the descriptor holds, so asking twice is
+ *       one lock, released by one D_LOCK_UN, and unlocking an unlocked file
+ *       succeeds. Converting between shared and exclusive is atomic with
+ *       fcntl only: with flock, and on Windows, the old lock goes first, and
+ *       a D_LOCK_NB conversion that another party wins leaves none.
+ * @note A wait interrupted by a signal is resumed, as every call in c/filesys
+ *       is; to bound a wait, poll with D_LOCK_NB.
+ *
+ * @param[in] _fd         an open descriptor.
+ * @param[in] _operation  exactly one of D_LOCK_SH, D_LOCK_EX or D_LOCK_UN,
+ *                        optionally OR'd with D_LOCK_NB.
+ * @return 0, or -1 on failure with errno set. Under D_LOCK_NB a conflict
+ *         returns -1 with errno EWOULDBLOCK, EAGAIN or EACCES -- an answer,
+ *         not a fault.
+ */
+int d_file_lock_fd(int _fd,
+                   int _operation);
+/**
+ * @brief Takes or releases an advisory lock through the stream that owns the
+ *        file.
+ *
+ * @note It does not flush. Flush before releasing a lock that guards data you
+ *       have written.
+ *
+ * @param[in] _stream     an open stream.
+ * @param[in] _operation  as for d_file_lock_fd.
+ * @return 0, or -1 on failure with errno set.
+ */
+int d_file_lock_stream(FILE* _stream,
+                       int   _operation);
+
+
+D_EXTERN_C_END
+
+
+#endif  // DJINTERP_C_FILESYS_FILE_LOCK_H

@@ -33,7 +33,7 @@
 #include <stdio.h>
 // djinterp
 #include "../../c/djinterp.h"
-#include "../../c/fs/dfile.h"
+#include "../../c/filesys/dfile.h"
 #include "../../c/dstring.h"
 #include "../../c/dtime.h"
 #include "../../c/container/map/min_enum_map.h"

@@ -161,7 +161,7 @@ TABLE OF CONTENTS
 //   knob: trip an assertion on a failed parameter check, so a contract
 // violation is loud rather than an error code the caller ignores. Off by
 // default in cfg_file_common.h, which names this preset as what turns it on.
-// Nothing reads it yet; when a module does, the fs suites' tests that pass
+// Nothing reads it yet; when a module does, the filesys suites' tests that pass
 // invalid parameters on purpose must expect the assertion, or set it to 0.
 #ifndef D_CFG_FILE_ASSERT_PARAMS
     #define D_CFG_FILE_ASSERT_PARAMS 1

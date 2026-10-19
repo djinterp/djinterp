@@ -60,7 +60,7 @@
 NS_DJINTERP
 
 // NOTE. This header used to open NS_FS. There IS NO NS_FS -- nothing in the
-// framework defines that macro. Flat djinterp, like everything else in fs.
+// framework defines that macro. Flat djinterp, like everything else in filesys.
 
 
 // DEPENDENCIES.

@@ -4,9 +4,9 @@
 * Cross-platform variants of certain `stdio.h` functions.
 *   Portable, safer wrappers for standard I/O: the secure formatted-input and
 * formatted-output variants, bounded line input, and the stream error state.
-* Stream positioning is c/fs's: d_file_tell_stream and d_file_seek_stream, in
-* fs/file_seek.h, which d_fgetpos and d_fsetpos only wrapped (decision 39 of
-* the register). The checked scanf family is the framework's
+* Stream positioning is c/filesys's: d_file_tell_stream and d_file_seek_stream,
+* in filesys/file_seek.h, which d_fgetpos and d_fsetpos only wrapped (decision
+* 39 of the register). The checked scanf family is the framework's
 * own and the same everywhere. The secure printf and gets variants map to
 * Annex K or MSVC's implementations where D_ENV_C_HAS_SCANF_S is set, and to
 * the standard functions otherwise; see each contract for where the two

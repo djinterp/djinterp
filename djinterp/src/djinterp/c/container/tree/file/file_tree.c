@@ -7,7 +7,7 @@
 * path:      /src/djinterp/c/container/tree/file/file_tree.c
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.17
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/container/tree/file/file_tree.h"
 
@@ -1063,7 +1063,7 @@ d_file_tree_new_from_path
 {
     struct d_file_tree*      tree;
     struct d_dir_t*          dir;
-    struct d_dirent_t*       entry;
+    struct d_dirent64_t*     entry;
     char                     child_path[D_FILE_PATH_MAX];
     char                     name_buf[D_FILE_NAME_MAX];
     const char*              root_name;
@@ -1108,22 +1108,27 @@ d_file_tree_new_from_path
         return NULL;
     }
 
-    entry = d_dir_read(dir);
+    entry = d_dir_read64(dir);
     while (entry)
     {
         // skip . and ..
         if ( (strcmp(entry->d_name, ".") == 0) ||
              (strcmp(entry->d_name, "..") == 0) )
         {
-            entry = d_dir_read(dir);
+            entry = d_dir_read64(dir);
             continue;
         }
 
-        // build full path to child
-        d_path_join(child_path,
-                    D_FILE_PATH_MAX,
-                    _filesystem_path,
-                    entry->d_name);
+        // build full path to child, as the kernel reads paths; an entry
+        // whose path does not fit cannot be examined, and is left out
+        if (!d_dir_entry_path(child_path,
+                              D_FILE_PATH_MAX,
+                              _filesystem_path,
+                              entry->d_name))
+        {
+            entry = d_dir_read64(dir);
+            continue;
+        }
 
         if ( (entry->d_type == DT_DIR) &&
              (_recursive) )
@@ -1156,17 +1161,23 @@ d_file_tree_new_from_path
         {
             // read symlink target
             char target_buf[D_FILE_PATH_MAX];
-            ssize_t link_len;
 
             target_buf[0] = '\0';
-#if D_FILE_HAS_SYMLINKS
-            link_len = d_file_readlink(child_path,
-                                  target_buf,
-                                  D_FILE_PATH_MAX);
+#if D_FILE_LINK_IS_AVAILABLE
+            const ssize_t link_len = d_file_readlink(child_path,
+                                                     target_buf,
+                                                     D_FILE_PATH_MAX);
+
+            // keep the target only when it fit, and terminate it -- one that
+            // filled the buffer may have been cut short, and is not kept
             if ( (link_len > 0) &&
                  (link_len < (ssize_t)D_FILE_PATH_MAX) )
             {
                 target_buf[link_len] = '\0';
+            }
+            else
+            {
+                target_buf[0] = '\0';
             }
 #endif
 
@@ -1187,8 +1198,8 @@ d_file_tree_new_from_path
             if (child_node)
             {
                 // populate file metadata
-                struct d_stat_t st;
-                if (d_file_stat(child_path, &st) == 0)
+                struct d_stat64_t st;
+                if (d_file_stat64(child_path, &st) == 0)
                 {
                     child_node->file_size = st.st_size;
                     child_node->mode      = st.st_mode;
@@ -1201,7 +1212,7 @@ d_file_tree_new_from_path
             }
         }
 
-        entry = d_dir_read(dir);
+        entry = d_dir_read64(dir);
     }
 
     d_dir_close(dir);
