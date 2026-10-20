@@ -5,14 +5,15 @@
 *   Two strips, one bit to a cell: the distribution before the operation --
 * how many allocations claim each bit -- above, and after it below. For an
 * operation that only moves bits, a curve joins each bit of the targets to
-* the bit it lands on, in the colour of the symbol it belongs to; a bit that
-* falls off the end is crossed out, and a bit filled with zero is marked. An
-* operation that computes rather than moves outlines the bits it changes.
+* the bit it lands on, in the colour of the symbol it belongs to -- or the
+* text's, faded, for a symbol with no fill; a bit that falls off the end is
+* crossed out, and a bit filled with zero is marked. An operation that
+* computes rather than moves outlines the bits it changes.
 *
 * path:      /src/djinterp/tools/bitwisedom/app/flow.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.18
 *******************************************************************************/
 #include "./elements.hpp"  // corresponding header
 
@@ -249,7 +250,7 @@ draw_flow(
     // the bit numbers between the strips, where there is room
     if (cell >= 12.0f)
     {
-        ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 0.75f);
+        ImGui::PushFont(nullptr, font_base() * 0.75f);
 
         for (int bit = 0; bit < doc.width; ++bit)
         {
@@ -321,11 +322,16 @@ draw_flow(
         const float dx    = x_of(bit) + cell * 0.5f;
         const float mid   = (from_y + to_y) * 0.5f;
 
+        // a row with no fill has no colour to draw its curves in: they are
+        // the text's, faded, as the bits around them are
+        const ImU32 curve = (colour == 0) ? muted
+                                          : to_u32(with_alpha(colour, 0.75f));
+
         list->AddBezierCubic(ImVec2(sx, from_y),
                              ImVec2(sx, mid),
                              ImVec2(dx, mid),
                              ImVec2(dx, to_y),
-                             to_u32(with_alpha(colour, 0.75f)),
+                             curve,
                              1.6f);
     }
 

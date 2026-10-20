@@ -13,15 +13,16 @@
 * path:      /src/djinterp/tools/bitwisedom/resolve.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 #include <djinterp/tools/bitwisedom/resolve.hpp>  // corresponding header
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
-#include <algorithm>  // std::find
+#include <algorithm>  // std::find, std::stable_sort
 #include <cctype>     // std::isalnum, std::isalpha, std::isupper
+#include <map>        // std::map
 #include <memory>     // std::unique_ptr
 #include <utility>    // std::move
 #include <vector>     // std::vector
@@ -887,6 +888,22 @@ private:
             }
         }
 
+        // Additional imported headers contribute macros to the same
+        // evaluation environment in their import order.
+        for (const definition_source& source : m_sheet.definitions)
+        {
+            std::vector<std::string> notes;
+            (void)run_directives(*m_env, source.text, notes);
+            for (const std::string& each : notes)
+            {
+                m_out.issues.push_back(issue{ severity::warning, 0,
+                    source.path + ", " + each });
+            }
+
+            // kept by file, for the file's own view to mark its lines
+            m_out.definition_notes.push_back(std::move(notes));
+        }
+
         for (std::size_t i = 0; i < m_out.rows.size(); ++i)
         {
             const resolved_row& each = m_out.rows[i];
@@ -1732,6 +1749,294 @@ is_reserved(
              (_name.find("__") != std::string::npos) );
 }
 
+
+// ------------------------------------------------------------------- order
+
+namespace
+{
+
+// folded
+//   a text compared without regard to case, then with it: -1, 0 or 1.
+int
+folded(
+    const std::string& _a,
+    const std::string& _b
+)
+{
+    const std::size_t count = std::min(_a.size(), _b.size());
+
+    for (std::size_t i = 0; i < count; ++i)
+    {
+        const int a = std::tolower(static_cast<unsigned char>(_a[i]));
+        const int b = std::tolower(static_cast<unsigned char>(_b[i]));
+
+        if (a != b)
+        {
+            return (a < b) ? -1 : 1;
+        }
+    }
+
+    if (_a.size() != _b.size())
+    {
+        return (_a.size() < _b.size()) ? -1 : 1;
+    }
+
+    return (_a == _b) ? 0 : ( (_a < _b) ? -1 : 1 );
+}
+
+// numeric
+//   two sets of bits compared as the numbers they are: -1, 0 or 1.
+int
+numeric(
+    const wide& _a,
+    const wide& _b
+)
+{
+    const int top = std::max(_a.words(), _b.words());
+
+    for (int w = top - 1; w >= 0; --w)
+    {
+        const u64 a = (w < _a.words()) ? _a.word(w) : 0u;
+        const u64 b = (w < _b.words()) ? _b.word(w) : 0u;
+
+        if (a != b)
+        {
+            return (a < b) ? -1 : 1;
+        }
+    }
+
+    return 0;
+}
+
+// ordered
+//   two rows of a group compared by a key: -1, 0 or 1; 0 leaves them in the
+// sheet's order. _known says whether the key says anything of a row: a row
+// it says nothing of comes after one it does, whichever way the rows are
+// sorted.
+int
+ordered(
+    sort_key            _key,
+    const resolved_row& _a,
+    const row*          _a_row,
+    const resolved_row& _b,
+    const row*          _b_row,
+    bool                _descending
+)
+{
+    const bool group_a = (_a.kind == row_kind::group);
+    const bool group_b = (_b.kind == row_kind::group);
+
+    // groups first
+    if (group_a != group_b)
+    {
+        return group_a ? -1 : 1;
+    }
+
+    const int flip = _descending ? -1 : 1;
+
+    // a text a row may lack: those with one first
+    auto texts = [flip](const std::string& _x,
+                        const std::string& _y)
+    {
+        if (_x.empty() != _y.empty())
+        {
+            return _x.empty() ? 1 : -1;
+        }
+
+        return flip * folded(_x, _y);
+    };
+
+    // groups: by name where the key is a name
+    if (group_a)
+    {
+        switch (_key)
+        {
+            case sort_key::symbol:
+            case sort_key::name:
+            case sort_key::short_name:
+                return flip * folded(_a.local, _b.local);
+
+            case sort_key::note:
+                return texts( (_a_row != nullptr) ? _a_row->note
+                                                  : std::string(),
+                              (_b_row != nullptr) ? _b_row->note
+                                                  : std::string() );
+
+            default:
+                return 0;
+        }
+    }
+
+    switch (_key)
+    {
+        case sort_key::sheet:
+            return 0;
+
+        case sort_key::symbol:
+            return flip * folded(_a.full, _b.full);
+
+        case sort_key::name:
+            return flip * folded(_a.local, _b.local);
+
+        case sort_key::short_name:
+        {
+            // a row with no short name goes by its name
+            const std::string a = ( (_a_row != nullptr) &&
+                                    (!_a_row->short_name.empty()) )
+                                      ? _a_row->short_name
+                                      : _a.local;
+            const std::string b = ( (_b_row != nullptr) &&
+                                    (!_b_row->short_name.empty()) )
+                                      ? _b_row->short_name
+                                      : _b.local;
+
+            return flip * folded(a, b);
+        }
+
+        case sort_key::value:
+            if (_a.has_value != _b.has_value)
+            {
+                return _a.has_value ? -1 : 1;
+            }
+
+            return flip * numeric(_a.bits, _b.bits);
+
+        case sort_key::lowest:
+        case sort_key::width:
+        {
+            const int a = (_key == sort_key::lowest)
+                              ? ( (_a.span_width > 0) ? _a.span_lsb
+                                                      : _a.bits.lowest() )
+                              : ( (_a.span_width > 0) ? _a.span_width
+                                                      : _a.bits.count() );
+            const int b = (_key == sort_key::lowest)
+                              ? ( (_b.span_width > 0) ? _b.span_lsb
+                                                      : _b.bits.lowest() )
+                              : ( (_b.span_width > 0) ? _b.span_width
+                                                      : _b.bits.count() );
+            const bool knows_a = (a >= 0) && ( (_key != sort_key::width) ||
+                                               (a > 0) );
+            const bool knows_b = (b >= 0) && ( (_key != sort_key::width) ||
+                                               (b > 0) );
+
+            if (knows_a != knows_b)
+            {
+                return knows_a ? -1 : 1;
+            }
+
+            return (a == b) ? 0 : flip * ( (a < b) ? -1 : 1 );
+        }
+
+        case sort_key::kind:
+        {
+            const int a = static_cast<int>(_a.def);
+            const int b = static_cast<int>(_b.def);
+
+            return (a == b) ? 0 : flip * ( (a < b) ? -1 : 1 );
+        }
+
+        case sort_key::note:
+            return texts( (_a_row != nullptr) ? _a_row->note
+                                              : std::string(),
+                          (_b_row != nullptr) ? _b_row->note
+                                              : std::string() );
+    }
+
+    return 0;
+}
+
+}  // anonymous namespace
+
+
+std::vector<std::size_t>
+display_order(
+    const sheet&      _sheet,
+    const resolution& _resolution
+)
+{
+    const std::vector<resolved_row>& rows = _resolution.rows;
+    const sort_key                   key  = _sheet.grid.sort_by;
+    std::vector<std::size_t>         out;
+
+    out.reserve(rows.size());
+
+    if (key == sort_key::sheet)
+    {
+        for (std::size_t i = 0; i < rows.size(); ++i)
+        {
+            out.push_back(i);
+        }
+
+        return out;
+    }
+
+    // each group's rows, in the sheet's order; and each row by its id
+    std::map<int, std::vector<std::size_t>> held;
+    std::map<int, const row*>               own;
+
+    for (std::size_t i = 0; i < rows.size(); ++i)
+    {
+        held[rows[i].parent].push_back(i);
+    }
+
+    walk(_sheet,
+         [&own](const row& _row, const row&, int)
+         {
+             own[_row.id] = &_row;
+         });
+
+    // the row an id names, or nullptr
+    auto source = [&own](int _id) -> const row*
+    {
+        const auto found = own.find(_id);
+
+        return (found == own.end()) ? nullptr : found->second;
+    };
+
+    for (auto& each : held)
+    {
+        std::stable_sort(each.second.begin(),
+                         each.second.end(),
+                         [&](std::size_t _a,
+                             std::size_t _b)
+                         {
+                             return (ordered(key,
+                                             rows[_a],
+                                             source(rows[_a].id),
+                                             rows[_b],
+                                             source(rows[_b].id),
+                                             _sheet.grid.sort_descending) <
+                                     0);
+                         });
+    }
+
+    // depth-first, from the sheet's root: each group on the path, and how
+    // many of its rows are out
+    std::vector<std::pair<int, std::size_t>> path;
+
+    path.emplace_back(_sheet.root.id, 0);
+
+    while (!path.empty())
+    {
+        auto&       top   = path.back();
+        const auto  found = held.find(top.first);
+
+        if ( (found == held.end()) ||
+             (top.second >= found->second.size()) )
+        {
+            path.pop_back();
+
+            continue;
+        }
+
+        const std::size_t index = found->second[top.second++];
+
+        out.push_back(index);
+        path.emplace_back(rows[index].id, 0);
+    }
+
+    return out;
+}
 
 }  // namespace bitwisedom
 

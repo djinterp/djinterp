@@ -5,7 +5,7 @@
 # every level, and the window driven headless.
 #
 #     model_c++NN        the model's suite, built at C++17, 20 and 23 -- each
-#                        level this compiler can select; 30 sections
+#                        level this compiler can select; 32 sections
 #     header_*           each example's header and self-test, written by
 #                        bitwisedom-gen and compiled at every C and C++ level
 #                        the compiler can select: the self-test does not
@@ -30,13 +30,15 @@
 #                        wandering mouse; then menus, renames, resizes and
 #                        code in and out, as a user would; a sheet of a
 #                        thousand rows, its groups opened and closed one by
-#                        one and all at once; with every ID clash and every
-#                        ImGui error recorded; 23 sections
+#                        one and all at once; a new sheet, children added
+#                        in the tree, square cells, the menu bar and Help,
+#                        and readable text; with every ID clash and every
+#                        ImGui error recorded; 28 sections
 #
 # path:      /tests/djinterp/tools/bitwisedom/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.11
+#                                                            revised: 2026.10.18
 #*******************************************************************************
 
 #-------------------------------------------------------------------------------
@@ -55,6 +57,7 @@ foreach(_level 17 20 23)
     endif()
 
     add_executable(bitwisedom_model_tests_${_level} model_tests.cpp)
+    bitwisedom_output(bitwisedom_model_tests_${_level})
     target_link_libraries(bitwisedom_model_tests_${_level} PRIVATE ${_core})
     bitwisedom_apply_compiler_defaults(bitwisedom_model_tests_${_level}
                                       OWN CXX_STANDARD ${_level})
@@ -62,7 +65,7 @@ foreach(_level 17 20 23)
     add_test(NAME model_c++${_level}
              COMMAND bitwisedom_model_tests_${_level})
     set_tests_properties(model_c++${_level} PROPERTIES
-        PASS_REGULAR_EXPRESSION "passed: 31   failed: 0")
+        PASS_REGULAR_EXPRESSION "passed: 36   failed: 0")
 endforeach()
 
 
@@ -321,6 +324,7 @@ if(TARGET bitwisedom)
         "${_imgui}/imgui_demo.cpp"
         "${_imgui}/misc/cpp/imgui_stdlib.cpp"
         "${_imgui}/backends/imgui_impl_null.cpp")
+    bitwisedom_output(bitwisedom_ui_smoke)
     target_include_directories(bitwisedom_ui_smoke PRIVATE
         "${BITWISEDOM_SOURCE_DIR}")
     target_include_directories(bitwisedom_ui_smoke SYSTEM PRIVATE
@@ -328,11 +332,14 @@ if(TARGET bitwisedom)
     target_compile_definitions(bitwisedom_ui_smoke PRIVATE
         IMGUI_DEBUG_HIGHLIGHT_ALL_ID_CONFLICTS)
     target_link_libraries(bitwisedom_ui_smoke PRIVATE bitwisedom::core)
+    if(WIN32)
+        target_link_libraries(bitwisedom_ui_smoke PRIVATE comdlg32)
+    endif()
     bitwisedom_apply_dependency_defaults(bitwisedom_ui_smoke)
 
     add_test(NAME ui_smoke
              COMMAND bitwisedom_ui_smoke
              WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     set_tests_properties(ui_smoke PROPERTIES
-        PASS_REGULAR_EXPRESSION "passed: 23   failed: 0")
+        PASS_REGULAR_EXPRESSION "passed: 44   failed: 0")
 endif()

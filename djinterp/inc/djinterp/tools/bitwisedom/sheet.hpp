@@ -38,7 +38,7 @@
 * path:      /inc/djinterp/tools/bitwisedom/sheet.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 
 /*
@@ -60,6 +60,8 @@ TABLE OF CONTENTS
     ---------
     1.  sheet
     2.  Tree operations
+    3.  What the grid shows
+    4.  Special rows
 */
 
 #ifndef BITWISEDOM_SHEET_HPP
@@ -198,6 +200,27 @@ enum class grid_fill : int
 };
 
 // 1.1.11
+// value_form
+//   enum: how the symbols column writes a row's value when it lists rows
+// by value: as the header writes it, in the row's own radix; or every row
+// alike -- in hex, decimal or binary, as the run from its lowest set bit
+// shifted there, or as the bits it sets.
+enum class value_form : int
+{
+    written = 0,
+    hex,
+    dec,
+    bin,
+    shift,
+    bits
+};
+
+// 1.1.12
+// VALUE_FORM_COUNT
+//   constant: how many value forms there are.
+const int VALUE_FORM_COUNT = 6;
+
+// 1.1.13
 // colour_mode
 //   enum: where a set bit's colour comes from.
 enum class colour_mode : int
@@ -208,7 +231,7 @@ enum class colour_mode : int
     accent
 };
 
-// 1.1.12
+// 1.1.14
 // data_model
 //   enum: the widths C leaves to the target, as the evaluator of macros
 // takes them. lp64 is Linux's and macOS's 64-bit model (a 64-bit long),
@@ -220,10 +243,63 @@ enum class data_model : int
     ilp32
 };
 
-// 1.1.13
+// 1.1.15
 // DATA_MODEL_COUNT
 //   constant: how many data models there are.
 const int DATA_MODEL_COUNT = 3;
+
+// 1.1.16
+// sort_key
+//   enum: the order the grid and the tree show each group's rows in: the
+// sheet's own, or sorted -- by symbol name, the macro the header defines;
+// by name, the row's own; by short name; by value; by lowest bit; by width
+// in bits; by kind; or by note. Groups come first among their siblings,
+// sorted by name where the key is a name, in the sheet's order where it is
+// not. The sheet's order is what its header follows, sorted or not.
+enum class sort_key : int
+{
+    sheet = 0,
+    symbol,
+    name,
+    short_name,
+    value,
+    lowest,
+    width,
+    kind,
+    note
+};
+
+// 1.1.17
+// SORT_KEY_COUNT
+//   constant: how many sort keys there are.
+const int SORT_KEY_COUNT = 9;
+
+// 1.1.18
+// special_kind
+//   enum: a row of the grid's own, not the sheet's: the probe, a scratch
+// value; or the usage -- how many symbols allocate each bit.
+enum class special_kind : int
+{
+    probe = 0,
+    usage
+};
+
+// 1.1.19
+// SPECIAL_KIND_COUNT
+//   constant: how many kinds of special row there are.
+const int SPECIAL_KIND_COUNT = 2;
+
+// 1.1.20
+// special_place
+//   enum: where a special row is shown: pinned below every row -- at the
+// grid's foot while the rows leave room -- or above every row; or among the
+// rows, in the tree, where a usage row counts only its group's rows.
+enum class special_place : int
+{
+    bottom = 0,
+    top,
+    tree
+};
 
 // 1.2    Colours
 //------------------------------------------------------------------------------
@@ -357,8 +433,49 @@ struct column_segment
 };
 
 // 3.1.3
+// display_rule
+//   struct: how a region of the grid shows its cells, against the sheet's
+// own settings: its digits, a range's name across its cells, and its
+// colour. The region is rows -- those named, by id, and every row within
+// them; none for every row -- by bits, from lsb to msb; an msb below the
+// lsb for every bit. Each of the three is -1 as the sheet says, 0 not
+// shown -- the colour, its bits drawn plain -- or 1 shown. Rules apply in
+// order; a later one over a cell wins. A rule that names rows no longer in
+// the sheet covers nothing -- never every row.
+struct display_rule
+{
+    std::vector<int> rows;
+    int              lsb    = 0;
+    int              msb    = -1;
+    int              digits = -1;
+    int              names  = -1;
+    int              colour = -1;
+};
+
+// 3.1.4
+// special_row
+//   struct: one of the grid's special rows, and where it is shown. Among
+// the rows, it comes just before the row `before`; with none -- or that row
+// gone -- at the end of the rows of `parent`, a group or range, or of the
+// sheet's, 0. Rows of a kind are as many as the sheet places, every one
+// showing the same thing: the sheet's one probe, or its usage -- a usage
+// row in a group counting the group's rows, a subtotal. The grid's
+// show_probe and show_usage show or hide every row of their kind at once.
+// `id` is the row's own among the specials, from 1.
+struct special_row
+{
+    int           id     = 0;
+    special_kind  kind   = special_kind::probe;
+    special_place place  = special_place::bottom;
+    int           parent = 0;
+    int           before = 0;
+};
+
+// 3.1.5
 // grid_settings
-//   struct: how the grid is drawn: its lines, cells, columns and labels.
+//   struct: how the grid is drawn: its lines, cells, columns and labels,
+// the order its rows are shown in, the regions that show their cells
+// otherwise, and where its special rows are.
 struct grid_settings
 {
     bool            lines = true;     // every grid line at once
@@ -380,15 +497,30 @@ struct grid_settings
     int             auto_segments = 8;      // 0, 4, 8 or 16 bits
     bool            show_indices  = true;
     bool            show_digits   = false;
-    bool            show_probe    = true;
-    bool            show_usage    = true;
+    bool            show_probe    = false;  // every probe row
+    bool            show_usage    = false;  // every usage row
+    bool            lines_past_rows = false;  // lines down the room below
     bool            show_labels   = true;   // a range's name across its cells
+    bool            show_colours  = true;   // its rows' colours in its cells
+    bool            show_names    = true;
+    bool            show_values   = false;  // opt in to the value column
+    bool            show_bits     = true;
+    bool            values_first  = false;  // swap the two text columns
     bool            show_cell_boxes = false;  // draw each cell as its own box
+    bool            square_cells  = true;   // rows follow the cells' width
+    float           cell_ratio    = 0.8f;   // ... as this share of it
     bool            full_names    = false;  // macro names, not local ones
+    bool            names_by_value = false;  // the symbols column: values
+    value_form      names_value_form = value_form::written;  // ... as
     bool            abbreviate_unused = false;
     int             unused_run    = 4;
     collapsed_style collapsed     = collapsed_style::hex;
     grid_fill       fill          = grid_fill::cells;
+    sort_key        sort_by       = sort_key::sheet;
+    bool            sort_descending = false;
+    std::vector<display_rule> rules;
+    std::vector<special_row>  specials;   // settle_specials keeps one of
+                                          // each kind at least
 };
 
 // 3.2    Colours, themes and schemes
@@ -559,6 +691,16 @@ struct gen_settings
 
 // 4.1    sheet
 //------------------------------------------------------------------------------
+// definition_source
+//   An imported preprocessor file. Text is embedded in the JSON document,
+//   so the sheet remains reproducible if the original file moves.
+struct definition_source
+{
+    std::string path;
+    std::string text;
+    bool        show_other = false;
+};
+
 // 4.1.1
 // sheet
 //   struct: the document.
@@ -580,6 +722,7 @@ struct sheet
     grid_settings   grid;
     colour_settings colours;
     gen_settings    gen;
+    std::vector<definition_source> definitions; // imported preprocessor files
     std::string     environment;   // #defines its macros are evaluated in,
                                    // which the header does not write
     int             next_id = 1;
@@ -587,10 +730,11 @@ struct sheet
 
 // 4.2    Tree operations
 //------------------------------------------------------------------------------
-// construction -- a sheet with its root group, default lines and templates
+// construction -- a sheet with its root group, default lines and templates;
+// and File > New's document: that sheet holding an editable full-width
+// range named root, with no fill, and in it one bit, FLAG, at bit 0
 D_NODISCARD sheet  make_sheet(const std::string& _title,
                               int                _width);
-// New blank document, with an editable full-width root range.
 D_NODISCARD sheet  make_document(const std::string& _title,
                                  int                _width);
 void               reset_view(sheet& _sheet);
@@ -699,6 +843,193 @@ D_NODISCARD int  next_free_bit(const sheet& _sheet,
 // macros -- whether a macro row takes arguments: it has parameters, or is
 // marked callable
 D_NODISCARD bool function_like(const row& _row);
+
+
+// 4.3    What the grid shows
+//------------------------------------------------------------------------------
+// 4.3.1
+// shown_part
+//   enum: a part of what a cell shows, which a display rule sets: its
+// digit; the name of a range, or a value's number, written across it; and
+// its row's colour.
+enum class shown_part : int
+{
+    digits = 0,
+    names,
+    colour
+};
+
+// 4.3.2
+// SHOWN_PART_COUNT
+//   constant: how many parts a display rule sets.
+const int SHOWN_PART_COUNT = 3;
+
+// 4.3.3
+// cell_shows
+//   struct: what one cell of the grid shows.
+struct cell_shows
+{
+    bool digits = false;
+    bool names  = true;
+    bool colour = true;
+};
+
+// parts -- a rule's setting of one part, and the grid's own: -1 as the
+// sheet says, 0 hidden, 1 shown; and what a cell_shows says of it
+D_NODISCARD int   rule_part(const display_rule& _rule,
+                            shown_part          _part);
+int&              rule_part(display_rule& _rule,
+                            shown_part    _part);
+D_NODISCARD bool  grid_shows(const grid_settings& _grid,
+                             shown_part           _part);
+bool&             grid_shows(grid_settings& _grid,
+                             shown_part     _part);
+D_NODISCARD bool  shows(const cell_shows& _cell,
+                        shown_part        _part);
+
+// lineage
+//   a row's id, then those of the groups and ranges it is in, innermost
+// first -- the root's excluded: what a rule over rows is matched against,
+// so one over a group covers every row in it.
+D_NODISCARD std::vector<int>  lineage(const sheet& _sheet,
+                                      int          _id);
+
+/**
+ * @brief The rules over any of a row's cells, in order: for shown_at, which
+ *        a row's cells are each asked of.
+ *
+ * @param[in] _grid     the grid's settings.
+ * @param[in] _lineage  the row's lineage.
+ * @return the rules, pointing into _grid.
+ */
+D_NODISCARD std::vector<const display_rule*>  rules_over(
+    const grid_settings&    _grid,
+    const std::vector<int>& _lineage);
+
+/**
+ * @brief What a cell of a row shows -- one bit's, or a column's of several:
+ *        the grid's own settings, as the rules over the row change them
+ *        where they cover any of the cell's bits; the last to set a part
+ *        wins.
+ *
+ * @param[in] _grid  the grid's settings.
+ * @param[in] _over  the rules over the row, from rules_over.
+ * @param[in] _lsb   the cell's lowest bit.
+ * @param[in] _msb   its highest.
+ * @return what it shows.
+ */
+D_NODISCARD cell_shows  shown_at(const grid_settings&                    _grid,
+                                 const std::vector<const display_rule*>& _over,
+                                 int                                     _lsb,
+                                 int                                     _msb);
+
+/**
+ * @brief Sets whether a region of the grid shows a part: the last rule, if
+ *        it is over just that region, takes it, else a new rule does --
+ *        so it wins over every rule before it -- and the part is taken from
+ *        any earlier rule over just that region. Rules left setting nothing
+ *        are dropped.
+ *
+ * @param[in,out] _grid   the grid's settings.
+ * @param[in]     _rows   the region's rows, by id; none for every row.
+ * @param[in]     _lsb    its lowest bit.
+ * @param[in]     _msb    its highest; below _lsb for every bit.
+ * @param[in]     _part   what is set.
+ * @param[in]     _value  -1 as the rest of the grid shows it -- no rule over
+ *                        just the region sets it; 0 hidden; 1 shown.
+ * @param[in]     _only   shown there and nowhere else: the grid's own
+ *                        setting and every other rule's taken back first,
+ *                        and _value taken as 1.
+ */
+void  set_shown(grid_settings&          _grid,
+                const std::vector<int>& _rows,
+                int                     _lsb,
+                int                     _msb,
+                shown_part              _part,
+                int                     _value,
+                bool                    _only);
+
+/**
+ * @brief Drops from the grid's rules the rows a sheet no longer has, and a
+ *        rule left with none -- which would otherwise cover every row.
+ *
+ * @param[in,out] _sheet  the sheet.
+ * @return how many rules were changed or dropped.
+ */
+int   prune_rules(sheet& _sheet);
+
+// 4.4    Special rows
+//------------------------------------------------------------------------------
+// 4.4.1
+// special_name
+//   the name a kind of special row is listed by: "probe", "usage".
+D_NODISCARD const char*  special_name(special_kind _kind);
+D_NODISCARD const char*  place_name(special_place _place);
+
+/**
+ * @brief Keeps the grid's special rows whole: one of each kind at least --
+ *        a kind with none gets one, pinned at the bottom, probe first --
+ *        every one with an id of its own, and every one among the rows
+ *        anchored only to rows the sheet has: a row gone is let go of, its
+ *        parent then, and the sheet's own rows last.
+ *
+ * @param[in,out] _sheet  the sheet.
+ * @return whether anything was changed.
+ */
+bool  settle_specials(sheet& _sheet);
+
+// lookup -- by id; nullptr when no special row has it
+D_NODISCARD special_row*        find_special(grid_settings& _grid,
+                                             int            _id);
+D_NODISCARD const special_row*  find_special(const grid_settings& _grid,
+                                             int                  _id);
+
+/**
+ * @brief Adds a special row of a kind's, just after another, or at the
+ *        bottom: a copy of where the other is.
+ *
+ * @param[in,out] _grid  the grid's settings.
+ * @param[in]     _kind  its kind.
+ * @param[in]     _like  the special row it is placed as, and after; 0 for
+ *                       pinned at the bottom, last.
+ * @return its id.
+ */
+int   add_special(grid_settings& _grid,
+                  special_kind   _kind,
+                  int            _like);
+
+/**
+ * @brief Removes a special row. The last of its kind stays, hidden with its
+ *        kind -- it keeps where it was for when its kind is shown again.
+ *
+ * @param[in,out] _grid  the grid's settings.
+ * @param[in]     _id    the special row.
+ * @return whether it went, or its kind was hidden.
+ */
+bool  remove_special(grid_settings& _grid,
+                     int            _id);
+
+/**
+ * @brief Moves a special row: pinned at the top or the bottom, or among the
+ *        rows; and in the specials' order, just before another -- which
+ *        orders rows pinned alike, or anchored alike -- or last.
+ *
+ * @param[in,out] _grid    the grid's settings.
+ * @param[in]     _id      the special row.
+ * @param[in]     _place   where it goes.
+ * @param[in]     _parent  among the rows: the group or range it is in.
+ * @param[in]     _before  among the rows: the row it comes before; 0, its
+ *                         parent's end.
+ * @param[in]     _ahead   the special row it is put before in their order;
+ *                         0 for last.
+ * @return whether it moved.
+ */
+bool  place_special(grid_settings& _grid,
+                    int            _id,
+                    special_place  _place,
+                    int            _parent,
+                    int            _before,
+                    int            _ahead);
 
 
 }  // namespace bitwisedom

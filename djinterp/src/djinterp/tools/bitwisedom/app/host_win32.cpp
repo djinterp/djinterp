@@ -6,14 +6,20 @@
 * example_win32_directx11, the reference for this backend pair, with the
 * app's frame in the middle of the loop. The window is DPI-aware and the
 * interface is scaled to the monitor it opens on.
-*   The window keeps the user's settings file, at preferences_path(): the
-* tables' column widths and the panels' sizes last from one run to the
-* next. A file dropped on the window is opened as File > Open opens one.
+*   The window keeps the user's settings file, at preferences_path() -- the
+* layout of its windows, the tables' column widths and the user's own
+* preferences last from one run to the next -- and its session, at
+* session_path(): its workspaces and every sheet in them, unsaved changes
+* too, so it opens where it was left. A file dropped on the window is
+* opened as File > Open opens one.
+*   --warp on the command line draws with Microsoft's software rasterizer,
+* WARP, whatever the GPU, and says so in the title: what looks wrong on the
+* GPU and right with WARP is the GPU's driver, not the drawing.
 *
 * path:      /src/djinterp/tools/bitwisedom/app/host_win32.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.09
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 // windows
 #ifndef NOMINMAX
@@ -24,6 +30,7 @@
 #include <d3d11.h>     // the device, context and swap chain
 // std
 #include <cstddef>  // std::size_t
+#include <cstring>  // std::strstr
 #include <string>   // std::string, std::wstring
 #include <vector>   // std::vector
 // imgui
@@ -32,7 +39,7 @@
 #include <imgui_impl_win32.h>   // the Win32 platform backend
 // bitwisedom
 #include "./app.hpp"    // app
-#include "./theme.hpp"  // ui_scale
+#include "./theme.hpp"  // dpi_scale
 
 
 // the backend's message handler, which its header declares commented out
@@ -99,7 +106,8 @@ release_target()
 
 bool
 create_device(
-    HWND _window
+    HWND _window,
+    bool _warp
 )
 {
     DXGI_SWAP_CHAIN_DESC description = {};
@@ -122,7 +130,9 @@ create_device(
     device&                 d        = the_device();
 
     HRESULT result = D3D11CreateDeviceAndSwapChain(nullptr,
-                                                   D3D_DRIVER_TYPE_HARDWARE,
+                                                   _warp
+                                                       ? D3D_DRIVER_TYPE_WARP
+                                                       : D3D_DRIVER_TYPE_HARDWARE,
                                                    nullptr,
                                                    0,
                                                    levels,
@@ -302,10 +312,15 @@ int WINAPI
 WinMain(
     HINSTANCE _instance,
     HINSTANCE /*_previous*/,
-    LPSTR     /*_command*/,
+    LPSTR     _command,
     int       /*_show*/
 )
 {
+    // --warp: Microsoft's software rasterizer, whatever the GPU -- to tell
+    // a fault of the GPU's driver from one of the drawing
+    const bool warp = ( (_command != nullptr) &&
+                        (std::strstr(_command, "--warp") != nullptr) );
+
     ImGui_ImplWin32_EnableDpiAwareness();
 
     const POINT   origin = { 0, 0 };
@@ -327,7 +342,8 @@ WinMain(
     ::RegisterClassExW(&type);
 
     HWND window = ::CreateWindowW(type.lpszClassName,
-                                  L"bitwis(e)dom",
+                                  warp ? L"bitwis(e)dom -- software rendering"
+                                       : L"bitwis(e)dom",
                                   WS_OVERLAPPEDWINDOW,
                                   100,
                                   80,
@@ -338,7 +354,7 @@ WinMain(
                                   type.hInstance,
                                   nullptr);
 
-    if (!create_device(window))
+    if (!create_device(window, warp))
     {
         destroy_device();
         ::UnregisterClassW(type.lpszClassName, type.hInstance);
@@ -350,7 +366,7 @@ WinMain(
     ::ShowWindow(window, SW_SHOWDEFAULT);
     ::UpdateWindow(window);
 
-    bitwisedom::gui::ui_scale() = scale;
+    bitwisedom::gui::dpi_scale() = scale;
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -364,8 +380,9 @@ WinMain(
     bitwisedom::gui::app::load_fonts(16.0f * scale);
 
     {
-        bitwisedom::gui::app bitwisedom(bitwisedom::gui::preferences_path());
-        bool                running = true;
+        bitwisedom::gui::app bitwisedom(bitwisedom::gui::preferences_path(),
+                                        bitwisedom::gui::session_path());
+        bool                 running = true;
 
         while (running)
         {

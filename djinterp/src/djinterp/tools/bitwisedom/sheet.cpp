@@ -10,14 +10,14 @@
 * path:      /src/djinterp/tools/bitwisedom/sheet.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 #include <djinterp/tools/bitwisedom/sheet.hpp>  // corresponding header
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
-#include <algorithm>  // std::clamp, std::max
+#include <algorithm>  // std::clamp, std::find, std::max, std::sort
 #include <cmath>      // std::floor, std::fmod
 #include <cstddef>    // std::size_t
 #include <utility>    // std::move
@@ -791,6 +791,9 @@ reset_view(
     _sheet.grid    = grid;
     _sheet.colours = colour_settings();
 
+    // the probe and the usage, hidden, pinned at the bottom
+    (void)settle_specials(_sheet);
+
     return;
 }
 
@@ -854,20 +857,40 @@ make_sheet(
 }
 
 
-// A new document starts with one full-width, nestable range.  make_sheet
-// intentionally remains empty for importers, examples and existing callers.
+/*
+make_document
+  A new document starts with one full-width, nestable range, with no fill
+-- it spans every bit, and a fill across all of them would say nothing --
+holding one bit, bit 0, the 0x...01 a sheet's first flag usually is.
+make_sheet stays empty, for the importers, the examples and the other
+callers that fill a sheet themselves.
+*/
 sheet
-make_document(const std::string& _title, int _width)
+make_document(
+    const std::string& _title,
+    int                _width
+)
 {
     sheet made = make_sheet(_title, _width);
-    row root;
-    root.kind = row_kind::symbol;
-    root.def = def_kind::range;
-    root.name = "root";
-    root.lsb = 0;
-    root.width = made.width;
+    row   root;
+    row   first;
+
+    root.kind          = row_kind::symbol;
+    root.def           = def_kind::range;
+    root.name          = "root";
+    root.lsb           = 0;
+    root.width         = made.width;
     root.name_children = false;
+    root.transparent   = true;
+
+    first.kind = row_kind::symbol;
+    first.def  = def_kind::bit;
+    first.name = "FLAG";
+    first.bit  = 0;
+    root.children.push_back(first);
+
     (void)insert_row(made, made.root.id, -1, root);
+
     return made;
 }
 
@@ -1246,6 +1269,679 @@ host_data_model()
     {
         return data_model::ilp32;
     }
+}
+
+
+// -------------------------------------------------------- what the grid shows
+
+int
+rule_part(
+    const display_rule& _rule,
+    shown_part          _part
+)
+{
+    switch (_part)
+    {
+        case shown_part::digits: return _rule.digits;
+        case shown_part::names:  return _rule.names;
+        case shown_part::colour: return _rule.colour;
+    }
+
+    return -1;
+}
+
+int&
+rule_part(
+    display_rule& _rule,
+    shown_part    _part
+)
+{
+    switch (_part)
+    {
+        case shown_part::digits: return _rule.digits;
+        case shown_part::names:  return _rule.names;
+        case shown_part::colour: break;
+    }
+
+    return _rule.colour;
+}
+
+bool
+grid_shows(
+    const grid_settings& _grid,
+    shown_part           _part
+)
+{
+    switch (_part)
+    {
+        case shown_part::digits: return _grid.show_digits;
+        case shown_part::names:  return _grid.show_labels;
+        case shown_part::colour: return _grid.show_colours;
+    }
+
+    return true;
+}
+
+bool&
+grid_shows(
+    grid_settings& _grid,
+    shown_part     _part
+)
+{
+    switch (_part)
+    {
+        case shown_part::digits: return _grid.show_digits;
+        case shown_part::names:  return _grid.show_labels;
+        case shown_part::colour: break;
+    }
+
+    return _grid.show_colours;
+}
+
+bool
+shows(
+    const cell_shows& _cell,
+    shown_part        _part
+)
+{
+    switch (_part)
+    {
+        case shown_part::digits: return _cell.digits;
+        case shown_part::names:  return _cell.names;
+        case shown_part::colour: return _cell.colour;
+    }
+
+    return true;
+}
+
+std::vector<int>
+lineage(
+    const sheet& _sheet,
+    int          _id
+)
+{
+    std::vector<int> out;
+    const row*       at = find_row(_sheet, _id);
+
+    while ( (at != nullptr) &&
+            (at->id != _sheet.root.id) )
+    {
+        out.push_back(at->id);
+        at = parent_of(const_cast<sheet&>(_sheet), at->id);
+    }
+
+    return out;
+}
+
+namespace
+{
+
+// covers_row
+//   whether a rule's rows hold a row: every row, for a rule that names
+// none; else the row, or a group or range it is in.
+bool
+covers_row(
+    const display_rule&     _rule,
+    const std::vector<int>& _lineage
+)
+{
+    if (_rule.rows.empty())
+    {
+        return true;
+    }
+
+    for (int each : _lineage)
+    {
+        if (std::find(_rule.rows.begin(), _rule.rows.end(), each) !=
+            _rule.rows.end())
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// sets_nothing
+//   whether a rule leaves every part as the sheet says.
+bool
+sets_nothing(
+    const display_rule& _rule
+)
+{
+    return ( (_rule.digits < 0) &&
+             (_rule.names < 0)  &&
+             (_rule.colour < 0) );
+}
+
+// same_region
+//   whether a rule is over just these rows and bits: the rows sorted, and
+// every bit however it is written.
+bool
+same_region(
+    const display_rule&     _rule,
+    const std::vector<int>& _rows,
+    int                     _lsb,
+    int                     _msb
+)
+{
+    std::vector<int> held = _rule.rows;
+
+    std::sort(held.begin(), held.end());
+
+    const bool every_a = (_rule.msb < _rule.lsb);
+    const bool every_b = (_msb < _lsb);
+
+    if (every_a != every_b)
+    {
+        return false;
+    }
+
+    return ( (held == _rows) &&
+             ( (every_a) ||
+               ( (_rule.lsb == _lsb) &&
+                 (_rule.msb == _msb) ) ) );
+}
+
+}  // anonymous namespace
+
+
+std::vector<const display_rule*>
+rules_over(
+    const grid_settings&    _grid,
+    const std::vector<int>& _lineage
+)
+{
+    std::vector<const display_rule*> out;
+
+    for (const display_rule& each : _grid.rules)
+    {
+        if (covers_row(each, _lineage))
+        {
+            out.push_back(&each);
+        }
+    }
+
+    return out;
+}
+
+cell_shows
+shown_at(
+    const grid_settings&                    _grid,
+    const std::vector<const display_rule*>& _over,
+    int                                     _lsb,
+    int                                     _msb
+)
+{
+    cell_shows out;
+
+    out.digits = _grid.show_digits;
+    out.names  = _grid.show_labels;
+    out.colour = _grid.show_colours;
+
+    for (const display_rule* each : _over)
+    {
+        // a rule over every bit, or over any of the cell's
+        if ( (each->msb >= each->lsb) &&
+             ( (each->msb < _lsb) ||
+               (each->lsb > _msb) ) )
+        {
+            continue;
+        }
+
+        if (each->digits >= 0)
+        {
+            out.digits = (each->digits != 0);
+        }
+
+        if (each->names >= 0)
+        {
+            out.names = (each->names != 0);
+        }
+
+        if (each->colour >= 0)
+        {
+            out.colour = (each->colour != 0);
+        }
+    }
+
+    return out;
+}
+
+void
+set_shown(
+    grid_settings&          _grid,
+    const std::vector<int>& _rows,
+    int                     _lsb,
+    int                     _msb,
+    shown_part              _part,
+    int                     _value,
+    bool                    _only
+)
+{
+    std::vector<int> rows = _rows;
+
+    std::sort(rows.begin(), rows.end());
+    rows.erase(std::unique(rows.begin(), rows.end()), rows.end());
+
+    // every bit is written one way
+    const bool every = (_msb < _lsb);
+    const int  lsb   = every ? 0 : _lsb;
+    const int  msb   = every ? -1 : _msb;
+    int        value = std::clamp(_value, -1, 1);
+
+    // only there: nowhere else first
+    if (_only)
+    {
+        grid_shows(_grid, _part) = false;
+
+        for (display_rule& each : _grid.rules)
+        {
+            rule_part(each, _part) = -1;
+        }
+
+        value = 1;
+    }
+
+    // the part taken from every rule over just the region: the last one
+    // keeps it, if it is the last rule there is
+    for (std::size_t i = 0; i < _grid.rules.size(); ++i)
+    {
+        display_rule& each = _grid.rules[i];
+        const bool    last = (i + 1 == _grid.rules.size());
+
+        if (!same_region(each, rows, lsb, msb))
+        {
+            continue;
+        }
+
+        rule_part(each, _part) = (last) ? value : -1;
+
+        if (last)
+        {
+            value = -2;   // given
+        }
+    }
+
+    if (value >= 0)
+    {
+        display_rule made;
+
+        made.rows                = rows;
+        made.lsb                 = lsb;
+        made.msb                 = msb;
+        rule_part(made, _part)   = value;
+        _grid.rules.push_back(std::move(made));
+    }
+
+    _grid.rules.erase(std::remove_if(_grid.rules.begin(),
+                                     _grid.rules.end(),
+                                     sets_nothing),
+                      _grid.rules.end());
+
+    return;
+}
+
+int
+prune_rules(
+    sheet& _sheet
+)
+{
+    std::vector<display_rule>& rules   = _sheet.grid.rules;
+    std::vector<display_rule>  kept;
+    int                        changed = 0;
+
+    kept.reserve(rules.size());
+
+    for (display_rule& each : rules)
+    {
+        // a rule over every row names none, and keeps naming none
+        if (each.rows.empty())
+        {
+            kept.push_back(std::move(each));
+
+            continue;
+        }
+
+        const std::size_t had = each.rows.size();
+
+        each.rows.erase(std::remove_if(each.rows.begin(),
+                                       each.rows.end(),
+                                       [&_sheet](int _id)
+                                       {
+                                           return ( (_id == _sheet.root.id) ||
+                                                    (find_row(_sheet, _id) ==
+                                                     nullptr) );
+                                       }),
+                        each.rows.end());
+
+        if (each.rows.size() != had)
+        {
+            ++changed;
+        }
+
+        // one whose rows have all gone covers nothing: it goes too, or it
+        // would cover every row
+        if (!each.rows.empty())
+        {
+            kept.push_back(std::move(each));
+        }
+    }
+
+    rules = std::move(kept);
+
+    return changed;
+}
+
+
+//==============================================================================
+// 4.4  SPECIAL ROWS
+//==============================================================================
+
+const char*
+special_name(
+    special_kind _kind
+)
+{
+    return (_kind == special_kind::usage) ? "usage" : "probe";
+}
+
+const char*
+place_name(
+    special_place _place
+)
+{
+    switch (_place)
+    {
+        case special_place::top:
+            return "top";
+
+        case special_place::tree:
+            return "tree";
+
+        case special_place::bottom:
+            break;
+    }
+
+    return "bottom";
+}
+
+/*
+settle_specials
+  One of each kind at least, ids of their own, and anchors only to rows the
+sheet has. A row of the tree that is gone is let go of: the row it came
+before, for the end of its parent; its parent, for the sheet's own rows.
+*/
+bool
+settle_specials(
+    sheet& _sheet
+)
+{
+    std::vector<special_row>& specials = _sheet.grid.specials;
+    bool                      changed  = false;
+
+    // a kind with none: one, at the bottom, the probe above the usage
+    for (int kind = 0; kind < SPECIAL_KIND_COUNT; ++kind)
+    {
+        const special_kind each  = static_cast<special_kind>(kind);
+        bool               found = false;
+
+        for (const special_row& one : specials)
+        {
+            found = ( (found) || (one.kind == each) );
+        }
+
+        if (!found)
+        {
+            special_row made;
+
+            made.kind = each;
+            specials.push_back(made);
+            changed = true;
+        }
+    }
+
+    // ids: every one its own, from 1
+    int most = 0;
+
+    for (const special_row& one : specials)
+    {
+        most = std::max(most, one.id);
+    }
+
+    for (std::size_t i = 0; i < specials.size(); ++i)
+    {
+        bool taken = (specials[i].id <= 0);
+
+        for (std::size_t j = 0; ( (!taken) && (j < i) ); ++j)
+        {
+            taken = (specials[j].id == specials[i].id);
+        }
+
+        if (taken)
+        {
+            specials[i].id = ++most;
+            changed        = true;
+        }
+    }
+
+    // the anchors: only rows the sheet has, and only a group or range to be
+    // in
+    for (special_row& one : specials)
+    {
+        if ( (one.before != 0) &&
+             (find_row(_sheet, one.before) == nullptr) )
+        {
+            one.before = 0;
+            changed    = true;
+        }
+
+        if (one.parent != 0)
+        {
+            const row* holder = find_row(_sheet, one.parent);
+
+            if ( (holder == nullptr) ||
+                 (!can_contain(*holder)) )
+            {
+                one.parent = 0;
+                changed    = true;
+            }
+        }
+    }
+
+    return changed;
+}
+
+special_row*
+find_special(
+    grid_settings& _grid,
+    int            _id
+)
+{
+    for (special_row& each : _grid.specials)
+    {
+        if (each.id == _id)
+        {
+            return &each;
+        }
+    }
+
+    return nullptr;
+}
+
+const special_row*
+find_special(
+    const grid_settings& _grid,
+    int                  _id
+)
+{
+    for (const special_row& each : _grid.specials)
+    {
+        if (each.id == _id)
+        {
+            return &each;
+        }
+    }
+
+    return nullptr;
+}
+
+/*
+add_special
+  A copy of where another is, just after it; or pinned at the bottom, last.
+Its id is one past the highest.
+*/
+int
+add_special(
+    grid_settings& _grid,
+    special_kind   _kind,
+    int            _like
+)
+{
+    special_row made;
+    int         most = 0;
+
+    for (const special_row& each : _grid.specials)
+    {
+        most = std::max(most, each.id);
+    }
+
+    made.id   = most + 1;
+    made.kind = _kind;
+
+    std::size_t at = _grid.specials.size();
+
+    for (std::size_t i = 0; i < _grid.specials.size(); ++i)
+    {
+        if (_grid.specials[i].id == _like)
+        {
+            made.place  = _grid.specials[i].place;
+            made.parent = _grid.specials[i].parent;
+            made.before = _grid.specials[i].before;
+            at          = i + 1;
+
+            break;
+        }
+    }
+
+    _grid.specials.insert(_grid.specials.begin() +
+                              static_cast<std::ptrdiff_t>(at),
+                          made);
+
+    return made.id;
+}
+
+/*
+remove_special
+  Gone -- unless it is the last of its kind, which stays where it was and is
+hidden with its kind.
+*/
+bool
+remove_special(
+    grid_settings& _grid,
+    int            _id
+)
+{
+    const special_row* found = find_special(_grid, _id);
+
+    if (found == nullptr)
+    {
+        return false;
+    }
+
+    const special_kind kind   = found->kind;
+    int                others = 0;
+
+    for (const special_row& each : _grid.specials)
+    {
+        others += ( (each.kind == kind) && (each.id != _id) ) ? 1 : 0;
+    }
+
+    if (others == 0)
+    {
+        bool& shown = (kind == special_kind::probe) ? _grid.show_probe
+                                                    : _grid.show_usage;
+        const bool was = shown;
+
+        shown = false;
+
+        return was;
+    }
+
+    _grid.specials.erase(
+        std::remove_if(_grid.specials.begin(),
+                       _grid.specials.end(),
+                       [_id](const special_row& _each)
+                       {
+                           return (_each.id == _id);
+                       }),
+        _grid.specials.end());
+
+    return true;
+}
+
+/*
+place_special
+  Where it is shown, and where it stands in the specials' order: just
+before another, or last. Pinned, it is anchored to no row.
+*/
+bool
+place_special(
+    grid_settings& _grid,
+    int            _id,
+    special_place  _place,
+    int            _parent,
+    int            _before,
+    int            _ahead
+)
+{
+    std::vector<special_row>& specials = _grid.specials;
+    std::size_t               at       = specials.size();
+
+    for (std::size_t i = 0; i < specials.size(); ++i)
+    {
+        if (specials[i].id == _id)
+        {
+            at = i;
+
+            break;
+        }
+    }
+
+    if (at == specials.size())
+    {
+        return false;
+    }
+
+    special_row moved = specials[at];
+    const special_row was = moved;
+
+    moved.place  = _place;
+    moved.parent = (_place == special_place::tree) ? _parent : 0;
+    moved.before = (_place == special_place::tree) ? _before : 0;
+
+    specials.erase(specials.begin() + static_cast<std::ptrdiff_t>(at));
+
+    std::size_t to = specials.size();
+
+    for (std::size_t i = 0; i < specials.size(); ++i)
+    {
+        if ( (_ahead != 0) &&
+             (specials[i].id == _ahead) )
+        {
+            to = i;
+
+            break;
+        }
+    }
+
+    specials.insert(specials.begin() + static_cast<std::ptrdiff_t>(to),
+                    moved);
+
+    return ( (to != at)                  ||
+             (was.place  != moved.place)  ||
+             (was.parent != moved.parent) ||
+             (was.before != moved.before) );
 }
 
 

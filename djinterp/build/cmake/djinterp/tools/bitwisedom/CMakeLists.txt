@@ -8,7 +8,9 @@
 # its C/C++ lexer, compiled as C (cmake/Djinterp.cmake), uxoxo builds itself
 # and is added as a subproject
 # (cmake/Uxoxo.cmake), and this project's own sources are held to the style
-# guide's whole baseline (cmake/CompilerSetup.cmake). Targets:
+# guide's whole baseline (cmake/CompilerSetup.cmake). Each configure marks
+# the sources that changed since the last one to compile again, whatever
+# their times say (cmake/Freshness.cmake). Targets:
 #
 #     bitwisedom::core   the model -- sheets, resolution, operations, the C/C++
 #                       generator, the C environment and importer, and the
@@ -24,7 +26,7 @@
 # path:      /build/cmake/djinterp/tools/bitwisedom/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.11
+#                                                            revised: 2026.10.19
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.21)
 
@@ -51,6 +53,18 @@ set(BITWISEDOM_TESTS_DIR
     "${BITWISEDOM_ROOT}/tests/djinterp/tools/bitwisedom")
 set(BITWISEDOM_EXAMPLES_DIR
     "${BITWISEDOM_ROOT}/res/djinterp/tools/bitwisedom/examples")
+
+# the sources that changed since this build tree last configured -- an
+# overlay unzipped over the trees keeps its archive's times, which can be
+# older than the last build's objects -- marked to compile again
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/Freshness.cmake")
+bitwisedom_freshen("${CMAKE_BINARY_DIR}/bitwisedom_sources.sha1"
+                   "${BITWISEDOM_SOURCE_DIR}"
+                   "${BITWISEDOM_ROOT}/inc/djinterp/tools/bitwisedom"
+                   "${BITWISEDOM_TESTS_DIR}"
+                   "${UXOXO_ROOT}/inc"
+                   "${UXOXO_ROOT}/src")
+
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CompilerSetup.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/Djinterp.cmake")
 
@@ -113,9 +127,11 @@ bitwisedom_apply_compiler_defaults(bitwisedom-gen OWN)
 set(BITWISEDOM_APP_SOURCES
     "${BITWISEDOM_SOURCE_DIR}/app/app.cpp"
     "${BITWISEDOM_SOURCE_DIR}/app/code.cpp"
+    "${BITWISEDOM_SOURCE_DIR}/app/controls.cpp"
     "${BITWISEDOM_SOURCE_DIR}/app/flow.cpp"
     "${BITWISEDOM_SOURCE_DIR}/app/grid.cpp"
     "${BITWISEDOM_SOURCE_DIR}/app/settings.cpp"
+    "${BITWISEDOM_SOURCE_DIR}/app/shell.cpp"
     "${BITWISEDOM_SOURCE_DIR}/app/theme.cpp"
     "${BITWISEDOM_SOURCE_DIR}/app/view.cpp"
     "${BITWISEDOM_SOURCE_DIR}/app/fonts/fonts.cpp")
@@ -144,7 +160,7 @@ if(BITWISEDOM_BUILD_APP)
             "${BITWISEDOM_SOURCE_DIR}/app/host_win32.cpp")
         # shell32: the files dropped on the window
         target_link_libraries(bitwisedom PRIVATE
-            uxoxo::imgui_win32_dx11 shell32)
+            uxoxo::imgui_win32_dx11 shell32 comdlg32)
     elseif(_host STREQUAL "glfw")
         if(NOT TARGET uxoxo::imgui_glfw_opengl3)
             message(FATAL_ERROR

@@ -2417,6 +2417,92 @@ generate_code(
 }
 
 
+std::string
+generate_simple_defines(const sheet& sheet, const resolution& res)
+{
+    std::string output;
+
+    auto literal = [&sheet](u64 value)
+    {
+        return format_literal(value, sheet.width, radix::hex,
+                              int_suffix::none, sheet, false);
+    };
+
+    for (const resolved_row& item : res.rows)
+    {
+        if (item.kind != row_kind::symbol || item.full.empty() ||
+            !item.error.empty())
+            continue;
+
+        const row* source = find_row(sheet, item.id);
+        if (source == nullptr || !source->emit)
+            continue;
+
+        std::string value;
+
+        if (source->def == def_kind::expression && !source->expr.empty())
+        {
+            const expression parsed = parse_expression(source->expr);
+            if (parsed.ok())
+            {
+                value = print_c(
+                    parsed,
+                    [&res, &item](const std::string& name)
+                    {
+                        std::string error;
+                        const int id = find_name(res, name,
+                                                 item.id, error);
+                        const resolved_row* ref = res.find(id);
+                        return ref != nullptr ? ref->full : name;
+                    },
+                    literal,
+                    [&res, &item](const std::string& name,
+                                  u64& number, std::string& error)
+                    {
+                        const int id = find_name(res, name,
+                                                 item.id, error);
+                        const resolved_row* ref = res.find(id);
+                        if (ref == nullptr || !ref->has_value) return false;
+                        number = ref->value;
+                        return true;
+                    });
+            }
+        }
+        else if (source->def == def_kind::macro)
+        {
+            value = source->body;
+        }
+        else if (item.has_value)
+        {
+            value = is_wide(sheet.width)
+                        ? "0x" + format_hex(item.bits, 0, true)
+                        : literal(item.value);
+        }
+
+        // The initial export deliberately keeps every macro on one line.
+        // Remove C line-splices before folding remaining whitespace.
+        for (const std::string& splice : { std::string("\\\r\n"),
+                                          std::string("\\\n") })
+        {
+            std::size_t pos = 0;
+            while ((pos = value.find(splice, pos)) != std::string::npos)
+                value.replace(pos, splice.size(), " ");
+        }
+        for (char& c : value)
+            if (c == '\n' || c == '\r' || c == '\t') c = ' ';
+
+        if (value.empty()) continue;
+
+        output += "#define " + item.full;
+        if (source->def == def_kind::macro && source->callable)
+            output += "(" + source->params + ")";
+        output += " " + value + "\n";
+    }
+
+    return output;
+}
+
+
 }  // namespace bitwisedom
 
 

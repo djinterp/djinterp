@@ -7,8 +7,10 @@
 # the djinterp::headers target Djinterp.cmake defines. A uxoxo without that
 # file predates the update this project needs -- the controls, the keys and
 # targets, and the build of its own -- and is refused by name; so is one
-# without the popup element and the renames in place of 2026.10.09, and one
-# without the window element and the tab bar's buttons of 2026.10.11.
+# without the popup element and the renames in place of 2026.10.09, one
+# without the window element and the tab bar's buttons of 2026.10.11, and
+# one whose Dear ImGui is not the docking branch, which the window's dock
+# spaces and dockable windows are made of (2026.10.18).
 #   uxoxo's headers are added again as SYSTEM headers for this project's
 # targets: they are a dependency's, and the style guide's whole baseline is
 # this project's to meet, not theirs. Under cl its library is given
@@ -18,7 +20,7 @@
 # path:      /build/cmake/djinterp/tools/bitwisedom/cmake/Uxoxo.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.11
+#                                                            revised: 2026.10.19
 #*******************************************************************************
 include_guard(GLOBAL)
 
@@ -53,6 +55,42 @@ if(NOT EXISTS "${UXOXO_ROOT}/inc/uxoxo/element_window.hpp")
         "uxoxo at ${UXOXO_ROOT} predates the panel's windows and the tab "
         "bar's buttons bitwisedom uses (element_window.hpp is missing). "
         "Extract the uxoxo of 2026.10.11 or later over UXOXO_ROOT.")
+endif()
+
+# the docking branch of Dear ImGui: its imgui.h says so
+set(_bitwisedom_imgui "${UXOXO_ROOT}/inc/imgui/imgui.h")
+set(_bitwisedom_docking "")
+
+if(EXISTS "${_bitwisedom_imgui}")
+    file(STRINGS "${_bitwisedom_imgui}" _bitwisedom_docking
+         REGEX "^#define[ \t]+IMGUI_HAS_DOCK")
+endif()
+
+if(NOT _bitwisedom_docking)
+    message(FATAL_ERROR
+        "uxoxo at ${UXOXO_ROOT} carries a Dear ImGui without docking "
+        "(inc/imgui/imgui.h does not define IMGUI_HAS_DOCK). bitwisedom's "
+        "windows dock, as Visual Studio's do: extract the uxoxo of "
+        "2026.10.18, whose ImGui is the docking branch, over UXOXO_ROOT.")
+endif()
+
+# the tab rows that begin past a sheet's symbols column: uxoxo's ImGui of
+# 2026.10.19 lets a dock node's tab bar begin inset. Without it, a sheet's
+# tabs run across the whole width, as ImGui's own do
+set(_bitwisedom_inset "")
+
+if(EXISTS "${UXOXO_ROOT}/inc/imgui/imgui_internal.h")
+    file(STRINGS "${UXOXO_ROOT}/inc/imgui/imgui_internal.h" _bitwisedom_inset
+         REGEX "^#define[ \t]+IMGUI_DOCK_TAB_BAR_INSET")
+endif()
+
+if(NOT _bitwisedom_inset)
+    message(WARNING
+        "uxoxo at ${UXOXO_ROOT} carries a Dear ImGui whose dock tab bars "
+        "cannot begin inset (inc/imgui/imgui_internal.h does not define "
+        "IMGUI_DOCK_TAB_BAR_INSET): a sheet's tabs will run across its "
+        "symbols column. Extract the uxoxo overlay of 2026.10.19 over "
+        "UXOXO_ROOT for tabs over the bits alone.")
 endif()
 
 set(UXOXO_CXX_STANDARD ${BITWISEDOM_CXX_STANDARD} CACHE STRING
