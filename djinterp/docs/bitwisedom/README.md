@@ -6,7 +6,8 @@ mapped to a value, shown across the bits it sets, and written out as a C or
 C++ macro. Groups collapse like the nodes of a
 tree, runs of columns collapse to one, and long names abbreviate to fit. An
 operation -- a shift, a rotation, a byte swap, arithmetic -- is previewed as
-the bits it moves and the collisions it makes before it is applied.
+the bits it moves and the collisions it makes before it is applied. Sheets
+open side by side in windows that dock, in workspaces of their own.
 
 It reads C as well as writing it: a header, or code pasted from one, becomes
 a sheet, its macros evaluated as C evaluates them -- expanded in a define
@@ -19,6 +20,187 @@ Dear ImGui. Building it is described in [BUILD.md](BUILD.md).
 ![The uart_cr example: PARITY selected, a shift previewed](screenshots/operations-preview.png)
 
 ---
+
+## The window
+
+The window is laid out as Visual Studio's is: **windows that dock**. Each
+sheet is open in a window of its own, its tab named for its file and marked
+with a dot while it has unsaved changes; around the sheets are the **tool
+windows** -- the Inspector down the right; the Macros and Templates pages
+at the top, as tabs among the sheets; and below them Operations, Issues,
+Grid lines, Colours, Columns, Naming, Sheet, Display and Console. A tool
+window shows the sheet in front.
+
+The sheets' **tabs sit over the bits**, as Visual Studio's code tabs sit
+over the code: a sheet's symbols column runs up through the tab row, to
+the window's top, and its tabs begin past it. **Double-click a sheet's
+tab** to rename its file: the name is typed over the tab -- Enter, or a
+click away, keeps it; Escape does not -- and `.bitwisedom.json` is put
+after a name with no `.json` of its own. Nothing on the disk changes: the
+sheet is marked changed, and Save writes it under its new name.
+
+The **status bar** runs along the window's foot: what the sheet in front
+is on the left -- its file, its width, its symbols, its issues and the row
+selected -- and at the right end what the window last said, after a `*`
+while the sheet has unsaved changes. **Click the message** for the
+**Console**: every action taken so far, the latest first -- its name, what
+it carried, the sheet it was taken in, and when -- an action repeated, a
+slider dragged or a name typed, counted as one line many times over. Every
+action is a named event with plain values, as a script will one day send
+them; the console only lists them.
+
+* **Drag a tab** to dock its window somewhere else -- beside, above or below
+  another, or among its tabs, where the drop targets show -- or out on its
+  own, floating. Drag the hairline between two windows to size them.
+* **A tab's x** closes its window. A tool window comes back from **View >
+  Tool windows**, where it was; a sheet with unsaved changes asks first.
+* **Ctrl+J** puts the windows below the sheets away, and brings them back.
+* **Window > Reset the layout** puts every window back where a new
+  workspace has it.
+
+![uart_cr and posix_mode side by side, in columns; Macros and Templates among the sheets' tabs](screenshots/windows-columns.png)
+
+**Workspaces** are the window's desktops, as Linux has several: each has
+its own sheets, its own tool windows and its own layout of them, all kept
+while another is in front. The list after the menus switches between them,
+or adds one; the **Window** menu adds, renames, closes and moves a
+sheet to another, and **Ctrl+Alt+Right** and **Ctrl+Alt+Left** step through
+them. The Window menu also **arranges** a workspace's sheets: as tabs of
+one window, side by side in columns, one above another in rows, or in a
+grid as near square as their number allows.
+
+**Zoom** is each window's own, as a browser's page's is: **Ctrl** and the
+wheel over a window, or **Ctrl+=**, **Ctrl+-** and **Ctrl+0** for the one in
+front, from half size to three times; View has them too, and puts every
+window back at its actual size at once.
+
+The window **opens where it was left**: its workspaces, every sheet in them
+-- unsaved changes too -- the layout of its windows and their zoom. It
+keeps them in `session.json` beside its settings file, as long as **Open
+where I left off** is on, in the Options.
+
+### The Options
+
+**Tools > Options** (**Ctrl+,**) is every setting in one place, as Visual
+Studio's are: the window's own on its first pages -- the theme and colour
+scheme, opening where it was left, how the symbols tree is shown, how rows
+are added, what ends a group's rows and how the Add node window opens --
+and then the sheet's, page by page. The search above the
+pages finds a setting by its name or what it does.
+
+**Settings files** keep a set of settings to use again: **Export** writes
+the window's settings and the sheet's preferences -- how it is drawn and
+written, never what is in it -- to a file, and puts it on the list; a file
+on the list is **applied** with a press, to the window and the sheet in
+front. Import adds one from elsewhere. The list is remembered from one run
+to the next for as long as each file is where it was; **Forget** takes one
+off the list, and **Delete** deletes the file too. Tools > Import or export
+settings opens the page.
+
+### The symbols tree
+
+The grid's symbols column **is the tree**, by default: its groups open and
+close there, rows drag there to move -- onto a symbol's name to go before
+it, onto a group's to go to its end -- and a selected row's group ends in
+an **Add child...** field, with a **+** before it. The Options' *The
+symbols tree* shows it in a window of its own as well, beside the grid, as
+it once was.
+
+### Adding rows
+
+One control adds a row, as the Options' **Adding rows** chooses: **+ Add**,
+whose menu lists what to add -- a bit, a range, a value in a range, a
+literal, an expression, a macro, or a group -- or a **split button**, whose
+face adds the kind it shows and whose arrow opens the menu, where the kind
+chosen is added and is what the face adds from then on. A row is added into
+the selected group or range, beside the selected symbol, or at the end of
+the sheet. The control is in the inspector of a group or a range, and over
+the symbols tree's own window; the grid's `+ Add new...` row, Edit > Add,
+**Ctrl+B** and **Ctrl+G** add rows too.
+
+**New rows' colour** is the user's choice, kept until it is changed: by
+default **none**, their set bits drawn plain, in the theme's text, faintly;
+or **each its own**, from the palette; or **one colour**, every new row
+alike, chosen with the swatch in the add control's menu or in the Options.
+
+**The Add node window** makes a row of any kind in full before it is
+added: its kind; the group or range it goes into, first or last there; its
+name -- left empty, the one shown faintly -- and its definition, its notes,
+affixes, colour and format, as the inspector shows a row's; and, as it is
+made, what it comes to -- its macro name, its value every way, the issues
+it would have, and why it would be refused. **Add** adds it, a step to
+undo, and starts the next, the same kind, at the next bit free; **Add and
+close** closes the window after. The **+** before a group's Add child field
+opens it for that group, as do **Edit > Add node...**, the add menus and
+**Ctrl+Shift+A**, for the selected row's group. The Options' *Adding rows*
+page says whether it opens **as a tab** among the sheets (the default) or
+**as a window of its own**; whether a group's rows end in the **field and
+the +** (the default), the field alone or the + alone; and whether the
+field **fills its column** or, by default, is as wide as what it holds.
+
+## Grid columns and saving
+
+The **View > Columns** submenu shows or hides Symbols, Value and the
+bit/byte visualizer independently. New sheets hide the Value column, but
+show Symbols and the visualizer. Drag the Symbols or Value heading onto the
+other to swap their order; the bit/byte region stays on the right to preserve
+its pinned/scrolling behavior. The choice is stored in sheet JSON.
+
+The Inspector occupies the whole right-hand height; the tool windows below
+the sheets sit below the grid, not below the Inspector -- until they are
+docked elsewhere. What it shows of a row is one form, top to bottom: its
+definition, then the value it comes to every way, then its naming and
+format, each part under a heading of its own.
+
+**Ctrl+S** saves the editable `.bitwisedom.json` and a companion `.h` or
+`.hpp` in the same directory, using the document's name -- its tab's -- as
+their shared stem. **File > Save As** (**Ctrl+Shift+S**) chooses the JSON
+path and macro extension; **File > Open** (**Ctrl+O**) asks for the file to
+open, and on Windows offers Explorer's picker. The **Export header** command writes the simple header alone.
+For now, the simple header contains one `#define NAME VALUE` per valid,
+emitted symbol (symbolic expression names are preserved). The full
+formatting of the generated C/C++ header is reserved for later work.
+
+## Imported definitions and the menus
+
+Each imported C/C++ source or header is a window of its own, beside its
+sheet. Use **File > Import definition files...** to bring in multiple
+paths; on Windows, **Browse files...** opens a multi-select file picker.
+The source text is embedded in the sheet JSON so the definitions remain
+available when it is reopened. Preprocessor directives are visible by
+default; other source and comments are folded under a small `+` control,
+and rendered muted when expanded. An imported file's window's x removes it
+from the sheet, a step to undo; so does the File menu.
+
+Its text is only read for its directives, as a preprocessor would, so
+**what the preprocessor cannot read is underlined in red** and does
+nothing -- a `#define` that does not parse, an `#endif` with no `#if` --
+and what it only assumed, in amber: an `#if` resting on a name nothing
+defines, read as taken. The mouse on an underlined line says what. **Edit**
+makes the window an editor of the whole text, the underlines following
+what is typed, each change a step to undo; **Done** makes it a view again.
+
+![A definition file being edited: a #define that does not parse and a stray #endif underlined in red, an #if on a name nothing defines in amber](screenshots/definition-file.png)
+
+The main menu bar holds **File**, **Edit**, **View**, **Window** and
+**Tools** -- the theme and colour scheme are View's **Theme** submenu --
+then the list of workspaces, and **Help** at the bar's right end: the
+keyboard shortcuts, and what bitwis(e)dom is. What the window last said is
+at the status bar's right end. **Probe** and **Allocated** rows are hidden
+on new sheets; they can be toggled from the `+ Add new...` row after the
+last symbol -- a `+` with its faded label, which opens the popup -- or from
+View. When shown they sit at the grid's foot, below the symbol rows
+([below](#the-probe-and-usage-rows)). The same popup offers every kind of
+row to add.
+
+Every open group or range that holds rows ends in an **Add child...**
+field -- in the grid, under the selected row's group; in the symbols tree's
+own window, under each: type a name and press Enter, and a bit of that name
+joins the group or range at the lowest bit free there. The field keeps the
+keyboard, so several can be named one after another; a name that is not a
+C identifier once its affixes are added, or that is another symbol's, is
+refused as a rename is, and stays in the field to be put right. Escape
+clears the field, and a second Escape leaves it.
 
 ## The sheet
 
@@ -34,9 +216,10 @@ suffix of its own, and can be collapsed. A **range** symbol can also hold
 other ranges, bits, expressions and groups. Its children are indented in the
 tree, and contained ranges may overlap their parents completely (inclusive
 boundaries), while partial overlaps remain flagged. New documents start with
-an editable full-width range named `root`. A symbol can use **No fill** in
+an editable full-width range named `root`, with no fill, holding one bit,
+`FLAG`, at bit 0 -- `0x...01`. A symbol can use **No fill** in
 its inspector to remain transparent instead of receiving an automatic or
-custom fill; the grid's binary displays have no digit separators. Hold
+custom fill; binary displays use 8-digit groups, octal uses 3, and hex uses 2. Hold
 **Shift** and drag across bit cells to select a rectangle of rows and bits;
 ordinary drags continue editing the current row. Each containing group or
 range may opt in to prepending its own name to descendant names. A range or
@@ -46,8 +229,8 @@ warns when two of its bit or range symbols claim the same bit; one that is
 group's rows are neither drawn nor built, in the tree or the grid, so a
 sheet of thousands of rows in closed groups is as quick to work in as a
 small one; the HRESULT example, 1,424 rows, arrives with its facilities
-closed. **Expand all** and **Collapse all**, under the Symbols panel's add
-buttons and on the View menu, open or close every group at once, in the
+closed. **Expand all** and **Collapse all**, on the View menu and over the
+symbols tree's own window, open or close every group at once, in the
 tree and the grid together; a group's right-click menu does the same for
 the group and the groups within it. Whether a group is open is kept with
 the sheet, and is not a step to undo.
@@ -168,11 +351,66 @@ field, and a range stretches to take it in. **Dragging** across a row's cells
 sets a range exactly, or paints a literal's bits. Rows can be dragged within
 the tree to move them.
 
-**The probe** is a scratch value in the grid's top row: click its cells or
-type a value, and the operations can act on it too.
+### The probe and usage rows
 
-**The usage row** at the bottom counts, for each bit, how many bit and range
-symbols claim it -- red where two in an exclusive group do.
+**The probe** is a scratch value: click its cells or type a value, and the
+operations can act on it too. **The usage row** counts, for each bit, how
+many bit and range symbols claim it -- red where two in an exclusive group
+do.
+
+Both are pinned at the **bottom** of the grid by default -- at its foot,
+while the rows above leave room -- and either may instead be pinned at the
+**top**, or put **among the rows**: drag one by its name, as a row is
+dragged, onto a group's or a range's name to go to the end of its rows,
+onto a symbol's to go just before it, onto another of them to go before
+it, placed as it is, or into the room below the rows to be pinned at the
+bottom again. A **usage row in a group counts the group's rows**, as a
+subtotal does: *allocated in Enables* counts Enables' bits alone. A
+right-click on one pins it, adds **another** of its kind beside it --
+every probe row shows the one probe -- or removes it; the last of a kind
+is hidden instead, and keeps its place for when it is shown again. Where
+each is is the sheet's, saved with it, and every move a step to undo.
+
+![uart_cr: the probe pinned at the top, a usage row counting the Enables group's bits, another at the grid's foot; the sheet's tab over the bits, and the status bar](screenshots/special-rows.png)
+
+### Sorting
+
+The grid and the tree show each group's rows in **the sheet's own order**,
+or sorted: by symbol name, name, short name, value, lowest bit, width, kind
+or note, either way. Groups come first among their siblings, sorted by name
+where the key is a name; a row the key says nothing of -- a macro with no
+value, sorted by value -- comes after those it does, whichever way; and
+rows the key cannot tell apart keep the sheet's order. The menu is on a
+**right-click on the symbols column's heading**, on the buttons over it,
+on a row and on the sheet, and on **View > Columns > Sort rows by**; the
+heading shows the key beside an arrow, up for first to last. **Make it the
+sheet's own order** puts the rows in the sheet in the order they are shown
+-- the header follows the sheet's order, which sorting alone leaves be.
+The sort is the sheet's, saved with it, and each choice a step to undo.
+
+### What each part shows
+
+The grid shows **digits** in its cells, a range's **name** -- or a value's
+number -- across its cells, and each row's **colour**, or not, as View >
+Grid says for the whole grid. **Display rules** show or hide each of the
+three in a part of it: a row; a group or a range, and every row in it; a
+run of bits, in every row; or a block of both, selected with **Shift and a
+drag** across the cells. A right-click offers them -- on a row, **Show in
+this row** (or *this group*, or *the rows selected*) and **Show in the
+block selected**; on a segment's band, **Show in these bits** -- each part
+checked where the region shows it, and pressed to show or hide it there;
+**... here only** shows it there and nowhere else; **As the rest of the
+grid** takes the region's own rules back. A cell whose colour is hidden is
+drawn as a row with no fill is: its set bits plain. A range's name is
+written where names are shown over at least half of it.
+
+The **Display** window lists every rule -- its rows, its bits, and each
+part as the grid has it, shown or hidden -- the last rule over a cell
+winning; a rule is changed or removed there, and **Clear every rule** gives
+every cell back to the grid. The rules are the sheet's, saved with it; a
+rule whose rows are all deleted goes with them.
+
+![uart_cr sorted by name: digits in the Enables group's rows only, no colour in the format segment's bits, DIV's name hidden -- and the Display window listing the three rules](screenshots/display-rules.png)
 
 ### Grid lines
 
@@ -186,8 +424,23 @@ dashed or dotted), and a master switch on **G**:
 * at the edges of column segments,
 * around the grid.
 
+The lines stop where the rows do, above the add row, and begin again at
+the rows pinned at the grid's foot; **Lines past the last row** runs them
+down the room between as well.
+
 Cell width and height, the gap between cells and their rounding are on the
-same page.
+same page, with **Proportional cells** -- on by default, and on the View
+menu too -- which makes every row as tall as its share of a bit's cell's
+width: **Row height, of cell width**, four fifths by default, 1.0 for
+square. The cells widen to fill the grid, and the rows grow with them, up
+to the widest a cell may be (56 pixels), past which the room is left. A
+**cell width set by hand** -- its slider, or a ruler boundary dragged -- is
+the width the cells take: the room to spare then goes to nothing, and a
+double-click on a boundary gives the cells back to the grid's width. The
+rows stop at the shortest a line of digits fits in, however narrow the
+cells. The cell height is unused while cells are proportional, and the gap
+and the rounding while cells are not drawn as boxes: each waits, disabled,
+until it would do something.
 
 ![posix_mode: octal values, major lines every three bits](screenshots/grid-lines-octal.png)
 
@@ -208,7 +461,7 @@ segment headings.
 
 ### Colour
 
-The **Theme** menu holds the window's two choices of colour, and they are the
+**View > Theme** holds the window's two choices of colour, and they are the
 window's: kept in its settings file, not in the sheet, so every sheet opens
 in them.
 
@@ -226,7 +479,23 @@ coloured by their row, their group, their kind, or the accent. A sheet's
 colours are **automatic** until it sets one in the Colours tab -- a palette
 of its own, a saturation, an accent, a grid line's colour -- and what it sets
 it keeps, in either theme and every scheme. **Use the scheme's colours**
-(the Colours tab, or the Theme menu) gives them all back.
+(the Colours tab, or View > Theme) gives them all back.
+
+**Text reads whatever the colour.** A cell's digit, a range's name across
+its cells, a band's name, a selected row's name are drawn in the theme's
+text where that reads on what lies beneath -- at WCAG's 4.5:1 -- and in
+black or white where it does not, so a black range in the light theme has
+white digits and a yellow one in the dark theme dark ones. A row with **No
+fill** has no colour to read in: its set bits are drawn plain, in the
+theme's text, faintly -- but a range's, all set, which its name across its
+cells already says -- and that name sits on the row's own ground, which
+hides the digits beneath it, and is the theme's text; its swatch in the
+tree and the grid is left empty; and the curves the operations' preview
+draws for its bits are the text's, faded. Where a
+row's name is written in the row's colour -- the inspector's title, the
+generated header in the Macros tab -- a colour too near the panel's own is
+moved toward the text's until it reads at 3:1, and a row with no fill has
+its name in the text's colour.
 
 ### Names, menus and widths
 
@@ -242,11 +511,41 @@ would not be a C identifier once the affixes are added, or that is another
 symbol's, is refused, and the status line says why. A segment is renamed the
 same way, by a double-click on its heading or from its menu.
 
+**The symbols column lists its rows** by symbol name, name or value, as the
+three small buttons over it choose -- above its `symbol` label, in the strip
+the segments' bands run along, the choice lit in the accent. By **symbol
+name** each row is the macro the header defines, `UART_CR_PARITY_NONE`; by
+**name**, its own name, `PARITY_NONE`, as the symbols tree has it; by
+**value**, its value as the value column writes it, in the monospace font,
+where its name would be. **Press value again** and the values are written
+another way at each press, every row alike and **lined up** at the
+column's right, so their digits stand in columns: in hex, to the sheet's
+width; in decimal; in binary, from the nibble that holds the highest set
+bit; as a shifted run, `0x3 << 4`, the way the header writes a mask -- a
+value in a field as the number the field holds, `0x2 << 4`; as the bits it
+sets, `bits 5:4`, by the sheet's numbering -- and then round again. The
+button says which (`hex`, `dec`, `bin`, `shift`, `bits`), and presses one
+after another are one step of undo. A sheet wider than an integer passes
+over decimal and binary. **Right-click** any of the buttons for the whole
+list, to pick one way straight off. By value, a symbol with no value -- a
+function-like macro, or a row in error -- keeps its name, faded, and a
+group, which is no symbol, its own name. The choice is the sheet's: saved
+with it, and on View > Columns > **Symbols by** too, and on the Grid lines
+tab. A narrower column has shorter buttons -- `symbol`, `name`, `value`,
+then `S`, `N`, `V` -- and a double-click on its edge fits it to what it
+lists; a value lined up in a column too narrow for it keeps its low
+digits. **Macro names in the grid**, on the View menu, is the same choice
+between symbol names and names, and also says how a range's name is
+written across its cells, by value too.
+
 **Right-click** opens a menu for what is under the mouse: a row, in the tree
 or the grid (rename, copy as code, paste code after it or into it, add,
-duplicate, delete, move, put its value in the probe, show its issues); a
-segment's heading (rename, collapse or expand, remove); or the sheet (add,
-paste code, copy the whole sheet as code).
+duplicate, delete, move, put its value in the probe, show its issues, what
+it shows, the sort); a segment's heading (rename, collapse or expand,
+remove, what its bits show); a button over the symbols column (every way to
+list the rows, the sort); the symbols column's heading (the sort, what the
+column lists, which columns are shown); or the sheet (add, paste code, copy
+the whole sheet as code, the sort, what the whole grid shows).
 
 **Columns resize** by their edges, which light up under the mouse. Drag the
 edge after the name or value column, or double-click it to fit the column to
@@ -258,45 +557,30 @@ the sheet's, and are saved with it.
 **The grid fills its panel.** The width it has beyond what its columns need
 goes to the bits' cells, widened alike, so a 32-bit sheet in a wide window
 has wide cells and no empty space beside them; the cells' width is then the
-least they take, and a sheet too wide for the window scrolls. The Grid lines
-tab's **Room to spare goes to** gives it to the name column instead, or to
-nothing -- and then the rows end where the columns do.
+least they take, and a sheet too wide for the window scrolls. With
+proportional cells the rows deepen as the cells widen, and a narrow sheet
+in a wide window stops at the widest cell. The Grid lines tab's **Room to spare
+goes to** gives it to the name column instead, or to nothing -- and then
+the rows end where the columns do.
 
 **Under a resting mouse**, what is squished, hidden or abbreviated says what
 it is: a name in the grid gives its full macro name, what it is and its
 brief; a value, itself in hex, decimal, signed and binary; a band, its bits
 and what a click does; the ruler, the bit or the run of bits below it; a
-collapsed or abbreviated column, the bits it holds. Anywhere in the window, a
+collapsed or abbreviated column, the bits it holds; a button over the
+symbols column, what it lists the rows by. Anywhere in the window, a
 label cut off by its column ends in `...` and shows itself whole, as does a
 value longer than its field, a combo's choice, a check box's or a tree row's
 name past the panel's edge.
 
 The columns of every table -- the inspector's, the issues', an operation's
 -- resize by their edges too, and the window remembers their widths, the
-sizes of its panels, how they are shown, the theme and the colour scheme,
-from one run to the next, in a settings file of the user's:
+layout of its windows, the theme and the colour scheme, and the user's own
+preferences from one run to the next, in a settings file of the user's:
 `%APPDATA%\bitwisedom\bitwisedom.ini` on Windows, and
 `$XDG_CONFIG_HOME/bitwisedom/bitwisedom.ini` (by default
-`~/.config/bitwisedom/`) elsewhere.
-
-### Panels
-
-The symbols, the grid and the inspector lie flush, divided by hairlines --
-drag one to size the panels either side of it. The **View** menu hides and
-shows the symbols panel and the inspector.
-
-The tabbed panel below the grid can be shown five ways, from the buttons at
-the end of its tabs or **View > Bottom panel**:
-
-| | |
-|---|---|
-| docked | below the grid, sized by the hairline above it |
-| minimized | to a strip of its tabs; a tab pressed brings it back at that page |
-| minimized until the mouse is over it | a strip of tabs, and a rest of the mouse on the strip opens the page over the grid, until the mouse leaves both |
-| floating | in a window of its own, moved and sized where it is wanted, and kept there |
-| hidden | not at all; **Ctrl+J** brings it back as it was, and hides it again |
-
-![win32_hresult with the panel minimized until the mouse is over it, opened over the grid](screenshots/panel-peek.png)
+`~/.config/bitwisedom/`) elsewhere; its session, `session.json`, is beside
+it.
 
 ---
 
@@ -433,8 +717,11 @@ typedefs, the integer promotions and the usual arithmetic conversions, at
 the sheet's language level and **data model** (LP64 for Linux and macOS,
 LLP64 for Windows, ILP32). The inspector shows a macro's value, its C type,
 and what it expands to; in the grid, an object-like macro with a value is
-drawn as any value is, and one that takes arguments shows its signature
-across the bits.
+drawn as any value is, and one with no bits -- one that takes arguments,
+or has no value -- has its cells drawn empty, the grid's lines through
+them, and its definition as the header writes it over them, centred, in
+the monospace font: `UART_CR_IS_ENABLED(x) (((x) & UART_CR_EN) != 0)`.
+A row in error says why the same way, in the collision colour.
 
 What C would get wrong is reported. Undefined behaviour -- a negative or
 too-wide shift, signed overflow, division by zero -- is a warning, traced
@@ -617,14 +904,19 @@ holds, and names any that does not.
 | key | does |
 |---|---|
 | Ctrl+Z, Ctrl+Y (or Ctrl+Shift+Z) | undo, redo |
+| Ctrl+N, Ctrl+W | a new sheet, close the sheet in front |
 | Ctrl+O, Ctrl+S, Ctrl+E | open, save, export the header |
 | Ctrl+Shift+E | export everything as JSON |
 | Ctrl+B, Ctrl+G | add a bit, add a group |
+| Ctrl+Shift+A | the Add node window, for the selected row's group |
 | Ctrl+D, Del | duplicate, delete the selected rows |
 | Alt+Up, Alt+Down | move the selected row |
 | F2 | rename the selected row |
 | Ctrl+Shift+C, Ctrl+Shift+V | copy the selection as code, paste code |
-| Ctrl+J | hide the bottom panel, and bring it back |
+| Ctrl+J | put the windows below the sheets away, and bring them back |
+| Ctrl+=, Ctrl+-, Ctrl+0 | zoom the window in front in, out, to its actual size |
+| Ctrl+Alt+Right, Ctrl+Alt+Left | the next workspace, the last |
+| Ctrl+, | the Options |
 | Ctrl+Shift+Plus, Ctrl+Shift+Minus (or Ctrl with the keypad's + and -) | expand every group, collapse every group |
 | G | grid lines on and off |
 
@@ -632,9 +924,15 @@ holds, and names any that does not.
 |---|---|
 | double-click a name | renames it, in the tree or the grid |
 | double-click a segment's heading | renames the segment |
-| right-click | the menu for the row, segment or sheet under the mouse |
+| double-click a sheet's tab | renames its file |
+| drag a probe or usage row by its name | places it among the rows, or pins it |
+| click the status bar's message | the console: every action so far |
+| right-click | the menu for the row, segment, heading or sheet under the mouse |
 | drag, double-click a column's edge | resizes the column, fits it to its text |
 | drag, double-click a ruler boundary | sizes every bit's cell, puts them back |
+| Shift+drag across cells | selects a block of rows and bits |
+| drag a tab | docks its window elsewhere, or floats it |
+| Ctrl+wheel | zooms the window under the mouse |
 | drop a file | opens it: a sheet, or a header read as code |
 
 Edits that arrive as a stream -- a drag, typing -- undo as one step.

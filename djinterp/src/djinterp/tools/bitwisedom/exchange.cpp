@@ -155,7 +155,8 @@ public:
                      { "format", "version", "title", "width", "prefix",
                        "suffix", "trim_both", "trim_left", "trim_right",
                        "numbering", "msb_left", "byte_order",
-                       "probe", "environment", "rows", "segments",
+                       "probe", "environment", "definitions", "rows",
+                       "segments",
                        "generator", "note" });
 
         m_sheet.prefix      = text_of(m_in, "prefix", "");
@@ -164,6 +165,21 @@ public:
         m_sheet.trim_left   = text_of(m_in, "trim_left", "");
         m_sheet.trim_right  = text_of(m_in, "trim_right", "");
         m_sheet.environment = text_of(m_in, "environment", "");
+        if (const json_value* files = m_in.find("definitions"))
+        {
+            if (files->type == json_type::array)
+            {
+                for (const json_value& entry : files->items)
+                {
+                    if (entry.type != json_type::object) continue;
+                    definition_source source;
+                    source.path = text_of(entry, "path", "");
+                    source.text = text_of(entry, "text", "");
+                    source.show_other = false;
+                    m_sheet.definitions.push_back(std::move(source));
+                }
+            }
+        }
 
         if ( (!word(m_in, "numbering", std::string(), m_sheet.bits))  ||
              (!word(m_in, "byte_order", std::string(), m_sheet.bytes)) ||
@@ -1092,6 +1108,18 @@ public:
         }
 
         maybe(out, "environment", m_sheet.environment);
+        if (!m_sheet.definitions.empty())
+        {
+            json_value files = json_value::array();
+            for (const definition_source& source : m_sheet.definitions)
+            {
+                json_value entry = json_value::object();
+                entry.set("path", json_value::string(source.path));
+                entry.set("text", json_value::string(source.text));
+                files.items.push_back(std::move(entry));
+            }
+            out.set("definitions", std::move(files));
+        }
         out.set("rows", rows(m_sheet.root));
 
         if (!m_sheet.segments.empty())

@@ -159,6 +159,13 @@ D_NODISCARD std::string  derive_guard(const std::string& _file_name);
  */
 D_NODISCARD std::string  bitset_prefix(const sheet& _sheet);
 
+/**
+ * @brief Emit one elementary #define per resolvable symbol.
+ *        This is the initial, deliberately plain .h/.hpp export.
+ */
+D_NODISCARD std::string generate_simple_defines(const sheet& _sheet,
+                                                const resolution& _resolved);
+
 
 }  // namespace bitwisedom
 

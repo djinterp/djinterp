@@ -5,13 +5,22 @@
 *   Each theme starts from one of ImGui's own and replaces the surfaces --
 * the scheme's -- and the accent; the metrics -- rounding, padding, spacing
 * -- are the same in every theme.
+*   Readable text is measured as WCAG measures it: a colour's relative
+* luminance, from its channels taken back to linear light, and the ratio of
+* two luminances, each lifted by 0.05 for the glare a screen adds.
 *
 * path:      /src/djinterp/tools/bitwisedom/app/theme.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.18
 *******************************************************************************/
 #include "./theme.hpp"  // corresponding header
+
+// std
+#include <algorithm>  // std::max, std::min
+#include <cmath>      // std::pow
+// imgui
+#include <imgui_internal.h>  // GImGui, the font size being drawn at
 
 
 namespace bitwisedom
@@ -21,6 +30,72 @@ namespace gui
 
 namespace
 {
+
+// DARK_INK / LIGHT_INK
+//   constants: the inks text takes where its theme's own text would not
+// read: black, and white. One of the two contrasts at least 4.58:1 with any
+// ground there is.
+const ImU32 DARK_INK  = IM_COL32(0, 0, 0, 255);
+const ImU32 LIGHT_INK = IM_COL32(255, 255, 255, 255);
+
+// READABLE
+//   constant: the contrast text keeps with what it is drawn on before it
+// leaves its theme's colour: WCAG's least for body text, AA.
+const float READABLE = 4.5f;
+
+// MIN_CONTRAST
+//   constant: the least contrast text in a row's colour keeps with what it
+// is drawn on -- WCAG's least for large text, and for the parts of a
+// picture that must be seen.
+const float MIN_CONTRAST = 3.0f;
+
+// channel_of
+//   one 8-bit channel of an ImGui colour, by its shift.
+float
+channel_of(
+    ImU32 _colour,
+    int   _shift
+)
+{
+    return static_cast<float>((_colour >> _shift) & 0xFFu) / 255.0f;
+}
+
+// linear
+//   one sRGB channel, in [0, 1], as linear light.
+float
+linear(
+    float _channel
+)
+{
+    if (_channel <= 0.04045f)
+    {
+        return _channel / 12.92f;
+    }
+
+    return std::pow((_channel + 0.055f) / 1.055f, 2.4f);
+}
+
+// luminance
+//   an opaque colour's relative luminance, in [0, 1]; its alpha is not read.
+float
+luminance(
+    ImU32 _colour
+)
+{
+    return ( 0.2126f * linear(channel_of(_colour, IM_COL32_R_SHIFT)) +
+             0.7152f * linear(channel_of(_colour, IM_COL32_G_SHIFT)) +
+             0.0722f * linear(channel_of(_colour, IM_COL32_B_SHIFT)) );
+}
+
+// opaque
+//   a colour with its alpha full.
+ImU32
+opaque(
+    ImU32 _colour
+)
+{
+    return (_colour | IM_COL32_A_MASK);
+}
 
 // shade
 //   a colour lighter (positive) or darker (negative) by an amount.
@@ -102,6 +177,134 @@ is_light(
     return (_colours.theme == 1);
 }
 
+/*
+composite
+  Each channel is the top's, weighed by its alpha, and the ground's for the
+rest. The ground is taken as opaque -- what text is drawn on is the window
+at the bottom of every stack of fills -- and so is the result.
+*/
+ImU32
+composite(
+    ImU32 _top,
+    ImU32 _ground
+)
+{
+    const float alpha = channel_of(_top, IM_COL32_A_SHIFT);
+
+    // blend
+    //   one channel of the composite, as a byte.
+    auto blend = [&](int _shift)
+    {
+        const float top    = channel_of(_top, _shift);
+        const float ground = channel_of(_ground, _shift);
+        const float mixed  = top * alpha + ground * (1.0f - alpha);
+
+        return static_cast<ImU32>(mixed * 255.0f + 0.5f);
+    };
+
+    return IM_COL32(blend(IM_COL32_R_SHIFT),
+                    blend(IM_COL32_G_SHIFT),
+                    blend(IM_COL32_B_SHIFT),
+                    255);
+}
+
+float
+contrast(
+    ImU32 _a,
+    ImU32 _b
+)
+{
+    const float a = luminance(_a);
+    const float b = luminance(_b);
+
+    return (std::max(a, b) + 0.05f) / (std::min(a, b) + 0.05f);
+}
+
+/*
+ink_on
+  The theme's text, wherever it reads -- on the window's own panels it
+always does; else black or white, whichever contrasts more with the
+ground. Black and white contrast alike with a ground of luminance 0.179,
+and there each manages 4.58:1, so whatever the ground the ink reads at
+least as well as WCAG asks of body text.
+*/
+ImU32
+ink_on(
+    ImU32 _ground,
+    ImU32 _text
+)
+{
+    const ImU32 ground = opaque(_ground);
+    const ImU32 text   = opaque(_text);
+
+    // the theme's own text, while it reads
+    if (contrast(text, ground) >= READABLE)
+    {
+        return text;
+    }
+
+    return (contrast(DARK_INK, ground) >= contrast(LIGHT_INK, ground))
+               ? DARK_INK
+               : LIGHT_INK;
+}
+
+/*
+legible
+  The colour as it would be seen -- composited on the ground, where it is
+not opaque -- if that reads; else the colour moved a tenth at a time toward
+the ink the ground takes, which keeps its hue as long as it can. No colour,
+as a row with no fill has, is the theme's text.
+*/
+ImU32
+legible(
+    rgba  _colour,
+    ImU32 _ground,
+    ImU32 _text
+)
+{
+    const ImU32 ground = opaque(_ground);
+
+    // no colour, or none that shows: the text's own
+    if ((_colour & 0xFFu) == 0u)
+    {
+        return opaque(_text);
+    }
+
+    const ImU32 own = composite(to_u32(_colour), ground);
+
+    if (contrast(own, ground) >= MIN_CONTRAST)
+    {
+        return own;
+    }
+
+    const ImU32 ink = ink_on(ground, _text);
+
+    for (int step = 1; step < 10; ++step)
+    {
+        const ImU32 moved = mix(own, ink, static_cast<float>(step) * 0.1f);
+
+        if (contrast(moved, ground) >= MIN_CONTRAST)
+        {
+            return moved;
+        }
+    }
+
+    return ink;
+}
+
+ImU32
+faint(
+    ImU32 _ink,
+    float _alpha
+)
+{
+    const float  clamped = std::max(0.0f, std::min(1.0f, _alpha));
+    const ImU32  alpha   = static_cast<ImU32>(clamped * 255.0f + 0.5f);
+
+    return ( (_ink & ~IM_COL32_A_MASK) |
+             (alpha << IM_COL32_A_SHIFT) );
+}
+
 ImFont*&
 mono_font()
 {
@@ -110,12 +313,32 @@ mono_font()
     return font;
 }
 
+float
+font_base()
+{
+    return GImGui->FontSizeBase;
+}
+
 float&
-ui_scale()
+dpi_scale()
 {
     static float scale = 1.0f;
 
     return scale;
+}
+
+float&
+zoom_now()
+{
+    static float zoom = 1.0f;
+
+    return zoom;
+}
+
+float
+ui_scale()
+{
+    return dpi_scale() * zoom_now();
 }
 
 /*
@@ -162,8 +385,9 @@ apply_style(
     style.FrameBorderSize   = light ? 1.0f : 0.0f;
     style.TabBorderSize     = 0.0f;
 
-    // the metrics follow the display's scale; the borders stay hairlines
-    style.ScaleAllSizes(ui_scale());
+    // the metrics follow the display's scale -- a window's zoom scales its
+    // own, as it is drawn; the borders stay hairlines
+    style.ScaleAllSizes(dpi_scale());
     style.ChildBorderSize   = 1.0f;
     style.FrameBorderSize   = light ? 1.0f : 0.0f;
 
@@ -201,7 +425,8 @@ apply_style(
     c[ImGuiCol_Header]               = alpha(accent, 0.30f);
     c[ImGuiCol_HeaderHovered]        = alpha(accent, 0.42f);
     c[ImGuiCol_HeaderActive]         = alpha(accent, 0.60f);
-    c[ImGuiCol_Separator]            = shade(frame, lift);
+    c[ImGuiCol_Separator]            = light ? ImVec4(0, 0, 0, 1)
+                                             : ImVec4(1, 1, 1, 1);
     c[ImGuiCol_SeparatorHovered]     = alpha(accent, 0.70f);
     c[ImGuiCol_SeparatorActive]      = accent;
     c[ImGuiCol_ResizeGrip]           = alpha(accent, 0.20f);

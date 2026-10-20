@@ -18,15 +18,18 @@
 *
 *   So a script can open an example, select a row, bring a tab to the front
 * and photograph the result: the build's screenshot test does exactly that.
-*   The window keeps the user's settings file, at preferences_path(): the
-* tables' column widths and the panels' sizes last from one run to the
-* next. A screenshot neither reads nor writes it, so it shows the window as
-* built. A file dropped on the window is opened as File > Open opens one.
+*   The window keeps the user's settings file, at preferences_path() -- the
+* layout of its windows, the tables' column widths and the user's own
+* preferences last from one run to the next -- and its session, at
+* session_path(): its workspaces and every sheet in them, unsaved changes
+* too, so it opens where it was left. A screenshot neither reads nor writes
+* either, so it shows the window as built. A file dropped on the window is
+* opened as File > Open opens one.
 *
 * path:      /src/djinterp/tools/bitwisedom/app/host_glfw.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.09
+*                                                            revised: 2026.10.18
 *******************************************************************************/
 // std
 #include <cstdio>   // std::fopen, std::fprintf, std::fwrite
@@ -41,7 +44,7 @@
 #include <GLFW/glfw3.h>  // glfw*, and the system's GL 1.1 header
 // bitwisedom
 #include "./app.hpp"    // app
-#include "./theme.hpp"  // ui_scale
+#include "./theme.hpp"  // dpi_scale
 
 
 namespace
@@ -332,7 +335,7 @@ main(
         scale = (x > 0.0f) ? x : 1.0f;
     }
 
-    bitwisedom::gui::ui_scale() = scale;
+    bitwisedom::gui::dpi_scale() = scale;
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -347,9 +350,13 @@ main(
     app::load_fonts(16.0f * scale);
 
     {
-        app bitwisedom(chosen.screenshot.empty()
-                           ? bitwisedom::gui::preferences_path()
-                           : std::string());
+        // a screenshot keeps no session either: it shows the window as
+        // built
+        const bool kept = chosen.screenshot.empty();
+        app        bitwisedom(kept ? bitwisedom::gui::preferences_path()
+                                   : std::string(),
+                              kept ? bitwisedom::gui::session_path()
+                                   : std::string());
 
         for (const uxoxo::event& each : chosen.events)
         {

@@ -24,6 +24,13 @@
     "byte_order": { "enum": ["little", "big"], "description": "how the window numbers bytes" },
     "probe": { "$ref": "#/$defs/number", "description": "the probe's value" },
     "environment": { "type": "string", "description": "#defines the macros are evaluated in, which the header does not write" },
+    "definitions": {
+      "type": "array",
+      "description": "Imported preprocessing sources, stored with their original contents",
+      "items": { "type": "object", "required": ["path", "text"],
+        "properties": { "path": { "type": "string" }, "text": { "type": "string" },
+          "show_other": { "type": "boolean" } }, "additionalProperties": false }
+    },
     "note": { "type": "string" },
     "rows": { "type": "array", "items": { "$ref": "#/$defs/row" } },
     "segments": { "type": "array", "items": { "$ref": "#/$defs/segment" } },

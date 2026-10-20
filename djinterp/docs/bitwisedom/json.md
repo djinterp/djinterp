@@ -26,6 +26,21 @@ Numbers are JSON integers, or strings in any base C has -- `"0x0F00"`,
 that holds numbers as doubles would round, is written as a string of its
 digits.
 
+### Embedded preprocessor sources
+
+A sheet or bitfield may contain a `definitions` array of source objects,
+each with `path`, `text` and optional `show_other`. The imported text
+contributes preprocessor macros to expression evaluation; it is stored with
+the sheet and shown in a separate main-editor tab. `show_other` controls
+whether non-preprocessor source and comments are expanded in that tab.
+
+```json
+"definitions": [
+  { "path": "constants.h", "text": "#define EXT_CONSTANT 42\n",
+    "show_other": false }
+]
+```
+
 ---
 
 ## A bitfield
@@ -275,9 +290,65 @@ uses C integer operators and precedence. A backslash-newline continuation
 in an expression is accepted, and the generator emits a C `#define`
 containing the symbolic references.
 
-`transparent: true` on a symbol or group disables its colored cell fill;
-this is separate from `colour` being unspecified (automatic palette).
+`transparent: true` on a symbol or group disables its colored cell fill --
+its set bits are drawn plain, in the theme's text -- and is what a row added
+with **New rows' colour** at *none* has; this is separate from `colour`
+being unspecified (automatic palette).
 The **New** command creates a 32-bit sheet with a full-width range named
-`root`, ready to receive nested rows. **Shift+drag** on the grid selects
+`root`, with no fill (`transparent: true`), holding one bit, `FLAG`, at
+bit 0, ready to receive more nested rows. A sheet file's `grid` keeps
+`square_cells`, whether rows follow the cells' width -- proportional
+cells -- and `cell_ratio`, as what share of it, `0.8` by default, `1.0`
+square; a file without them -- one written before them -- opens with
+proportional rows four fifths of a cell's width. `lines_past_rows` is
+whether the bits' lines run on below the last row; a file without it stops
+them where the rows do. It keeps
+`names_by_value` too, whether the symbols column lists each row by its
+value rather than by a name; with it off, `full_names` chooses the symbol
+(macro) name or the row's own, as before, and a file without it opens
+listing rows by name. `names_value_form` says how the values are then
+written: `written`, as the header writes them, where the names would be;
+or every row alike, lined up at the column's right -- `hex`, `dec`, `bin`,
+`shift` (a shifted run, `0x3 << 4`) or `bits` (the bits set, `bits 5:4`).
+A file without it, or with a word it does not know, writes them as the
+header does. **Shift+drag** on the grid selects
 a rectangle of cells and rows without editing their bit definitions.
 Binary values in the inspector and grid tooltip are ungrouped.
+
+The grid keeps the order its rows are shown in: `sort_by` -- `sheet`, the
+sheet's own, or `symbol`, `name`, `short_name`, `value`, `lowest`, `width`,
+`kind` or `note` -- and `sort_descending`. The rows stay in `rows` in the
+sheet's own order, which the header follows; a file without them shows the
+sheet's order. `show_colours` is whether the rows' colours are drawn in
+their cells, as `show_digits` and `show_labels` are whether digits and
+names across ranges are; a file without it draws them. And `rules`, the
+display rules, show or hide those three in parts of the grid, each
+
+```json
+{ "rows": [ 7, 12 ], "lsb": 4, "msb": 11, "digits": true, "colour": false }
+```
+
+-- rows by `id`, each with every row inside it; none for every row -- by
+bits `lsb` to `msb`, every bit when `msb` is below `lsb` (`-1`); with only
+the parts it sets, `digits`, `names` and `colour`, each `true` to show and
+`false` to hide. Rules apply in order, and the last over a cell wins.
+
+`specials` are the grid's probe and usage rows, in their order, each where
+it is shown:
+
+```json
+"specials": [
+  { "kind": "probe", "place": "top" },
+  { "kind": "usage", "place": "tree", "parent": 1, "before": 0 },
+  { "kind": "usage", "place": "bottom" }
+]
+```
+
+-- `kind`, `probe` or `usage`; `place`, `bottom` (pinned below every row),
+`top` (above every row) or `tree` (among the rows: just before the row
+whose `id` is `before`, or, with none, at the end of the rows of the group
+or range `parent` -- 0, the sheet's own). A usage row in a group counts
+the group's rows. Every row of a kind is shown or hidden with the grid's
+`show_probe` or `show_usage`; a file without `specials` has one of each,
+at the bottom, and an anchor to a row the sheet does not have is let go
+of.

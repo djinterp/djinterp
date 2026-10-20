@@ -1,0 +1,3 @@
+# Bitwisedom build outputs are generated, not source-controlled.
+*
+!.gitignore

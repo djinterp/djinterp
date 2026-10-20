@@ -1,35 +1,40 @@
 /*******************************************************************************
 * bitwisedom [app]                                                     model.hpp
 *
-* The GUI's state: the sheet, what it resolves to, its history, and how the
-* window is being looked at.
+* A document's state: its sheet, what it resolves to, its history, and how
+* it is being looked at.
 *   The application is a loop of the uxoxo kind: the state is drawn, the
 * drawing posts events, and after the frame the events are applied to the
 * state -- never during it. Everything a renderer needs to read is here; the
-* one thing renderers write directly is what the mouse is over, which is
-* not state the user can undo but a fact about this frame.
+* one thing renderers write directly is what this frame found -- what the
+* mouse is over, and whether the operation's preview is in view -- which
+* is not state the user can undo but a fact about this frame.
 *   The caches -- the generated header, the operation preview -- are
 * computed when first wanted after a change, and dropped by the next one.
-*   Three requests last one frame: opening the context menu, giving a
-* rename's field the keyboard, and fitting the grid's name column to the
-* names of a sheet just imported. The frame they are drawn in clears them.
-*   The theme, the colour scheme and how the panels are shown are the
-* window's, kept in its settings file rather than with the sheet; the look
-* -- the sheet's colours with what it leaves automatic filled in from them
-* -- is what every renderer draws with.
+* The order the rows are shown in is worked out with every resolution: the
+* sheet's own, or each group's rows sorted.
+*   Four requests last one frame: opening the context menu, giving a
+* rename's field the keyboard, giving it back to the tree's "Add child..."
+* field a name was just entered in, and fitting the grid's name column to
+* the names of a sheet just imported. The frame they are drawn in clears
+* them.
+*   The theme and the colour scheme are the window's (shell.hpp), copied
+* into every document so its look -- the sheet's colours with what it
+* leaves automatic filled in from them -- is what every renderer draws with.
 *
 * path:      /src/djinterp/tools/bitwisedom/app/model.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 
 #ifndef BITWISEDOM_APP_MODEL_HPP
 #define BITWISEDOM_APP_MODEL_HPP 1
 
 // std
-#include <string>  // std::string
-#include <vector>  // std::vector
+#include <cstddef>  // std::size_t
+#include <string>   // std::string
+#include <vector>   // std::vector
 // bitwisedom
 #include <djinterp/tools/bitwisedom/codegen.hpp>  // generated
 #include <djinterp/tools/bitwisedom/history.hpp>  // history
@@ -43,26 +48,30 @@ namespace bitwisedom
 namespace gui
 {
 
-// panel_mode
-//   enum: how the tabbed panel below the grid is shown: docked under the
-// grid; minimized to its tabs; minimized until the mouse is over its tabs,
-// when it opens over the grid; floating in a window of its own; or not at
-// all.
-enum class panel_mode : int
+// node_draft
+//   struct: the row the Add node window is making, in one document: the
+// row itself -- a group, or a symbol of any definition -- the group or
+// range it goes into, 0 for the sheet's own rows, and whether it goes
+// first there or last. What it comes to is worked out on a copy of the
+// sheet as it changes: its name and value, what the header would write,
+// and why it would be refused. `fresh` is the name the row takes when none
+// is typed.
+struct node_draft
 {
-    docked = 0,
-    minimized,
-    peek,
-    floating,
-    hidden
+    row                  draft;
+    int                  parent  = 0;
+    bool                 first   = false;
+    bool                 bits_set = false;   // the user chose its bits
+    resolved_row         resolved;
+    bool                 resolves = false;
+    std::vector<issue>   issues;
+    std::string          refused;
+    std::string          fresh;
+    int                  added   = 0;   // how many it has added so far
 };
 
-// PANEL_MODE_COUNT
-//   constant: how many panel modes there are.
-const int PANEL_MODE_COUNT = 5;
-
 // ui_state
-//   struct: how the window is being used -- not part of the sheet, and not
+//   struct: how a document is being used -- not part of its sheet, and not
 // undone with it.
 struct ui_state
 {
@@ -71,22 +80,17 @@ struct ui_state
     int              hover_row   = 0;      // this frame's, written by draws
     int              hover_bit   = -1;
     std::string      path        = "untitled.bitwisedom.json";
+    std::string      file;                 // where it was read or saved
     std::string      status;
     bool             status_error = false;
-    int              tab         = 0;      // the bottom panel's front page
-    bool             tab_forced  = false;  // bring it to the front, once
-    float            left        = 236.0f;
-    float            right       = 330.0f;
-    float            bottom      = 270.0f;
+    int              definition  = -1;     // the definition file in front
+    int              definition_editing = -1;   // ... being edited
+    bool             definition_raise   = false;  // ... to the front, for
+                                                  // one frame
 
-    // the window's look and its panels, which the settings file keeps
+    // the window's look, which every document is drawn in alike
     int              theme       = 0;      // 0 dark, 1 light
     int              scheme      = 0;      // a colour scheme
-    panel_mode       panel       = panel_mode::docked;
-    panel_mode       panel_back  = panel_mode::docked;   // Ctrl+J's way back
-    bool             peeking     = false;  // a peek panel, open over the grid
-    bool             show_left   = true;   // the tree of symbols
-    bool             show_right  = true;   // the inspector
     int              op          = 0;
     std::string      operand     = "1";
     bool             op_probe    = false;
@@ -102,14 +106,22 @@ struct ui_state
     int              grid_rect_low  = -1;
     int              grid_rect_high = -1;
     bool             dirty       = false;  // changed since saved
-    bool             quit        = false;
-    bool             demo        = false;
+    bool             pristine    = true;   // new, and never touched
+    bool             browsing    = false;  // an example, not yet touched:
+                                           // the next one takes its place
+    bool             preview_shown = false;  // this frame's: the
+                                             // operation's preview is in
+                                             // view
+    bool             in_front      = false;  // this frame's: the document
+                                             // is the one in front
 
     // the context menu: what it is about, and a request to open it, which
     // lasts one frame
-    std::string      menu_kind;                // "row", "segment", "sheet"
+    std::string      menu_kind;                // "row", "segment", "sheet",
+                                               // "names_by", "special"
     std::string      menu_where;               // "tree", "grid", "table"
     int              menu_row     = 0;
+    int              menu_special = 0;         // a special row's id
     int              menu_segment = -1;        // the sheet's, or -1
     int              menu_lsb     = 0;         // the segment's bits
     int              menu_msb     = 0;
@@ -123,6 +135,27 @@ struct ui_state
     std::string      rename_where;             // "tree" or "grid"
     bool             rename_focus     = false;
 
+    // a child just named in a tree's "Add child..." field: the group or
+    // range it went to, and a request, for one frame, that the field take
+    // the keyboard again -- empty for the next name, or with a name it
+    // refused, to be put right
+    int              adding_to        = -1;
+    std::string      adding_text;
+    bool             adding_focus     = false;
+    std::string      adding_where     = "tree";   // or "grid"
+
+    // the document's file renamed in its tab: the name typed over the tab,
+    // which takes the keyboard in its first frame
+    bool             file_renaming     = false;
+    bool             file_rename_focus = false;
+
+    // the Add node window's row in the making; and, as the preferences
+    // have it, what ends a group's rows to add one more -- 0 the field and
+    // a +, 1 the field, 2 the + -- and whether the field fills its column
+    node_draft       node;
+    int              child_offer      = 0;
+    bool             child_fill       = false;
+
     // what the last import said, until the next one; and a request, for
     // one frame, that the grid fit its name and value columns to a sheet
     // just imported or taken from the examples
@@ -132,13 +165,22 @@ struct ui_state
 };
 
 // model
-//   struct: everything the window draws from.
+//   struct: one document: everything its windows draw from. Its id names
+// it to the window, unchanged while it is open.
 struct model
 {
+    int         id            = 0;
     sheet       doc;
     look        shown;          // doc's colours, as the window draws them
     resolution  res;
     history     steps;
+
+    // the rows as the grid and the tree show them, sorted as the grid's
+    // sort_by says: indices into res.rows; and each row's place among them,
+    // by its index in res.rows. sort_rows keeps them with res
+    std::vector<std::size_t> order;
+    std::vector<std::size_t> place;
+
     ui_state    ui;
     op_preview  preview;
     bool        preview_valid = false;
@@ -147,6 +189,77 @@ struct model
     int         version       = 0;
     std::string today         = "2026.10.04";
 };
+
+// sort_rows
+//   the order the grid and the tree show a model's rows in, worked out
+// again: after every resolution.
+inline void
+sort_rows(
+    model& _model
+)
+{
+    _model.order = display_order(_model.doc, _model.res);
+    _model.place.assign(_model.order.size(), 0);
+
+    for (std::size_t i = 0; i < _model.order.size(); ++i)
+    {
+        _model.place[_model.order[i]] = i;
+    }
+
+    return;
+}
+
+// shown_rows
+//   a model's rows, in the order the grid and the tree show them -- the
+// sheet's own, while the order is out of step with the resolution.
+inline std::vector<const resolved_row*>
+shown_rows(
+    const model& _model
+)
+{
+    const std::vector<resolved_row>& rows = _model.res.rows;
+    std::vector<const resolved_row*> out;
+
+    out.reserve(rows.size());
+
+    if (_model.order.size() == rows.size())
+    {
+        for (std::size_t each : _model.order)
+        {
+            out.push_back(&rows[each]);
+        }
+    }
+    else
+    {
+        for (const resolved_row& each : rows)
+        {
+            out.push_back(&each);
+        }
+    }
+
+    return out;
+}
+
+// place_of
+//   where a row comes among those the grid and the tree show, by its id:
+// for sorting a group's children as they are shown.
+inline std::size_t
+place_of(
+    const model& _model,
+    int          _id
+)
+{
+    const auto found = _model.res.index.find(_id);
+
+    if (found == _model.res.index.end())
+    {
+        return _model.res.rows.size();
+    }
+
+    return (_model.place.size() == _model.res.rows.size())
+               ? _model.place[found->second]
+               : found->second;
+}
 
 // inspected
 //   the row the inspector shows, or nullptr.

@@ -9,7 +9,7 @@
 * path:      /src/djinterp/tools/bitwisedom/persist.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 #include <djinterp/tools/bitwisedom/persist.hpp>  // corresponding header
 
@@ -56,12 +56,18 @@ const words STYLES     = { { "solid", "dashed", "dotted" }, 0 };
 const words COLLAPSES  = { { "hex", "dots", "count", "blank" }, 0 };
 const words MODES      = { { "row", "group", "kind", "accent" }, 0 };
 const words FILLS      = { { "cells", "names", "none" }, 0 };
+const words VALUE_FORMS = { { "written", "hex", "dec", "bin", "shift",
+                              "bits" }, 0 };
+const words SORT_KEYS  = { { "sheet", "symbol", "name", "short_name", "value",
+                             "lowest", "width", "kind", "note" }, 0 };
 const words LANGUAGES  = { { "c", "cpp" }, 0 };
 const words FORMS      = { { "macros", "constants" }, 0 };
 const words GEN_STYLES = { { "djinterp", "plain" }, 0 };
 const words STANDARDS  = { { "c99", "c11", "c17", "c23", "cpp98", "cpp11",
                              "cpp14", "cpp17", "cpp20", "cpp23" }, 0 };
 const words MODELS     = { { "lp64", "llp64", "ilp32" }, 0 };
+const words SPECIALS   = { { "probe", "usage" }, 0 };
+const words PLACES     = { { "bottom", "top", "tree" }, 0 };
 
 // word
 //   an enumeration's value as its word.
@@ -437,14 +443,86 @@ save_grid(
     out.set("show_digits", json_value::boolean(_grid.show_digits));
     out.set("show_probe", json_value::boolean(_grid.show_probe));
     out.set("show_usage", json_value::boolean(_grid.show_usage));
+    out.set("lines_past_rows", json_value::boolean(_grid.lines_past_rows));
     out.set("show_labels", json_value::boolean(_grid.show_labels));
+    out.set("show_colours", json_value::boolean(_grid.show_colours));
+    out.set("show_names", json_value::boolean(_grid.show_names));
+    out.set("show_values", json_value::boolean(_grid.show_values));
+    out.set("show_bits", json_value::boolean(_grid.show_bits));
+    out.set("values_first", json_value::boolean(_grid.values_first));
     out.set("show_cell_boxes", json_value::boolean(_grid.show_cell_boxes));
+    out.set("square_cells", json_value::boolean(_grid.square_cells));
+    out.set("cell_ratio", json_value::real(_grid.cell_ratio));
     out.set("full_names", json_value::boolean(_grid.full_names));
+    out.set("names_by_value", json_value::boolean(_grid.names_by_value));
+    out.set("names_value_form",
+            word(VALUE_FORMS, _grid.names_value_form));
     out.set("abbreviate_unused",
             json_value::boolean(_grid.abbreviate_unused));
     out.set("unused_run", json_value::number(_grid.unused_run));
     out.set("collapsed", word(COLLAPSES, _grid.collapsed));
     out.set("fill", word(FILLS, _grid.fill));
+    out.set("sort_by", word(SORT_KEYS, _grid.sort_by));
+    out.set("sort_descending", json_value::boolean(_grid.sort_descending));
+
+    // the regions that show their cells otherwise, each with only what it
+    // changes
+    if (!_grid.rules.empty())
+    {
+        json_value rules = json_value::array();
+
+        for (const display_rule& each : _grid.rules)
+        {
+            json_value rule = json_value::object();
+            json_value ids  = json_value::array();
+
+            for (int id : each.rows)
+            {
+                ids.push(json_value::number(id));
+            }
+
+            rule.set("rows", std::move(ids));
+            rule.set("lsb", json_value::number(each.lsb));
+            rule.set("msb", json_value::number(each.msb));
+
+            for (const auto& part : { std::make_pair("digits", each.digits),
+                                      std::make_pair("names", each.names),
+                                      std::make_pair("colour",
+                                                     each.colour) })
+            {
+                if (part.second >= 0)
+                {
+                    rule.set(part.first, json_value::boolean(part.second != 0));
+                }
+            }
+
+            rules.push(std::move(rule));
+        }
+
+        out.set("rules", std::move(rules));
+    }
+
+    // the special rows, in their order: where each is shown, and among the
+    // rows, the row it comes before or the group it ends
+    json_value specials = json_value::array();
+
+    for (const special_row& each : _grid.specials)
+    {
+        json_value one = json_value::object();
+
+        one.set("kind", word(SPECIALS, each.kind));
+        one.set("place", word(PLACES, each.place));
+
+        if (each.place == special_place::tree)
+        {
+            one.set("parent", json_value::number(each.parent));
+            one.set("before", json_value::number(each.before));
+        }
+
+        specials.push(std::move(one));
+    }
+
+    out.set("specials", std::move(specials));
 
     return out;
 }
@@ -484,17 +562,98 @@ load_grid(
     _grid.show_digits  = get_bool(in, "show_digits", _grid.show_digits);
     _grid.show_probe   = get_bool(in, "show_probe", _grid.show_probe);
     _grid.show_usage   = get_bool(in, "show_usage", _grid.show_usage);
+    _grid.lines_past_rows =
+        get_bool(in, "lines_past_rows", _grid.lines_past_rows);
     _grid.show_labels  = get_bool(in, "show_labels", _grid.show_labels);
+    _grid.show_colours = get_bool(in, "show_colours", _grid.show_colours);
+    _grid.show_names = get_bool(in, "show_names", _grid.show_names);
+    _grid.show_values = get_bool(in, "show_values", _grid.show_values);
+    _grid.show_bits = get_bool(in, "show_bits", _grid.show_bits);
+    _grid.values_first = get_bool(in, "values_first", _grid.values_first);
     _grid.show_cell_boxes = get_bool(
         in, "show_cell_boxes",
         get_bool(in, "show_range_boxes", _grid.show_cell_boxes));
+    _grid.square_cells = get_bool(in, "square_cells", _grid.square_cells);
+    _grid.cell_ratio   = get_float(in, "cell_ratio", _grid.cell_ratio);
     _grid.full_names   = get_bool(in, "full_names", _grid.full_names);
+    _grid.names_by_value =
+        get_bool(in, "names_by_value", _grid.names_by_value);
+    _grid.names_value_form = read_word(in.find("names_value_form"),
+                                       VALUE_FORMS,
+                                       _grid.names_value_form);
     _grid.abbreviate_unused =
         get_bool(in, "abbreviate_unused", _grid.abbreviate_unused);
     _grid.unused_run   = get_small(in, "unused_run", _grid.unused_run);
     _grid.collapsed    = read_word(in.find("collapsed"), COLLAPSES,
                                    _grid.collapsed);
     _grid.fill         = read_word(in.find("fill"), FILLS, _grid.fill);
+    _grid.sort_by      = read_word(in.find("sort_by"), SORT_KEYS,
+                                   _grid.sort_by);
+    _grid.sort_descending =
+        get_bool(in, "sort_descending", _grid.sort_descending);
+
+    const json_value* rules = in.find("rules");
+
+    if ( (rules != nullptr) &&
+         (rules->type == json_type::array) )
+    {
+        _grid.rules.clear();
+
+        for (const json_value& each : rules->items)
+        {
+            display_rule      made;
+            const json_value* ids = each.find("rows");
+
+            if ( (ids != nullptr) &&
+                 (ids->type == json_type::array) )
+            {
+                for (const json_value& id : ids->items)
+                {
+                    made.rows.push_back(static_cast<int>(id.as_int(0)));
+                }
+            }
+
+            made.lsb = static_cast<int>(get_int(each, "lsb", 0));
+            made.msb = static_cast<int>(get_int(each, "msb", -1));
+
+            // tri
+            //   a part the rule sets, or -1 for one it leaves the sheet's.
+            auto tri = [&each](const char* _key)
+            {
+                const json_value* found = each.find(_key);
+
+                return (found == nullptr) ? -1
+                                          : (found->as_bool(false) ? 1 : 0);
+            };
+
+            made.digits = tri("digits");
+            made.names  = tri("names");
+            made.colour = tri("colour");
+            _grid.rules.push_back(std::move(made));
+        }
+    }
+
+    // the special rows; a file from before them has the probe and the
+    // usage pinned at the bottom, as the sheet it is read into has
+    const json_value* specials = in.find("specials");
+
+    if ( (specials != nullptr) &&
+         (specials->type == json_type::array) )
+    {
+        _grid.specials.clear();
+
+        for (const json_value& each : specials->items)
+        {
+            special_row made;
+
+            made.id     = static_cast<int>(_grid.specials.size()) + 1;
+            made.kind   = read_word(each.find("kind"), SPECIALS, made.kind);
+            made.place  = read_word(each.find("place"), PLACES, made.place);
+            made.parent = static_cast<int>(get_int(each, "parent", 0));
+            made.before = static_cast<int>(get_int(each, "before", 0));
+            _grid.specials.push_back(made);
+        }
+    }
 
     return;
 }
@@ -826,6 +985,16 @@ sheet_object(
     out.set("trim_right", json_value::string(_sheet.trim_right));
     out.set("probe", hex_value(_sheet.probe));
     out.set("environment", json_value::string(_sheet.environment));
+    json_value definitions = json_value::array();
+    for (const definition_source& source : _sheet.definitions)
+    {
+        json_value entry = json_value::object();
+        entry.set("path", json_value::string(source.path));
+        entry.set("text", json_value::string(source.text));
+        entry.set("show_other", json_value::boolean(source.show_other));
+        definitions.items.push_back(std::move(entry));
+    }
+    out.set("definitions", std::move(definitions));
 
     json_value rows = json_value::array();
 
@@ -925,6 +1094,21 @@ sheet_from_object(
     made.trim_right = get_text(in, "trim_right", "");
     made.probe    = read_hex(in.find("probe"), wide());
     made.environment = get_text(in, "environment", "");
+    if (const json_value* files = in.find("definitions"))
+    {
+        if (files->type == json_type::array)
+        {
+            for (const json_value& entry : files->items)
+            {
+                if (entry.type != json_type::object) continue;
+                definition_source source;
+                source.path = get_text(entry, "path", "");
+                source.text = get_text(entry, "text", "");
+                source.show_other = get_bool(entry, "show_other", false);
+                made.definitions.push_back(std::move(source));
+            }
+        }
+    }
 
     load_colours(in.find("colours"), made.colours);
     load_grid(in.find("grid"), made.grid);
@@ -967,6 +1151,10 @@ sheet_from_object(
     }
 
     made.next_id = top + 1;
+
+    // the special rows anchored only to rows the sheet has
+    (void)settle_specials(made);
+
     _sheet       = std::move(made);
 
     return true;

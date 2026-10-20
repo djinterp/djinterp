@@ -20,11 +20,14 @@
 * -- is reported on the row.
 *   A resolution is computed whole, from scratch, after every edit: sheets
 * are small, and a resolution that is always fresh cannot go stale.
+*   The order rows are shown in is the sheet's own, or each group's rows
+* sorted by a key -- a name, the value, the lowest bit -- which a window
+* asks for; the header follows the sheet's own order either way.
 *
 * path:      /inc/djinterp/tools/bitwisedom/resolve.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 
 /*
@@ -39,6 +42,8 @@ TABLE OF CONTENTS
     ----------
     1.  resolve
     2.  Names
+    3.  A wide sheet's C
+    4.  The order rows are shown in
 */
 
 #ifndef BITWISEDOM_RESOLVE_HPP
@@ -137,11 +142,14 @@ struct resolved_row
 // resolution
 //   struct: a whole sheet resolved. `rows` is in the tree's depth-first
 // order, root excluded; `usage` has an entry per bit of the sheet's width.
+// `definition_notes` has, for each of the sheet's definition files, what
+// the preprocessor could not read in it, or assumed, each "line N: ...".
 struct resolution
 {
     int                        width = 0;
     std::vector<resolved_row>  rows;
     std::vector<issue>         issues;
+    std::vector<std::vector<std::string>> definition_notes;
     std::vector<int>           usage;
     wide                       allocated;
     wide                       collisions;
@@ -263,6 +271,27 @@ D_NODISCARD std::string macro_body(const resolution&         _resolution,
                                    const row&                _macro,
                                    std::vector<std::string>* _unknown);
 
+
+// 2.4    The order rows are shown in
+//------------------------------------------------------------------------------
+/**
+ * @brief The order a sheet's rows are shown in: the sheet's own, or each
+ *        group's rows sorted as its grid's sort_by and sort_descending say
+ *        -- groups first among their siblings, sorted by name where the
+ *        key is a name and in the sheet's order where it is not; rows the
+ *        key says nothing of, such as a symbol with no value sorted by
+ *        value, after those it does; and rows the key cannot tell apart in
+ *        the sheet's order.
+ *
+ * @param[in] _sheet       the sheet, whose grid says how to sort.
+ * @param[in] _resolution  the sheet's resolution.
+ * @return indices into _resolution.rows, each row once, depth-first as
+ *         rows is: every row after the group it is in, and before that
+ *         group's next row. For the sheet's own order, 0, 1, 2, ...
+ */
+D_NODISCARD std::vector<std::size_t> display_order(
+    const sheet&      _sheet,
+    const resolution& _resolution);
 
 }  // namespace bitwisedom
 

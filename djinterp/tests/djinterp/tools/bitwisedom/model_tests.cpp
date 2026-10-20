@@ -2,7 +2,10 @@
 * bitwisedom [tests]                                             model_tests.cpp
 *
 * The model's suite: bits, expressions, sheets, resolution, operations, the
-* generator, files and history, and the C environment and importer.
+* generator, files and history, and the C environment and importer -- and
+* the order a sheet's rows are shown in, what each cell of the grid shows,
+* where the grid's probe and usage rows are, and what the preprocessor
+* cannot read in a definition file.
 *   A suite is a table of sections, as djinterp's are: each section a
 * function that checks one thing and says which check failed, the runner a
 * loop over the table that prints each verdict and the totals. The count is
@@ -12,9 +15,10 @@
 * path:      /tests/djinterp/tools/bitwisedom/model_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 // std
+#include <cmath>    // std::fabs
 #include <cstdio>   // std::printf
 #include <string>   // std::string
 #include <vector>   // std::vector
@@ -1946,7 +1950,17 @@ files_new_fields()
 {
     sheet s = make_sheet("f", 32);
     s.environment = "#define X 1\n";
+    s.definitions.push_back(definition_source{
+        "external.h", "#define EXT_CONSTANT 42\n", false });
+    expect(!s.grid.show_probe && !s.grid.show_usage,
+           "utility rows hidden by default");
     s.gen.model   = data_model::ilp32;
+    expect(!s.grid.show_values, "value column hidden by default");
+    expect(s.grid.show_names && s.grid.show_bits,
+           "symbols and bit visualizer visible by default");
+    s.grid.show_values = true;
+    s.grid.show_bits = false;
+    s.grid.values_first = true;
 
     row literal = symbol("L", def_kind::literal);
     literal.digits = 6;
@@ -1957,14 +1971,212 @@ files_new_fields()
     macro.body     = "(1)";
     (void)insert_row(s, 0, -1, macro);
 
+    row external = symbol("FROM_HEADER", def_kind::macro);
+    external.body = "EXT_CONSTANT";
+    const int external_id = insert_row(s, 0, -1, external);
+
     sheet       loaded;
     std::string error;
 
     expect(load_sheet(save_sheet(s), loaded, error), "it loads");
     expect(loaded.environment == s.environment, "its environment");
+    expect(loaded.definitions.size() == 1 &&
+           loaded.definitions.front().path == "external.h" &&
+           loaded.definitions.front().text == s.definitions.front().text,
+           "the imported header survives a JSON round trip");
+    expect(loaded.grid.show_values && !loaded.grid.show_bits &&
+           loaded.grid.values_first, "column choices round trip");
+    expect(!loaded.grid.show_cell_boxes, "boxes remain off by default");
     expect(loaded.gen.model == data_model::ilp32, "its data model");
     expect(loaded.root.children[0].digits == 6, "a literal's digits");
     expect(loaded.root.children[1].callable, "a callable macro");
+
+    const resolution resolved = resolve(s);
+    const resolved_row* from_header = resolved.find(external_id);
+    expect(from_header != nullptr && from_header->has_value &&
+           from_header->value == 42u,
+           "an imported #define can supply a symbolic value");
+    const std::string defs = generate_simple_defines(s, resolved);
+    expect(contains(defs, "#define L "), "basic literal macro");
+    expect(contains(defs, "#define M() (1)"), "callable macro");
+    expect(defs.find("#define ") != std::string::npos,
+           "the simple exporter writes defines");
+
+    return;
+}
+
+/*
+files_new_document
+  File > New's sheet, and the grid's square cells
+  Tests the following:
+  - a new document is one full-width range, root, with no fill
+  - holding one bit, FLAG, at bit 0: 0x...01, at any width
+  - which resolves clean, and is written to the header
+  - square cells are on in a new sheet, are turned off and kept so, and a
+    file from before them opens with them on
+*/
+void
+files_new_document()
+{
+    const sheet made = make_document("untitled", 32);
+
+    expect( (made.root.children.size() == 1) &&
+            (made.root.children.front().name == "root") &&
+            (made.root.children.front().def == def_kind::range) &&
+            (made.root.children.front().width == 32),
+           "a new document is one full-width range");
+    expect(made.root.children.front().transparent,
+           "with no fill");
+
+    const row& root = made.root.children.front();
+
+    expect( (root.children.size() == 1) &&
+            (root.children.front().kind == row_kind::symbol) &&
+            (root.children.front().def == def_kind::bit) &&
+            (root.children.front().bit == 0) &&
+            (root.children.front().name == "FLAG"),
+           "holding one bit, FLAG, at bit 0");
+
+    const resolution resolved = resolve(made);
+
+    expect( (resolved.errors == 0) &&
+            (value_of(resolved, "FLAG") == 0x1u),
+           "whose value is 0x...01");
+    expect(resolved.find(root.id)->colour == 0, "the root drawn unfilled");
+    expect(resolved.find(root.children.front().id)->colour != 0,
+           "its bit in a colour of the palette");
+    expect(contains(generate(made, resolved, "2026.10.18").text,
+                    "#define FLAG"),
+           "and FLAG is written to the header");
+    expect(value_of(resolve(make_document("narrow", 8)), "FLAG") == 0x1u,
+           "at any width");
+
+    // square cells: on, off and kept, and on for a file without them
+    sheet       squares = make_document("squares", 32);
+    sheet       loaded;
+    std::string error;
+
+    expect(squares.grid.square_cells, "cells are square in a new sheet");
+
+    squares.grid.square_cells = false;
+    expect( (load_sheet(save_sheet(squares), loaded, error)) &&
+            (!loaded.grid.square_cells),
+           "turned off, they stay off in the file");
+
+    std::string       older = save_sheet(make_document("older", 32));
+    const std::string key   = "\"square_cells\"";
+    const std::size_t at    = older.find(key);
+
+    expect(at != std::string::npos, "the file names them");
+
+    if (at != std::string::npos)
+    {
+        older.replace(at, key.size(), "\"retired_key\"");
+    }
+
+    expect( (load_sheet(older, loaded, error)) &&
+            (loaded.grid.square_cells),
+           "and a file from before them opens with them on");
+
+    // the rows' share of the cells' width: four fifths, kept, and four
+    // fifths for a file without it
+    sheet shorter = make_document("shorter", 32);
+
+    expect(std::fabs(shorter.grid.cell_ratio - 0.8f) < 0.001f,
+           "rows are four fifths of a cell's width in a new sheet");
+
+    shorter.grid.cell_ratio = 1.0f;
+    expect( (load_sheet(save_sheet(shorter), loaded, error)) &&
+            (std::fabs(loaded.grid.cell_ratio - 1.0f) < 0.001f),
+           "a share set stays in the file");
+    expect( (load_sheet(older, loaded, error)) &&
+            (std::fabs(loaded.grid.cell_ratio - 0.8f) < 0.001f),
+           "and a file from before it opens at four fifths");
+
+    return;
+}
+
+/*
+files_names_by
+  What the symbols column lists each row by, kept with the sheet
+  Tests the following:
+  - a new sheet lists its rows by their own names: not by value, and not
+    by macro name; its values, when it does, as the header writes them
+  - by value, the choice is kept in the file, with the way the values are
+    written, and the macro names
+  - every way of writing values is kept as itself
+  - a file from before the choice opens listing rows by name, as it did,
+    and one with a way no one knows writes values as the header does
+*/
+void
+files_names_by()
+{
+    sheet       made = make_document("names", 32);
+    sheet       loaded;
+    std::string error;
+
+    expect( (!made.grid.names_by_value) &&
+            (!made.grid.full_names) &&
+            (made.grid.names_value_form == value_form::written),
+           "a new sheet lists its rows by their own names");
+
+    made.grid.names_by_value   = true;
+    made.grid.full_names       = true;
+    made.grid.names_value_form = value_form::shift;
+
+    expect( (load_sheet(save_sheet(made), loaded, error)) &&
+            (loaded.grid.names_by_value) &&
+            (loaded.grid.full_names) &&
+            (loaded.grid.names_value_form == value_form::shift),
+           "by value, the choice is kept, the way and the macro names with "
+           "it");
+
+    bool kept = true;
+
+    for (int form = 0; form < VALUE_FORM_COUNT; ++form)
+    {
+        made.grid.names_value_form = static_cast<value_form>(form);
+        kept = ( (kept) &&
+                 (load_sheet(save_sheet(made), loaded, error)) &&
+                 (loaded.grid.names_value_form ==
+                  static_cast<value_form>(form)) );
+    }
+
+    expect(kept, "every way of writing values is kept as itself");
+
+    std::string       older = save_sheet(made);
+    const std::string key   = "\"names_by_value\"";
+    const std::size_t at    = older.find(key);
+
+    expect(at != std::string::npos, "the file names the choice");
+
+    if (at != std::string::npos)
+    {
+        older.replace(at, key.size(), "\"retired_key\"");
+    }
+
+    expect( (load_sheet(older, loaded, error)) &&
+            (!loaded.grid.names_by_value) &&
+            (loaded.grid.full_names),
+           "and a file from before it lists rows by name, as it did");
+
+    // the last way kept, bits, made one no one knows
+    std::string       odd  = save_sheet(made);
+    const std::size_t from = odd.find("\"names_value_form\"");
+    const std::size_t word = (from == std::string::npos)
+                                 ? std::string::npos
+                                 : odd.find("\"bits\"", from);
+
+    if (word != std::string::npos)
+    {
+        odd.replace(word, 6, "\"runes\"");
+    }
+
+    expect( (word != std::string::npos) &&
+            (load_sheet(odd, loaded, error)) &&
+            (loaded.grid.names_value_form == value_form::written),
+           "and one with a way no one knows writes values as the header "
+           "does");
 
     return;
 }
@@ -2122,6 +2334,449 @@ colours_and_schemes()
     return;
 }
 
+// locals_in
+//   the local names of a group's rows, in an order of the resolution's.
+std::vector<std::string>
+locals_in(
+    const resolution&               _res,
+    const std::vector<std::size_t>& _order,
+    int                             _group
+)
+{
+    std::vector<std::string> out;
+
+    for (std::size_t each : _order)
+    {
+        if (_res.rows[each].parent == _group)
+        {
+            out.push_back(_res.rows[each].local);
+        }
+    }
+
+    return out;
+}
+
+// depth_first
+//   whether an order holds every row once, each after the group it is in
+// and no deeper than one more than the row before it: a tree, read down.
+bool
+depth_first(
+    const resolution&               _res,
+    const std::vector<std::size_t>& _order
+)
+{
+    if (_order.size() != _res.rows.size())
+    {
+        return false;
+    }
+
+    std::vector<int> place(_res.rows.size(), -1);
+
+    for (std::size_t i = 0; i < _order.size(); ++i)
+    {
+        if ( (_order[i] >= place.size()) ||
+             (place[_order[i]] >= 0) )
+        {
+            return false;
+        }
+
+        place[_order[i]] = static_cast<int>(i);
+    }
+
+    for (std::size_t i = 0; i < _order.size(); ++i)
+    {
+        const resolved_row& here = _res.rows[_order[i]];
+
+        if ( (i > 0) &&
+             (here.depth > _res.rows[_order[i - 1]].depth + 1) )
+        {
+            return false;
+        }
+
+        if (here.parent != 0)
+        {
+            const auto group = _res.index.find(here.parent);
+
+            if ( (group == _res.index.end()) ||
+                 (place[group->second] >= static_cast<int>(i)) )
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/*
+sorted_and_shown
+  A sheet's rows in the order the grid and the tree show them: the sheet's
+own, or each group's rows sorted -- groups first, by name; a row the key
+says nothing of after those it does, whichever way; rows the key cannot
+tell apart as the sheet has them -- and kept in a file. And what each cell
+shows: the grid's settings, as the rules over its rows and bits change
+them -- a group's rows, a run of bits, a region of both; the last rule
+winning; shown in one place only; back as the grid shows the rest -- kept
+in a file; and a rule whose rows have all gone, gone with them.
+*/
+void
+sorted_and_shown()
+{
+    sheet            s   = make_example("uart_cr");
+    const resolution res = resolve(s);
+    const int        en  = res.by_full.at("UART_CR_EN");
+    const int        top = res.find(en)->parent;
+    const int        presets = res.find(
+                                   res.by_full.at("UART_CR_DEFAULT"))->parent;
+
+    // the sheet's own order
+    std::vector<std::size_t> order = display_order(s, res);
+    bool                     own   = (order.size() == res.rows.size());
+
+    for (std::size_t i = 0; ( (own) && (i < order.size()) ); ++i)
+    {
+        own = (order[i] == i);
+    }
+
+    expect(own, "the sheet's own order is the resolution's");
+
+    // by name: the groups, then each group's rows
+    s.grid.sort_by = sort_key::name;
+    order          = display_order(s, res);
+
+    expect(depth_first(res, order), "sorted, it is still the tree, read "
+                                    "down");
+    expect(locals_in(res, order, 0) ==
+               std::vector<std::string>({ "Baud", "Enables", "Format",
+                                          "Presets" }),
+           "groups by name");
+    expect(locals_in(res, order, top) ==
+               std::vector<std::string>({ "EN", "LOOPBACK", "RXEN",
+                                          "TXEN" }),
+           "and a group's rows by name");
+
+    // by value, descending: a macro with no value last, either way
+    s.grid.sort_by         = sort_key::value;
+    s.grid.sort_descending = true;
+    order                  = display_order(s, res);
+
+    expect(locals_in(res, order, top) ==
+               std::vector<std::string>({ "LOOPBACK", "RXEN", "TXEN",
+                                          "EN" }),
+           "by value, the largest first");
+    expect(locals_in(res, order, presets).back() == "IS_ENABLED",
+           "a row with no value after those with one");
+
+    s.grid.sort_descending = false;
+    order                  = display_order(s, res);
+    expect(locals_in(res, order, presets).back() == "IS_ENABLED",
+           "whichever way they are sorted");
+
+    // by lowest bit: the sheet's own order, here
+    s.grid.sort_by = sort_key::lowest;
+    order          = display_order(s, res);
+    expect(locals_in(res, order, top) ==
+               std::vector<std::string>({ "EN", "TXEN", "RXEN",
+                                          "LOOPBACK" }),
+           "by lowest bit");
+
+    // kept in a file, and the header in the sheet's order still
+    s.grid.sort_by         = sort_key::short_name;
+    s.grid.sort_descending = true;
+
+    sheet       back;
+    std::string error;
+
+    expect( (load_sheet(save_sheet(s), back, error)) &&
+            (back.grid.sort_by == sort_key::short_name) &&
+            (back.grid.sort_descending),
+           "the order is kept in a file");
+
+    const generated code = generate(s, res, "2026.10.18");
+
+    expect(code.text.find("UART_CR_EN ") < code.text.find("UART_CR_TXEN "),
+           "and the header keeps the sheet's");
+
+    // what a cell shows
+    sheet            d     = make_example("uart_cr");
+    const resolution dres  = resolve(d);
+    const int        txen  = dres.by_full.at("UART_CR_TXEN");
+    const int        group = dres.find(dres.by_full.at("UART_CR_EN"))->parent;
+    const int        parity = dres.by_full.at("UART_CR_PARITY");
+    const int        first  = dres.by_full.at("UART_CR_EN");
+
+    // at
+    //   what a row's cell for a bit shows.
+    auto at = [&d](int _id,
+                   int _bit)
+    {
+        return shown_at(d.grid,
+                        rules_over(d.grid, lineage(d, _id)),
+                        _bit,
+                        _bit);
+    };
+
+    expect( (!at(first, 0).digits) &&
+            (at(first, 0).names) &&
+            (at(first, 0).colour),
+           "at first, the grid's own: no digits; names and colours");
+
+    set_shown(d.grid, { group }, 0, -1, shown_part::digits, 1, false);
+    expect( (at(first, 0).digits) &&
+            (at(txen, 20).digits) &&
+            (!at(parity, 4).digits),
+           "digits in a group's rows: every row in it, and no other");
+
+    set_shown(d.grid, {}, 4, 11, shown_part::colour, 0, false);
+    expect( (!at(parity, 4).colour) &&
+            (!at(first, 11).colour) &&
+            (at(parity, 3).colour) &&
+            (at(parity, 12).colour),
+           "no colour in a run of bits, in every row");
+
+    set_shown(d.grid, { txen }, 0, 3, shown_part::names, 0, false);
+    expect( (!at(txen, 1).names) &&
+            (at(txen, 4).names) &&
+            (at(first, 1).names),
+           "a region: one row's run of bits");
+
+    set_shown(d.grid, { txen }, 3, 0, shown_part::names, -1, false);
+    expect( (!at(txen, 1).names) &&
+            (d.grid.rules.size() == 3),
+           "another region -- every bit -- leaves it alone");
+
+    set_shown(d.grid, { txen }, 0, 3, shown_part::names, -1, false);
+    expect( (at(txen, 1).names) &&
+            (d.grid.rules.size() == 2),
+           "back as the grid shows the rest: its rule gone");
+
+    set_shown(d.grid, {}, 0, -1, shown_part::digits, 0, false);
+    expect(!at(first, 0).digits, "a later rule wins");
+
+    set_shown(d.grid, { group }, 0, -1, shown_part::digits, 1, false);
+    expect( (at(first, 0).digits) &&
+            (d.grid.rules.back().digits == 1) &&
+            (d.grid.rules.back().rows == std::vector<int>({ group })),
+           "set again, a region's setting is the last rule, and wins");
+
+    set_shown(d.grid, { parity }, 0, -1, shown_part::colour, 1, true);
+    expect( (!d.grid.show_colours) &&
+            (at(parity, 31).colour) &&
+            (!at(first, 0).colour) &&
+            (!at(txen, 7).colour),
+           "a colour shown in one row only");
+
+    // kept in a file
+    sheet kept;
+
+    expect( (load_sheet(save_sheet(d), kept, error)) &&
+            (!kept.grid.show_colours) &&
+            (kept.grid.rules.size() == d.grid.rules.size()),
+           "the rules are kept in a file");
+
+    bool alike = true;
+
+    for (std::size_t i = 0;
+         ( (alike) && (i < d.grid.rules.size()) );
+         ++i)
+    {
+        const display_rule& a = d.grid.rules[i];
+        const display_rule& b = kept.grid.rules[i];
+
+        alike = ( (a.rows == b.rows) &&
+                  (a.lsb == b.lsb) &&
+                  (a.msb == b.msb) &&
+                  (a.digits == b.digits) &&
+                  (a.names == b.names) &&
+                  (a.colour == b.colour) );
+    }
+
+    expect(alike, "each as it was");
+
+    // a rule's rows all gone: the rule goes too, never covering every row
+    const std::size_t had = d.grid.rules.size();
+
+    (void)remove_row(d, parity);
+    expect( (prune_rules(d) == 1) &&
+            (d.grid.rules.size() == had - 1),
+           "a rule whose rows have gone goes with them");
+    expect(!at(first, 0).colour, "and covers no row it did not");
+
+    return;
+}
+
+/*
+special_rows
+  The grid's probe and usage rows: one of each in a new sheet, pinned at
+the bottom and hidden; another added just after one, placed as it is;
+moved -- pinned at the top, among the rows before a row or at a group's
+end, and in their order; removed, the last of a kind hidden instead, its
+place kept; anchors to rows gone let go of; and all of it kept in a file,
+a file from before them opening with the two at the bottom.
+*/
+void
+special_rows()
+{
+    sheet            s   = make_example("uart_cr");
+    const resolution res = resolve(s);
+    const int        en  = res.by_full.at("UART_CR_EN");
+    const int        top = res.find(en)->parent;
+    grid_settings&   g   = s.grid;
+
+    expect( (g.specials.size() == 2)                          &&
+            (g.specials[0].kind == special_kind::probe)       &&
+            (g.specials[1].kind == special_kind::usage)       &&
+            (g.specials[0].place == special_place::bottom)    &&
+            (g.specials[1].place == special_place::bottom)    &&
+            (g.specials[0].id != g.specials[1].id)            &&
+            (!g.show_probe) && (!g.show_usage)                &&
+            (!g.lines_past_rows),
+           "a sheet has a probe and a usage row, at the bottom, hidden");
+
+    const int probe = g.specials[0].id;
+    const int usage = g.specials[1].id;
+
+    // another, just after the one it copies
+    const int again = add_special(g, special_kind::usage, usage);
+
+    expect( (g.specials.size() == 3)         &&
+            (g.specials[2].id == again)      &&
+            (again != probe) && (again != usage) &&
+            (g.specials[2].place == special_place::bottom),
+           "another usage row, just after the first, placed as it is");
+
+    // moved: among the rows, at a group's end, and before a row; pinned at
+    // the top, ahead of another in their order
+    expect( (place_special(g, usage, special_place::tree, top, 0, 0)) &&
+            (find_special(g, usage)->place == special_place::tree)    &&
+            (find_special(g, usage)->parent == top)                   &&
+            (find_special(g, usage)->before == 0),
+           "moved to the end of a group's rows");
+    expect( (place_special(g, again, special_place::tree, top, en, 0)) &&
+            (find_special(g, again)->before == en),
+           "and before a row");
+    expect( (place_special(g, probe, special_place::top, 5, 7, again)) &&
+            (find_special(g, probe)->place == special_place::top)     &&
+            (find_special(g, probe)->parent == 0)                     &&
+            (find_special(g, probe)->before == 0)                     &&
+            (g.specials[1].id == probe),
+           "pinned at the top, anchored to no row, ahead of another");
+
+    // kept in a file
+    sheet       loaded;
+    std::string error;
+
+    g.show_usage      = true;
+    g.lines_past_rows = true;
+
+    expect( (load_sheet(save_sheet(s), loaded, error))                 &&
+            (loaded.grid.specials.size() == 3)                          &&
+            (loaded.grid.show_usage) && (loaded.grid.lines_past_rows)   &&
+            (loaded.grid.specials[0].place == special_place::tree)      &&
+            (loaded.grid.specials[0].parent == top)                     &&
+            (loaded.grid.specials[1].place == special_place::top)       &&
+            (loaded.grid.specials[1].kind == special_kind::probe)       &&
+            (loaded.grid.specials[2].before == en),
+           "kept in a file, in their order and places");
+
+    // removed; the last of a kind is hidden, and keeps its place
+    expect( (remove_special(g, again))     &&
+            (g.specials.size() == 2)       &&
+            (find_special(g, again) == nullptr),
+           "one of two usage rows removed");
+    expect( (remove_special(g, usage))                  &&
+            (g.specials.size() == 2)                    &&
+            (!g.show_usage)                             &&
+            (find_special(g, usage) != nullptr)         &&
+            (find_special(g, usage)->parent == top),
+           "the last is hidden instead, its place kept");
+
+    // a group gone: its special rows let go of it
+    (void)remove_row(s, top);
+    expect( (settle_specials(s))                              &&
+            (find_special(g, usage)->place == special_place::tree) &&
+            (find_special(g, usage)->parent == 0),
+           "a group gone, its special rows end the sheet's rows instead");
+
+    // a file from before them: the two, at the bottom
+    std::string       older = save_sheet(make_example("uart_cr"));
+    const std::string key   = "\"specials\"";
+    const std::size_t at    = older.find(key);
+
+    expect(at != std::string::npos, "a file names its special rows");
+
+    if (at != std::string::npos)
+    {
+        older.replace(at, key.size(), "\"retired_key\"");
+    }
+
+    expect( (load_sheet(older, loaded, error))                         &&
+            (loaded.grid.specials.size() == 2)                          &&
+            (loaded.grid.specials[0].kind == special_kind::probe)       &&
+            (loaded.grid.specials[1].place == special_place::bottom),
+           "and a file from before them opens with the two at the bottom");
+
+    return;
+}
+
+/*
+definition_notes
+  An imported definition file's lines the preprocessor cannot read -- a
+#define that does not parse, an #endif with no #if -- and what it only
+assumed -- an #if resting on a name nothing defines -- each named by its
+line, kept with the file it is in; what it reads still defines.
+*/
+void
+definition_notes()
+{
+    sheet             s = make_example("uart_cr");
+    definition_source file;
+
+    file.path = "flags.h";
+    file.text = "// flags\n"
+                "#define GOOD 1\n"
+                "#define BAD(\n"
+                "#if UNKNOWN_FLAG\n"
+                "#define INSIDE 2\n"
+                "#endif\n"
+                "#endif\n"
+                "int x;\n";
+    s.definitions.push_back(file);
+
+    const resolution res = resolve(s);
+
+    expect(res.definition_notes.size() == 1,
+           "a file's notes are kept with it");
+
+    bool bad    = false;
+    bool endif  = false;
+    bool rested = false;
+
+    for (const std::string& each : res.definition_notes.front())
+    {
+        bad    = ( (bad)    || (each.compare(0, 7, "line 3:") == 0) );
+        endif  = ( (endif)  || (each.compare(0, 7, "line 7:") == 0) );
+        rested = ( (rested) ||
+                   ( (each.compare(0, 7, "line 4:") == 0) &&
+                     (each.find("read as taken") != std::string::npos) ) );
+    }
+
+    expect(bad, "a #define that does not parse is named by its line");
+    expect(endif, "and an #endif with no #if");
+    expect(rested, "and an #if resting on a name nothing defines, assumed");
+
+    // the file edited: its notes follow
+    s.definitions.front().text = "#define GOOD 1\n";
+
+    const resolution mended = resolve(s);
+
+    expect( (mended.definition_notes.size() == 1) &&
+            (mended.definition_notes.front().empty()),
+           "mended, it has none");
+
+    return;
+}
+
 // section
 //   struct: one entry of the table.
 struct section
@@ -2160,8 +2815,13 @@ const section SECTIONS[] = {
     { "codegen: wide sheets",         generator_wide },
     { "files: bitfields and exports", exchange_json },
     { "files: new fields",            files_new_fields },
+    { "files: a new document",        files_new_document },
+    { "files: symbols by",            files_names_by },
     { "rename: and its references",   rename_and_references },
-    { "colours: themes and schemes",  colours_and_schemes }
+    { "colours: themes and schemes",  colours_and_schemes },
+    { "sheet: sorted, and shown",     sorted_and_shown },
+    { "sheet: special rows",          special_rows },
+    { "files: definition files read", definition_notes }
 };
 
 }  // anonymous namespace
