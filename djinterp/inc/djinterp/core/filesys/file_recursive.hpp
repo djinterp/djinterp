@@ -39,7 +39,7 @@
 * path:      /inc/djinterp/core/filesys/file_recursive.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -83,36 +83,51 @@ NS_INTERNAL
      *
      * @note Never `_dir / _name`: see this header's banner.
      *
-     * @param[in] _dir   the directory the entry was read from.
-     * @param[in] _name  the entry's name.
-     * @return the entry's path; invalid when either operand is, or when the
-     *         path cannot be allocated.
+     * @param[in]  _dir   the directory the entry was read from.
+     * @param[in]  _name  the entry's name.
+     * @param[out] _ec    left as it was on success; on failure EINVAL for an
+     *                    invalid operand, ENOMEM where the path cannot be
+     *                    allocated, and otherwise d_dir_entry_path's reason --
+     *                    ENAMETOOLONG for a path past D_FILE_PATH_MAX.
+     * @return the entry's path; invalid on failure.
      * @throws std::bad_alloc only when D_CFG_PATH_THROW is 1 and the result
      *         cannot be allocated.
      */
     inline path
     entry_path(
         const path& _dir,
-        const path& _name
+        const path& _name,
+        error&      _ec
     )
     {
         path_scratch scratch;
 
-        // an invalid operand, or a buffer that cannot grow -- +2 is the
-        // separator and the terminator -- yields an invalid path
-        if ( (!_dir.valid())  ||
-             (!_name.valid()) ||
-             (!scratch.grow(_dir.size() + _name.size() + 2)) )
+        // an invalid operand names no entry
+        if ( (!_dir.valid()) ||
+             (!_name.valid()) )
         {
+            _ec.assign(EINVAL);
+
             return path(static_cast<const char*>(0));
         }
 
-        // the buffer fits by construction, so this fails on nothing else
+        // +2 is the separator and the terminator
+        if (!scratch.grow(_dir.size() + _name.size() + 2))
+        {
+            _ec.assign(ENOMEM);
+
+            return path(static_cast<const char*>(0));
+        }
+
+        // the buffer fits by construction; what is left is the platform's
+        // limit on a path, D_FILE_PATH_MAX
         if (!d_dir_entry_path(scratch.data(),
                               scratch.size(),
                               _dir.c_str(),
                               _name.c_str()))
         {
+            _ec = error::from_errno();
+
             return path(static_cast<const char*>(0));
         }
 
@@ -189,7 +204,15 @@ NS_INTERNAL
                       _ec))
         {
             const path child  = entry_path(_dir,
-                                           e.name());
+                                           e.name(),
+                                           _ec);
+
+            // an entry whose path cannot be made stops the walk, with why
+            if (_ec.failed())
+            {
+                return false;
+            }
+
             const bool is_dir = entry_is_directory(child,
                                                    e);
 
@@ -260,6 +283,13 @@ walk(
  *       symlink is unlinked -- the LINK, never the target it points at.
  *       Removing a path that is not there is success, since the postcondition
  *       (nothing at `_p`) already holds.
+ * @warning Not proof against a race: each level is examined, then opened
+ *          and removed by its path, so a process that can write in the
+ *          tree and swaps a directory for a symbolic link in between sends
+ *          the removal down the link -- the race std::filesystem's own
+ *          remove_all had (CVE-2022-21658). Run it on trees no other user
+ *          can write; closing it takes directory-relative calls
+ *          (openat/unlinkat) the C layer does not offer yet.
  *
  * @param[in]  _p   the path to remove.
  * @param[out] _ec  cleared on success; set at the first failure, which stops
@@ -314,8 +344,17 @@ remove_all(
             while (d.read(e,
                           _ec))
             {
-                children.push_back(internal::entry_path(_p,
-                                                        e.name()));
+                const path child = internal::entry_path(_p,
+                                                        e.name(),
+                                                        _ec);
+
+                // a child whose path cannot be made cannot be removed
+                if (_ec.failed())
+                {
+                    return false;
+                }
+
+                children.push_back(child);
             }
 
             // a read error: do not delete a partial view

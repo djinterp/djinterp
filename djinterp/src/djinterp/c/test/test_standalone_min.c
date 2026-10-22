@@ -37,15 +37,15 @@
 * path:      /src/djinterp/c/test/test_standalone_min.c
 * link(s):   TBA
 * author(s): reconstructed                                          created: TBA
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../../../inc/djinterp/c/test/test_standalone.h"
-#include "../../../../tests/djinterp/c/fs/file_tests_sa.h"   // d_tests_file_run_all
+#include "../../../../inc/djinterp/test/c/test_standalone.h"
+#include "../../../../tests/djinterp/c/filesys/file_tests_sa.h"   // d_tests_file_run_all
 
 
 ///////////////////////////////////////////////////////////////////////////////

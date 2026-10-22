@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/core/filesys/file_temp.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.18
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -33,6 +33,8 @@ TABLE OF CONTENTS
 #ifndef DJINTERP_FILESYS_FILE_TEMP_HPP
 #define DJINTERP_FILESYS_FILE_TEMP_HPP 1
 
+// std
+#include <cerrno>  // ENOMEM
 // djinterp
 #include "file_path.hpp"                // path
 #include "file_common.hpp"              // error, the D_* kit
@@ -65,13 +67,22 @@ temp_directory_path(
     error& _ec
 )
 {
-    char buf[D_FILE_PATH_MAX + 1];
+    internal::path_scratch scratch;
+
+    // D_FILE_PATH_MAX and a terminator: on the stack where that is small, on
+    // the heap where a long-path build makes it 32 KiB
+    if (!scratch.grow((size_t)D_FILE_PATH_MAX + 1))
+    {
+        _ec.assign(ENOMEM);
+
+        return path(static_cast<const char*>(0));
+    }
 
     // c/filesys decides where the directory is, and reports through errno;
     // the answer then is an invalid path, not an empty one, which would name
     // the working directory to anything joined onto it
-    if (!d_dir_temp(buf,
-                    sizeof(buf)))
+    if (!d_dir_temp(scratch.data(),
+                    scratch.size()))
     {
         _ec = error::from_errno();
 
@@ -80,7 +91,7 @@ temp_directory_path(
 
     _ec.clear();
 
-    return path(buf);
+    return path(scratch.data());
 }
 
 

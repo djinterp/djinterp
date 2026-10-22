@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/c/filesys/file_temp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 
 /*
@@ -58,7 +58,8 @@ D_EXTERN_C_BEGIN
  * @brief Creates an anonymous temporary file, removed when it is closed or
  *        the process exits.
  *
- * @return an open read/write stream, or `NULL` on failure with errno set.
+ * @return an open read/write stream, or `NULL` on failure with errno set;
+ *         ENOSYS where the C library has no tmpfile, as WASI's does not.
  * @post The caller owns the stream; closing it removes the file.
  */
 FILE* d_file_temp_stream(void);

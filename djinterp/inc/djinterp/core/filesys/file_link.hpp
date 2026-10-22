@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/core/filesys/file_link.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.18
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -49,6 +49,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "file_path.hpp"                // path
 #include "file_common.hpp"              // error, the D_* kit
+#include "file_stat.hpp"                // internal::type_query, file_kind
 #include "../../c/filesys/file_link.h"  // d_file_symlink, d_file_readlink,
                                         // d_file_is_symlink
 
@@ -222,11 +223,15 @@ read_symlink(
  * @brief Reports whether a path is a symbolic link, WITHOUT following it.
  *
  * @note Equivalent to symlink_status(_path).is_symlink(); this is the
- *       one-question form for when the single bit is all you need. A path
- *       that cannot be examined is not a link, as d_file_is_symlink answers.
+ *       one-question form for when the single bit is all you need. Like
+ *       is_directory(), it tells "not a link" from "could not look": nothing
+ *       there is a plain false, and a path that cannot be examined sets
+ *       `_ec`.
  *
  * @param[in]  _path  the path to test.
- * @param[out] _ec    cleared on success; EINVAL for an invalid path.
+ * @param[out] _ec    cleared on success, and when nothing is there; EINVAL
+ *                    for an invalid path, otherwise the platform's reason
+ *                    the path could not be examined.
  * @return true for a symbolic link.
  */
 inline bool
@@ -243,9 +248,10 @@ is_symlink(
         return false;
     }
 
-    _ec.clear();
-
-    return d_file_is_symlink(_path.c_str()) != 0;
+    // the no-follow type query: it reports what it could not find out
+    return internal::type_query(_path,
+                                false,
+                                _ec) == file_kind::type_symlink;
 }
 
 

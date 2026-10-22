@@ -2,20 +2,21 @@
 * djinterp [c]                                                       file_open.c
 *
 * Implementation of the stream opening and closing declared in file_open.h.
-*   Three file-local steps shape every open: the caller's mode is decorated
-* with the build's policy, the path is opened through the one backend call
-* this build selected (_fsopen, fopen_s or fopen), and the new stream is given
-* the configured buffering. Every entry point here funnels through them, so
-* the policy is applied once rather than re-litigated per caller. On Windows
-* two CRT gaps are closed as well: a reopen without a file changes only the
-* translation, which is all the CRT can change in place, and an adopted
-* descriptor takes the mode's 'b' or 't', which _fdopen would ignore.
+*   Three file-local steps shape every open: the caller's mode is decorated with
+* the build's policy, the path is opened through the one backend call this build
+* selected (_fsopen, fopen_s or fopen; on Windows their wide twins, given
+* UTF-16, where the build reads paths as UTF-8), and the new stream is given the
+* configured buffering. Every entry point here funnels through them, so the
+* policy is applied once rather than re-litigated per caller. On Windows two CRT
+* gaps are closed as well: a reopen without a file changes only the translation,
+* which is all the CRT can change in place, and an adopted descriptor takes the
+* mode's 'b' or 't', which _fdopen would ignore.
 *
 *
 * path:      /src/djinterp/c/filesys/file_open.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_open.h"  // corresponding header
 // std
@@ -47,6 +48,58 @@ D_INTERNAL_FILE_ASSERT_LARGE_FILES;
 //   constant: d_internal_file_open_names' bit for a mode that names the
 // target's close-on-exec character.
 #define D_INTERNAL_OPEN_NAMES_CLOEXEC 4
+
+// D_INTERNAL_OPEN_MODE_NATIVE
+//   constant: the characters a mode needs in the platform's text -- room for
+// the decorated mode, or for the caller's own where that was too long to
+// decorate, where it is converted (file_common.h, 6.6); one, unused, where it
+// is handed on as it is.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_OPEN_MODE_NATIVE (2 * D_INTERNAL_FILE_OPEN_MODE_MAX)
+#else
+    #define D_INTERNAL_OPEN_MODE_NATIVE 1
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_OPEN_FOPEN
+//   macro: fopen, in the form the build's path text takes: _wfopen where
+// Windows is handed UTF-16. The four below are likewise.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_OPEN_FOPEN _wfopen
+#else
+    #define D_INTERNAL_OPEN_FOPEN fopen
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_OPEN_FOPEN_S
+//   macro: fopen_s, or _wfopen_s.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_OPEN_FOPEN_S _wfopen_s
+#else
+    #define D_INTERNAL_OPEN_FOPEN_S fopen_s
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_OPEN_FSOPEN
+//   macro: _fsopen, or _wfsopen.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_OPEN_FSOPEN _wfsopen
+#else
+    #define D_INTERNAL_OPEN_FSOPEN _fsopen
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_OPEN_FREOPEN
+//   macro: freopen, or _wfreopen.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_OPEN_FREOPEN _wfreopen
+#else
+    #define D_INTERNAL_OPEN_FREOPEN freopen
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_OPEN_FREOPEN_S
+//   macro: freopen_s, or _wfreopen_s.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_OPEN_FREOPEN_S _wfreopen_s
+#else
+    #define D_INTERNAL_OPEN_FREOPEN_S freopen_s
+#endif  // D_INTERNAL_FILE_WIDE == 1
 
 /*
 d_internal_file_open_head
@@ -220,13 +273,13 @@ file through _fsopen, with the sharing mode it was configured for.
 */
 static FILE*
 d_internal_file_open_raw(
-    const char* _filename,
-    const char* _mode
+    const d_internal_file_nchar_t* _filename,
+    const d_internal_file_nchar_t* _mode
 )
 {
-    return _fsopen(_filename,
-                   _mode,
-                   D_INTERNAL_FILE_OPEN_SHARE_FLAG);
+    return D_INTERNAL_OPEN_FSOPEN(_filename,
+                                  _mode,
+                                  D_INTERNAL_FILE_OPEN_SHARE_FLAG);
 }
 
 #elif (D_INTERNAL_FILE_OPEN_FOPEN_S == 1)
@@ -241,14 +294,14 @@ failure shape.
 */
 static FILE*
 d_internal_file_open_raw(
-    const char* _filename,
-    const char* _mode
+    const d_internal_file_nchar_t* _filename,
+    const d_internal_file_nchar_t* _mode
 )
 {
     FILE*     result = NULL;
-    const int code   = (int)fopen_s(&result,
-                                    _filename,
-                                    _mode);
+    const int code   = (int)D_INTERNAL_OPEN_FOPEN_S(&result,
+                                                    _filename,
+                                                    _mode);
 
     // the code fopen_s returned is the errno fopen would have set
     if (code != 0)
@@ -271,12 +324,12 @@ plain fopen.
 */
 static FILE*
 d_internal_file_open_raw(
-    const char* _filename,
-    const char* _mode
+    const d_internal_file_nchar_t* _filename,
+    const d_internal_file_nchar_t* _mode
 )
 {
-    return fopen(_filename,
-                 _mode);
+    return D_INTERNAL_OPEN_FOPEN(_filename,
+                                 _mode);
 }
 
 #endif  // D_INTERNAL_FILE_OPEN_USE_FSOPEN, D_INTERNAL_FILE_OPEN_FOPEN_S
@@ -290,16 +343,16 @@ d_internal_file_open_raw normalizes fopen_s.
 */
 static FILE*
 d_internal_file_open_reraw(
-    const char* _filename,
-    const char* _mode,
-    FILE*       _stream
+    const d_internal_file_nchar_t* _filename,
+    const d_internal_file_nchar_t* _mode,
+    FILE*                          _stream
 )
 {
     FILE*     result = NULL;
-    const int code   = (int)freopen_s(&result,
-                                      _filename,
-                                      _mode,
-                                      _stream);
+    const int code   = (int)D_INTERNAL_OPEN_FREOPEN_S(&result,
+                                                      _filename,
+                                                      _mode,
+                                                      _stream);
 
     // the code freopen_s returned is the errno freopen would have set
     if (code != 0)
@@ -320,17 +373,114 @@ d_internal_file_open_reraw
 */
 static FILE*
 d_internal_file_open_reraw(
+    const d_internal_file_nchar_t* _filename,
+    const d_internal_file_nchar_t* _mode,
+    FILE*                          _stream
+)
+{
+    return D_INTERNAL_OPEN_FREOPEN(_filename,
+                                   _mode,
+                                   _stream);
+}
+
+#endif  // D_INTERNAL_FILE_OPEN_FOPEN_S == 1
+
+/*
+d_internal_file_open_named
+  The mode and the path, given the platform's text (d_internal_file_to_native),
+then opened (d_internal_file_open_raw). A mode that will not convert is no
+mode the platform takes, and fails with EINVAL, as fopen fails a malformed
+one; a path that will not convert fails with the conversion's reason.
+*/
+static FILE*
+d_internal_file_open_named(
+    const char* _filename,
+    const char* _mode
+)
+{
+    d_internal_file_nchar_t mode_buf[D_INTERNAL_OPEN_MODE_NATIVE] = {0};
+    struct d_internal_file_native held = {0};
+    const d_internal_file_nchar_t* const mode =
+        d_internal_file_to_native_text(_mode,
+                                       mode_buf,
+                                       D_INTERNAL_OPEN_MODE_NATIVE);
+
+    // a mode the platform cannot be given
+    if (!mode)
+    {
+        D_INTERNAL_FILE_SET_ERR(EINVAL);
+
+        return NULL;
+    }
+
+    const d_internal_file_nchar_t* const name =
+        d_internal_file_native_of(&held,
+                                  _filename);
+
+    // the conversion has set errno
+    if (!name)
+    {
+        return NULL;
+    }
+
+    FILE* const result = d_internal_file_open_raw(name,
+                                                  mode);
+
+    d_internal_file_native_release(&held);
+
+    return result;
+}
+
+/*
+d_internal_file_open_renamed
+  d_internal_file_open_named's conversions, then the reopen
+(d_internal_file_open_reraw). A reopen that cannot start closes the stream,
+as a failed one does, so the caller meets one contract: failure ends the
+stream.
+*/
+static FILE*
+d_internal_file_open_renamed(
     const char* _filename,
     const char* _mode,
     FILE*       _stream
 )
 {
-    return freopen(_filename,
-                   _mode,
-                   _stream);
-}
+    d_internal_file_nchar_t mode_buf[D_INTERNAL_OPEN_MODE_NATIVE] = {0};
+    struct d_internal_file_native held = {0};
+    const d_internal_file_nchar_t* const mode =
+        d_internal_file_to_native_text(_mode,
+                                       mode_buf,
+                                       D_INTERNAL_OPEN_MODE_NATIVE);
+    const d_internal_file_nchar_t* const name =
+        (mode) ? d_internal_file_native_of(&held,
+                                           _filename)
+               : NULL;
 
-#endif  // D_INTERNAL_FILE_OPEN_FOPEN_S == 1
+    // a mode the platform cannot be given
+    if (!mode)
+    {
+        D_INTERNAL_FILE_SET_ERR(EINVAL);
+    }
+
+    // the reopen cannot start: the stream ends, its reason kept in errno
+    if (!name)
+    {
+        const int saved_errno = errno;
+
+        (void)fclose(_stream);
+        errno = saved_errno;
+
+        return NULL;
+    }
+
+    FILE* const result = d_internal_file_open_reraw(name,
+                                                    mode,
+                                                    _stream);
+
+    d_internal_file_native_release(&held);
+
+    return result;
+}
 
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
 
@@ -509,8 +659,8 @@ d_file_open_stream(
                                                          mode_buf,
                                                          sizeof(mode_buf),
                                                          1);
-    FILE* const       result = d_internal_file_open_raw(_filename,
-                                                        mode);
+    FILE* const       result = d_internal_file_open_named(_filename,
+                                                          mode);
 
     // report the failure; the caller only learns that it got NULL
     if (!result)
@@ -610,9 +760,9 @@ d_file_reopen_stream(
                                                          sizeof(mode_buf),
                                                          1);
     FILE* const       result = _filename
-                                   ? d_internal_file_open_reraw(_filename,
-                                                                mode,
-                                                                _stream)
+                                   ? d_internal_file_open_renamed(_filename,
+                                                                  mode,
+                                                                  _stream)
                                    : d_internal_file_open_in_place(mode,
                                                                    _stream);
 

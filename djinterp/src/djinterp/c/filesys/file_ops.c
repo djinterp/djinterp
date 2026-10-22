@@ -19,7 +19,7 @@
 * path:      /src/djinterp/c/filesys/file_ops.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_ops.h"  // corresponding header
 // std
@@ -643,6 +643,47 @@ d_internal_ops_copy(
 
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
 
+// D_INTERNAL_OPS_MOVE
+//   macro: MoveFileEx in the form the build's path text takes: the W
+// function where the build hands Windows UTF-16 (D_INTERNAL_FILE_WIDE).
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_OPS_MOVE MoveFileExW
+#else
+    #define D_INTERNAL_OPS_MOVE MoveFileExA
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_OPS_RMDIR
+//   macro: RemoveDirectory, the W or the A function.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_OPS_RMDIR RemoveDirectoryW
+#else
+    #define D_INTERNAL_OPS_RMDIR RemoveDirectoryA
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_OPS_ATTRS
+//   macro: GetFileAttributes, the W or the A function.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_OPS_ATTRS GetFileAttributesW
+#else
+    #define D_INTERNAL_OPS_ATTRS GetFileAttributesA
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_OPS_REMOVE
+//   macro: the CRT's remove, or _wremove.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_OPS_REMOVE _wremove
+#else
+    #define D_INTERNAL_OPS_REMOVE remove
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_OPS_UNLINK
+//   macro: the CRT's _unlink, or _wunlink.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_OPS_UNLINK _wunlink
+#else
+    #define D_INTERNAL_OPS_UNLINK _unlink
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
 /*
 d_internal_ops_move
   MoveFileEx, for both answers to _overwrite. Asked not to replace, it
@@ -658,13 +699,36 @@ d_internal_ops_move(
     int         _overwrite
 )
 {
+    struct d_internal_file_native        from_held = {0};
+    struct d_internal_file_native        to_held   = {0};
+    const d_internal_file_nchar_t* const from =
+        d_internal_file_native_of(&from_held,
+                                  _old);
+    const d_internal_file_nchar_t* const to =
+        (from) ? d_internal_file_native_of(&to_held,
+                                           _new)
+               : NULL;
+
+    // the conversion has set errno
+    if (!to)
+    {
+        d_internal_file_native_release(&from_held);
+
+        return -1;
+    }
+
     const DWORD flags = _overwrite ? (DWORD)MOVEFILE_REPLACE_EXISTING
                                    : (DWORD)0;
 
+    const BOOL moved = D_INTERNAL_OPS_MOVE(from,
+                                           to,
+                                           flags);
+
+    d_internal_file_native_release(&from_held);
+    d_internal_file_native_release(&to_held);
+
     // moved, or refused for a reason Win32 names
-    if (MoveFileExA(_old,
-                    _new,
-                    flags))
+    if (moved)
     {
         return 0;
     }
@@ -676,7 +740,7 @@ d_internal_ops_move(
 
 /*
 d_internal_ops_rmdir
-  RemoveDirectoryA, with its error translated. On a symbolic link or a
+  RemoveDirectory, with its error translated. On a symbolic link or a
 junction it removes the link itself and leaves the target alone.
 */
 static int
@@ -684,8 +748,23 @@ d_internal_ops_rmdir(
     const char* _path
 )
 {
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _path);
+
+    // the conversion has set errno
+    if (!path)
+    {
+        return -1;
+    }
+
+    const BOOL removed = D_INTERNAL_OPS_RMDIR(path);
+
+    d_internal_file_native_release(&held);
+
     // removed, or refused for a reason Win32 names
-    if (RemoveDirectoryA(_path))
+    if (removed)
     {
         return 0;
     }
@@ -707,7 +786,20 @@ d_internal_ops_names_dir(
     const char* _path
 )
 {
-    const DWORD attrs = GetFileAttributesA(_path);
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _path);
+
+    // the conversion has set errno
+    if (!path)
+    {
+        return 0;
+    }
+
+    const DWORD attrs = D_INTERNAL_OPS_ATTRS(path);
+
+    d_internal_file_native_release(&held);
 
     return ( (attrs != INVALID_FILE_ATTRIBUTES) &&
              ((attrs & FILE_ATTRIBUTE_DIRECTORY) != 0) );
@@ -730,7 +822,22 @@ d_internal_ops_remove(
         return d_internal_ops_rmdir(_path);
     }
 
-    return remove(_path);
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _path);
+
+    // the conversion has set errno
+    if (!path)
+    {
+        return -1;
+    }
+
+    const int result = D_INTERNAL_OPS_REMOVE(path);
+
+    d_internal_file_native_release(&held);
+
+    return result;
 }
 
 /*
@@ -752,7 +859,22 @@ d_internal_ops_unlink(
         return d_internal_ops_rmdir(_path);
     }
 
-    return _unlink(_path);
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _path);
+
+    // the conversion has set errno
+    if (!path)
+    {
+        return -1;
+    }
+
+    const int result = D_INTERNAL_OPS_UNLINK(path);
+
+    d_internal_file_native_release(&held);
+
+    return result;
 }
 
 #elif D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)
@@ -890,7 +1012,20 @@ d_internal_ops_is_plain(
     const char* _path
 )
 {
-    const DWORD attrs = GetFileAttributesA(_path);
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _path);
+
+    // the conversion has set errno
+    if (!path)
+    {
+        return 0;
+    }
+
+    const DWORD attrs = D_INTERNAL_OPS_ATTRS(path);
+
+    d_internal_file_native_release(&held);
 
     return ( (attrs != INVALID_FILE_ATTRIBUTES)                 &&
              ((attrs & FILE_ATTRIBUTE_DIRECTORY) == 0)         &&

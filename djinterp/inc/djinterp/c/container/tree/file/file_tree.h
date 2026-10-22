@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/c/container/tree/file/file_tree.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.09.22
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -101,7 +101,7 @@ VIII. UTILITY
 // declares only where the build can spell one. Below it -- ISO strict
 // C++98 on a 32-bit target -- the header compiles to nothing (the owner's
 // ruling of 2026.10.03 on round 3's question 1, (a)).
-#if defined(INT64_MAX)
+#if RE_STD_HAS_INT64
 
 
 // d_file_node_type
@@ -243,6 +243,6 @@ void                   d_file_tree_print(const struct d_file_tree* _tree,
                                          FILE*                     _stream);
 
 
-#endif  // defined(INT64_MAX)
+#endif  // RE_STD_HAS_INT64
 
 #endif  // DJINTERP_C_CONTAINER_TREE_FILE_FILE_TREE_H

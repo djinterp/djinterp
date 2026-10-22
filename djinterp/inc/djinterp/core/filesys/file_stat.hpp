@@ -46,7 +46,7 @@
 * path:      /inc/djinterp/core/filesys/file_stat.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.18
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -353,10 +353,9 @@ public:
      * @brief Constructs an empty snapshot: type_none, no query behind it.
      */
     file_status(void)
-        : m_type(type_none)
-    {
-        zero();
-    }
+        : m_type(type_none),
+          m_stat()
+    {}
 
     /**
      * @brief Constructs a snapshot from a filled stat buffer, as the queries
@@ -383,10 +382,9 @@ public:
     explicit file_status(
         file_type _type
     )
-        : m_type(_type)
-    {
-        zero();
-    }
+        : m_type(_type),
+          m_stat()
+    {}
 
     // 3.3    Type predicates
     //--------------------------------------------------------------------------
@@ -544,29 +542,6 @@ public:
 private:
     // 3.5    Implementation
     //--------------------------------------------------------------------------
-    /**
-     * @brief Clears the buffer for the field-less snapshots (none and
-     *        not_found), so their accessors read a defined 0 rather than
-     *        garbage.
-     */
-    void zero(void)
-    {
-        m_stat.st_size          = 0;
-        m_stat.st_modified      = 0;
-        m_stat.st_accessed      = 0;
-        m_stat.st_changed       = 0;
-        m_stat.st_created       = 0;
-        m_stat.st_modified_nsec = 0;
-        m_stat.st_accessed_nsec = 0;
-        m_stat.st_changed_nsec  = 0;
-        m_stat.st_mode          = 0;
-        m_stat.st_nlink         = 0;
-        m_stat.st_uid           = 0;
-        m_stat.st_gid           = 0;
-        m_stat.st_dev           = 0;
-        m_stat.st_ino           = 0;
-    }
-
     file_type       m_type;
     struct d_stat_t m_stat;
 };

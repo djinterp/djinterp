@@ -34,7 +34,7 @@
 * path:      /inc/djinterp/core/filesys/file_pipe.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -52,7 +52,7 @@ TABLE OF CONTENTS
 #define DJINTERP_FILESYS_FILE_PIPE_HPP 1
 
 // std
-#include <cerrno>  // errno, EBADF, EIO
+#include <cerrno>  // errno, EBADF, EINVAL, EIO
 #include <cstdio>  // FILE, std::fread, std::fwrite, std::fflush, std::ferror,
                    // std::clearerr
 // djinterp
@@ -100,7 +100,9 @@ public:
      * @param[in] _command  the command line, handed to the shell unchanged.
      * @param[in] _mode     "r" to READ the command's standard output, or "w"
      *                      to WRITE to its standard input.
-     * @post is_open() reports whether the command could be started.
+     * @post is_open() reports whether the command could be started. A
+     *       constructor cannot say why not; when the reason matters,
+     *       default-construct and call open(_command, _mode, ec).
      */
     explicit process(
         const char* _command,
@@ -175,6 +177,53 @@ public:
     }
 #endif  // D_MOVE_ENABLED
 
+    /**
+     * @brief Runs a command through the shell, reporting why it could not
+     *        start.
+     *
+     * @warning Read the SECURITY note in the banner before passing any
+     *          command built from outside input.
+     * @note A process already held is reaped first -- this waits for it --
+     *       and its exit status is not kept; close() it first to read that.
+     *
+     * @param[in]  _command  the command line, handed to the shell unchanged.
+     * @param[in]  _mode     "r" to read the command's standard output, or "w"
+     *                       to write its standard input.
+     * @param[out] _ec       cleared on success; EINVAL for no command or a
+     *                       mode d_pipe_open refuses, otherwise its reason --
+     *                       EILSEQ for a command that is not UTF-8 where the
+     *                       build hands Windows UTF-16.
+     * @return true when the command started.
+     * @post exited() is false; is_open() reports the result.
+     */
+    bool open(const char* _command,
+              const char* _mode,
+              error&      _ec)
+    {
+        // reap the child this handle held before starting another
+        if (m_stream)
+        {
+            (void)d_pipe_close(m_stream);
+            m_stream = 0;
+        }
+
+        m_exited      = false;
+        m_exit_status = 0;
+        errno         = 0;
+        m_stream      = d_pipe_open(_command,
+                                    _mode);
+
+        // c/filesys reports why the command could not start through errno
+        if (!m_stream)
+        {
+            _ec = (errno != 0) ? error::from_errno() : error(EINVAL);
+            return false;
+        }
+
+        _ec.clear();
+        return true;
+    }
+
     // 1.2    Transfer
     //--------------------------------------------------------------------------
     /**
@@ -184,7 +233,8 @@ public:
      *       finished writing -- exactly as for a file; only a stream error
      *       sets `_ec`.
      *
-     * @param[out] _buf  receives the bytes; holds at least `_n`.
+     * @param[out] _buf  receives the bytes; holds at least `_n`, and may be
+     *                   `NULL` only where `_n` is 0.
      * @param[in]  _n    the most bytes to read.
      * @param[out] _ec   cleared on success; EBADF on a closed handle, otherwise
      *                   the platform's code, or EIO when it gave none.
@@ -199,6 +249,14 @@ public:
         {
             _ec.assign(EBADF);
 
+            return 0;
+        }
+
+        // a count with no buffer: fread would write through NULL
+        if ( (!_buf) &&
+             (_n > 0) )
+        {
+            _ec.assign(EINVAL);
             return 0;
         }
 
@@ -230,7 +288,8 @@ public:
      * @note A short write is a failure: there is no benign end of input for
      *       writing.
      *
-     * @param[in]  _buf  the bytes to write; holds at least `_n`.
+     * @param[in]  _buf  the bytes to write; holds at least `_n`, and may be
+     *                   `NULL` only where `_n` is 0.
      * @param[in]  _n    the number of bytes to write.
      * @param[out] _ec   cleared on success; EBADF on a closed handle, otherwise
      *                   the platform's code, or EIO when it gave none.
@@ -245,6 +304,14 @@ public:
         {
             _ec.assign(EBADF);
 
+            return 0;
+        }
+
+        // a count with no buffer: fwrite would read through NULL
+        if ( (!_buf) &&
+             (_n > 0) )
+        {
+            _ec.assign(EINVAL);
             return 0;
         }
 

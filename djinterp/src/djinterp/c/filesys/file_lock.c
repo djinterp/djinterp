@@ -13,7 +13,7 @@
 * path:      /src/djinterp/c/filesys/file_lock.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_lock.h"  // corresponding header
 // std
@@ -77,15 +77,24 @@ d_internal_lock_check_op(
 d_internal_lock_errno
   A Win32 reason, as the errno flock would have set: a range another handle
 holds is EWOULDBLOCK, the answer a non-blocking request expects, where every
-other call reads it as EACCES; anything else -- a handle that is not one,
-EBADF, among them -- reads as it does everywhere in c/filesys.
+other call reads it as EACCES; a filesystem that cannot lock is ENOLCK, where
+the table says ENOTSUP; anything else -- a handle that is not one, EBADF,
+among them -- reads as it does everywhere in c/filesys.
 */
 static int
 d_internal_lock_errno(
     DWORD _error
 )
 {
-    // the one reason flock names differently; the rest as the table has them
+    // a filesystem that cannot lock is ENOLCK, flock's word for it, not the
+    // table's general ENOTSUP
+    if ( (_error == ERROR_INVALID_FUNCTION) ||
+         (_error == ERROR_NOT_SUPPORTED) )
+    {
+        return ENOLCK;
+    }
+
+    // a range held elsewhere; the rest as the table has them
     return (_error == ERROR_LOCK_VIOLATION)
                ? EWOULDBLOCK
                : d_internal_file_errno_win32(_error);

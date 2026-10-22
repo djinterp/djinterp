@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/c/djinterp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -370,16 +370,28 @@ TABLE OF CONTENTS
 // 2.2    Static assertion
 //------------------------------------------------------------------------------
 // D_INTERNAL_STATIC_ASSERT_UID
-//   macro (internal): unique suffix for fallback static-assert declarations.
-#if defined(__COUNTER__)
-    #define D_INTERNAL_STATIC_ASSERT_UID __COUNTER__
-#else
-    #define D_INTERNAL_STATIC_ASSERT_UID __LINE__
-#endif
+//   macro (internal): the suffix that tells C++98's fallback static
+// assertions apart: the line. Not __COUNTER__, which Clang 22 and later count
+// as a C2y extension in every C and C++ mode, so that a -pedantic-errors
+// build fails on each assertion. Two fallbacks on one line clash only inside
+// a class body, the one scope where C++ will not let a typedef be repeated;
+// everywhere else a repeated typedef of the same type is allowed.
+#define D_INTERNAL_STATIC_ASSERT_UID __LINE__
 
 // 2.2.1
 // D_STATIC_ASSERT
-//   macro: portable compile-time assertion across supported C and C++ modes.
+//   macro: portable compile-time assertion across supported C and C++ modes:
+// the language's own from C11 and C++11, and below them an array whose size
+// is negative when the condition is false. C's fallback declares the array
+// extern, under one name, which C lets a program repeat at file and block
+// scope, so it needs no unique name at all; D_MAYBE_UNUSED keeps GCC from
+// calling a block-scope one an unused variable. C++98's is a typedef, so
+// that it also stands in a class body, named by its line
+// (D_INTERNAL_STATIC_ASSERT_UID) and marked D_MAYBE_UNUSED, so that one in a
+// block draws no unused-local-typedef warning (decision 129 of the register;
+// the enumerator it chose for that needs a name no other assertion in its
+// scope has, which only __COUNTER__ gives). The message is unused below C11
+// and C++11.
 #ifndef D_STATIC_ASSERT
     #if defined(D_ENV_LANG_DETECTED_CPP)
         // >=C++11 has the static_assert keyword.
@@ -390,7 +402,7 @@ TABLE OF CONTENTS
                 typedef char D_CONCAT(static_assertion_failed_,               \
                                       D_INTERNAL_STATIC_ASSERT_UID)[(cond)    \
                                           ? 1                                 \
-                                          : -1]
+                                          : -1] D_MAYBE_UNUSED
         #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
     #else
         // C11+ has `_Static_assert`.
@@ -398,10 +410,10 @@ TABLE OF CONTENTS
             #define D_STATIC_ASSERT(cond, msg) _Static_assert((cond), msg)
         #else
             #define D_STATIC_ASSERT(cond, msg)                                \
-                typedef char D_CONCAT(static_assertion_failed_,               \
-                                      D_INTERNAL_STATIC_ASSERT_UID)[(cond)    \
-                                          ? 1                                 \
-                                          : -1]
+                D_MAYBE_UNUSED extern char                                    \
+                    d_internal_static_assertion_failed[(cond)                 \
+                                                           ? 1                \
+                                                           : -1]
         #endif
     #endif
 #endif  // D_STATIC_ASSERT

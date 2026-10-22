@@ -18,7 +18,7 @@
 * path:      /inc/re_std/config.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.01
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 
 /*
@@ -237,6 +237,19 @@ TABLE OF CONTENTS
     #endif
 #endif  // RE_STD_CONSTEXPR_CPP20
 
+// 4.1.3
+// RE_STD_CONSTEXPR_VAR
+//   qualifier: for a constant object, `constexpr` from C++11 and `const`
+// below, where a static data member of integral type may still take its
+// initializer in the class; djinterp's D_CONSTEXPR_VAR, under re_std's name.
+#ifndef RE_STD_CONSTEXPR_VAR
+    #if RE_STD_LANG_IS_CPP11_OR_HIGHER
+        #define RE_STD_CONSTEXPR_VAR        constexpr
+    #else
+        #define RE_STD_CONSTEXPR_VAR        const
+    #endif
+#endif  // RE_STD_CONSTEXPR_VAR
+
 // 4.2    inline
 //------------------------------------------------------------------------------
 // 4.2.1
@@ -377,16 +390,15 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 4.6.1
 // RE_STD_INTERNAL_CONCAT, RE_STD_INTERNAL_STATIC_ASSERT_UID
-//   macro (internal): token pasting after expansion, and a unique suffix (the
-// counter where there is one, else the line) for the C++98 fallback below.
+//   macro (internal): token pasting after expansion, and the suffix that
+// tells the C++98 fallbacks below apart: the line. Not __COUNTER__, which
+// Clang 22 and later count as a C2y extension in every C++ mode, so that a
+// -pedantic-errors build fails on each assertion. Two fallbacks on one line
+// clash only inside a class body; everywhere else C++ lets a typedef of the
+// same type be repeated.
 #define RE_STD_INTERNAL_CONCAT_IMPL(a, b) a##b
 #define RE_STD_INTERNAL_CONCAT(a, b)      RE_STD_INTERNAL_CONCAT_IMPL(a, b)
-
-#if defined(__COUNTER__)
-    #define RE_STD_INTERNAL_STATIC_ASSERT_UID __COUNTER__
-#else
-    #define RE_STD_INTERNAL_STATIC_ASSERT_UID __LINE__
-#endif
+#define RE_STD_INTERNAL_STATIC_ASSERT_UID __LINE__
 
 // 4.6.2
 // RE_STD_STATIC_ASSERT

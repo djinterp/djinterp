@@ -20,7 +20,7 @@
 * path:      /src/djinterp/c/filesys/file_io.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_io.h"  // corresponding header
 // std
@@ -1558,6 +1558,15 @@ d_internal_io_restore_bits(
     return;
 }
 
+// D_INTERNAL_IO_MOVE
+//   macro: MoveFileEx in the form the build's path text takes: the W function
+// where the build hands Windows UTF-16 (D_INTERNAL_FILE_WIDE).
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_IO_MOVE MoveFileExW
+#else
+    #define D_INTERNAL_IO_MOVE MoveFileExA
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
 /*
 d_internal_io_promote
   Windows' rename fails outright when the target exists, so the promotion goes
@@ -1575,13 +1584,33 @@ d_internal_io_promote(
     const char* _target
 )
 {
+    struct d_internal_file_native        temp_held   = {0};
+    struct d_internal_file_native        target_held = {0};
+    const d_internal_file_nchar_t* const temp =
+        d_internal_file_native_of(&temp_held,
+                                  _temp);
+    const d_internal_file_nchar_t* const target =
+        (temp) ? d_internal_file_native_of(&target_held,
+                                           _target)
+               : NULL;
+
+    // the conversion has set errno
+    if (!target)
+    {
+        d_internal_file_native_release(&temp_held);
+
+        return -1;
+    }
+
     static const DWORD delays[] = { 0, 1, 10, 20, 40 };
     size_t             tries    = 0;
+    int                result   = 0;
 
     // replace the target in one step, waiting out a target briefly in use
-    while (!MoveFileExA(_temp,
-                        _target,
-                        MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+    while (!D_INTERNAL_IO_MOVE(temp,
+                               target,
+                               MOVEFILE_REPLACE_EXISTING |
+                                   MOVEFILE_WRITE_THROUGH))
     {
         const DWORD error = GetLastError();
 
@@ -1594,14 +1623,18 @@ d_internal_io_promote(
 
             D_INTERNAL_FILE_SET_ERR(code);
             (void)code;
+            result = -1;
 
-            return -1;
+            break;
         }
 
         Sleep(delays[tries++]);
     }
 
-    return 0;
+    d_internal_file_native_release(&temp_held);
+    d_internal_file_native_release(&target_held);
+
+    return result;
 }
 
 #else
@@ -1672,19 +1705,38 @@ d_internal_io_promote(
 
 #endif  // D_CFG_FILE_HAS_WIN32
 
+// D_INTERNAL_IO_REMOVE
+//   macro: remove, or _wremove where the build hands Windows UTF-16.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_IO_REMOVE _wremove
+#else
+    #define D_INTERNAL_IO_REMOVE remove
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
 /*
 d_internal_io_discard
   Removes a replacement that will not be promoted, keeping the errno of the
-failure that stopped it.
+failure that stopped it. Its name was made by d_file_open in this build's
+text, so it converts as it did then.
 */
 static void
 d_internal_io_discard(
     const char* _temp
 )
 {
-    const int saved_errno = errno;
+    const int                            saved_errno = errno;
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const temp =
+        d_internal_file_native_of(&held,
+                                  _temp);
 
-    (void)remove(_temp);
+    // a name that converted when it was made converts again
+    if (temp)
+    {
+        (void)D_INTERNAL_IO_REMOVE(temp);
+    }
+
+    d_internal_file_native_release(&held);
     errno = saved_errno;
 
     return;
@@ -1748,18 +1800,19 @@ an empty file; and after it the directory is synced, because the rename is
 only an entry there.
 */
 static int
-d_internal_io_write_all(
+d_internal_io_write_all_in(
     const char* _path,
     const void* _data,
-    size_t      _size
+    size_t      _size,
+    char*       _temp_room
 )
 {
-    char temp[D_FILE_PATH_MAX] = {0};
+    char* const temp = _temp_room;
 
     // the template is a sibling, so the rename stays within one filesystem
     if (d_internal_io_temp_name(_path,
                                 temp,
-                                sizeof(temp)) != 0)
+                                D_FILE_PATH_MAX) != 0)
     {
         D_INTERNAL_FILE_FAIL(ENAMETOOLONG,
                              "d_file_write_all",
@@ -1799,6 +1852,40 @@ d_internal_io_write_all(
 
     return d_internal_io_settle(_path,
                                 "d_file_write_all");
+}
+
+/*
+d_internal_io_write_all
+  d_internal_io_write_all's work is d_internal_io_write_all_in; this keeps the
+room it builds a path in, on the heap where that is 32 KiB
+(d_internal_file_path).
+*/
+static int
+d_internal_io_write_all(
+    const char* _path,
+    const void* _data,
+    size_t      _size
+)
+{
+    struct d_internal_file_path temp_held = {0};
+    char* const temp = d_internal_file_path_room(&temp_held);
+
+    // d_internal_file_path_room has set errno, and reported the failure
+    if (!temp)
+    {
+        d_internal_file_path_release(&temp_held);
+
+        return -1;
+    }
+
+    const int result = d_internal_io_write_all_in(_path,
+                                                  _data,
+                                                  _size,
+                                                  temp);
+
+    d_internal_file_path_release(&temp_held);
+
+    return result;
 }
 
 #else

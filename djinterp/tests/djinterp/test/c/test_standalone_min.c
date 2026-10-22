@@ -45,7 +45,7 @@
 #include <string.h>
 // djinterp
 #include "../../../../inc/djinterp/test/c/test_standalone.h"
-#include "../../c/fs/file_tests_sa.h"   // d_tests_file_run_all
+#include "../../c/filesys/file_tests_sa.h"   // d_tests_file_run_all
 
 
 ///////////////////////////////////////////////////////////////////////////////

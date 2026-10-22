@@ -13,7 +13,7 @@
 * path:      /src/djinterp/c/filesys/file_space.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_space.h"  // corresponding header
 // std
@@ -81,11 +81,21 @@ d_internal_space_query(
 
 #elif D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
 
+// D_INTERNAL_SPACE_ASK
+//   macro: GetDiskFreeSpaceEx in the form the build's path text takes: the W
+// function where the build hands Windows UTF-16 (D_INTERNAL_FILE_WIDE).
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_SPACE_ASK GetDiskFreeSpaceExW
+#else
+    #define D_INTERNAL_SPACE_ASK GetDiskFreeSpaceExA
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
 /*
 d_internal_space_ask
   GetDiskFreeSpaceEx, whose first out-parameter is quota-aware and is the
 ANALOGUE OF f_bavail, not of f_bfree -- the argument order invites getting
-that backwards. A failure is left in GetLastError.
+that backwards. 1 for an answer; 0 for a failure left in GetLastError; -1 for
+a path the platform's text cannot carry, with errno set by the conversion.
 */
 static int
 d_internal_space_ask(
@@ -93,15 +103,30 @@ d_internal_space_ask(
     struct d_space64_t* _out
 )
 {
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const dir =
+        d_internal_file_native_of(&held,
+                                  _dir);
+
+    // the conversion has set errno
+    if (!dir)
+    {
+        return -1;
+    }
+
     ULARGE_INTEGER avail      = {0};
     ULARGE_INTEGER total      = {0};
     ULARGE_INTEGER total_free = {0};
 
+    const BOOL     asked      = D_INTERNAL_SPACE_ASK(dir,
+                                                     &avail,
+                                                     &total,
+                                                     &total_free);
+
+    d_internal_file_native_release(&held);
+
     // GetLastError says why
-    if (!GetDiskFreeSpaceExA(_dir,
-                             &avail,
-                             &total,
-                             &total_free))
+    if (!asked)
     {
         return 0;
     }
@@ -139,18 +164,21 @@ which on Windows is on the same volume. Nothing broader is tried -- the
 volume's root, say -- since that answers for a path that does not exist.
 */
 static int
-d_internal_space_query(
+d_internal_space_query_in(
     const char*         _path,
-    struct d_space64_t* _out
+    struct d_space64_t* _out,
+    char*               _dir_room
 )
 {
-    char dir[D_FILE_PATH_MAX] = {0};
+    char* const dir = _dir_room;
 
-    // a directory, as GetDiskFreeSpaceEx wants
-    if (d_internal_space_ask(_path,
-                             _out))
+    const int asked = d_internal_space_ask(_path,
+                                           _out);
+
+    // an answer, or a path errno already says is unusable
+    if (asked != 0)
     {
-        return 0;
+        return (asked > 0) ? 0 : -1;
     }
 
     const DWORD error = GetLastError();
@@ -164,19 +192,53 @@ d_internal_space_query(
     // d_path_dirname has set errno for a path it cannot take apart
     if (!d_path_dirname(_path,
                         dir,
-                        sizeof(dir)))
+                        D_FILE_PATH_MAX))
     {
         return -1;
     }
 
+    const int again = d_internal_space_ask(dir,
+                                           _out);
+
     // the file's directory, on the file's volume
-    if (d_internal_space_ask(dir,
-                             _out))
+    if (again != 0)
     {
-        return 0;
+        return (again > 0) ? 0 : -1;
     }
 
     return d_internal_space_refuse(GetLastError());
+}
+
+/*
+d_internal_space_query
+  d_internal_space_query's work is d_internal_space_query_in; this keeps the
+room it builds a path in, on the heap where that is 32 KiB
+(d_internal_file_path).
+*/
+static int
+d_internal_space_query(
+    const char*         _path,
+    struct d_space64_t* _out
+)
+{
+    struct d_internal_file_path dir_held = {0};
+    char* const dir = d_internal_file_path_room(&dir_held);
+
+    // d_internal_file_path_room has set errno, and reported the failure
+    if (!dir)
+    {
+        d_internal_file_path_release(&dir_held);
+
+        return -1;
+    }
+
+    const int result = d_internal_space_query_in(_path,
+                                                 _out,
+                                                 dir);
+
+    d_internal_file_path_release(&dir_held);
+
+    return result;
 }
 
 #endif  // D_CFG_FILE_HAS_STATVFS, D_CFG_FILE_HAS_WIN32

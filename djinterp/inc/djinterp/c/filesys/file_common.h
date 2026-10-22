@@ -39,7 +39,7 @@
 * path:      /inc/djinterp/c/filesys/file_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -110,6 +110,9 @@ TABLE OF CONTENTS
     4.  Large files
          1.  D_INTERNAL_FILE_ASSERT_LARGE_FILES
     5.  Windows support
+    6.  Path encoding
+         1.  d_internal_file_nchar_t
+         2.  D_INTERNAL_FILE_NATIVE_MAX
 */
 
 #ifndef DJINTERP_C_FILESYS_FILE_COMMON_H
@@ -949,6 +952,205 @@ int   d_internal_file_tag_is_link_win32(DWORD _tag);
 int   d_internal_file_is_link_win32(const char*                 _path,
                                     BY_HANDLE_FILE_INFORMATION* _info);
 #endif  // D_CFG_FILE_HAS_WIN32
+
+// 6.6    Path encoding
+//------------------------------------------------------------------------------
+//   A path is UTF-8 on every target when D_CFG_FILE_WIDE_PATHS is set: POSIX
+// hands its bytes to the kernel as they are, and Windows, whose wide API
+// takes UTF-16, gets them converted here (D_INTERNAL_FILE_WIDE). Without it a
+// path goes to every platform as it is, which on Windows means the ANSI API
+// and the active code page. A module converts a path on its way in with
+// d_internal_file_to_native and a name on its way out with
+// d_internal_file_from_native, and calls the platform's A or W function by
+// D_INTERNAL_FILE_WIDE.
+
+// 6.6.1
+// d_internal_file_nchar_t
+//   type: the character the platform's path calls take -- wchar_t where this
+// build hands Windows UTF-16, char everywhere else.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    typedef wchar_t d_internal_file_nchar_t;
+#else
+    typedef char    d_internal_file_nchar_t;
+#endif
+
+// 6.6.2
+// D_INTERNAL_FILE_NATIVE_MAX
+//   constant: the characters a buffer for d_internal_file_to_native needs for
+// a path. A UTF-8 path never takes more UTF-16 units than bytes, so a path
+// that fits D_FILE_PATH_MAX bytes fits D_FILE_PATH_MAX units; where a path is
+// handed on as it is, the buffer goes unused and is one character.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_FILE_NATIVE_MAX D_FILE_PATH_MAX
+#else
+    #define D_INTERNAL_FILE_NATIVE_MAX 1
+#endif
+
+/**
+ * @brief Gives text that is no path -- a mode -- the form the platform's
+ *        calls take: converted from UTF-8 to UTF-16 into `_buf` where this
+ *        build hands Windows UTF-16, and `_text` itself everywhere else.
+ *
+ * @param[in]  _text   NUL-terminated text; UTF-8 where it is converted.
+ * @param[out] _buf    receives the conversion. Unused, and untouched, where
+ *                     the text is handed on as it is.
+ * @param[in]  _count  capacity of `_buf`, in characters.
+ * @return the text to hand the platform, or `NULL` with errno set: EILSEQ
+ *         for text that is not UTF-8, ENAMETOOLONG for text that does not
+ *         fit `_count` characters with its terminator.
+ */
+const d_internal_file_nchar_t*
+      d_internal_file_to_native_text(const char*              _text,
+                                     d_internal_file_nchar_t* _buf,
+                                     size_t                   _count);
+/**
+ * @brief Gives a path the form the platform's calls take: the text as
+ *        d_internal_file_to_native_text gives it, and where the build takes
+ *        long paths (D_CFG_FILE_LONG_PATHS), one that MAX_PATH would refuse
+ *        made absolute and given the long-path prefix.
+ *
+ * @param[in]  _text   NUL-terminated path; UTF-8 where it is converted.
+ * @param[out] _buf    receives the conversion; D_INTERNAL_FILE_NATIVE_MAX
+ *                     characters hold any path. Unused, and untouched, where
+ *                     the text is handed on as it is.
+ * @param[in]  _count  capacity of `_buf`, in characters.
+ * @return the path to hand the platform, or `NULL` with errno set: EILSEQ
+ *         for text that is not UTF-8, ENAMETOOLONG for a path that does not
+ *         fit `_count` characters with its terminator and any prefix, ENOMEM,
+ *         or the reason Windows gives for a path it cannot make absolute.
+ */
+const d_internal_file_nchar_t*
+      d_internal_file_to_native(const char*              _text,
+                                d_internal_file_nchar_t* _buf,
+                                size_t                   _count);
+// D_INTERNAL_FILE_NATIVE_ON_HEAP
+//   constant: 1 where a path's room in the platform's text is on the heap --
+// a build that hands Windows UTF-16 with long paths, where the room is 32767
+// characters and some -- and 0 where it is an array on the stack.
+#if ( (D_INTERNAL_FILE_WIDE == 1) &&                                           \
+      (D_CFG_IS_ON(D_CFG_FILE_LONG_PATHS)) )
+    #define D_INTERNAL_FILE_NATIVE_ON_HEAP 1
+#else
+    #define D_INTERNAL_FILE_NATIVE_ON_HEAP 0
+#endif  // D_INTERNAL_FILE_WIDE == 1 && D_CFG_FILE_LONG_PATHS
+
+// D_INTERNAL_FILE_NATIVE_ROOM
+//   constant: the characters a path's room holds: D_INTERNAL_FILE_NATIVE_MAX,
+// and a few more for an answer the platform writes there that runs past its
+// own limit, as GetTempPathW's MAX_PATH + 1 does.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_FILE_NATIVE_ROOM (D_INTERNAL_FILE_NATIVE_MAX + 8)
+#else
+    #define D_INTERNAL_FILE_NATIVE_ROOM 1
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// d_internal_file_native
+//   struct: room for a path in the platform's text. It is an array in the
+// struct where that is small; in a long-path build it is a block on the
+// heap, allocated when first asked for and returned by
+// d_internal_file_native_release -- 64 KiB a path is no stack's to give.
+// Zero-initialize it.
+struct d_internal_file_native
+{
+#if (D_INTERNAL_FILE_NATIVE_ON_HEAP == 1)
+    d_internal_file_nchar_t* room;
+#else
+    d_internal_file_nchar_t  room[D_INTERNAL_FILE_NATIVE_ROOM];
+#endif  // D_INTERNAL_FILE_NATIVE_ON_HEAP == 1
+};
+
+/**
+ * @brief The room a holder keeps for a path in the platform's text.
+ *
+ * @param[in,out] _native  the holder.
+ * @return D_INTERNAL_FILE_NATIVE_ROOM characters of room, or `NULL` where
+ *         its block could not be allocated, the failure reported.
+ * @post In a long-path build the room is the holder's to release.
+ */
+d_internal_file_nchar_t*
+      d_internal_file_native_room(struct d_internal_file_native* _native);
+/**
+ * @brief A path in the platform's text (d_internal_file_to_native), written
+ *        into a holder's room.
+ *
+ * @param[in,out] _native  the holder.
+ * @param[in]     _path    the path.
+ * @return the path to hand the platform, or `NULL` with errno set, as
+ *         d_internal_file_to_native sets it, or ENOMEM.
+ * @post On success the holder has room to release; on failure it has none.
+ */
+const d_internal_file_nchar_t*
+      d_internal_file_native_of(struct d_internal_file_native* _native,
+                                const char*                    _path);
+/**
+ * @brief Returns a holder's room, where it was allocated. errno, and on
+ *        Windows the last error, are what they were: a call made with the
+ *        path is read after its room is gone.
+ *
+ * @param[in,out] _native  the holder; releasing it twice is releasing it once.
+ */
+void  d_internal_file_native_release(struct d_internal_file_native* _native);
+// D_INTERNAL_FILE_PATH_ON_HEAP
+//   constant: 1 where a buffer that builds a path in UTF-8 is kept on the
+// heap -- a long-path Windows build, where D_FILE_PATH_MAX is 32767 -- and 0
+// where it is an array on the stack: 260 bytes on Windows, PATH_MAX on POSIX.
+#if ( (D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)) &&                                   \
+      (D_CFG_IS_ON(D_CFG_FILE_LONG_PATHS)) )
+    #define D_INTERNAL_FILE_PATH_ON_HEAP 1
+#else
+    #define D_INTERNAL_FILE_PATH_ON_HEAP 0
+#endif  // D_CFG_FILE_HAS_WIN32 && D_CFG_FILE_LONG_PATHS
+
+// D_INTERNAL_FILE_PATH_ROOM
+//   constant: the bytes such a buffer holds: a path and its terminator.
+#define D_INTERNAL_FILE_PATH_ROOM (D_FILE_PATH_MAX + 1)
+
+// d_internal_file_path
+//   struct: room to build a path in UTF-8: an array in the struct, or in a
+// long-path build a block on the heap, allocated when first asked for and
+// returned by d_internal_file_path_release. Either way it starts empty,
+// every byte zero. Zero-initialize it.
+struct d_internal_file_path
+{
+#if (D_INTERNAL_FILE_PATH_ON_HEAP == 1)
+    char* room;
+#else
+    char  room[D_INTERNAL_FILE_PATH_ROOM];
+#endif  // D_INTERNAL_FILE_PATH_ON_HEAP == 1
+};
+
+/**
+ * @brief The room a holder keeps to build a path in.
+ *
+ * @param[in,out] _path  the holder.
+ * @return D_INTERNAL_FILE_PATH_ROOM bytes, zero, or `NULL` with errno ENOMEM
+ *         where the block could not be allocated, the failure reported.
+ * @post In a long-path build the room is the holder's to release.
+ */
+char* d_internal_file_path_room(struct d_internal_file_path* _path);
+/**
+ * @brief Returns a holder's room, where it was allocated, leaving errno -- and
+ *        on Windows the last error -- as they were.
+ *
+ * @param[in,out] _path  the holder; releasing it twice is releasing it once.
+ */
+void  d_internal_file_path_release(struct d_internal_file_path* _path);
+/**
+ * @brief The reverse of d_internal_file_to_native: text the platform handed
+ *        back -- a name, a directory -- as UTF-8 where this build converts,
+ *        and as it is everywhere else.
+ *
+ * @param[in]  _native  NUL-terminated text in the platform's form.
+ * @param[out] _out     receives the text and its terminator; on failure it
+ *                      holds an empty string, when it has room for one.
+ * @param[in]  _size    capacity of `_out`, in bytes.
+ * @return 0, or -1 with errno set: ERANGE when the text does not fit `_size`
+ *         bytes, EILSEQ for UTF-16 with a lone surrogate, which UTF-8 cannot
+ *         carry and Windows allows in a name.
+ */
+int   d_internal_file_from_native(const d_internal_file_nchar_t* _native,
+                                  char*                          _out,
+                                  size_t                         _size);
 
 D_EXTERN_C_END
 

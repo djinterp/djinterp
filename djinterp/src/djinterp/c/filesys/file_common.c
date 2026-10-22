@@ -1,27 +1,30 @@
 /*******************************************************************************
 * djinterp [c]                                                     file_common.c
 *
-* Implementation of the notification hook, the allocation funnel and the
-* Win32 error translation declared in file_common.h.
+* Implementation of the notification hook, the allocation funnel, the Win32
+* error translation and the path conversions declared in file_common.h.
 *   A notice is assembled only after a handler is known to exist, so a build
 * that compiles notifications in but installs no handler pays one load and one
 * branch per notice. Every filesys allocation passes the D_CFG_FILE_MAX_ALLOC
 * ceiling here before it reaches the configured allocator. The Win32 reasons
-* a caller can act on are a table, and every other reason reads as EIO.
+* a caller can act on are a table, and every other reason reads as EIO. A
+* build that hands Windows UTF-16 converts here, refusing text that is not
+* UTF-8 or UTF-16 rather than substituting U+FFFD, which names another file.
 *
 *
 * path:      /src/djinterp/c/filesys/file_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_common.h"  // corresponding header
 // std
 #include <errno.h>   // errno, ENOMEM and, for Win32's errors, the E* codes
+#include <limits.h>  // INT_MAX
 #include <stddef.h>  // NULL, size_t
 #include <stdio.h>   // fprintf, and stderr for the default stream
 #include <stdlib.h>  // malloc, realloc, free: the allocator defaults
-#include <string.h>  // memset
+#include <string.h>  // memcpy, memset, strlen
 // djinterp
 #include "../../../../inc/djinterp/config/c/filesys/cfg_file_common.h"  // D_CFG_FILE_*
 
@@ -59,6 +62,23 @@
               ? (size_t)0                                                      \
               : (size_t)(D_CFG_FILE_MAX_ALLOC) )
 #endif  // D_CFG_FILE_MAX_ALLOC == 0
+
+// D_INTERNAL_COMMON_ATTRIBUTES
+//   macro: GetFileAttributes, in the A or W form the build's path text takes
+// (file_common.h, 6.6).
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_COMMON_ATTRIBUTES GetFileAttributesW
+#else
+    #define D_INTERNAL_COMMON_ATTRIBUTES GetFileAttributesA
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_COMMON_CREATE_FILE
+//   macro: CreateFile, in the A or W form the build's path text takes.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_COMMON_CREATE_FILE CreateFileW
+#else
+    #define D_INTERNAL_COMMON_CREATE_FILE CreateFileA
+#endif  // D_INTERNAL_FILE_WIDE == 1
 
 // d_internal_file_notify_handler
 //   variable: the active notification handler, or NULL for none.
@@ -443,7 +463,9 @@ static const struct d_internal_file_errno_pair d_internal_file_errno_pairs[] =
     { ERROR_DISK_FULL,             ENOSPC       },
     { ERROR_HANDLE_DISK_FULL,      ENOSPC       },
     { ERROR_NOT_ENOUGH_MEMORY,     ENOMEM       },
-    { ERROR_OUTOFMEMORY,           ENOMEM       }
+    { ERROR_OUTOFMEMORY,           ENOMEM       },
+    { ERROR_INVALID_FUNCTION,      ENOTSUP      },
+    { ERROR_NOT_SUPPORTED,         ENOTSUP      }
 };
 
 /*
@@ -517,13 +539,36 @@ d_internal_file_handle_is_link_win32(
 }
 
 /*
+d_internal_file_open_reparse_win32
+  The reparse point itself, opened without following it
+(FILE_FLAG_OPEN_REPARSE_POINT): enough access to read its attributes and tag,
+shared with every other opener.
+*/
+static HANDLE
+d_internal_file_open_reparse_win32(
+    const d_internal_file_nchar_t* _path
+)
+{
+    return D_INTERNAL_COMMON_CREATE_FILE(_path,
+                                         FILE_READ_ATTRIBUTES,
+                                         FILE_SHARE_READ  |
+                                         FILE_SHARE_WRITE |
+                                         FILE_SHARE_DELETE,
+                                         NULL,
+                                         OPEN_EXISTING,
+                                         FILE_FLAG_OPEN_REPARSE_POINT |
+                                         FILE_FLAG_BACKUP_SEMANTICS,
+                                         NULL);
+}
+
+/*
 d_internal_file_is_link_win32
   The attributes first, since most paths are no reparse point at all; then the
-reparse point itself, opened without following it (FILE_FLAG_OPEN_REPARSE_POINT)
-and asked for its tag (d_internal_file_handle_is_link_win32). A path that will
-not open is not reported as a link: the caller's own call then meets the
-reason and reports it. A link whose information cannot be read is still a
-link, with that information zeroed.
+reparse point itself (d_internal_file_open_reparse_win32), asked for its tag
+(d_internal_file_handle_is_link_win32). A path that will not open, or will not
+convert to the platform's text, is not reported as a link: the caller's own
+call then meets the reason and reports it. A link whose information cannot be
+read is still a link, with that information zeroed.
 */
 int
 d_internal_file_is_link_win32(
@@ -531,25 +576,26 @@ d_internal_file_is_link_win32(
     BY_HANDLE_FILE_INFORMATION* _info
 )
 {
-    const DWORD attrs = GetFileAttributesA(_path);
+    struct d_internal_file_native        held  = {0};
+    const d_internal_file_nchar_t* const path  =
+        d_internal_file_native_of(&held,
+                                  _path);
+    const DWORD                          attrs =
+        (path) ? D_INTERNAL_COMMON_ATTRIBUTES(path)
+               : INVALID_FILE_ATTRIBUTES;
 
     // only a reparse point can be a link
     if ( (attrs == INVALID_FILE_ATTRIBUTES) ||
          ((attrs & FILE_ATTRIBUTE_REPARSE_POINT) == 0) )
     {
+        d_internal_file_native_release(&held);
+
         return 0;
     }
 
-    const HANDLE handle = CreateFileA(_path,
-                                      FILE_READ_ATTRIBUTES,
-                                      FILE_SHARE_READ  |
-                                      FILE_SHARE_WRITE |
-                                      FILE_SHARE_DELETE,
-                                      NULL,
-                                      OPEN_EXISTING,
-                                      FILE_FLAG_OPEN_REPARSE_POINT |
-                                      FILE_FLAG_BACKUP_SEMANTICS,
-                                      NULL);
+    const HANDLE handle = d_internal_file_open_reparse_win32(path);
+
+    d_internal_file_native_release(&held);
 
     // a reparse point that will not open cannot be told apart
     if (handle == INVALID_HANDLE_VALUE)
@@ -576,3 +622,560 @@ d_internal_file_is_link_win32(
 }
 
 #endif  // D_CFG_FILE_HAS_WIN32
+
+#if (D_INTERNAL_FILE_WIDE == 1)
+
+/*
+d_internal_file_utf_errno
+  The errno for a failed conversion: _too_long when the buffer was too small
+-- ENAMETOOLONG for a path on its way in, ERANGE for text on its way out --
+EILSEQ for text with no form in the other encoding, and the Win32 table's word
+for anything else.
+*/
+static int
+d_internal_file_utf_errno(
+    DWORD _error,
+    int   _too_long
+)
+{
+    // the buffer was too small
+    if (_error == ERROR_INSUFFICIENT_BUFFER)
+    {
+        return _too_long;
+    }
+
+    // text that is not UTF-8, or UTF-16 with a lone surrogate
+    if (_error == ERROR_NO_UNICODE_TRANSLATION)
+    {
+        return EILSEQ;
+    }
+
+    return d_internal_file_errno_win32(_error);
+}
+
+/*
+d_internal_file_to_native_text
+  MultiByteToWideChar from UTF-8, told to refuse what is not UTF-8
+(MB_ERR_INVALID_CHARS) -- a stray byte, an overlong form, an encoded surrogate
+-- rather than put U+FFFD in its place. A capacity past what an int counts is
+offered as INT_MAX characters, and one of 0, which would only ask the size
+needed, is refused.
+*/
+const d_internal_file_nchar_t*
+d_internal_file_to_native_text(
+    const char*              _text,
+    d_internal_file_nchar_t* _buf,
+    size_t                   _count
+)
+{
+    const int capacity = (_count > (size_t)INT_MAX) ? INT_MAX
+                                                    : (int)_count;
+
+    // the conversion, terminator included, into a buffer that has room
+    if ( (capacity == 0) ||
+         (MultiByteToWideChar(CP_UTF8,
+                              MB_ERR_INVALID_CHARS,
+                              _text,
+                              -1,
+                              _buf,
+                              capacity) == 0) )
+    {
+        const int code = (capacity == 0)
+                             ? ENAMETOOLONG
+                             : d_internal_file_utf_errno(GetLastError(),
+                                                         ENAMETOOLONG);
+
+        // named only by errno, which a build may not report through
+        D_INTERNAL_FILE_SET_ERR(code);
+        (void)code;
+
+        return NULL;
+    }
+
+    return _buf;
+}
+
+#if D_CFG_IS_ON(D_CFG_FILE_LONG_PATHS)
+
+// D_INTERNAL_FILE_LONG_AT
+//   constant: the length, in UTF-16 characters, from which a path takes the
+// long form: MAX_PATH less the 12 CreateDirectoryW keeps for a name inside the
+// directory it makes, the shortest limit a path call has.
+#define D_INTERNAL_FILE_LONG_AT (MAX_PATH - 12)
+
+/**
+ * @brief A path in the form Windows takes past MAX_PATH: absolute, from
+ *        GetFullPathNameW, behind the long-path prefix -- its UNC form for a
+ *        share.
+ *
+ * @param[in,out] _buf    a converted path; rewritten in place where long.
+ * @param[in]     _count  capacity of `_buf`, in characters.
+ * @return `_buf`, or `NULL` with errno set: ENAMETOOLONG when the long form
+ *         does not fit, ENOMEM, or the reason Windows gives.
+ *
+ * A path shorter than D_INTERNAL_FILE_LONG_AT once absolute stays as it is,
+ * relative or not; so does a device path (\\.\), which the prefix would turn
+ * into a file's, and one already prefixed (\\?\, or the kernel's \??\).
+ * GetFullPathNameW is asked first for the size alone, so the absolute form is
+ * built, on the heap, only for a path that takes it.
+ */
+static const d_internal_file_nchar_t*
+d_internal_file_long_form(
+    d_internal_file_nchar_t* _buf,
+    size_t                   _count
+)
+{
+    // a device path, or one in the long form already, goes as it is
+    if ( (_buf[0] == L'\\')                         &&
+         ( ( (_buf[1] == L'\\') &&
+             ( (_buf[2] == L'?') ||
+               (_buf[2] == L'.') ) )                ||
+           ( (_buf[1] == L'?') &&
+             (_buf[2] == L'?') ) )                  &&
+         (_buf[3] == L'\\') )
+    {
+        return _buf;
+    }
+
+    const DWORD need = GetFullPathNameW(_buf,
+                                        0,
+                                        NULL,
+                                        NULL);
+
+    // Windows has said why
+    if (need == 0)
+    {
+        const int code = d_internal_file_errno_win32(GetLastError());
+
+        D_INTERNAL_FILE_SET_ERR(code);
+        (void)code;
+
+        return NULL;
+    }
+
+    // short enough, absolute, for every path call -- need counts the
+    // terminator -- so it goes as it is
+    if ((size_t)need <= (size_t)D_INTERNAL_FILE_LONG_AT)
+    {
+        return _buf;
+    }
+
+    d_internal_file_nchar_t* const full =
+        (d_internal_file_nchar_t*)d_internal_file_alloc((size_t)need *
+                                                        sizeof(*full));
+
+    // d_internal_file_alloc has reported the failure
+    if (!full)
+    {
+        return NULL;
+    }
+
+    const DWORD got   = GetFullPathNameW(_buf,
+                                         need,
+                                         full,
+                                         NULL);
+    const DWORD error = (got == 0) ? GetLastError() : 0;
+    const int   unc   = ( (got >= 2)        &&
+                          (full[0] == L'\\') &&
+                          (full[1] == L'\\') );
+    const int   dev   = ( (unc)             &&
+                          (got >= 4)        &&
+                          (full[2] == L'.') &&
+                          (full[3] == L'\\') );
+    // a share keeps one of its two backslashes, after \\?\UNC
+    const d_internal_file_nchar_t* const prefix = (unc) ? L"\\\\?\\UNC"
+                                                        : L"\\\\?\\";
+    const size_t                         plen   = (unc) ? 7 : 4;
+    const d_internal_file_nchar_t* const rest   = (unc) ? (full + 1) : full;
+    const size_t                         rlen   = (unc) ? ((size_t)got - 1)
+                                                        : (size_t)got;
+    int                                  code   = 0;
+
+    // the answer, a device that takes no prefix, or the reason for neither
+    if ( (got == 0) ||
+         (got >= need) )
+    {
+        code = (got == 0) ? d_internal_file_errno_win32(error) : EIO;
+    }
+    else if ( (!dev) &&
+              (plen + rlen + 1 > _count) )
+    {
+        code = ENAMETOOLONG;
+    }
+    else if (!dev)
+    {
+        memcpy(_buf,
+               prefix,
+               plen * sizeof(*_buf));
+        memcpy(_buf + plen,
+               rest,
+               (rlen + 1) * sizeof(*_buf));
+    }
+
+    d_internal_file_free(full);
+
+    // named only by errno, which a build may not report through
+    if (code != 0)
+    {
+        D_INTERNAL_FILE_SET_ERR(code);
+
+        return NULL;
+    }
+
+    return _buf;
+}
+
+#else
+
+/**
+ * @brief A path as it is: this build takes no long form.
+ *
+ * @param[in] _buf    a converted path.
+ * @param[in] _count  unused.
+ * @return `_buf`.
+ */
+static const d_internal_file_nchar_t*
+d_internal_file_long_form(
+    d_internal_file_nchar_t* _buf,
+    size_t                   _count
+)
+{
+    (void)_count;
+
+    return _buf;
+}
+
+#endif  // D_CFG_FILE_LONG_PATHS
+
+/*
+d_internal_file_to_native
+  A path: its text (d_internal_file_to_native_text), then the long form where
+the build takes long paths (d_internal_file_long_form).
+*/
+const d_internal_file_nchar_t*
+d_internal_file_to_native(
+    const char*              _text,
+    d_internal_file_nchar_t* _buf,
+    size_t                   _count
+)
+{
+    // d_internal_file_to_native_text has set errno
+    if (!d_internal_file_to_native_text(_text,
+                                        _buf,
+                                        _count))
+    {
+        return NULL;
+    }
+
+    return d_internal_file_long_form(_buf,
+                                     _count);
+}
+
+/*
+d_internal_file_from_native
+  WideCharToMultiByte to UTF-8, told to refuse a lone surrogate
+(WC_ERR_INVALID_CHARS) rather than put U+FFFD in its place. A failure may
+leave part of the text in _out, so an empty string is put over it.
+*/
+int
+d_internal_file_from_native(
+    const d_internal_file_nchar_t* _native,
+    char*                          _out,
+    size_t                         _size
+)
+{
+    const int capacity = (_size > (size_t)INT_MAX) ? INT_MAX
+                                                   : (int)_size;
+
+    // a capacity of 0 has no room even for the empty string
+    if (capacity == 0)
+    {
+        D_INTERNAL_FILE_SET_ERR(ERANGE);
+
+        return -1;
+    }
+
+    // the conversion, terminator included
+    if (WideCharToMultiByte(CP_UTF8,
+                            WC_ERR_INVALID_CHARS,
+                            _native,
+                            -1,
+                            _out,
+                            capacity,
+                            NULL,
+                            NULL) == 0)
+    {
+        const int code = d_internal_file_utf_errno(GetLastError(),
+                                                   ERANGE);
+
+        _out[0] = '\0';
+        D_INTERNAL_FILE_SET_ERR(code);
+        (void)code;
+
+        return -1;
+    }
+
+    return 0;
+}
+
+#else
+
+/*
+d_internal_file_to_native_text
+  The platform takes the text as it is.
+*/
+const d_internal_file_nchar_t*
+d_internal_file_to_native_text(
+    const char*              _text,
+    d_internal_file_nchar_t* _buf,
+    size_t                   _count
+)
+{
+    (void)_buf;
+    (void)_count;
+
+    return _text;
+}
+
+/*
+d_internal_file_to_native
+  The platform takes a path as it is, too.
+*/
+const d_internal_file_nchar_t*
+d_internal_file_to_native(
+    const char*              _text,
+    d_internal_file_nchar_t* _buf,
+    size_t                   _count
+)
+{
+    return d_internal_file_to_native_text(_text,
+                                          _buf,
+                                          _count);
+}
+
+/*
+d_internal_file_from_native
+  A copy of the platform's text, refused with ERANGE rather than truncated
+when it does not fit.
+*/
+int
+d_internal_file_from_native(
+    const d_internal_file_nchar_t* _native,
+    char*                          _out,
+    size_t                         _size
+)
+{
+    const size_t length = strlen(_native);
+
+    // the text and its terminator must fit
+    if ((length + 1) > _size)
+    {
+        // an empty string, where there is room for one
+        if (_size > 0)
+        {
+            _out[0] = '\0';
+        }
+
+        D_INTERNAL_FILE_SET_ERR(ERANGE);
+
+        return -1;
+    }
+
+    memcpy(_out,
+           _native,
+           length + 1);
+
+    return 0;
+}
+
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+#if (D_INTERNAL_FILE_NATIVE_ON_HEAP == 1)
+
+/*
+d_internal_file_native_room
+  Allocated on first asking, so a holder that never converts costs nothing.
+*/
+d_internal_file_nchar_t*
+d_internal_file_native_room(
+    struct d_internal_file_native* _native
+)
+{
+    // the block, the first time it is asked for
+    if (!_native->room)
+    {
+        _native->room = (d_internal_file_nchar_t*)d_internal_file_alloc(
+                            (size_t)D_INTERNAL_FILE_NATIVE_ROOM *
+                            sizeof(*_native->room));
+    }
+
+    return _native->room;
+}
+
+/*
+d_internal_file_native_release
+  errno and the last error are saved around the free: a caller releases the
+room between a call and the reading of why it failed.
+*/
+void
+d_internal_file_native_release(
+    struct d_internal_file_native* _native
+)
+{
+    const int   saved_errno = errno;
+    const DWORD saved_error = GetLastError();
+
+    d_internal_file_free(_native->room);
+    _native->room = NULL;
+    errno         = saved_errno;
+    SetLastError(saved_error);
+
+    return;
+}
+
+#else
+
+/*
+d_internal_file_native_room
+  The holder's own array.
+*/
+d_internal_file_nchar_t*
+d_internal_file_native_room(
+    struct d_internal_file_native* _native
+)
+{
+    return _native->room;
+}
+
+/*
+d_internal_file_native_release
+  The array goes with the holder: nothing to return.
+*/
+void
+d_internal_file_native_release(
+    struct d_internal_file_native* _native
+)
+{
+    (void)_native;
+
+    return;
+}
+
+#endif  // D_INTERNAL_FILE_NATIVE_ON_HEAP == 1
+
+#if (D_INTERNAL_FILE_PATH_ON_HEAP == 1)
+
+/*
+d_internal_file_path_room
+  Allocated on first asking and cleared, as the array it stands in for was.
+*/
+char*
+d_internal_file_path_room(
+    struct d_internal_file_path* _path
+)
+{
+    // the block, the first time it is asked for
+    if (!_path->room)
+    {
+        _path->room = (char*)d_internal_file_alloc(
+                          (size_t)D_INTERNAL_FILE_PATH_ROOM);
+
+        // d_internal_file_alloc has reported the failure
+        if (!_path->room)
+        {
+            D_INTERNAL_FILE_SET_ERR(ENOMEM);
+
+            return NULL;
+        }
+
+        memset(_path->room,
+               0,
+               (size_t)D_INTERNAL_FILE_PATH_ROOM);
+    }
+
+    return _path->room;
+}
+
+/*
+d_internal_file_path_release
+  errno and the last error are saved around the free, as the native
+holder's are (d_internal_file_native_release).
+*/
+void
+d_internal_file_path_release(
+    struct d_internal_file_path* _path
+)
+{
+    const int   saved_errno = errno;
+    const DWORD saved_error = GetLastError();
+
+    d_internal_file_free(_path->room);
+    _path->room = NULL;
+    errno       = saved_errno;
+    SetLastError(saved_error);
+
+    return;
+}
+
+#else
+
+/*
+d_internal_file_path_room
+  The holder's own array.
+*/
+char*
+d_internal_file_path_room(
+    struct d_internal_file_path* _path
+)
+{
+    return _path->room;
+}
+
+/*
+d_internal_file_path_release
+  The array goes with the holder: nothing to return.
+*/
+void
+d_internal_file_path_release(
+    struct d_internal_file_path* _path
+)
+{
+    (void)_path;
+
+    return;
+}
+
+#endif  // D_INTERNAL_FILE_PATH_ON_HEAP == 1
+
+/*
+d_internal_file_native_of
+  A failed conversion releases the room it was given, so the caller has
+nothing to release on that path.
+*/
+const d_internal_file_nchar_t*
+d_internal_file_native_of(
+    struct d_internal_file_native* _native,
+    const char*                    _path
+)
+{
+    d_internal_file_nchar_t* const room = d_internal_file_native_room(_native);
+
+    // d_internal_file_alloc has reported the failure
+    if (!room)
+    {
+        return NULL;
+    }
+
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_to_native(_path,
+                                  room,
+                                  D_INTERNAL_FILE_NATIVE_MAX);
+
+    // errno is the conversion's; the room goes with it
+    if (!path)
+    {
+        d_internal_file_native_release(_native);
+    }
+
+    return path;
+}

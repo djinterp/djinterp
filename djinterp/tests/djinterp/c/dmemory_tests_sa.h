@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/c/dmemory_tests_sa.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 #ifndef DJINTERP_DMEMORY_TESTS_STANDALONE_
@@ -19,8 +19,8 @@
 #include <limits.h>
 // djinterp
 #include "../../../inc/djinterp/c/djinterp.h"
-#include "../../../inc/djinterp/c/dmemory.h"
-#include "../../../inc/djinterp/c/fs/dfile.h"
+#include "../../../inc/djinterp/c/memory/dmemory.h"
+#include "../../../inc/djinterp/c/filesys/dfile.h"
 
 
 /******************************************************************************

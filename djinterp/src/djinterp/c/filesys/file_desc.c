@@ -6,15 +6,16 @@
 * d_file_open makes from a child process -- O_CLOEXEC on POSIX, the CRT's
 * _O_NOINHERIT on Windows -- and on Windows makes it binary, so no call site
 * has to remember either; d_file_dup_fd keeps its copy from a child the same
-* way. Each call is one platform call behind a per-platform helper. On the
-* ISO C backend there are no descriptors, and every function here is a stub
-* that reports ENOSYS.
+* way. Each call is one platform call behind a per-platform helper; on Windows
+* the path goes in the build's text, UTF-16 where it reads paths as UTF-8
+* (file_common.h, 6.6). On the ISO C backend there are no descriptors, and
+* every function here is a stub that reports ENOSYS.
 *
 *
 * path:      /src/djinterp/c/filesys/file_desc.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_desc.h"  // corresponding header
 // std
@@ -119,6 +120,15 @@ d_internal_desc_mode(
 #define D_INTERNAL_DESC_TEXT_MODES                                             \
     (_O_TEXT | _O_WTEXT | _O_U16TEXT | _O_U8TEXT)
 
+// D_INTERNAL_DESC_OPEN_CALL
+//   macro: the CRT's _open, in the form the build's path text takes
+// (file_common.h, 6.6): _wopen where Windows is handed UTF-16.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_DESC_OPEN_CALL _wopen
+#else
+    #define D_INTERNAL_DESC_OPEN_CALL _open
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
 /*
 d_internal_desc_flags
   Applies this build's open policy to a caller's flags. Two additions, each
@@ -151,7 +161,9 @@ d_internal_desc_flags(
 
 /*
 d_internal_desc_open
-  The CRT's _open, which takes the mode as an int.
+  The CRT's _open, or _wopen, which take the mode as an int, given the path in
+the build's text (d_internal_file_to_native): a path that will not convert
+fails here, with its reason in errno.
 */
 static int
 d_internal_desc_open(
@@ -160,9 +172,24 @@ d_internal_desc_open(
     int         _mode
 )
 {
-    return _open(_path,
-                 _flags,
-                 _mode);
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _path);
+
+    // the conversion has set errno
+    if (!path)
+    {
+        return -1;
+    }
+
+    const int result = D_INTERNAL_DESC_OPEN_CALL(path,
+                                                 _flags,
+                                                 _mode);
+
+    d_internal_file_native_release(&held);
+
+    return result;
 }
 
 /*

@@ -43,8 +43,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../inc/djinterp/c/test/test_standalone.h"
-#include "./fs/file_tests_sa.h"   // d_tests_file_run_all
+#include "../../../../inc/djinterp/test/c/test_standalone.h"
+#include "../filesys/file_tests_sa.h"   // d_tests_file_run_all
 
 
 ///////////////////////////////////////////////////////////////////////////////

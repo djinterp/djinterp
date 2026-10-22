@@ -31,7 +31,7 @@
 * path:      /inc/djinterp/c/filesys/file_dir.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 
 /*
@@ -249,17 +249,21 @@ int                  d_dir_set_current(const char* _path);
  *       must EXIST; a path about to be created cannot be resolved here.
  *
  * @param[in]  _path      the path to resolve.
- * @param[out] _resolved  a buffer of at least D_FILE_PATH_MAX bytes, or
- *                        `NULL` to have the result allocated when
+ * @param[out] _resolved  receives the path; or `NULL` to have it returned in
+ *                        a block allocated to fit, when
  *                        D_CFG_FILE_DIR_REALPATH_ALLOC is set.
- * @return the resolved path, or `NULL` on failure with errno set;
+ * @param[in]  _size      size of `_resolved`, in bytes; ignored when
+ *                        `_resolved` is `NULL`.
+ * @return `_resolved` or the allocated block, or `NULL` on failure with
+ *         errno set; ERANGE when the path does not fit `_size` bytes,
  *         ENAMETOOLONG when it is longer than D_FILE_PATH_MAX allows, and
  *         ENOSYS where the platform has no resolver.
  * @post An allocated result belongs to the caller, who releases it with the
  *       configured deallocator (D_CFG_FILE_FREE).
  */
 char*                d_path_resolve(const char* _path,
-                                    char*       _resolved);
+                                    char*       _resolved,
+                                    size_t      _size);
 
 
 //==============================================================================

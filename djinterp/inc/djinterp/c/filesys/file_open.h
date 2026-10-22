@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/c/filesys/file_open.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 
 /*
@@ -46,7 +46,9 @@ D_EXTERN_C_BEGIN
 // 't' -- nor an encoding (",ccs=UTF-8"), which only a text stream may have --
 // and the platform's close-on-exec flag when D_CFG_FILE_OPEN_CLOEXEC is set,
 // both placed before any encoding. An explicit choice in the caller's mode is
-// never overruled.
+// never overruled. With D_CFG_FILE_WIDE_PATHS a path is UTF-8 on Windows as
+// everywhere, and one that is not fails with EILSEQ (cfg_file_common.h,
+// 1.5.4).
 
 
 // 1.1    Stream opening

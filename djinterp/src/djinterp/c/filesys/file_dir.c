@@ -21,7 +21,7 @@
 * path:      /src/djinterp/c/filesys/file_dir.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_dir.h"  // corresponding header
 // std
@@ -48,6 +48,74 @@ D_INTERNAL_FILE_ASSERT_LARGE_FILES;
 // FILE-LOCAL DEFINITIONS
 //==============================================================================
 
+// The Win32 calls, in the form the build's path text takes: the W functions
+// and the CRT's _w calls where the build hands Windows UTF-16
+// (D_INTERNAL_FILE_WIDE), the A functions and the plain calls otherwise.
+
+// D_INTERNAL_DIR_FIND
+//   macro: the find data a search hands back.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_DIR_FIND WIN32_FIND_DATAW
+#else
+    #define D_INTERNAL_DIR_FIND WIN32_FIND_DATAA
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_DIR_FIND_FIRST
+//   macro: FindFirstFile.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_DIR_FIND_FIRST FindFirstFileW
+#else
+    #define D_INTERNAL_DIR_FIND_FIRST FindFirstFileA
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_DIR_FIND_NEXT
+//   macro: FindNextFile.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_DIR_FIND_NEXT FindNextFileW
+#else
+    #define D_INTERNAL_DIR_FIND_NEXT FindNextFileA
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_DIR_ATTRS
+//   macro: GetFileAttributes.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_DIR_ATTRS GetFileAttributesW
+#else
+    #define D_INTERNAL_DIR_ATTRS GetFileAttributesA
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_DIR_FULL_PATH
+//   macro: GetFullPathName.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_DIR_FULL_PATH GetFullPathNameW
+#else
+    #define D_INTERNAL_DIR_FULL_PATH GetFullPathNameA
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_DIR_MKDIR
+//   macro: the CRT's _mkdir.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_DIR_MKDIR _wmkdir
+#else
+    #define D_INTERNAL_DIR_MKDIR _mkdir
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_DIR_RMDIR
+//   macro: the CRT's _rmdir.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_DIR_RMDIR _wrmdir
+#else
+    #define D_INTERNAL_DIR_RMDIR _rmdir
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_DIR_CHDIR
+//   macro: the CRT's _chdir.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_DIR_CHDIR _wchdir
+#else
+    #define D_INTERNAL_DIR_CHDIR _chdir
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
 // d_dir_t
 //   struct: the opaque directory handle promised by file_common.h. It owns the
 // entries the readers hand back, which makes that pointer's lifetime a
@@ -60,7 +128,7 @@ struct d_dir_t
 {
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
     HANDLE              handle;                    // FindFirstFile handle
-    WIN32_FIND_DATAA    find_data;                 // the entry Win32 hands back
+    D_INTERNAL_DIR_FIND find_data;                 // the entry Win32 hands back
     int                 pending;                   // 1 when find_data is unread
     int                 empty;                     // 1 when nothing matched
     char                pattern[D_FILE_PATH_MAX];  // for rewind
@@ -281,7 +349,8 @@ d_internal_dir_type_by_stat(
 
 #endif  // D_INTERNAL_FILE_DIR_TYPE_BY_STAT == 1
 
-#if ( (D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)) ||                                   \
+#if ( ( (D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)) &&                                 \
+        (D_INTERNAL_FILE_WIDE != 1) )                                      ||  \
       (D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)) )
 
 /*
@@ -313,7 +382,7 @@ d_internal_dir_copy_name(
     return 0;
 }
 
-#endif  // D_CFG_FILE_HAS_WIN32 || D_CFG_FILE_HAS_POSIX
+#endif  // narrow D_CFG_FILE_HAS_WIN32 || D_CFG_FILE_HAS_POSIX
 
 /*
 d_internal_dir_is_dots
@@ -365,7 +434,22 @@ d_internal_dir_mkdir(
     // Windows has no permission bits for directories
     (void)_mode;
 
-    return _mkdir(_path);
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _path);
+
+    // the conversion has set errno
+    if (!path)
+    {
+        return -1;
+    }
+
+    const int result = D_INTERNAL_DIR_MKDIR(path);
+
+    d_internal_file_native_release(&held);
+
+    return result;
 }
 
 /*
@@ -377,7 +461,22 @@ d_internal_dir_rmdir(
     const char* _path
 )
 {
-    return _rmdir(_path);
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _path);
+
+    // the conversion has set errno
+    if (!path)
+    {
+        return -1;
+    }
+
+    const int result = D_INTERNAL_DIR_RMDIR(path);
+
+    d_internal_file_native_release(&held);
+
+    return result;
 }
 
 #elif D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)
@@ -605,8 +704,26 @@ d_internal_dir_search(
     struct d_dir_t* _dir
 )
 {
-    _dir->handle  = FindFirstFileA(_dir->pattern,
-                                   &_dir->find_data);
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const pattern =
+        d_internal_file_native_of(&held,
+                                  _dir->pattern);
+
+    // the conversion has set errno, and no search has started
+    if (!pattern)
+    {
+        _dir->handle  = INVALID_HANDLE_VALUE;
+        _dir->pending = 0;
+        _dir->empty   = 0;
+
+        return -1;
+    }
+
+    _dir->handle  = D_INTERNAL_DIR_FIND_FIRST(pattern,
+                                              &_dir->find_data);
+
+    d_internal_file_native_release(&held);
+
     _dir->pending = (_dir->handle != INVALID_HANDLE_VALUE);
     _dir->empty   = 0;
 
@@ -616,8 +733,16 @@ d_internal_dir_search(
         return 0;
     }
 
+    // read before the conversion, which can set it
     const DWORD error  = GetLastError();
-    const DWORD attrs  = GetFileAttributesA(_dir->path);
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _dir->path);
+    const DWORD attrs  = (path) ? D_INTERNAL_DIR_ATTRS(path)
+                                : INVALID_FILE_ATTRIBUTES;
+
+    d_internal_file_native_release(&held);
+
     const int   exists = (attrs != INVALID_FILE_ATTRIBUTES);
     const int   is_dir = (exists) &&
                          ((attrs & FILE_ATTRIBUTE_DIRECTORY) != 0);
@@ -694,7 +819,7 @@ for a link, as d_internal_file_is_link_win32 takes it.
 */
 static uint8_t
 d_internal_dir_win32_type(
-    const WIN32_FIND_DATAA* _data
+    const D_INTERNAL_DIR_FIND* _data
 )
 {
     // the build does not fill types
@@ -716,6 +841,89 @@ d_internal_dir_win32_type(
                : (uint8_t)DT_REG;
 }
 
+#if (D_INTERNAL_FILE_WIDE == 1)
+
+/**
+ * @brief An entry's UTF-16 name, as the UTF-8 the caller reads.
+ *
+ * @param[out] _dst      receives the name and its terminator.
+ * @param[in]  _dstsize  capacity of `_dst`, in bytes.
+ * @param[in]  _src      the name the search handed back.
+ * @return D_INTERNAL_DIR_TAKEN, or D_INTERNAL_DIR_SKIPPED for a name that
+ *         cannot be reported -- longer than D_FILE_NAME_MAX in UTF-8, or one
+ *         with a lone surrogate, which Windows allows in a name and UTF-8
+ *         cannot carry -- after a notice saying which.
+ *
+ * errno is the caller's again afterwards: a skipped name is no failure of the
+ * read, which goes on to the next entry.
+ */
+static int
+d_internal_dir_take_name(
+    char*        _dst,
+    size_t       _dstsize,
+    const WCHAR* _src
+)
+{
+    const int saved  = errno;
+    const int result = d_internal_file_from_native(_src,
+                                                   _dst,
+                                                   _dstsize);
+    const int code   = errno;
+
+    errno = saved;
+
+    // reported as it is
+    if (result == 0)
+    {
+        return D_INTERNAL_DIR_TAKEN;
+    }
+
+    // too long, as in any build
+    if (code != EILSEQ)
+    {
+        return d_internal_dir_skip_long();
+    }
+
+    D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_WARN,
+                           EILSEQ,
+                           "d_dir_read64",
+                           NULL,
+                           "entry name UTF-8 cannot carry; skipped");
+
+    return D_INTERNAL_DIR_SKIPPED;
+}
+
+#else
+
+/**
+ * @brief An entry's name, as the search handed it back.
+ *
+ * @param[out] _dst      receives the name and its terminator.
+ * @param[in]  _dstsize  capacity of `_dst`, in bytes.
+ * @param[in]  _src      the name the search handed back.
+ * @return D_INTERNAL_DIR_TAKEN, or D_INTERNAL_DIR_SKIPPED after a notice for
+ *         a name longer than D_FILE_NAME_MAX.
+ */
+static int
+d_internal_dir_take_name(
+    char*       _dst,
+    size_t      _dstsize,
+    const char* _src
+)
+{
+    // a name longer than D_FILE_NAME_MAX cannot be reported
+    if (d_internal_dir_copy_name(_dst,
+                                 _dstsize,
+                                 _src) != 0)
+    {
+        return d_internal_dir_skip_long();
+    }
+
+    return D_INTERNAL_DIR_TAKEN;
+}
+
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
 /*
 d_internal_dir_next
   The next entry of the search. The one FindFirstFile produced is handed out
@@ -732,8 +940,8 @@ d_internal_dir_next(
     // nothing pending: a search that matched nothing, or ask for another
     if ( (!_dir->pending) &&
          ( (_dir->empty) ||
-           (!FindNextFileA(_dir->handle,
-                           &_dir->find_data)) ) )
+           (!D_INTERNAL_DIR_FIND_NEXT(_dir->handle,
+                                      &_dir->find_data)) ) )
     {
         // ERROR_NO_MORE_FILES is the end; anything else failed
         if ( (!_dir->empty) &&
@@ -752,12 +960,14 @@ d_internal_dir_next(
 
     _dir->pending = 0;
 
-    // a name longer than D_FILE_NAME_MAX cannot be reported
-    if (d_internal_dir_copy_name(_dir->entry.d_name,
-                                 sizeof(_dir->entry.d_name),
-                                 _dir->find_data.cFileName) != 0)
+    const int taken = d_internal_dir_take_name(_dir->entry.d_name,
+                                               sizeof(_dir->entry.d_name),
+                                               _dir->find_data.cFileName);
+
+    // a name that cannot be reported is skipped (d_internal_dir_take_name)
+    if (taken != D_INTERNAL_DIR_TAKEN)
     {
-        return d_internal_dir_skip_long();
+        return taken;
     }
 
     _dir->entry.d_ino  = 0;   // Win32 has no inode to report
@@ -793,6 +1003,46 @@ d_internal_dir_release(
     return 0;
 }
 
+#if (D_INTERNAL_FILE_WIDE == 1)
+
+/**
+ * @brief The working directory, asked for in UTF-16 and given back as UTF-8.
+ *
+ * @param[out] _buf   receives the directory.
+ * @param[in]  _size  capacity of `_buf`, in bytes.
+ * @return `_buf`, or `NULL` with errno set: ERANGE for a directory that does
+ *         not fit, whether D_FILE_PATH_MAX characters or `_size` bytes, and
+ *         EILSEQ for one UTF-8 cannot carry.
+ */
+static char*
+d_internal_dir_getcwd(
+    char*  _buf,
+    size_t _size
+)
+{
+    struct d_internal_file_native  held = {0};
+    d_internal_file_nchar_t* const room = d_internal_file_native_room(&held);
+
+    // d_internal_file_alloc has reported the failure
+    if (!room)
+    {
+        return NULL;
+    }
+
+    // the CRT's answer, then UTF-8 for the caller; either sets errno
+    const int given = ( (_wgetcwd(room,
+                                  (int)D_INTERNAL_FILE_NATIVE_MAX) != NULL) &&
+                        (d_internal_file_from_native(room,
+                                                     _buf,
+                                                     _size) == 0) );
+
+    d_internal_file_native_release(&held);
+
+    return (given) ? _buf : NULL;
+}
+
+#else
+
 /*
 d_internal_dir_getcwd
   The CRT's _getcwd, which takes an int: a larger buffer is offered as INT_MAX
@@ -809,6 +1059,8 @@ d_internal_dir_getcwd(
                                                     : _size ));
 }
 
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
 /*
 d_internal_dir_chdir
   The CRT's _chdir.
@@ -818,7 +1070,22 @@ d_internal_dir_chdir(
     const char* _path
 )
 {
-    return _chdir(_path);
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _path);
+
+    // the conversion has set errno
+    if (!path)
+    {
+        return -1;
+    }
+
+    const int result = D_INTERNAL_DIR_CHDIR(path);
+
+    d_internal_file_native_release(&held);
+
+    return result;
 }
 
 #elif D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)
@@ -1121,48 +1388,283 @@ d_internal_dir_chdir(
 #if (D_INTERNAL_FILE_HAS_REALPATH == 1)
 
 /*
-d_internal_dir_realpath
-  realpath, into a buffer of D_FILE_PATH_MAX bytes. Handed a buffer, realpath
+d_internal_dir_resolve
+  realpath, into _found's D_FILE_PATH_MAX bytes. Handed a buffer, realpath
 writes up to PATH_MAX bytes into it, and overruns one when D_CFG_FILE_PATH_MAX
 is set lower -- so it is asked to allocate instead, as POSIX.1-2008 lets it,
 and its answer is copied over only when it fits: a longer one fails with
 ENAMETOOLONG. The C library's allocation goes back to the C library's free.
 */
-static char*
-d_internal_dir_realpath(
+static int
+d_internal_dir_resolve(
     const char* _path,
-    char*       _resolved
+    char*       _found
 )
 {
-    char* const found = realpath(_path,
-                                 NULL);
+    char* const answer = realpath(_path,
+                                  NULL);
 
     // realpath has set errno
-    if (!found)
+    if (!answer)
     {
-        return NULL;
+        return -1;
     }
 
-    const size_t length = strlen(found);
+    const size_t length = strlen(answer);
 
     // an answer that does not fit is refused, never truncated
     if ((length + 1) > D_FILE_PATH_MAX)
     {
-        free(found);
+        free(answer);
         D_INTERNAL_FILE_SET_ERR(ENAMETOOLONG);
 
-        return NULL;
+        return -1;
+    }
+
+    memcpy(_found,
+           answer,
+           length + 1);
+    free(answer);
+
+    return 0;
+}
+
+#elif D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+
+#if (D_INTERNAL_FILE_WIDE == 1)
+
+/**
+ * @brief d_path_resolve's answer on Windows where the build hands it UTF-16:
+ *        GetFullPathNameW, given back as UTF-8 in `_found`.
+ *
+ * @param[in]  _path   the path to resolve, in UTF-8.
+ * @param[out] _found  receives the answer; D_FILE_PATH_MAX bytes.
+ * @return 0, or -1 with errno set: ENAMETOOLONG for an answer past
+ *         D_FILE_PATH_MAX characters or bytes, as realpath's is; EILSEQ for
+ *         text that is not UTF-8, or that UTF-8 cannot carry; ENOENT for an
+ *         answer that names nothing; Win32's reason, otherwise.
+ *
+ * As the narrow form: lexical, so its answer is checked for existence.
+ */
+static int
+d_internal_dir_resolve(
+    const char* _path,
+    char*       _found
+)
+{
+    struct d_internal_file_native        in_held  = {0};
+    struct d_internal_file_native        out_held = {0};
+    const d_internal_file_nchar_t* const path     =
+        d_internal_file_native_of(&in_held,
+                                  _path);
+    d_internal_file_nchar_t* const       out      =
+        (path) ? d_internal_file_native_room(&out_held)
+               : NULL;
+
+    // the conversion has set errno, or the allocation reported its failure
+    if (!out)
+    {
+        d_internal_file_native_release(&in_held);
+
+        return -1;
+    }
+
+    const DWORD room   = (DWORD)D_INTERNAL_FILE_NATIVE_MAX;
+    const DWORD length = D_INTERNAL_DIR_FULL_PATH(path,
+                                                  room,
+                                                  out,
+                                                  NULL);
+
+    // Windows has said why; its reason, in errno's words
+    if (length == 0)
+    {
+        const int code = d_internal_file_errno_win32(GetLastError());
+
+        D_INTERNAL_FILE_SET_ERR(code);
+        (void)code;
+        d_internal_file_native_release(&in_held);
+        d_internal_file_native_release(&out_held);
+
+        return -1;
+    }
+
+    // a longer answer comes back as the size it needs, and is refused; so is
+    // one whose UTF-8 does not fit _found's bytes
+    if ( ((size_t)length >= D_INTERNAL_FILE_NATIVE_MAX) ||
+         (d_internal_file_from_native(out,
+                                      _found,
+                                      D_FILE_PATH_MAX) != 0) )
+    {
+        if ( ((size_t)length >= D_INTERNAL_FILE_NATIVE_MAX) ||
+             (errno == ERANGE) )
+        {
+            D_INTERNAL_FILE_SET_ERR(ENAMETOOLONG);
+        }
+
+        d_internal_file_native_release(&in_held);
+        d_internal_file_native_release(&out_held);
+
+        return -1;
+    }
+
+    d_internal_file_native_release(&in_held);
+    d_internal_file_native_release(&out_held);
+
+    // the long-path prefix this build gave a path it was not given is its
+    // own, and the caller gets the path back as it would have written it
+    if ( (strncmp(_path, "\\\\?\\", 4) != 0) &&
+         (strncmp(_found, "\\\\?\\", 4) == 0) )
+    {
+        const int    unc  = (strncmp(_found + 4, "UNC\\", 4) == 0);
+        const size_t drop = (unc) ? 7 : 4;  // the UNC form keeps one
+
+        // a share's first backslash stays where it is, and the prefix's last
+        // one becomes its second
+        memmove(_found + ((unc) ? 1 : 0),
+                _found + drop,
+                strlen(_found + drop) + 1);
+    }
+
+    // a resolved path must name something that exists
+    if (!d_file_exists(_found))
+    {
+        D_INTERNAL_FILE_SET_ERR(ENOENT);
+
+        return -1;
+    }
+
+    return 0;
+}
+
+#else
+
+/*
+d_internal_dir_resolve
+  GetFullPathNameA, into _found's D_FILE_PATH_MAX bytes; an answer past them is
+ENAMETOOLONG, as realpath's is. It is called directly rather than through the
+CRT's _fullpath, which reports a buffer too small as ERANGE in one runtime and
+leaves errno alone in another, where GetFullPathNameA answers with the size it
+needs everywhere. It is lexical and does NOT verify existence, unlike realpath,
+so its answer is checked: reporting a canonical path for something that is not
+there would make the two platforms disagree about what d_path_resolve means.
+*/
+static int
+d_internal_dir_resolve(
+    const char* _path,
+    char*       _found
+)
+{
+    const DWORD length = GetFullPathNameA(_path,
+                                          (DWORD)D_FILE_PATH_MAX,
+                                          _found,
+                                          NULL);
+
+    // Windows has said why; its reason, in errno's words
+    if (length == 0)
+    {
+        const int code = d_internal_file_errno_win32(GetLastError());
+
+        // named only by errno, which a build may not report through
+        D_INTERNAL_FILE_SET_ERR(code);
+        (void)code;
+
+        return -1;
+    }
+
+    // a longer answer comes back as the size it needs, and is refused
+    if ((size_t)length >= D_FILE_PATH_MAX)
+    {
+        D_INTERNAL_FILE_SET_ERR(ENAMETOOLONG);
+
+        return -1;
+    }
+
+    // a resolved path must name something that exists
+    if (!d_file_exists(_found))
+    {
+        D_INTERNAL_FILE_SET_ERR(ENOENT);
+
+        return -1;
+    }
+
+    return 0;
+}
+
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+#else
+
+/*
+d_internal_dir_resolve
+  No resolver here: refuse with ENOSYS, rather than return a lexical answer
+that silently differs from what the kernel would do with symlinks.
+*/
+static int
+d_internal_dir_resolve(
+    const char* _path,
+    char*       _found
+)
+{
+    (void)_path;
+    (void)_found;
+
+    D_INTERNAL_FILE_SET_ERR(ENOSYS);
+
+    return -1;
+}
+
+#endif  // D_INTERNAL_FILE_HAS_REALPATH == 1, D_CFG_FILE_HAS_WIN32
+
+/*
+d_internal_dir_hand_back
+  The resolved path in the caller's buffer -- ERANGE when it does not fit,
+never a truncated path -- or, with no buffer where the build allows that, in
+one allocated to fit it exactly. The allocation goes through the filesys
+allocator, so D_CFG_FILE_MALLOC still owns every byte this subframework
+hands out.
+*/
+static char*
+d_internal_dir_hand_back(
+    const char* _found,
+    char*       _resolved,
+    size_t      _size
+)
+{
+    const size_t length = strlen(_found);
+
+    // no buffer: one allocated to fit, where the build allows it
+    if ( (D_INTERNAL_FILE_DIR_REALPATH_ALLOC == 1) &&
+         (_resolved == NULL) )
+    {
+        char* const owned = (char*)d_internal_file_alloc(length + 1);
+
+        // d_internal_file_alloc has already reported a failure
+        if (owned)
+        {
+            memcpy(owned,
+                   _found,
+                   length + 1);
+        }
+
+        return owned;
+    }
+
+    // the caller's buffer must hold the path and its terminator
+    if ((length + 1) > _size)
+    {
+        D_INTERNAL_FILE_FAIL(ERANGE,
+                             "d_path_resolve",
+                             NULL,
+                             "the resolved path does not fit the buffer",
+                             NULL);
     }
 
     memcpy(_resolved,
-           found,
+           _found,
            length + 1);
-    free(found);
 
     return _resolved;
 }
-
-#endif  // D_INTERNAL_FILE_HAS_REALPATH == 1
 
 //==============================================================================
 // 1.  DIRECTORIES
@@ -1214,10 +1716,11 @@ ways -- a path that is nothing but a root is only checked. Trailing
 separators are dropped first, so the last real component is the leaf and gets
 the caller's mode, and an empty component ("a//b") is passed over.
 */
-int
-d_dir_create_parents(
+static int
+d_internal_dir_create_parents_in(
     const char* _path,
-    uint32_t    _mode
+    uint32_t    _mode,
+    char*       _work_room
 )
 {
     // parameter validation
@@ -1229,10 +1732,10 @@ d_dir_create_parents(
                             -1);
 
     size_t length = strlen(_path);
-    char   work[D_FILE_PATH_MAX];
+    char* const work = _work_room;
 
     // the working copy must hold the path and its terminator
-    if ((length + 1) > sizeof(work))
+    if ((length + 1) > D_FILE_PATH_MAX)
     {
         D_INTERNAL_FILE_FAIL(ENAMETOOLONG,
                              "d_dir_create_parents",
@@ -1309,6 +1812,38 @@ d_dir_create_parents(
     }
 
     return 0;
+}
+
+/*
+d_dir_create_parents
+  d_dir_create_parents's work is d_internal_dir_create_parents_in; this keeps
+the room it builds a path in, on the heap where that is 32 KiB
+(d_internal_file_path).
+*/
+int
+d_dir_create_parents(
+    const char* _path,
+    uint32_t    _mode
+)
+{
+    struct d_internal_file_path work_held = {0};
+    char* const work = d_internal_file_path_room(&work_held);
+
+    // d_internal_file_path_room has set errno, and reported the failure
+    if (!work)
+    {
+        d_internal_file_path_release(&work_held);
+
+        return -1;
+    }
+
+    const int result = d_internal_dir_create_parents_in(_path,
+                                                        _mode,
+                                                        work);
+
+    d_internal_file_path_release(&work_held);
+
+    return result;
 }
 
 /*
@@ -1770,20 +2305,19 @@ d_dir_set_current(
 
 /*
 d_path_resolve
-  realpath where the platform has it, bounded by D_FILE_PATH_MAX
-(d_internal_dir_realpath). Windows' _fullpath is lexical and does
-NOT verify existence, so its answer is checked: reporting a canonical path for
-something that is not there would make the two platforms disagree about what
-this function means. With no resolver at all this refuses with ENOSYS rather
-than return a lexical answer that silently differs from what the kernel would
-do with symlinks. A result allocated here goes through the filesys allocator, so
-D_CFG_FILE_MALLOC still owns every byte this subframework hands out, and it is
-released again on failure with the failure's errno kept.
+  The platform's resolver into a buffer of D_FILE_PATH_MAX bytes
+(d_internal_dir_resolve), then the answer handed back in the caller's buffer
+or one allocated to fit (d_internal_dir_hand_back). Resolving into a buffer
+of our own first is what lets the caller's be any size: the resolvers want
+room for the longest path before they start, and the answer's length is only
+known once they are done.
 */
-char*
-d_path_resolve(
+static char*
+d_internal_path_resolve_in(
     const char* _path,
-    char*       _resolved
+    char*       _resolved,
+    size_t      _size,
+    char*       _found_room
 )
 {
     // parameter validation
@@ -1793,88 +2327,70 @@ d_path_resolve(
                             NULL,
                             "path is NULL",
                             NULL);
-
-#if (D_INTERNAL_FILE_DIR_REALPATH_ALLOC == 0)
-    D_INTERNAL_FILE_REQUIRE(_resolved != NULL,
+    D_INTERNAL_FILE_REQUIRE(( (_resolved != NULL) ||
+                              (D_INTERNAL_FILE_DIR_REALPATH_ALLOC == 1) ),
                             EINVAL,
                             "d_path_resolve",
                             _path,
                             "buffer is NULL and REALPATH_ALLOC is 0",
                             NULL);
-#endif
+    D_INTERNAL_FILE_REQUIRE(( (_resolved == NULL) ||
+                              (_size > 0) ),
+                            EINVAL,
+                            "d_path_resolve",
+                            _path,
+                            "buffer size is 0",
+                            NULL);
 
-#if (D_INTERNAL_FILE_DIR_REALPATH_ALLOC == 1)
-    char* owned = NULL;
+    char* const found = _found_room;
 
-    // the allocation goes through the filesys allocator, not the platform's, so
-    // D_CFG_FILE_MALLOC still owns every byte this subframework hands out
-    if (!_resolved)
+    // the platform's resolver has set errno; report it as it stands
+    if (d_internal_dir_resolve(_path,
+                               found) != 0)
     {
-        owned = (char*)d_internal_file_alloc(D_FILE_PATH_MAX);
-
-        // d_internal_file_alloc has already reported the failure
-        if (!owned)
-        {
-            return NULL;
-        }
-
-        _resolved = owned;
-    }
-#endif
-
-    char* result = NULL;
-
-#if (D_INTERNAL_FILE_HAS_REALPATH == 1)
-    result = d_internal_dir_realpath(_path,
-                                     _resolved);
-#elif D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
-    result = _fullpath(_resolved,
-                       _path,
-                       D_FILE_PATH_MAX);
-
-    // _fullpath is lexical and does NOT verify existence, unlike realpath.
-    // Reporting a canonical path for something that is not there would make
-    // the two platforms disagree about what this function means.
-    if (result)
-    {
-        // a resolved path must name something that exists
-        if (!d_file_exists(result))
-        {
-            result = NULL;
-            D_INTERNAL_FILE_SET_ERR(ENOENT);
-        }
-    }
-#else
-    // no resolver here: refuse rather than return a lexical answer that
-    // silently differs from what the kernel would do with symlinks
-    (void)_path;
-    (void)_resolved;
-    result = NULL;
-    D_INTERNAL_FILE_SET_ERR(ENOSYS);
-#endif
-
-    // report the failure, releasing any buffer allocated here
-    if (!result)
-    {
-#if (D_INTERNAL_FILE_DIR_REALPATH_ALLOC == 1)
-        // free what was allocated here, keeping the failure's errno
-        if (owned)
-        {
-            const int saved_errno = errno;
-
-            d_internal_file_free(owned);
-            errno = saved_errno;
-        }
-#endif
-
         D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                errno,
                                "d_path_resolve",
                                D_INTERNAL_FILE_NOTIFY_PATH(_path),
-                               "realpath failed");
+                               "the path could not be resolved");
 
         return NULL;
     }
+
+    return d_internal_dir_hand_back(found,
+                                    _resolved,
+                                    _size);
+}
+
+/*
+d_path_resolve
+  d_path_resolve's work is d_internal_path_resolve_in; this keeps the room it
+builds a path in, on the heap where that is 32 KiB (d_internal_file_path).
+*/
+char*
+d_path_resolve(
+    const char* _path,
+    char*       _resolved,
+    size_t      _size
+)
+{
+    struct d_internal_file_path found_held = {0};
+    char* const found = d_internal_file_path_room(&found_held);
+
+    // d_internal_file_path_room has set errno, and reported the failure
+    if (!found)
+    {
+        d_internal_file_path_release(&found_held);
+
+        return NULL;
+    }
+
+    char* const result = d_internal_path_resolve_in(_path,
+                                                    _resolved,
+                                                    _size,
+                                                    found);
+
+    d_internal_file_path_release(&found_held);
 
     return result;
 }

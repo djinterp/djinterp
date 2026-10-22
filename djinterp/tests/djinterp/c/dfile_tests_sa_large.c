@@ -7,7 +7,7 @@
 * path:      /tests/djinterp/c/dfile_tests_sa_large.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 // djinterp
 #include "./dfile_tests_sa.h"
@@ -215,7 +215,9 @@ d_tests_dfile_ftruncate
         result = d_file_truncate_fd(fd, 10);
         d_file_close_fd(fd);
         size_after = d_file_size(path_buf);
-        test_truncate_smaller = (result == 0) && (size_after == 10);
+        test_truncate_smaller = (size_before == 34) &&
+                                (result == 0)       &&
+                                (size_after == 10);
     }
 
     // test 2: extend file with truncate

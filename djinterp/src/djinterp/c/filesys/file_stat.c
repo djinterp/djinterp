@@ -21,7 +21,7 @@
 * path:      /src/djinterp/c/filesys/file_stat.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_stat.h"  // corresponding header
 // std
@@ -385,9 +385,35 @@ d_internal_stat_trim(
     return length;
 }
 
+// D_INTERNAL_STAT_STAT64
+//   macro: the CRT's _stat64, in the form the build's path text takes:
+// _wstat64 where the build hands Windows UTF-16 (D_INTERNAL_FILE_WIDE).
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_STAT_STAT64 _wstat64
+#else
+    #define D_INTERNAL_STAT_STAT64 _stat64
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_STAT_ACCESS
+//   macro: the CRT's _access, or _waccess.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_STAT_ACCESS _waccess
+#else
+    #define D_INTERNAL_STAT_ACCESS _access
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_STAT_CHMOD
+//   macro: the CRT's _chmod, or _wchmod.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_STAT_CHMOD _wchmod
+#else
+    #define D_INTERNAL_STAT_CHMOD _chmod
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
 /*
 d_internal_stat_native
-  The CRT's _stat64 on one path, translated.
+  The CRT's _stat64 on one path, translated; the path in the platform's text
+first (d_internal_file_to_native).
 */
 static int
 d_internal_stat_native(
@@ -395,11 +421,25 @@ d_internal_stat_native(
     struct d_stat64_t* _out
 )
 {
-    struct _stat64 native = {0};
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _path);
 
-    // _stat64 reports its own errno
-    if (_stat64(_path,
-                &native) != 0)
+    // the conversion has set errno
+    if (!path)
+    {
+        return -1;
+    }
+
+    struct _stat64 native = {0};
+    const int      failed = (D_INTERNAL_STAT_STAT64(path,
+                                                    &native) != 0);
+
+    d_internal_file_native_release(&held);
+
+    // _stat64 has reported its own errno
+    if (failed)
     {
         return -1;
     }
@@ -417,13 +457,14 @@ needs, and answered as POSIX answers it: the path must then name a directory,
 so "file.txt\\" fails with ENOTDIR.
 */
 static int
-d_internal_stat_native_dir(
+d_internal_stat_native_dir_in(
     const char*        _path,
     size_t             _length,
-    struct d_stat64_t* _out
+    struct d_stat64_t* _out,
+    char*              _name_room
 )
 {
-    char name[D_FILE_PATH_MAX + 1] = {0};
+    char* const name = _name_room;
 
     // a name too long to copy is too long to stat
     if (_length > D_FILE_PATH_MAX)
@@ -456,6 +497,40 @@ d_internal_stat_native_dir(
     }
 
     return 0;
+}
+
+/*
+d_internal_stat_native_dir
+  d_internal_stat_native_dir's work is d_internal_stat_native_dir_in; this
+keeps the room it builds a path in, on the heap where that is 32 KiB
+(d_internal_file_path).
+*/
+static int
+d_internal_stat_native_dir(
+    const char*        _path,
+    size_t             _length,
+    struct d_stat64_t* _out
+)
+{
+    struct d_internal_file_path name_held = {0};
+    char* const name = d_internal_file_path_room(&name_held);
+
+    // d_internal_file_path_room has set errno, and reported the failure
+    if (!name)
+    {
+        d_internal_file_path_release(&name_held);
+
+        return -1;
+    }
+
+    const int result = d_internal_stat_native_dir_in(_path,
+                                                     _length,
+                                                     _out,
+                                                     name);
+
+    d_internal_file_path_release(&name_held);
+
+    return result;
 }
 
 /*
@@ -551,8 +626,23 @@ d_internal_stat_access(
     int         _mode
 )
 {
-    return _access(_path,
-                   _mode & (~X_OK));
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _path);
+
+    // the conversion has set errno
+    if (!path)
+    {
+        return -1;
+    }
+
+    const int result = D_INTERNAL_STAT_ACCESS(path,
+                                              _mode & (~X_OK));
+
+    d_internal_file_native_release(&held);
+
+    return result;
 }
 
 /*
@@ -566,8 +656,23 @@ d_internal_stat_chmod(
     uint32_t    _mode
 )
 {
-    return _chmod(_path,
-                  (int)_mode);
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _path);
+
+    // the conversion has set errno
+    if (!path)
+    {
+        return -1;
+    }
+
+    const int result = D_INTERNAL_STAT_CHMOD(path,
+                                             (int)_mode);
+
+    d_internal_file_native_release(&held);
+
+    return result;
 }
 
 #elif D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)

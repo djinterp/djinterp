@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/c/filesys/file_desc.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 
 /*
@@ -55,6 +55,8 @@ D_EXTERN_C_BEGIN
  * @note    Unless the build turns it off, the descriptor is close-on-exec --
  *          on Windows, its handle is not inherited by a child process -- and
  *          on Windows it is binary unless `_flags` names a text mode.
+ * @note    With D_CFG_FILE_WIDE_PATHS, `_path` is UTF-8 on Windows as
+ *          everywhere, and one that is not fails with EILSEQ.
  * @warning Pass the creation mode whenever `_flags` contains O_CREAT, or
  *          Linux's O_TMPFILE. A mode of 0 is taken for a forgotten argument
  *          and replaced with D_CFG_FILE_DESC_CREATE_MODE.
