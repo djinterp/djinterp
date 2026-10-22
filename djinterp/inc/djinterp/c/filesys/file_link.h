@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/c/filesys/file_link.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -65,7 +65,7 @@ D_EXTERN_C_BEGIN
  * @param[in] _target    what the link points at.
  * @param[in] _linkpath  where to create the link.
  * @return 0, or -1 on failure with errno set -- EEXIST when `_linkpath` is
- *         taken.
+ *         taken, EPERM where the filesystem holds no links.
  */
 int     d_file_symlink(const char* _target,
                        const char* _linkpath);

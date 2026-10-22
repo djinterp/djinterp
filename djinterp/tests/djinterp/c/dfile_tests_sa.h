@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/c/dfile_tests_sa.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 #ifndef DJINTERP_DFILE_TESTS_SA_
@@ -18,8 +18,10 @@
 
 // djinterp
 #include "../../../inc/djinterp/c/djinterp.h"
-#include "../../../inc/djinterp/c/dmemory.h"
-#include "../../../inc/djinterp/c/fs/dfile.h"
+#include "../../../inc/djinterp/c/memory/dmemory.h"
+#include "../../../inc/djinterp/c/filesys/dfile.h"
+#include "./filesys/file_tests_sa_assert.h"
+#include "../../../inc/djinterp/c/string_fn.h"
 
 
 /******************************************************************************

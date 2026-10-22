@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/c/filesys/file_lock.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -77,7 +77,7 @@ D_EXTERN_C_BEGIN
  *                        optionally OR'd with D_LOCK_NB.
  * @return 0, or -1 on failure with errno set. Under D_LOCK_NB a conflict
  *         returns -1 with errno EWOULDBLOCK, EAGAIN or EACCES -- an answer,
- *         not a fault.
+ *         not a fault. A filesystem that cannot lock at all is ENOLCK.
  */
 int d_file_lock_fd(int _fd,
                    int _operation);

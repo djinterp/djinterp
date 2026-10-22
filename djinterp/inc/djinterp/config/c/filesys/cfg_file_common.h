@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/config/c/filesys/cfg_file_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -97,6 +97,8 @@ TABLE OF CONTENTS
          15. D_CFG_FILE_HAS_FALLOCATE
          16. D_CFG_FILE_HAS_STAT_NSEC
          17. D_CFG_FILE_HAS_BIRTHTIME
+         18. D_CFG_FILE_HAS_TMPFILE
+         19. D_CFG_FILE_HAS_CLOCK
     10. Width
          1.  D_CFG_FILE_WIDTH_AUTO
          2.  D_CFG_FILE_WIDTH
@@ -125,6 +127,7 @@ TABLE OF CONTENTS
          17. D_INTERNAL_FILE_NATURAL_WIDTH
          18. D_INTERNAL_FILE_WIDTH
          19. D_INTERNAL_FILE_HAS_TIME_BITS
+         20. D_INTERNAL_FILE_WIDE
 4.  QUERIES
     -------
     1.  Public query macros
@@ -358,30 +361,46 @@ TABLE OF CONTENTS
 
 // 1.5.3
 // D_CFG_FILE_LONG_PATHS
-//   knob: on Windows, size the paths this build constructs for 32767
-// characters rather than MAX_PATH's 260 (D_FILE_PATH_MAX, 3.1.5). It adds no
-// \\?\ prefix: c/filesys calls the ANSI API, and Microsoft documents the long
-// forms -- that prefix, and Windows 10's opt-in for an application that
-// declares itself long-path aware -- for the wide calls. So a longer path
-// fits this build's buffers, and whether it opens is the platform's answer.
-// Off by default: every path buffer grows from 260 bytes to 32 KiB, on the
-// stack where a path is built. No effect on POSIX.
+//   knob: on Windows, take paths past MAX_PATH's 260 characters. The paths
+// this build constructs are sized for 32767 (D_FILE_PATH_MAX, 3.1.5), and a
+// path at or past MAX_PATH less 12 -- the limit CreateDirectoryW keeps, the
+// shortest a path call has -- is made absolute with GetFullPathNameW and
+// handed to Windows behind the \\?\ prefix (\\?\UNC\ for a share), which
+// lifts the limit. A device path (\\.\), or one already in that form, goes
+// as it is, and d_path_resolve gives a path back without a prefix it added.
+// The prefix is the wide calls' alone, so it takes D_CFG_FILE_WIDE_PATHS
+// (1.5.4); without that, a longer path fits this build's buffers, and
+// whether it opens is the platform's answer. Off by default: every path
+// buffer grows from 260 characters to 32767, and is kept on the heap rather
+// than the stack -- a path's UTF-16 copy, 64 KiB, and a path built in UTF-8,
+// 32 KiB (d_internal_file_native and d_internal_file_path, file_common.h);
+// a default build keeps its 260-character ones on the stack. No effect on
+// POSIX.
 #ifndef D_CFG_FILE_LONG_PATHS
     #define D_CFG_FILE_LONG_PATHS 0
 #endif  // D_CFG_FILE_LONG_PATHS
 
 // 1.5.4
 // D_CFG_FILE_WIDE_PATHS
-//   knob: on Windows, treat incoming char* paths as UTF-8, convert them to
-// UTF-16 and call the wide API (_wfopen, CreateFileW). Reserved: nothing
-// implements it yet -- c/filesys calls the ANSI API, which reads a path in the
-// active codepage -- so 1 is refused at build time (2.1) rather than ignored:
-// a program that sets it is counting on names outside that codepage. Once it
-// is implemented it stays off by default, since it changes how a non-ASCII
-// path is read, a break for a program passing codepage bytes. On POSIX,
-// where paths are opaque bytes, it would mean nothing.
+//   knob: on Windows, read every char* path as UTF-8, and hand it to the
+// wide API (_wfopen, _wopen, CreateFileW) as UTF-16, so a name outside the
+// active code page reaches the filesystem as it was spelled. Text that is not
+// UTF-8 fails with EILSEQ, and a path whose UTF-16 form will not fit
+// D_FILE_PATH_MAX characters with ENAMETOOLONG. The conversions are
+// file_common.h's (6.6).
+//   Every module takes it: a path goes in as UTF-8, and a name the platform
+// hands back -- an entry d_dir_read64 reads, the working directory, a full
+// path, d_dir_temp's directory, a link's target -- comes back as UTF-8,
+// D_FILE_NAME_MAX growing to hold any name Windows can (3.1.6). A name with
+// a lone surrogate, which Windows allows and UTF-8 cannot carry, fails with
+// EILSEQ, and a listing skips it, as it skips a name past D_FILE_NAME_MAX.
+//   On by default, since every module takes it (2026.10.20): a path is read
+// as UTF-8 on Windows as everywhere else. A program passing code-page bytes
+// sets it to 0, and gets the A calls, and the code page, back. No effect on
+// POSIX, where a path is bytes and UTF-8 is already what reaches the
+// filesystem.
 #ifndef D_CFG_FILE_WIDE_PATHS
-    #define D_CFG_FILE_WIDE_PATHS 0
+    #define D_CFG_FILE_WIDE_PATHS 1
 #endif  // D_CFG_FILE_WIDE_PATHS
 
 // 1.6    Allocation hooks
@@ -562,6 +581,17 @@ TABLE OF CONTENTS
     #define D_INTERNAL_FILE_OS_BSD 1
 #else
     #define D_INTERNAL_FILE_OS_BSD 0
+#endif
+
+// D_INTERNAL_FILE_OS_WASI
+//   constant: 1 on WASI, the WebAssembly system interface. Its libc lacks two
+// of the ISO C calls c/filesys makes (1.9.18, 1.9.19), and env counts it as no
+// POSIX system, so it builds on the ISO C backend. env has no identity for it
+// yet, so the compiler's own __wasi__ names it here.
+#if defined(__wasi__)
+    #define D_INTERNAL_FILE_OS_WASI 1
+#else
+    #define D_INTERNAL_FILE_OS_WASI 0
 #endif
 
 // D_INTERNAL_FILE_OS_EXTENDED
@@ -825,10 +855,13 @@ TABLE OF CONTENTS
 //   d_stat_t.st_changed carries ctime everywhere; a creation timestamp, where
 // one exists, is a separate concern and does not get silently substituted --
 // that conflation is exactly what the old st_ctime field name encouraged.
+//   st_birthtime is <sys/stat.h>'s, so the Apple and BSD terms need the POSIX
+// API, as 1.9's invariant says.
 #ifndef D_CFG_FILE_HAS_BIRTHTIME
     #if ( (D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)) ||                               \
-          (D_INTERNAL_FILE_OS_DARWIN == 1) ||                                  \
-          (D_INTERNAL_FILE_OS_BSD == 1) )
+          ( (D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)) &&                             \
+            ( (D_INTERNAL_FILE_OS_DARWIN == 1) ||                              \
+              (D_INTERNAL_FILE_OS_BSD == 1) ) ) )
         #define D_CFG_FILE_HAS_BIRTHTIME 1
     #elif D_CFG_IS_ON(D_CFG_FILE_HAS_STATX)
         #define D_CFG_FILE_HAS_BIRTHTIME 1
@@ -836,6 +869,36 @@ TABLE OF CONTENTS
         #define D_CFG_FILE_HAS_BIRTHTIME 0
     #endif
 #endif  // D_CFG_FILE_HAS_BIRTHTIME
+
+// 1.9.18
+// D_CFG_FILE_HAS_TMPFILE
+//   knob: ISO C's tmpfile is available. Every hosted C library has it but
+// WASI's, which declares it only to deprecate it: a WASI program reaches no
+// directory its host has not granted, so there is no temporary directory for
+// tmpfile to use. Without it d_file_temp_stream fails with ENOSYS.
+#ifndef D_CFG_FILE_HAS_TMPFILE
+    #if (D_INTERNAL_FILE_OS_WASI == 1)
+        #define D_CFG_FILE_HAS_TMPFILE 0
+    #else
+        #define D_CFG_FILE_HAS_TMPFILE 1
+    #endif
+#endif  // D_CFG_FILE_HAS_TMPFILE
+
+// 1.9.19
+// D_CFG_FILE_HAS_CLOCK
+//   knob: ISO C's clock, the processor time used, is available. WASI has no
+// process clocks: its libc emulates clock on the wall clock only for a build
+// that defines _WASI_EMULATED_PROCESS_CLOCKS and links
+// -lwasi-emulated-process-clocks, and otherwise declares it only to deprecate
+// it. Only the seed of the temporary names reads it, and does without.
+#ifndef D_CFG_FILE_HAS_CLOCK
+    #if ( (D_INTERNAL_FILE_OS_WASI == 1) &&                                    \
+          (!defined(_WASI_EMULATED_PROCESS_CLOCKS)) )
+        #define D_CFG_FILE_HAS_CLOCK 0
+    #else
+        #define D_CFG_FILE_HAS_CLOCK 1
+    #endif
+#endif  // D_CFG_FILE_HAS_CLOCK
 
 // 1.10   Width
 //------------------------------------------------------------------------------
@@ -962,11 +1025,6 @@ TABLE OF CONTENTS
       (D_CFG_IS_OFF(D_CFG_FILE_HAS_WIN32)) )
     #error "D_CFG_FILE_BACKEND == NATIVE but no native API was detected"
 #endif
-// a reserved knob turned on is refused, not ignored: nothing implements wide
-// paths yet (1.5.4), and a program that asks for them is counting on them.
-#if D_CFG_IS_ON(D_CFG_FILE_WIDE_PATHS)
-    #error "D_CFG_FILE_WIDE_PATHS is not implemented yet: c/filesys calls the ANSI API"
-#endif
 // the same rule for a pinned width: 64 needs a 64-bit integer type, which ISO
 // strict C++98 cannot spell on a 32-bit target, on Windows or on macOS.
 #if ( (D_CFG_NORM(D_CFG_FILE_WIDTH) == 64) &&                                  \
@@ -1067,6 +1125,16 @@ TABLE OF CONTENTS
 //   resolved: the effective maximum single-filename length.
 #ifdef D_CFG_FILE_NAME_MAX
     #define D_INTERNAL_FILE_NAME_MAX D_CFG_FILE_NAME_MAX
+#elif ( (D_CFG_IS_ON(D_CFG_FILE_WIDE_PATHS)) &&                                \
+        (D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)) )
+    // a build reading its names as UTF-8 (D_INTERNAL_FILE_WIDE, 3.1.20, whose
+    // test this repeats, as it is resolved after this): Windows' 255 UTF-16
+    // units, at the three bytes UTF-8 spends on one at most -- a surrogate
+    // pair spends four on two -- so every name a directory holds can be read.
+    // Ahead of NAME_MAX, which MinGW's <limits.h> defines as 255 bytes of the
+    // code page, and only in a unit that has included it by now: the size of
+    // d_name cannot hang on what a unit included first.
+    #define D_INTERNAL_FILE_NAME_MAX 765
 #elif defined(NAME_MAX)
     #define D_INTERNAL_FILE_NAME_MAX NAME_MAX
 #else
@@ -1232,6 +1300,18 @@ TABLE OF CONTENTS
     #define D_INTERNAL_FILE_HAS_TIME_BITS 1
 #else
     #define D_INTERNAL_FILE_HAS_TIME_BITS 0
+#endif
+
+// 3.1.20
+// D_INTERNAL_FILE_WIDE
+//   resolved: 1 when this build reads its paths as UTF-8 and hands them to
+// Windows' wide API (1.5.4): the knob, on a target with the Win32 API. 0 on
+// every other target, the knob's setting notwithstanding.
+#if ( (D_CFG_IS_ON(D_CFG_FILE_WIDE_PATHS)) &&                                  \
+      (D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)) )
+    #define D_INTERNAL_FILE_WIDE 1
+#else
+    #define D_INTERNAL_FILE_WIDE 0
 #endif
 
 

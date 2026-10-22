@@ -35,7 +35,7 @@
 * path:      /inc/djinterp/core/filesys/file_dir.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.18
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -405,7 +405,7 @@ public:
         directory&& _other
     ) D_NOEXCEPT
         : m_dir(_other.m_dir),
-          m_current(_other.m_current),
+          m_current(static_cast<directory_entry&&>(_other.m_current)),
           m_at_end(_other.m_at_end),
           m_error(_other.m_error)
     {
@@ -432,7 +432,7 @@ public:
             }
 
             m_dir     = _other.m_dir;
-            m_current = _other.m_current;
+            m_current = static_cast<directory_entry&&>(_other.m_current);
             m_at_end  = _other.m_at_end;
             m_error   = _other.m_error;
 
@@ -629,6 +629,14 @@ private:
 
         m_current.assign(name,
                          type);
+
+        // a name that could not be kept ends the walk: an entry without one
+        // would send a caller to an invalid path
+        if (!m_current.name().valid())
+        {
+            m_at_end = true;
+            m_error.assign(ENOMEM);
+        }
     }
 
     /**

@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/core/filesys/file_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.18
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -107,6 +107,10 @@ public:
     /**
      * @brief Reports the human-readable text for the code.
      *
+     * @note The text is std::strerror's, in a buffer the C library may reuse:
+     *       a later message(), or strerror on any thread, can overwrite it, so
+     *       copy it to keep it.
+     *
      * @return the platform's message; never `NULL`, since strerror answers
      *         unknown codes too.
      */
@@ -130,7 +134,9 @@ public:
      *
      * @param[in] _code  the code; 0 means success.
      */
-    void assign(int _code)
+    void assign(
+        int _code
+    )
     {
         m_code = _code;
     }

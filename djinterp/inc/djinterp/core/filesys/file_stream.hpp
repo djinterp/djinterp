@@ -42,7 +42,7 @@
 * path:      /inc/djinterp/core/filesys/file_stream.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.18
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -73,8 +73,6 @@ TABLE OF CONTENTS
 #include "file_stat.hpp"                // file_status
 #include "../../c/filesys/file_open.h"  // d_file_open_stream,
                                         // d_file_close_stream
-#include "../../c/filesys/file_io.h"    // the whole-file helpers; byte I/O here
-                                        // is stdio
 #include "../../env/env.h"              // D_ENV_LANG_*
 #include "../../c/filesys/file_seek.h"  // d_file_seek_stream,
                                         // d_file_tell_stream,
@@ -209,10 +207,12 @@ public:
      *       since stdio does not promise errno on ferror, EIO stands in when
      *       errno is not live.
      *
-     * @param[out] _buf  receives the bytes; holds at least `_n`.
+     * @param[out] _buf  receives the bytes; holds at least `_n`, and may be
+     *                   `NULL` only where `_n` is 0.
      * @param[in]  _n    the most bytes to read.
-     * @param[out] _ec   cleared on success; EBADF on a closed file, otherwise
-     *                   the platform's code or EIO.
+     * @param[out] _ec   cleared on success; EBADF on a closed file, EINVAL for
+     *                   a count with no buffer, otherwise the platform's code
+     *                   or EIO.
      * @return the number of bytes read.
      */
     size_t read(void*  _buf,
@@ -224,6 +224,14 @@ public:
         {
             _ec.assign(EBADF);
 
+            return 0;
+        }
+
+        // a count with no buffer: fread would write through NULL
+        if ( (!_buf) &&
+             (_n > 0) )
+        {
+            _ec.assign(EINVAL);
             return 0;
         }
 
@@ -255,10 +263,12 @@ public:
      * @note A short write is always a failure: unlike reading, there is no
      *       benign end of file to hit.
      *
-     * @param[in]  _buf  the bytes to write; holds at least `_n`.
+     * @param[in]  _buf  the bytes to write; holds at least `_n`, and may be
+     *                   `NULL` only where `_n` is 0.
      * @param[in]  _n    the number of bytes to write.
-     * @param[out] _ec   cleared on success; EBADF on a closed file, otherwise
-     *                   the platform's code or EIO.
+     * @param[out] _ec   cleared on success; EBADF on a closed file, EINVAL for
+     *                   a count with no buffer, otherwise the platform's code
+     *                   or EIO.
      * @return the number of bytes written.
      */
     size_t write(const void* _buf,
@@ -270,6 +280,14 @@ public:
         {
             _ec.assign(EBADF);
 
+            return 0;
+        }
+
+        // a count with no buffer: fwrite would read through NULL
+        if ( (!_buf) &&
+             (_n > 0) )
+        {
+            _ec.assign(EINVAL);
             return 0;
         }
 
@@ -475,7 +493,8 @@ public:
     // return false immediately when the lock is held elsewhere, and in THAT
     // case _ec is EWOULDBLOCK or EAGAIN, which is how a caller tells an honest
     // contention from a real error. Every form returns true on success, and
-    // sets _ec to EBADF on a closed file.
+    // sets _ec to EBADF on a closed file and ENOLCK on a filesystem that
+    // cannot lock at all, as d_file_lock_fd does.
 
     /**
      * @brief Takes a shared (read) lock, blocking until it is available; many
@@ -599,7 +618,9 @@ public:
      * @note It has no name in the filesystem and is deleted automatically the
      *       moment it closes, so it leaves nothing behind and no other process
      *       can open it by name -- the safe kind of scratch space. Like open(),
-     *       re-acquiring drops any file already held.
+     *       re-acquiring drops any file already held; unlike open(), it drops
+     *       it only once the temporary exists, so a failure leaves the file
+     *       held before still open.
      *
      * @param[out] _ec  cleared on success; the platform's code otherwise.
      * @return true on success.

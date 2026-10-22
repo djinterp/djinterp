@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/core/filesys/file_path.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -61,6 +61,8 @@ TABLE OF CONTENTS
 #ifndef DJINTERP_FILESYS_FILE_PATH_HPP
 #define DJINTERP_FILESYS_FILE_PATH_HPP 1
 
+// std
+#include <cstdlib>  // std::realloc, std::free
 // djinterp
 #include "../../c/filesys/file_path.h"                // d_path_* operations
 #include "../../c/dstring.h"                          // d_string, owned text
@@ -69,7 +71,7 @@ TABLE OF CONTENTS
 #include "../../env/env.h"                            // D_ENV_LANG_*
 // std
 #if (D_INTERNAL_PATH_THROW == 1)
-    #include <stdexcept>  // std::bad_alloc
+    #include <new>  // std::bad_alloc
 #endif
 
 #if (D_INTERNAL_PATH_HAS_SPACESHIP == 1)
@@ -145,7 +147,7 @@ NS_INTERNAL
             // only a grown buffer owns memory
             if (m_heap)
             {
-                free(m_heap);
+                std::free(m_heap);
             }
         }
 
@@ -166,8 +168,8 @@ NS_INTERNAL
                 return true;
             }
 
-            char* const block = (char*)realloc(m_heap,
-                                               _need);
+            char* const block = (char*)std::realloc(m_heap,
+                                                    _need);
 
             // a failed realloc leaves the old block, and the buffer, intact
             if (!block)
@@ -196,8 +198,8 @@ NS_INTERNAL
     private:
         // scratch is a borrowed buffer with a lifetime; copying one would give
         // two owners of m_heap
-        path_scratch(const path_scratch&);
-        path_scratch& operator=(const path_scratch&);
+        D_DELETED_FN(path_scratch(const path_scratch& _other))
+        D_DELETED_FN(path_scratch& operator=(const path_scratch& _other))
 
         char   m_stack[D_INTERNAL_PATH_STACK_BUF];
         char*  m_heap;

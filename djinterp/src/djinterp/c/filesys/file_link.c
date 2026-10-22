@@ -13,7 +13,7 @@
 * path:      /src/djinterp/c/filesys/file_link.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_link.h"  // corresponding header
 // std
@@ -147,11 +147,58 @@ d_internal_link_name(
     return 0;
 }
 
+// D_INTERNAL_LINK_OPEN
+//   macro: CreateFile in the form the build's path text takes: the W
+// function where the build hands Windows UTF-16 (D_INTERNAL_FILE_WIDE).
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_LINK_OPEN CreateFileW
+#else
+    #define D_INTERNAL_LINK_OPEN CreateFileA
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_LINK_MAKE
+//   macro: CreateSymbolicLink, the W or the A function.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_LINK_MAKE CreateSymbolicLinkW
+#else
+    #define D_INTERNAL_LINK_MAKE CreateSymbolicLinkA
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_LINK_CODEPAGE
+//   macro: the text a link's UTF-16 name is given back in: UTF-8 where
+// the build hands Windows UTF-16, the ANSI code page the A calls speak
+// otherwise.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_LINK_CODEPAGE CP_UTF8
+#else
+    #define D_INTERNAL_LINK_CODEPAGE CP_ACP
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_LINK_CP_FLAGS
+//   macro: UTF-8 refuses a lone surrogate rather than write U+FFFD for
+// it; the code page has no such refusal to ask for.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_LINK_CP_FLAGS WC_ERR_INVALID_CHARS
+#else
+    #define D_INTERNAL_LINK_CP_FLAGS 0
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+// D_INTERNAL_LINK_CP_ERROR
+//   macro: a name the text cannot carry: EILSEQ for a lone surrogate,
+// as d_internal_file_from_native; EIO for a name outside the code page.
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_LINK_CP_ERROR EILSEQ
+#else
+    #define D_INTERNAL_LINK_CP_ERROR EIO
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
 /*
 d_internal_link_convert
-  A link's UTF-16 name in the ANSI code page the -A calls speak, in a block the
-caller frees, its length in _made. A name the code page cannot take is an I/O
-failure, EIO: the text it would give is not the link's.
+  A link's UTF-16 name in the text this build's paths are: UTF-8 where it
+hands Windows UTF-16, the ANSI code page the -A calls speak otherwise
+(D_INTERNAL_LINK_CODEPAGE), in a block the caller frees, its length in _made.
+A name the text cannot take fails: EILSEQ for a lone surrogate, EIO for a name
+outside the code page, whose text would not be the link's.
 */
 static char*
 d_internal_link_convert(
@@ -160,8 +207,8 @@ d_internal_link_convert(
     int*         _made
 )
 {
-    const int need = WideCharToMultiByte(CP_ACP,
-                                         0,
+    const int need = WideCharToMultiByte(D_INTERNAL_LINK_CODEPAGE,
+                                         D_INTERNAL_LINK_CP_FLAGS,
                                          _name,
                                          (int)_length,
                                          NULL,
@@ -172,7 +219,7 @@ d_internal_link_convert(
     // a name that will not convert has no text to give
     if (need <= 0)
     {
-        D_INTERNAL_FILE_SET_ERR(EIO);
+        D_INTERNAL_FILE_SET_ERR(D_INTERNAL_LINK_CP_ERROR);
 
         return NULL;
     }
@@ -185,8 +232,8 @@ d_internal_link_convert(
         return NULL;
     }
 
-    *_made = WideCharToMultiByte(CP_ACP,
-                                 0,
+    *_made = WideCharToMultiByte(D_INTERNAL_LINK_CODEPAGE,
+                                 D_INTERNAL_LINK_CP_FLAGS,
                                  _name,
                                  (int)_length,
                                  text,
@@ -198,7 +245,7 @@ d_internal_link_convert(
     if (*_made <= 0)
     {
         d_internal_file_free(text);
-        D_INTERNAL_FILE_SET_ERR(EIO);
+        D_INTERNAL_FILE_SET_ERR(D_INTERNAL_LINK_CP_ERROR);
 
         return NULL;
     }
@@ -261,17 +308,31 @@ d_internal_link_fetch(
     BYTE*       _data
 )
 {
-    const HANDLE handle = CreateFileA(_path,
-                                      0,
-                                      FILE_SHARE_READ  |
-                                      FILE_SHARE_WRITE |
-                                      FILE_SHARE_DELETE,
-                                      NULL,
-                                      OPEN_EXISTING,
-                                      FILE_FLAG_OPEN_REPARSE_POINT |
-                                      FILE_FLAG_BACKUP_SEMANTICS,
-                                      NULL);
-    DWORD        got    = 0;
+    struct d_internal_file_native        held = {0};
+    const d_internal_file_nchar_t* const path =
+        d_internal_file_native_of(&held,
+                                  _path);
+
+    // the conversion has set errno
+    if (!path)
+    {
+        return 0;
+    }
+
+    const HANDLE handle = D_INTERNAL_LINK_OPEN(path,
+                                               0,
+                                               FILE_SHARE_READ  |
+                                               FILE_SHARE_WRITE |
+                                               FILE_SHARE_DELETE,
+                                               NULL,
+                                               OPEN_EXISTING,
+                                               FILE_FLAG_OPEN_REPARSE_POINT |
+                                               FILE_FLAG_BACKUP_SEMANTICS,
+                                               NULL);
+
+    d_internal_file_native_release(&held);
+
+    DWORD got = 0;
 
     // a link that will not open cannot be read
     if (handle == INVALID_HANDLE_VALUE)
@@ -396,13 +457,15 @@ link's own directory, not from the working directory. A target that cannot be
 judged is no directory, as a dangling one is not.
 */
 static int
-d_internal_link_is_dir(
+d_internal_link_is_dir_in(
     const char* _target,
-    const char* _linkpath
+    const char* _linkpath,
+    char*       _dir_room,
+    char*       _full_room
 )
 {
-    char dir[D_FILE_PATH_MAX + 1]  = {0};
-    char full[D_FILE_PATH_MAX + 1] = {0};
+    char* const dir = _dir_room;
+    char* const full = _full_room;
 
     // a rooted target names the same place from anywhere
     if (d_path_root_length(_target) != 0)
@@ -413,9 +476,9 @@ d_internal_link_is_dir(
     // a relative one is read from the link's directory
     if ( (!d_path_dirname(_linkpath,
                           dir,
-                          sizeof(dir))) ||
+                          (D_FILE_PATH_MAX + 1))) ||
          (!d_dir_entry_path(full,
-                            sizeof(full),
+                            (D_FILE_PATH_MAX + 1),
                             dir,
                             _target)) )
     {
@@ -426,32 +489,71 @@ d_internal_link_is_dir(
 }
 
 /*
+d_internal_link_is_dir
+  d_internal_link_is_dir's work is d_internal_link_is_dir_in; this keeps the
+room it builds a path in, on the heap where that is 32 KiB
+(d_internal_file_path).
+*/
+static int
+d_internal_link_is_dir(
+    const char* _target,
+    const char* _linkpath
+)
+{
+    struct d_internal_file_path dir_held  = {0};
+    struct d_internal_file_path full_held = {0};
+    char* const dir = d_internal_file_path_room(&dir_held);
+    char* const full = d_internal_file_path_room(&full_held);
+
+    // d_internal_file_path_room has set errno, and reported the failure
+    if (( (!dir) ||
+         (!full) ))
+    {
+        d_internal_file_path_release(&dir_held);
+        d_internal_file_path_release(&full_held);
+
+        return -1;
+    }
+
+    const int result = d_internal_link_is_dir_in(_target,
+                                                 _linkpath,
+                                                 dir,
+                                                 full);
+
+    d_internal_file_path_release(&dir_held);
+    d_internal_file_path_release(&full_held);
+
+    return result;
+}
+
+/*
 d_internal_link_make
-  CreateSymbolicLinkA, with the unprivileged-create flag where the build asks
+  CreateSymbolicLink, given the platform's text, with the unprivileged-create
+flag where the build asks
 for it -- and again without it when the system rejects the flag itself, as
 Windows 10 before 1703 rejects the whole call rather than ignore it. Returns
 the call's answer; GetLastError says why it failed.
 */
 static BOOL
 d_internal_link_make(
-    const char* _linkpath,
-    const char* _target,
-    DWORD       _flags
+    const d_internal_file_nchar_t* _linkpath,
+    const d_internal_file_nchar_t* _target,
+    DWORD                          _flags
 )
 {
     // the plain call, where the build does not ask for the flag
     if (D_INTERNAL_FILE_LINK_UNPRIV == 0)
     {
-        return CreateSymbolicLinkA(_linkpath,
-                                   _target,
-                                   _flags);
+        return D_INTERNAL_LINK_MAKE(_linkpath,
+                                    _target,
+                                    _flags);
     }
 
     // Developer Mode lets an ordinary account create links
-    if (CreateSymbolicLinkA(_linkpath,
-                            _target,
-                            _flags |
-                                SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE))
+    if (D_INTERNAL_LINK_MAKE(_linkpath,
+                             _target,
+                             _flags |
+                                 SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE))
     {
         return TRUE;
     }
@@ -470,9 +572,9 @@ d_internal_link_make(
                            "without it");
 
     // the plain call needs the privilege itself
-    return CreateSymbolicLinkA(_linkpath,
-                               _target,
-                               _flags);
+    return D_INTERNAL_LINK_MAKE(_linkpath,
+                                _target,
+                                _flags);
 }
 
 /*
@@ -484,40 +586,110 @@ link. A failure is the reason Win32 gives -- EPERM for the missing privilege,
 EEXIST for a name already taken, and so on.
 */
 static int
-d_internal_link_create(
+d_internal_link_create_in(
     const char* _target,
-    const char* _linkpath
+    const char* _linkpath,
+    char*       _target_room
 )
 {
-    char target[D_FILE_PATH_MAX + 1] = {0};
+    char* const target = _target_room;
 
     // the target as Windows must store it
     if (d_internal_link_target(_target,
                                target,
-                               sizeof(target)) != 0)
+                               (D_FILE_PATH_MAX + 1)) != 0)
     {
         return -1;
     }
 
-    const DWORD flags = d_internal_link_is_dir(target,
-                                               _linkpath)
-                            ? (DWORD)SYMBOLIC_LINK_FLAG_DIRECTORY
-                            : (DWORD)0;
+    const int is_dir = d_internal_link_is_dir(target,
+                                              _linkpath);
+
+    // d_internal_file_path_room has set errno
+    if (is_dir < 0)
+    {
+        return -1;
+    }
+
+    const DWORD flags = (is_dir) ? (DWORD)SYMBOLIC_LINK_FLAG_DIRECTORY
+                                 : (DWORD)0;
+
+    struct d_internal_file_native        link_held = {0};
+    struct d_internal_file_native        text_held = {0};
+    const d_internal_file_nchar_t* const link =
+        d_internal_file_native_of(&link_held,
+                                  _linkpath);
+    const d_internal_file_nchar_t* const text =
+        (link) ? d_internal_file_native_of(&text_held,
+                                           target)
+               : NULL;
+
+    // the conversion has set errno
+    if (!text)
+    {
+        d_internal_file_native_release(&link_held);
+
+        return -1;
+    }
+
+    const BOOL made = d_internal_link_make(link,
+                                           text,
+                                           flags);
+
+    d_internal_file_native_release(&link_held);
+    d_internal_file_native_release(&text_held);
 
     // made, or refused for a reason Win32 names
-    if (d_internal_link_make(_linkpath,
-                             target,
-                             flags))
+    if (made)
     {
         return 0;
     }
 
-    const int code = d_internal_file_errno_win32(GetLastError());
+    const DWORD error = GetLastError();
+
+    // a filesystem that holds no links -- FAT, most shares -- is EPERM, as
+    // symlink(2) names it, not the table's general ENOTSUP
+    const int code = ( (error == ERROR_INVALID_FUNCTION) ||
+                       (error == ERROR_NOT_SUPPORTED) )
+                         ? EPERM
+                         : d_internal_file_errno_win32(error);
 
     D_INTERNAL_FILE_SET_ERR(code);
     (void)code;
 
     return -1;
+}
+
+/*
+d_internal_link_create
+  d_internal_link_create's work is d_internal_link_create_in; this keeps the
+room it builds a path in, on the heap where that is 32 KiB
+(d_internal_file_path).
+*/
+static int
+d_internal_link_create(
+    const char* _target,
+    const char* _linkpath
+)
+{
+    struct d_internal_file_path target_held = {0};
+    char* const target = d_internal_file_path_room(&target_held);
+
+    // d_internal_file_path_room has set errno, and reported the failure
+    if (!target)
+    {
+        d_internal_file_path_release(&target_held);
+
+        return -1;
+    }
+
+    const int result = d_internal_link_create_in(_target,
+                                                 _linkpath,
+                                                 target);
+
+    d_internal_file_path_release(&target_held);
+
+    return result;
 }
 
 #else

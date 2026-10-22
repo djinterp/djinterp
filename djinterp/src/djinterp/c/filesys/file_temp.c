@@ -2,21 +2,22 @@
 * djinterp [c]                                                       file_temp.c
 *
 * Implementation of the temporary-file calls declared in file_temp.h.
-*   Anonymous files come from tmpfile. Named ones are made here on every
-* platform: a name of this module's choosing, created exclusively through
-* d_file_open, and retried when another process holds that name already.
-* mkstemp would do the same, but its descriptor is not close-on-exec, its mode
-* could only be set by moving the umask every thread shares, and the
-* Windows CRT has none -- _mktemp_s runs out after 26 names per template. The
-* search takes its mode from its caller, so d_file_write_all makes its
-* replacement with it too (d_internal_file_temp_create).
+*   Anonymous files come from tmpfile, where the C library has it -- WASI's does
+* not. Named ones are made here on every platform: a name of this module's
+* choosing, created exclusively through d_file_open, and retried when another
+* process holds that name already. mkstemp would do the same, but its descriptor
+* is not close-on-exec, its mode could only be set by moving the umask every
+* thread shares, and the Windows CRT has none -- _mktemp_s runs out after 26
+* names per template. The search takes its mode from its caller, so
+* d_file_write_all makes its replacement with it too
+* (d_internal_file_temp_create).
 * d_file_temp_name, the racy form, is compiled only when the build allows it.
 *
 *
 * path:      /src/djinterp/c/filesys/file_temp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_temp.h"  // corresponding header
 // std
@@ -103,14 +104,45 @@ d_internal_temp_entropy(
 
 #endif  // D_CFG_FILE_HAS_WIN32
 
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_CLOCK)
+
+/*
+d_internal_temp_clock
+  What the processor clock adds to a name's seed.
+*/
+static uint64_t
+d_internal_temp_clock(
+    void
+)
+{
+    return (uint64_t)clock();
+}
+
+#else
+
+/*
+d_internal_temp_clock
+  What the processor clock adds to a name's seed: nothing, where there is no
+processor clock to read (cfg_file_common.h, 1.9.19).
+*/
+static uint64_t
+d_internal_temp_clock(
+    void
+)
+{
+    return 0;
+}
+
+#endif  // D_CFG_FILE_HAS_CLOCK
+
 /*
 d_internal_temp_seed
-  Where a run of names starts: the time, the processor clock, the platform's
-own values (d_internal_temp_entropy), and the address of a local, which
-differs on every thread's stack and is moved by address randomization.
-Nothing here is secret, and nothing needs to be: the exclusive create is what
-makes a temporary safe, and the seed only makes two callers unlikely to
-choose the same names.
+  Where a run of names starts: the time, the processor clock
+(d_internal_temp_clock), the platform's own values (d_internal_temp_entropy),
+and the address of a local, which differs on every thread's stack and is
+moved by address randomization. Nothing here is secret, and nothing needs to
+be: the exclusive create is what makes a temporary safe, and the seed only
+makes two callers unlikely to choose the same names.
 */
 static uint64_t
 d_internal_temp_seed(
@@ -119,7 +151,7 @@ d_internal_temp_seed(
 {
     uint64_t seed = (uint64_t)time(NULL);
 
-    seed ^= ((uint64_t)clock() << 16) ^
+    seed ^= (d_internal_temp_clock() << 16) ^
             d_internal_temp_entropy() ^
             (uint64_t)(uintptr_t)&seed;
 
@@ -218,6 +250,38 @@ d_internal_temp_suffix(
 
 #endif  // !D_FILE_BACKEND_IS_STDC
 
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_TMPFILE)
+
+/*
+d_internal_temp_anonymous
+  tmpfile; errno is the platform's.
+*/
+static FILE*
+d_internal_temp_anonymous(
+    void
+)
+{
+    return tmpfile();
+}
+
+#else
+
+/*
+d_internal_temp_anonymous
+  No tmpfile here (cfg_file_common.h, 1.9.18): ENOSYS.
+*/
+static FILE*
+d_internal_temp_anonymous(
+    void
+)
+{
+    D_INTERNAL_FILE_SET_ERR(ENOSYS);
+
+    return NULL;
+}
+
+#endif  // D_CFG_FILE_HAS_TMPFILE
+
 /*
 d_internal_temp_root_len
   The part of a temporary directory's path that keeps its separators: on
@@ -270,14 +334,15 @@ d_internal_temp_trim(
 d_file_temp_stream
   tmpfile's file is anonymous: there is no name for an attacker to race and no
 cleanup for anyone to forget, which is why this is the preferred form. The
-wrapper adds only the failure notice.
+wrapper adds only the failure notice, and ENOSYS where there is no tmpfile
+(d_internal_temp_anonymous).
 */
 FILE*
 d_file_temp_stream(
     void
 )
 {
-    FILE* const result = tmpfile();
+    FILE* const result = d_internal_temp_anonymous();
 
     // report the failure; errno is the platform's
     if (!result)
@@ -347,10 +412,11 @@ temporary directory (d_dir_entry_path), and each is tested for existence --
 the answer already stale -- for a bounded number of tries. No state is shared
 between calls, so concurrent callers race only for names, never in memory.
 */
-int
-d_file_temp_name(
+static int
+d_internal_file_temp_name_in(
     char*  _s,
-    size_t _maxsize
+    size_t _maxsize,
+    char*  _dir_room
 )
 {
     // parameter validation
@@ -367,11 +433,11 @@ d_file_temp_name(
                             "buffer is too small to hold a name",
                             EINVAL);
 
-    char dir[D_FILE_PATH_MAX];
+    char* const dir = _dir_room;
 
     // the name lives in the temporary directory
     if (!d_dir_temp(dir,
-                    sizeof(dir)))
+                    D_FILE_PATH_MAX))
     {
         return EIO;
     }
@@ -413,37 +479,171 @@ d_file_temp_name(
     return EEXIST;
 }
 
+/*
+d_file_temp_name
+  d_file_temp_name's work is d_internal_file_temp_name_in; this keeps the room
+it builds a path in, on the heap where that is 32 KiB (d_internal_file_path).
+*/
+int
+d_file_temp_name(
+    char*  _s,
+    size_t _maxsize
+)
+{
+    struct d_internal_file_path dir_held = {0};
+    char* const dir = d_internal_file_path_room(&dir_held);
+
+    // d_internal_file_path_room has set errno, and reported the failure
+    if (!dir)
+    {
+        d_internal_file_path_release(&dir_held);
+
+        return ENOMEM;
+    }
+
+    const int result = d_internal_file_temp_name_in(_s,
+                                                    _maxsize,
+                                                    dir);
+
+    d_internal_file_path_release(&dir_held);
+
+    return result;
+}
+
 #endif  // D_INTERNAL_FILE_TEMP_TMPNAM
 
-/*
-d_dir_temp
-  TMPDIR is the POSIX spelling; TMP and TEMP are what Windows sets. With the
-environment ignored or silent, Windows is asked through GetTempPath -- there
-is no /tmp there, and the real answer is per-user -- and elsewhere the
-configured fallback is used. Every answer loses its trailing separators but
-never its root's (d_internal_temp_trim), so a name joins it with
-d_dir_entry_path and exactly one separator.
-*/
-char*
-d_dir_temp(
+#if (D_INTERNAL_FILE_WIDE == 1)
+
+/**
+ * @brief d_dir_temp's search where the build hands Windows UTF-16: the
+ *        environment and GetTempPathW answer in UTF-16, and the answer is
+ *        given back as UTF-8.
+ *
+ * @param[out] _buf      receives the directory.
+ * @param[in]  _bufsize  capacity of `_buf`, in bytes; more than one.
+ * @return `_buf`, or `NULL` with errno set: ERANGE when the directory does
+ *         not fit, EILSEQ for one UTF-8 cannot carry, EIO when GetTempPathW
+ *         fails.
+ *
+ * Read through getenv, the variables would arrive in the code page, which a
+ * user's own name -- the usual temp directory sits in the profile -- need not
+ * fit, and which this build no longer reads as text.
+ */
+static char*
+d_internal_temp_dir_find(
     char*  _buf,
     size_t _bufsize
 )
 {
-    // parameter validation
-    D_INTERNAL_FILE_REQUIRE(_buf != NULL,
-                            EINVAL,
-                            "d_dir_temp",
-                            NULL,
-                            "buffer is NULL",
-                            NULL);
-    D_INTERNAL_FILE_REQUIRE(_bufsize > 1,
-                            EINVAL,
-                            "d_dir_temp",
-                            NULL,
-                            "buffer is too small",
-                            NULL);
+    const wchar_t* found = NULL;
 
+#if D_CFG_IS_ON(D_CFG_FILE_TEMP_HONOUR_ENV)
+    static const wchar_t* const names[] = { L"TMPDIR", L"TMP", L"TEMP" };
+    const size_t                count   = sizeof(names) / sizeof(names[0]);
+
+    // TMPDIR is the POSIX spelling; TMP and TEMP are what Windows sets
+    for (size_t i = 0; ( (!found) && (i < count) ); ++i)
+    {
+        const wchar_t* const value = _wgetenv(names[i]);
+
+        // an empty variable says nothing
+        if ( (value) &&
+             (value[0] != L'\0') )
+        {
+            found = value;
+        }
+    }
+#endif  // D_CFG_FILE_TEMP_HONOUR_ENV
+
+    // GetTempPathW's answer runs to MAX_PATH + 1 characters, which the room
+    // has (D_INTERNAL_FILE_NATIVE_ROOM)
+    struct d_internal_file_native held = {0};
+
+    // with nothing from the environment, ask the platform
+    if (!found)
+    {
+        d_internal_file_nchar_t* const asked =
+            d_internal_file_native_room(&held);
+
+        // d_internal_file_alloc has reported the failure
+        if (!asked)
+        {
+            return NULL;
+        }
+
+        const DWORD size = (DWORD)D_INTERNAL_FILE_NATIVE_ROOM;
+        const DWORD n    = GetTempPathW(size,
+                                        asked);
+
+        // zero is a failure of the call itself
+        if (n == 0)
+        {
+            d_internal_file_native_release(&held);
+            D_INTERNAL_FILE_FAIL(EIO,
+                                 "d_dir_temp",
+                                 NULL,
+                                 "GetTempPath failed",
+                                 NULL);
+        }
+
+        // a value past the buffer is the size it needed
+        if (n >= size)
+        {
+            d_internal_file_native_release(&held);
+            D_INTERNAL_FILE_FAIL(ERANGE,
+                                 "d_dir_temp",
+                                 NULL,
+                                 "temp directory does not fit the buffer",
+                                 NULL);
+        }
+
+        found = asked;
+    }
+
+    // UTF-8 for the caller; an answer that does not fit, or that UTF-8 cannot
+    // carry, has set errno
+    const int given = d_internal_file_from_native(found,
+                                                  _buf,
+                                                  _bufsize);
+
+    d_internal_file_native_release(&held);
+
+    if (given != 0)
+    {
+        const int code = errno;
+
+        D_INTERNAL_FILE_FAIL(code,
+                             "d_dir_temp",
+                             NULL,
+                             "temp directory cannot be given as UTF-8",
+                             NULL);
+    }
+
+    // no trailing separator, but the root's
+    (void)d_internal_temp_trim(_buf,
+                               strlen(_buf));
+
+    return _buf;
+}
+
+#else
+
+/**
+ * @brief d_dir_temp's search where a path is handed on as it is: the
+ *        environment, then GetTempPathA on Windows and the configured
+ *        fallback elsewhere.
+ *
+ * @param[out] _buf      receives the directory.
+ * @param[in]  _bufsize  capacity of `_buf`, in bytes; more than one.
+ * @return `_buf`, or `NULL` with errno set: ERANGE when the directory does
+ *         not fit, EIO when GetTempPathA fails.
+ */
+static char*
+d_internal_temp_dir_find(
+    char*  _buf,
+    size_t _bufsize
+)
+{
     const char* found = NULL;
 
 #if D_CFG_IS_ON(D_CFG_FILE_TEMP_HONOUR_ENV)
@@ -527,6 +727,43 @@ d_dir_temp(
                                length);
 
     return _buf;
+}
+
+#endif  // D_INTERNAL_FILE_WIDE == 1
+
+/*
+d_dir_temp
+  TMPDIR is the POSIX spelling; TMP and TEMP are what Windows sets. With the
+environment ignored or silent, Windows is asked through GetTempPath -- there
+is no /tmp there, and the real answer is per-user -- and elsewhere the
+configured fallback is used. Every answer loses its trailing separators but
+never its root's (d_internal_temp_trim), so a name joins it with
+d_dir_entry_path and exactly one separator. Where the build hands Windows
+UTF-16, every answer is asked for in UTF-16 and given back as UTF-8
+(d_internal_temp_dir_find).
+*/
+char*
+d_dir_temp(
+    char*  _buf,
+    size_t _bufsize
+)
+{
+    // parameter validation
+    D_INTERNAL_FILE_REQUIRE(_buf != NULL,
+                            EINVAL,
+                            "d_dir_temp",
+                            NULL,
+                            "buffer is NULL",
+                            NULL);
+    D_INTERNAL_FILE_REQUIRE(_bufsize > 1,
+                            EINVAL,
+                            "d_dir_temp",
+                            NULL,
+                            "buffer is too small",
+                            NULL);
+
+    return d_internal_temp_dir_find(_buf,
+                                    _bufsize);
 }
 
 //==============================================================================

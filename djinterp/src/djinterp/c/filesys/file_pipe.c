@@ -12,7 +12,7 @@
 * path:      /src/djinterp/c/filesys/file_pipe.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_pipe.h"  // corresponding header
 // std
@@ -36,16 +36,104 @@
 //==============================================================================
 
 // D_INTERNAL_PIPE_POPEN
-//   constant: the platform's popen -- _popen on Windows.
+//   constant: the platform's popen -- _popen on Windows, and _wpopen with the
+// command converted where the build hands Windows UTF-16
+// (d_internal_pipe_wpopen).
 // D_INTERNAL_PIPE_PCLOSE
 //   constant: the platform's pclose -- _pclose on Windows.
-#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+#if (D_INTERNAL_FILE_WIDE == 1)
+    #define D_INTERNAL_PIPE_POPEN  d_internal_pipe_wpopen
+    #define D_INTERNAL_PIPE_PCLOSE _pclose
+#elif D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
     #define D_INTERNAL_PIPE_POPEN  _popen
     #define D_INTERNAL_PIPE_PCLOSE _pclose
 #else
     #define D_INTERNAL_PIPE_POPEN  popen
     #define D_INTERNAL_PIPE_PCLOSE pclose
 #endif  // D_CFG_FILE_HAS_WIN32
+
+#if (D_INTERNAL_FILE_WIDE == 1)
+
+/**
+ * @brief _wpopen, given the command and the mode as UTF-16. A command is
+ *        text, not a path: it is converted whole, onto the heap, and takes
+ *        no path's limit or prefix.
+ *
+ * @param[in] _command  the command line, in UTF-8.
+ * @param[in] _mode     the mode, in the letters _popen takes.
+ * @return the stream, or `NULL` with errno set: EILSEQ for a command that is
+ *         not UTF-8, EINVAL for a mode past seven letters, ENOMEM, or the
+ *         CRT's reason.
+ */
+static FILE*
+d_internal_pipe_wpopen(
+    const char* _command,
+    const char* _mode
+)
+{
+    wchar_t mode[8]  = {0};
+    size_t  letters  = 0;
+
+    // a mode's letters are ASCII, each its own UTF-16 unit
+    while ( (_mode[letters] != '\0') &&
+            (letters < (sizeof(mode) / sizeof(mode[0])) - 1) )
+    {
+        mode[letters] = (wchar_t)(unsigned char)_mode[letters];
+        letters++;
+    }
+
+    // a mode longer than any _popen takes
+    if (_mode[letters] != '\0')
+    {
+        D_INTERNAL_FILE_SET_ERR(EINVAL);
+
+        return NULL;
+    }
+
+    const int units = MultiByteToWideChar(CP_UTF8,
+                                          MB_ERR_INVALID_CHARS,
+                                          _command,
+                                          -1,
+                                          NULL,
+                                          0);
+
+    // a command that is not UTF-8 has no UTF-16 form
+    if (units <= 0)
+    {
+        D_INTERNAL_FILE_SET_ERR( (GetLastError() ==
+                                  ERROR_NO_UNICODE_TRANSLATION) ? EILSEQ
+                                                                : EINVAL );
+
+        return NULL;
+    }
+
+    wchar_t* const command =
+        (wchar_t*)d_internal_file_alloc((size_t)units * sizeof(*command));
+
+    // d_internal_file_alloc has reported the failure
+    if (!command)
+    {
+        return NULL;
+    }
+
+    (void)MultiByteToWideChar(CP_UTF8,
+                              MB_ERR_INVALID_CHARS,
+                              _command,
+                              -1,
+                              command,
+                              units);
+
+    FILE* const stream = _wpopen(command,
+                                 mode);
+    const int   saved  = errno;
+
+    d_internal_file_free(command);
+    errno = saved;
+
+    return stream;
+}
+
+#endif  // D_INTERNAL_FILE_WIDE == 1
 
 #if (D_INTERNAL_FILE_PIPE_MODE_CHAR != 0)
 

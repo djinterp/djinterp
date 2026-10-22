@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/config/c/filesys/cfg_file_dir.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 
 /*
@@ -99,14 +99,16 @@ TABLE OF CONTENTS
 // D_CFG_FILE_HAS_DIRENT_TYPE
 //   knob: the platform's struct dirent carries a d_type field.
 //   Linux, Android, Apple's systems and the BSDs do; Solaris and some
-// embedded libcs do not.
+// embedded libcs do not. struct dirent is <dirent.h>'s, so a build without
+// the POSIX API has none (cfg_file_common.h, 1.9's invariant).
 // Even where the field exists it may read DT_UNKNOWN -- XFS without ftype,
 // and most network filesystems, genuinely do not know without a stat.
 #ifndef D_CFG_FILE_HAS_DIRENT_TYPE
-    #if ( (D_INTERNAL_FILE_OS_LINUX == 1)   ||                                 \
-          (D_INTERNAL_FILE_OS_ANDROID == 1) ||                                 \
-          (D_INTERNAL_FILE_OS_DARWIN == 1)  ||                                 \
-          (D_INTERNAL_FILE_OS_BSD == 1) )
+    #if ( (D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)) &&                               \
+          ( (D_INTERNAL_FILE_OS_LINUX == 1)   ||                               \
+            (D_INTERNAL_FILE_OS_ANDROID == 1) ||                               \
+            (D_INTERNAL_FILE_OS_DARWIN == 1)  ||                               \
+            (D_INTERNAL_FILE_OS_BSD == 1) ) )
         #define D_CFG_FILE_HAS_DIRENT_TYPE 1
     #else
         #define D_CFG_FILE_HAS_DIRENT_TYPE 0
@@ -148,12 +150,12 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.3.1
 // D_CFG_FILE_DIR_REALPATH_ALLOC
-//   knob: let d_path_resolve(_path, NULL) allocate its result, as POSIX
-// realpath does.
-//   ON. The alternative -- requiring a D_FILE_PATH_MAX buffer -- is a real
-// constraint on Linux, where PATH_MAX is 4096 and a caller may not want that
-// on the stack. Set 0 for a build with no allocator, where the NULL form then
-// fails with EINVAL rather than silently doing something else.
+//   knob: let d_path_resolve(_path, NULL, 0) allocate its result, as POSIX
+// realpath does, in a block sized to fit it.
+//   ON. The alternative -- guessing a buffer size before knowing the answer,
+// and retrying on ERANGE -- is the awkward half of every getcwd loop. Set 0
+// for a build with no allocator, where the NULL form then fails with EINVAL
+// rather than silently doing something else.
 #ifndef D_CFG_FILE_DIR_REALPATH_ALLOC
     #ifdef D_CFG_FILE_ALL
         #define D_CFG_FILE_DIR_REALPATH_ALLOC D_CFG_FILE_ALL
@@ -226,7 +228,7 @@ TABLE OF CONTENTS
 
 // 3.1.4
 // D_INTERNAL_FILE_DIR_REALPATH_ALLOC
-//   resolved: 1 when d_path_resolve(p, NULL) allocates.
+//   resolved: 1 when d_path_resolve(p, NULL, 0) allocates.
 #if D_CFG_IS_ON(D_CFG_FILE_DIR_REALPATH_ALLOC)
     #define D_INTERNAL_FILE_DIR_REALPATH_ALLOC 1
 #else

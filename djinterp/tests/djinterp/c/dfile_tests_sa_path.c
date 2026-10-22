@@ -7,7 +7,7 @@
 * path:      /tests/djinterp/c/dfile_tests_sa_path.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 // djinterp
 #include "./dfile_tests_sa.h"
@@ -165,15 +165,17 @@ d_tests_dfile_realpath
                                D_TEST_DFILE_TEST_FILENAME);
 
     // test 1: resolve existing file
-    result = d_path_resolve(path_buf, resolved);
+    result = d_path_resolve(path_buf, resolved, sizeof(resolved));
     test_resolve = (result != NULL) && (strlen(resolved) > 0);
 
     // test 2: nonexistent file
-    result = d_path_resolve("nonexistent_realpath_test.txt", resolved);
+    result = d_path_resolve("nonexistent_realpath_test.txt",
+                            resolved,
+                            sizeof(resolved));
     test_nonexistent = (result == NULL);
 
     // test 3: NULL path
-    result = d_path_resolve(NULL, resolved);
+    result = d_path_resolve(NULL, resolved, sizeof(resolved));
     test_null_path = (result == NULL);
 
     // build result tree

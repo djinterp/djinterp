@@ -15,7 +15,7 @@
 * path:      /inc/djinterp/c/filesys/file_path.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -160,7 +160,9 @@ char*       d_path_join(char*       _buf,
 // is current. Only "C:\\x" and a share are absolute there; under POSIX syntax
 // every root is. The root is what ".." may never climb above and what a join
 // must never split, and d_path_root_length measures it: 1 for "/", 2 for "//"
-// and "C:", 3 for "C:\\", the whole of "\\\\server\\share".
+// and "C:", 3 for "C:\\", the whole of "\\\\server\\share". Behind the
+// long-path prefix the root is the prefix and what it opens: 7 for
+// "\\\\?\\C:\\", the whole of "\\\\?\\UNC\\server\\share".
 int         d_path_is_absolute(const char* _path);
 size_t      d_path_root_length(const char* _path);
 

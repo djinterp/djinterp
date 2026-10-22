@@ -3,7 +3,7 @@
 *
 * Umbrella for the C++ filesystem layer.
 *   Including this one header pulls in the whole layer -- the common base,
-* every module, and the C++23 return surface -- so a caller who wants "all of
+* every module, and the return surface by value -- so a caller who wants "all of
 * djinterp's file support" writes a single include rather than tracking the
 * dependency order by hand.
 *   The layer is a thin RAII / value-type skin over the C c/filesys modules.
@@ -35,13 +35,13 @@
 *     file_space.hpp     space_info      -- filesystem capacity
 *     file_recursive.hpp                 -- walk / remove_all (on dir+stat+ops)
 *     file_pipe.hpp      process         -- popen-model command pipe
-*     file_expected.hpp                  -- C++23 std::expected return surface
+*     file_expected.hpp                  -- re_std::expected return surface
 *
 *
 * path:      /inc/djinterp/core/filesys/dfile.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 #ifndef DJINTERP_FILESYS_DFILE_HPP
@@ -61,7 +61,7 @@
 #include "file_space.hpp"      // space_info, space
 #include "file_recursive.hpp"  // walk, remove_all
 #include "file_pipe.hpp"       // process
-#include "file_expected.hpp"   // C++23 std::expected overloads; inert below
-                               // C++23
+#include "file_expected.hpp"   // re_std::expected overloads; inert below
+                               // C++11
 
 #endif  // DJINTERP_FILESYS_DFILE_HPP

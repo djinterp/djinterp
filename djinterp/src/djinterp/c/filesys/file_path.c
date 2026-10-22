@@ -18,7 +18,7 @@
 * path:      /src/djinterp/c/filesys/file_path.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_path.h"  // corresponding header
 // std
@@ -161,6 +161,68 @@ d_internal_path_share_len(
     return idx;
 }
 
+/**
+ * @brief The root that follows the long-path prefix, "\\\\?\\": a drive, a
+ *        share after "UNC\\", or a volume name.
+ *
+ * @param[in] _rest  the text after the prefix.
+ * @return its length: 3 for "C:\\" and 2 for "C:", as without the prefix; a
+ *         share as d_internal_path_share_len measures one, the separator after
+ *         it aside; a volume name with the separator after it.
+ */
+static size_t
+d_internal_path_long_root_len(
+    const char* _rest
+)
+{
+    // "C:\\" or "C:" -- a drive, as one is without the prefix
+    if ( (d_internal_path_is_letter(_rest[0])) &&
+         (_rest[1] == ':') )
+    {
+        return (d_internal_path_is_sep(_rest[2])) ? 3 : 2;
+    }
+
+    size_t idx = 0;
+
+    // "UNC\\server\\share" -- the server, then the share
+    if ( ( (_rest[0] == 'U') || (_rest[0] == 'u') ) &&
+         ( (_rest[1] == 'N') || (_rest[1] == 'n') ) &&
+         ( (_rest[2] == 'C') || (_rest[2] == 'c') ) &&
+         (d_internal_path_is_sep(_rest[3])) )
+    {
+        idx = 4;
+
+        while ( (_rest[idx] != '\0') &&
+                (!d_internal_path_is_sep(_rest[idx])) )
+        {
+            ++idx;
+        }
+
+        // the share's name, after its separator
+        if (d_internal_path_is_sep(_rest[idx]))
+        {
+            ++idx;
+
+            while ( (_rest[idx] != '\0') &&
+                    (!d_internal_path_is_sep(_rest[idx])) )
+            {
+                ++idx;
+            }
+        }
+
+        return idx;
+    }
+
+    // a volume name -- "Volume{...}" -- and the separator after it
+    while ( (_rest[idx] != '\0') &&
+            (!d_internal_path_is_sep(_rest[idx])) )
+    {
+        ++idx;
+    }
+
+    return (d_internal_path_is_sep(_rest[idx])) ? (idx + 1) : idx;
+}
+
 /*
 d_internal_path_root_len
   Measures the root prefix of a path -- the leading run that names a starting
@@ -199,8 +261,21 @@ d_internal_path_root_len(
         return 2;
     }
 
-    // "\\\\server\\share" or "\\\\?\\..." -- two separators, then a name,
-    // where shares are parsed
+    // "\\\\?\\" -- the long-path prefix, where shares are parsed: the root
+    // it opens is a drive, a share or a volume, and the prefix belongs to it
+    // (d_internal_path_long_root_len). Windows reads the prefix only as it is
+    // written, in backslashes.
+    if ( (D_INTERNAL_FILE_PATH_HAS_UNC == 1) &&
+         (_path[0] == '\\')                   &&
+         (_path[1] == '\\')                   &&
+         (_path[2] == '?')                    &&
+         (_path[3] == '\\') )
+    {
+        return 4 + d_internal_path_long_root_len(_path + 4);
+    }
+
+    // "\\\\server\\share" -- two separators, then a name, where shares are
+    // parsed
     if ( (D_INTERNAL_FILE_PATH_HAS_UNC == 1) &&
          (d_internal_path_is_sep(_path[0]))  &&
          (d_internal_path_is_sep(_path[1]))  &&
