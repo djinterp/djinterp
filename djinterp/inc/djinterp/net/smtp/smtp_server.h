@@ -3,15 +3,14 @@
 *
 * djinterp SMTP server.
 *   The receiving side of RFC 5321 as a session engine: d_smtp_server_session()
-* runs one connection, from greeting to QUIT, over any d_smtp_transport, and
+* runs one connection, from greeting to QUIT, over any net.h connection, and
 * hands each accepted message to the caller's handler. It advertises and
 * implements PIPELINING, SIZE, 8BITMIME, ENHANCEDSTATUSCODES and SMTPUTF8,
-* plus STARTTLS when the transport can upgrade and a certificate is
-* configured, and AUTH PLAIN and LOGIN when the handler can check
-* credentials.
+* plus STARTTLS when a server context of the SSL kernel is configured, and
+* AUTH PLAIN and LOGIN when the handler can check credentials.
 *   The engine owns no sockets and no threads. A caller accepts connections
-* (d_smtp_listener_* serves) and decides how sessions run in parallel; the
-* C++ facade in net/smtp.hpp runs each on a thread of its own.
+* (tcp.h's listeners serve) and decides how sessions run in parallel; the
+* C++ facade, smtp.hpp, runs each on a thread of its own.
 *   Hardening: plaintext pipelined behind STARTTLS is discarded (the
 * CVE-2011-0411 injection) and the session starts over after the upgrade;
 * only CRLF "." CRLF ends message data, closing the SMTP-smuggling ambiguity
@@ -23,7 +22,7 @@
 * path:      /inc/djinterp/net/smtp/smtp_server.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 
 /*
@@ -55,8 +54,9 @@ TABLE OF CONTENTS
 #include <stddef.h>   // size_t
 // djinterp
 #include "../../c/djinterp.h"  // framework root
+#include "../net_common.h"     // d_net_connection
+#include "../ssl/ssl.h"        // d_ssl_context
 #include "./smtp_common.h"     // d_smtp_error
-#include "./smtp_transport.h"  // d_smtp_transport, d_smtp_tls_options
 
 
 D_EXTERN_C_BEGIN
@@ -88,19 +88,21 @@ D_EXTERN_C_BEGIN
 //------------------------------------------------------------------------------
 // 1.2.1
 // d_smtp_server_config
-//   struct: one server's settings. Strings are borrowed and must outlive
-// every session that uses them.
+//   struct: one server's settings. Strings, and `tls`, are borrowed and must
+// outlive every session that uses them. `tls` is a server context of the
+// SSL kernel -- its certificate, its key, and what it asks of clients --
+// and STARTTLS is offered only with one.
 struct d_smtp_server_config
 {
-    const char*               domain;               // name in replies
-    size_t                    max_message_size;     // bytes; SIZE
-    size_t                    max_recipients;       // per message
-    struct d_smtp_tls_options tls;                  // certificate: STARTTLS
-    unsigned int              auth_mechanisms;      // PLAIN and/or LOGIN
-    bool                      require_tls;          // MAIL needs TLS first
-    bool                      require_auth;         // MAIL needs AUTH first
-    bool                      allow_insecure_auth;  // AUTH without TLS
-    bool                      secure;               // already encrypted
+    const char*                 domain;               // name in replies
+    size_t                      max_message_size;     // bytes; SIZE
+    size_t                      max_recipients;       // per message
+    const struct d_ssl_context* tls;                  // NULL: no STARTTLS
+    unsigned int                auth_mechanisms;      // PLAIN and/or LOGIN
+    bool                        require_tls;          // MAIL needs TLS first
+    bool                        require_auth;         // MAIL needs AUTH first
+    bool                        allow_insecure_auth;  // AUTH without TLS
+    bool                        secure;               // already encrypted
 };
 
 
@@ -186,8 +188,8 @@ struct d_smtp_server_handler
 // 3.1    Initialization
 //------------------------------------------------------------------------------
 // defaults -- neither fails, NULL is ignored. A configuration starts as
-// "localhost" with the D_SMTP_SERVER_* limits, PLAIN and LOGIN, and no
-// requirements; a handler starts with every callback NULL.
+// "localhost" with the D_SMTP_SERVER_* limits, PLAIN and LOGIN, no context,
+// and no requirements; a handler starts with every callback NULL.
 void              d_smtp_server_config_init(
                       struct d_smtp_server_config* _config);
 void              d_smtp_server_handler_init(
@@ -199,19 +201,27 @@ void              d_smtp_server_handler_init(
  * @brief Serves one connection, from the 220 greeting until QUIT or until
  *        the connection fails.
  *
- * @note The transport's `starttls` performs the server side of the
- *       handshake; the socket transport does so for accepted sockets.
+ * @note STARTTLS makes a TLS session of the SSL kernel over the connection,
+ *       from the configuration's context, and the session then runs over
+ *       it. That TLS session is the session's own: as the session ends it
+ *       sends close_notify, unless it failed or the client closed it
+ *       first, and it is released whatever the outcome. The connection is
+ *       never closed: the caller that opened it decides its fate.
  *
- * @param[in] _transport  the connection; not closed by the session.
- * @param[in] _config     the server's settings; `domain` must be valid.
- * @param[in] _handler    the caller's callbacks.
- * @return D_SMTP_OK when the client said QUIT; D_SMTP_ERROR_INVALID for bad
- *         arguments; D_SMTP_ERROR_NO_MEMORY; D_SMTP_ERROR_PROTOCOL when the
- *         client was dropped for errors; or the transport's error --
- *         D_SMTP_ERROR_CLOSED, D_SMTP_ERROR_TIMEOUT, D_SMTP_ERROR_TLS.
+ * @param[in,out] _connection  the connection, with net.h's four required
+ *                             operations; borrowed.
+ * @param[in]     _config      the server's settings; `domain` must be
+ *                             valid, and `tls`, when set, a server's.
+ * @param[in]     _handler     the caller's callbacks.
+ * @return D_SMTP_OK when the client said QUIT; D_SMTP_ERROR_INVALID_ARGUMENT
+ *         for bad arguments; D_SMTP_ERROR_OUT_OF_MEMORY; D_SMTP_ERROR_PROTOCOL
+ *         when the client was dropped for errors; D_SMTP_ERROR_TLS when the
+ *         TLS session STARTTLS made failed, in its handshake or after; or
+ *         what the connection reported -- D_SMTP_ERROR_CLOSED,
+ *         D_SMTP_ERROR_TIMED_OUT, D_SMTP_ERROR_TRANSPORT.
  */
 enum d_smtp_error d_smtp_server_session(
-                      const struct d_smtp_transport*      _transport,
+                      struct d_net_connection*            _connection,
                       const struct d_smtp_server_config*  _config,
                       const struct d_smtp_server_handler* _handler);
 

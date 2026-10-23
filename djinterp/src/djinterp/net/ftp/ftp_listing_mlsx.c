@@ -9,20 +9,24 @@
 * path:      /src/djinterp/net/ftp/ftp_listing_mlsx.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_listing.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // uint32_t, uint64_t, UINT64_MAX
 #include <string.h>   // memchr
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"          // framework root
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_span
-#include "../../../../inc/djinterp/net/ftp/ftp_fact.h"    // d_ftp_time
-#include "./ftp_internal.h"                               // text helpers
-#include "./ftp_listing_internal.h"                       // listing helpers
+#include "../../../../inc/djinterp/c/djinterp.h"             // framework root
+#include "../../../../inc/djinterp/c/util/sink_common.h"     // d_pack_text
+#include "../../../../inc/djinterp/net/net_common.h"  // d_net_ascii_*
+#include "../../../../inc/djinterp/net/ftp/ftp_common.h"     // d_ftp_error
+#include "../../../../inc/djinterp/net/ftp/ftp_fact.h"       // d_ftp_time
+#include "./ftp_internal.h"                                  // text helpers
+#include "./ftp_listing_internal.h"                          // listing helpers
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t, uint64_t,
+                                                     // UINT64_MAX
 
 
 //==============================================================================
@@ -37,9 +41,9 @@ extra leading space, which is skipped.
 */
 bool
 d_ftp_internal_mlsx_split(
-    struct d_ftp_span  _line,
-    struct d_ftp_span* _out_facts,
-    struct d_ftp_span* _out_name
+    struct d_pack_text  _line,
+    struct d_pack_text* _out_facts,
+    struct d_pack_text* _out_name
 )
 {
     const size_t      start = ( (_line.length > 0u) &&
@@ -81,8 +85,8 @@ d_ftp_internal_parse_octal
 */
 D_STATIC bool
 d_ftp_internal_parse_octal(
-    struct d_ftp_span _text,
-    uint32_t*         _out_value
+    struct d_pack_text _text,
+    uint32_t*          _out_value
 )
 {
     // one to six digits
@@ -126,7 +130,7 @@ d_ftp_internal_mlsx_type
 */
 D_STATIC void
 d_ftp_internal_mlsx_type(
-    struct d_ftp_span   _value,
+    struct d_pack_text  _value,
     struct d_ftp_entry* _out
 )
 {
@@ -142,9 +146,8 @@ d_ftp_internal_mlsx_type(
     // the four standard types
     for (size_t index = 0; index < 4u; index++)
     {
-        if (d_ftp_internal_equals_nocase(_value.data,
-                                         _value.length,
-                                         NAMES[index]))
+        if (d_net_ascii_ieq_cstr(_value,
+                                 NAMES[index]))
         {
             _out->type = TYPES[index];
 
@@ -152,12 +155,10 @@ d_ftp_internal_mlsx_type(
         }
     }
 
-    const bool slink   = d_ftp_internal_starts_nocase(_value.data,
-                                                      _value.length,
-                                                      "os.unix=slink");
-    const bool symlink = d_ftp_internal_starts_nocase(_value.data,
-                                                      _value.length,
-                                                      "os.unix=symlink");
+    const bool slink   = d_net_ascii_istarts(_value,
+                                             "os.unix=slink");
+    const bool symlink = d_net_ascii_istarts(_value,
+                                             "os.unix=symlink");
 
     // anything else is some other kind of object
     if ( (!slink) &&
@@ -194,39 +195,35 @@ one of them.
 */
 D_STATIC bool
 d_ftp_internal_mlsx_text_fact(
-    struct d_ftp_span   _name,
-    struct d_ftp_span   _value,
+    struct d_pack_text  _name,
+    struct d_pack_text  _value,
     struct d_ftp_entry* _out
 )
 {
-    struct d_ftp_span* field = NULL;
-    unsigned           known = 0u;
+    struct d_pack_text* field = NULL;
+    unsigned            known = 0u;
 
     // which field the fact fills
-    if (d_ftp_internal_equals_nocase(_name.data,
-                                     _name.length,
-                                     "unique"))
+    if (d_net_ascii_ieq_cstr(_name,
+                             "unique"))
     {
         field = &_out->unique;
         known = D_FTP_ENTRY_KNOWN_UNIQUE;
     }
-    else if (d_ftp_internal_equals_nocase(_name.data,
-                                          _name.length,
-                                          "perm"))
+    else if (d_net_ascii_ieq_cstr(_name,
+                                  "perm"))
     {
         field = &_out->permissions;
         known = D_FTP_ENTRY_KNOWN_PERMISSIONS;
     }
-    else if (d_ftp_internal_equals_nocase(_name.data,
-                                          _name.length,
-                                          "unix.owner"))
+    else if (d_net_ascii_ieq_cstr(_name,
+                                  "unix.owner"))
     {
         field = &_out->owner;
         known = D_FTP_ENTRY_KNOWN_OWNER;
     }
-    else if (d_ftp_internal_equals_nocase(_name.data,
-                                          _name.length,
-                                          "unix.group"))
+    else if (d_net_ascii_ieq_cstr(_name,
+                                  "unix.group"))
     {
         field = &_out->group;
         known = D_FTP_ENTRY_KNOWN_GROUP;
@@ -252,8 +249,8 @@ that does not read leaves its field unknown.
 */
 D_STATIC void
 d_ftp_internal_mlsx_value_fact(
-    struct d_ftp_span   _name,
-    struct d_ftp_span   _value,
+    struct d_pack_text  _name,
+    struct d_pack_text  _value,
     struct d_ftp_entry* _out
 )
 {
@@ -262,12 +259,10 @@ d_ftp_internal_mlsx_value_fact(
     struct d_ftp_time time   = { 0u, 0u, 0u, 0u, 0u, 0u, 0u };
 
     // a size
-    if ( ( (d_ftp_internal_equals_nocase(_name.data,
-                                         _name.length,
-                                         "size")) ||
-           (d_ftp_internal_equals_nocase(_name.data,
-                                         _name.length,
-                                         "sizd")) )            &&
+    if ( ( (d_net_ascii_ieq_cstr(_name,
+                                 "size")) ||
+           (d_net_ascii_ieq_cstr(_name,
+                                 "sizd")) )            &&
          (d_ftp_internal_parse_uint(_value.data,
                                     _value.length,
                                     UINT64_MAX,
@@ -276,9 +271,8 @@ d_ftp_internal_mlsx_value_fact(
         _out->size   = number;
         _out->known |= D_FTP_ENTRY_KNOWN_SIZE;
     }
-    else if ( (d_ftp_internal_equals_nocase(_name.data,
-                                            _name.length,
-                                            "modify"))       &&
+    else if ( (d_net_ascii_ieq_cstr(_name,
+                                    "modify"))       &&
               (d_ftp_time_parse(_value.data,
                                 _value.length,
                                 &time) == D_FTP_OK) )
@@ -288,9 +282,8 @@ d_ftp_internal_mlsx_value_fact(
                           D_FTP_ENTRY_KNOWN_TIME     |
                           D_FTP_ENTRY_KNOWN_UTC;
     }
-    else if ( (d_ftp_internal_equals_nocase(_name.data,
-                                            _name.length,
-                                            "unix.mode"))    &&
+    else if ( (d_net_ascii_ieq_cstr(_name,
+                                    "unix.mode"))    &&
               (d_ftp_internal_parse_octal(_value,
                                           &mode)) )
     {
@@ -309,15 +302,14 @@ discarding the entry.
 */
 D_STATIC void
 d_ftp_internal_mlsx_fact(
-    struct d_ftp_span   _name,
-    struct d_ftp_span   _value,
+    struct d_pack_text  _name,
+    struct d_pack_text  _value,
     struct d_ftp_entry* _out
 )
 {
     // the type fact classifies the entry
-    if (d_ftp_internal_equals_nocase(_name.data,
-                                     _name.length,
-                                     "type"))
+    if (d_net_ascii_ieq_cstr(_name,
+                             "type"))
     {
         d_ftp_internal_mlsx_type(_value,
                                  _out);
@@ -346,25 +338,25 @@ an empty fact, which says nothing; a fact without '=' fails the line.
 */
 D_STATIC bool
 d_ftp_internal_mlsx_facts(
-    struct d_ftp_span   _facts,
+    struct d_pack_text  _facts,
     struct d_ftp_entry* _out
 )
 {
     // fact by fact
     for (size_t position = 0u; position < _facts.length; )
     {
-        const char* const       semicolon = memchr(_facts.data + position,
-                                                   ';',
-                                                   _facts.length - position);
-        const size_t            end       =
+        const char* const        semicolon = memchr(_facts.data + position,
+                                                    ';',
+                                                    _facts.length - position);
+        const size_t             end       =
             (semicolon) ? (size_t)(semicolon - _facts.data)
                         : _facts.length;
-        const struct d_ftp_span fact      = d_ftp_internal_span_at(_facts,
-                                                                   position,
-                                                                   end);
-        const char* const       equals    = memchr(fact.data,
-                                                   '=',
-                                                   fact.length);
+        const struct d_pack_text fact      = d_ftp_internal_span_at(_facts,
+                                                                    position,
+                                                                    end);
+        const char* const        equals    = memchr(fact.data,
+                                                    '=',
+                                                    fact.length);
 
         position = end + 1u;
 
@@ -401,12 +393,12 @@ without facts is taken as a bare name.
 */
 enum d_ftp_line_result
 d_ftp_internal_parse_mlsx(
-    struct d_ftp_span   _line,
+    struct d_pack_text  _line,
     struct d_ftp_entry* _out
 )
 {
-    struct d_ftp_span facts = { NULL, 0u };
-    struct d_ftp_span name  = { NULL, 0u };
+    struct d_pack_text facts = { NULL, 0u };
+    struct d_pack_text name  = { NULL, 0u };
 
     // an entry without facts is only its name
     if (!d_ftp_internal_mlsx_split(_line,

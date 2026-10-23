@@ -7,12 +7,15 @@
 * channel carries a TCP connection the server opens on the caller's
 * behalf. Each has separate stdout and stderr streams, and a session
 * channel reports its program's exit status once closed.
+*   A channel is also a net.h connection: its `base` reads the channel's
+* standard output and writes its data, so a protocol written for any
+* connection -- SFTP among them -- runs over a channel unchanged.
 *
 *
 * path:      /inc/djinterp/net/ssh/ssh_channel.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.14
 *******************************************************************************/
 
 /*
@@ -29,6 +32,7 @@ TABLE OF CONTENTS
     2.  Requests
     3.  Data
     4.  Closing
+    5.  As a connection
 */
 
 #ifndef DJINTERP_NET_SSH_SSH_CHANNEL_H
@@ -39,7 +43,8 @@ TABLE OF CONTENTS
 #include <stddef.h>   // size_t
 // djinterp
 #include "../../c/djinterp.h"  // framework root
-#include "./ssh_common.h"      // d_ssh_status
+#include "../net_common.h"     // d_net_connection
+#include "./ssh_common.h"      // d_ssh_error
 #include "./ssh_engine.h"      // d_ssh_stream
 #include "./ssh_session.h"     // d_ssh_session
 
@@ -70,15 +75,21 @@ enum d_ssh_channel_state
 //   struct: one channel of a session. The caller owns the storage and treats
 // the fields as read-only. A session channel takes exactly one of exec,
 // subsystem, or shell; `exit_status` is what the server reported by the time
-// the channel closed.
+// the channel closed. `base` is the channel as a connection (2.5), and
+// `failure` the status behind its last failure: the one that failed the
+// channel, or else the last read, write or shutdown through `base` that
+// failed. A channel holds a pointer into itself, so it must not be copied
+// once opened.
 struct d_ssh_channel
 {
+    struct d_net_connection  base;         // the net.h view; must stay first
     struct d_ssh_session*    session;      // the session it runs in
     void*                    handle;       // engine channel
     enum d_ssh_channel_state state;        // where it is
     bool                     requested;    // exec, subsystem, or shell sent
     bool                     eof_sent;     // nothing more will be written
     int                      exit_status;  // from the server; -1 before close
+    enum d_ssh_error         failure;      // behind its last failure
 };
 
 
@@ -100,10 +111,10 @@ struct d_ssh_channel
  *
  * @param[in,out] _session  a D_SSH_STATE_AUTHENTICATED session.
  * @param[out]    _channel  receives the channel.
- * @return `D_SSH_OK`; `D_SSH_ERR_CHANNEL` if the server refused; a FATAL
- *         status; or `D_SSH_ERR_STATE` or `D_SSH_ERR_ARGUMENT`.
+ * @return `D_SSH_OK`; `D_SSH_ERROR_CHANNEL` if the server refused; a FATAL
+ *         status; or `D_SSH_ERROR_STATE` or `D_SSH_ERROR_INVALID_ARGUMENT`.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_channel_open(struct d_ssh_session* _session,
                    struct d_ssh_channel* _channel);
 /**
@@ -117,7 +128,7 @@ d_ssh_channel_open(struct d_ssh_session* _session,
  * @return as d_ssh_channel_open; the server refuses where forwarding is
  *         disabled or the destination is unreachable.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_channel_open_tcpip(struct d_ssh_session* _session,
                          const char*           _host,
                          unsigned int          _port,
@@ -133,11 +144,11 @@ d_ssh_channel_open_tcpip(struct d_ssh_session* _session,
  * @param[in]     _term     the terminal type, such as "xterm".
  * @param[in]     _columns  its width in characters.
  * @param[in]     _rows     its height in characters.
- * @return `D_SSH_OK`; `D_SSH_ERR_CHANNEL` if the server refused;
- *         `D_SSH_ERR_UNSUPPORTED` if the engine has no pty operation; a
- *         FATAL status; or `D_SSH_ERR_STATE` or `D_SSH_ERR_ARGUMENT`.
+ * @return `D_SSH_OK`; `D_SSH_ERROR_CHANNEL` if the server refused;
+ *         `D_SSH_ERROR_UNSUPPORTED` if the engine has no pty operation; a FATAL
+ *         status; or `D_SSH_ERROR_STATE` or `D_SSH_ERROR_INVALID_ARGUMENT`.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_channel_request_pty(struct d_ssh_channel* _channel,
                           const char*           _term,
                           unsigned int          _columns,
@@ -148,11 +159,11 @@ d_ssh_channel_request_pty(struct d_ssh_channel* _channel,
  * @param[in,out] _channel  an open session channel with no request made.
  * @param[in]     _command  the command line, interpreted by the user's
  *                          shell on the server.
- * @return `D_SSH_OK`; `D_SSH_ERR_CHANNEL` if the server refused; a FATAL
- *         status; or `D_SSH_ERR_STATE` (a request was already made) or
- *         `D_SSH_ERR_ARGUMENT`.
+ * @return `D_SSH_OK`; `D_SSH_ERROR_CHANNEL` if the server refused; a FATAL
+ *         status; or `D_SSH_ERROR_STATE` (a request was already made) or
+ *         `D_SSH_ERROR_INVALID_ARGUMENT`.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_channel_exec(struct d_ssh_channel* _channel,
                    const char*           _command);
 /**
@@ -162,7 +173,7 @@ d_ssh_channel_exec(struct d_ssh_channel* _channel,
  * @param[in]     _name     the subsystem's name.
  * @return as d_ssh_channel_exec.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_channel_subsystem(struct d_ssh_channel* _channel,
                         const char*           _name);
 /**
@@ -171,7 +182,7 @@ d_ssh_channel_subsystem(struct d_ssh_channel* _channel,
  * @param[in,out] _channel  an open session channel with no request made.
  * @return as d_ssh_channel_exec.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_channel_shell(struct d_ssh_channel* _channel);
 
 // 2.3    Data
@@ -185,10 +196,10 @@ d_ssh_channel_shell(struct d_ssh_channel* _channel);
  * @param[out]    _buffer    receives the bytes.
  * @param[in]     _capacity  its size, at least 1.
  * @param[out]    _received  receives the number of bytes read.
- * @return `D_SSH_OK`; `D_SSH_ERR_CLOSED` once the stream has ended; a FATAL
- *         status; or `D_SSH_ERR_STATE` or `D_SSH_ERR_ARGUMENT`.
+ * @return `D_SSH_OK`; `D_SSH_ERROR_CLOSED` once the stream has ended; a FATAL
+ *         status; or `D_SSH_ERROR_STATE` or `D_SSH_ERROR_INVALID_ARGUMENT`.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_channel_read(struct d_ssh_channel* _channel,
                    enum d_ssh_stream     _stream,
                    void*                 _buffer,
@@ -201,11 +212,11 @@ d_ssh_channel_read(struct d_ssh_channel* _channel,
  * @param[in,out] _channel  an open channel that has not sent EOF.
  * @param[in]     _data     the bytes; may be `NULL` when `_size` is 0.
  * @param[in]     _size     their length.
- * @return `D_SSH_OK`; `D_SSH_ERR_STATE` after EOF or if the channel is not
- *         open; `D_SSH_ERR_CHANNEL`; a FATAL status; or
- *         `D_SSH_ERR_ARGUMENT`.
+ * @return `D_SSH_OK`; `D_SSH_ERROR_STATE` after EOF or if the channel is not
+ *         open; `D_SSH_ERROR_CHANNEL`; a FATAL status; or
+ *         `D_SSH_ERROR_INVALID_ARGUMENT`.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_channel_write(struct d_ssh_channel* _channel,
                     const void*           _data,
                     size_t                _size);
@@ -214,10 +225,10 @@ d_ssh_channel_write(struct d_ssh_channel* _channel,
  *        would; the channel stays readable. Sending it twice is harmless.
  *
  * @param[in,out] _channel  an open channel.
- * @return `D_SSH_OK`; a FATAL status; or `D_SSH_ERR_STATE` or
- *         `D_SSH_ERR_ARGUMENT`.
+ * @return `D_SSH_OK`; a FATAL status; or `D_SSH_ERROR_STATE` or
+ *         `D_SSH_ERROR_INVALID_ARGUMENT`.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_channel_send_eof(struct d_ssh_channel* _channel);
 
 // 2.4    Closing
@@ -228,9 +239,9 @@ d_ssh_channel_send_eof(struct d_ssh_channel* _channel);
  *
  * @param[in,out] _channel  the channel; closing it twice is harmless.
  * @return `D_SSH_OK`; a FATAL status, after which the channel is closed all
- *         the same; or `D_SSH_ERR_ARGUMENT`.
+ *         the same; or `D_SSH_ERROR_INVALID_ARGUMENT`.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_channel_close(struct d_ssh_channel* _channel);
 /**
  * @brief Returns the exit status the server reported for the command.
@@ -251,6 +262,24 @@ d_ssh_channel_exit_status(const struct d_ssh_channel* _channel);
  */
 void
 d_ssh_channel_free(struct d_ssh_channel* _channel);
+
+// 2.5    As a connection
+//------------------------------------------------------------------------------
+// `base` is the channel as net.h's d_net_connection, from d_ssh_channel_open
+// or _open_tcpip -- whether or not it succeeded -- for as long as the storage
+// lasts; a channel freed, or one whose open failed, is a closed connection:
+//   read      the channel's standard output, waiting for at least a byte;
+//             its end is a read of nothing, as net.h has it
+//   write     everything given, as d_ssh_channel_write
+//   is_open   while the channel is open in an authenticated session
+//   close     EOF, then d_ssh_channel_close; the storage remains the
+//             caller's, for d_ssh_channel_free
+//   shutdown  WRITE and BOTH send EOF; READ asks nothing of the server
+// A failure is its status's d_ssh_error_to_net, kept in `failure`, save for
+// D_SSH_ERROR_STATE: a channel that failed, through `base` or not, goes on
+// answering with the status that failed it, and one closed, past EOF, or in
+// a session that is gone is a closed connection. The other stream, the exit
+// status and requests remain d_ssh_channel_*'s.
 
 
 D_EXTERN_C_END

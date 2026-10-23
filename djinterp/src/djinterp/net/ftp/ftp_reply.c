@@ -10,7 +10,7 @@
 * path:      /src/djinterp/net/ftp/ftp_reply.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_reply.h"  // corresponding header
 // std
@@ -18,9 +18,10 @@
 #include <stddef.h>   // size_t, NULL
 #include <string.h>   // memcmp, memcpy, memset, strlen
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"          // framework root
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_error
-#include "./ftp_internal.h"                               // shared helpers
+#include "../../../../inc/djinterp/c/djinterp.h"             // framework root
+#include "../../../../inc/djinterp/net/net_common.h"  // d_net_ascii_is_digit
+#include "../../../../inc/djinterp/net/ftp/ftp_common.h"     // d_ftp_error
+#include "./ftp_internal.h"                                  // shared helpers
 
 
 //==============================================================================
@@ -412,11 +413,11 @@ d_ftp_internal_reply_open(
     const char* const prefix = _parser->prefix;
 
     // a reply opens with a three-digit code
-    if ( (_count < 3u)                          ||
-         (prefix[0] < '1')                      ||
-         (prefix[0] > '6')                      ||
-         (!d_ftp_internal_is_digit(prefix[1])) ||
-         (!d_ftp_internal_is_digit(prefix[2])) )
+    if ( (_count < 3u)                      ||
+         (prefix[0] < '1')                  ||
+         (prefix[0] > '6')                  ||
+         (!d_net_ascii_is_digit(prefix[1])) ||
+         (!d_net_ascii_is_digit(prefix[2])) )
     {
         return D_FTP_INTERNAL_LINE_BAD;
     }
@@ -825,7 +826,7 @@ d_ftp_reply_format(
                                       (mark == _out->length),
                                       (next >= length),
                                       ( (end > position) &&
-                                        (d_ftp_internal_is_digit(
+                                        (d_net_ascii_is_digit(
                                              text[position])) ),
                                       lead);
 

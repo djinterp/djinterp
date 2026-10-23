@@ -12,13 +12,14 @@
 * path:      /src/djinterp/net/http/http1.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/http/http1.h"  // corresponding header
 // std
 #include <string.h>  // memchr
 // djinterp
 #include "../../../../inc/djinterp/config/net/http/cfg_http.h"  // limits
+#include "../../../../inc/djinterp/net/net_common.h"     // d_net_ascii_is_blank
 #include "../../../../inc/djinterp/net/net_url.h"               // targets, Host
 
 
@@ -261,8 +262,7 @@ d_http1_parse_field(
                                       ':');
 
     // a folded line continues the one before it
-    if ( (_line.data[0] == ' ') ||
-         (_line.data[0] == '\t') )
+    if (d_net_ascii_is_blank(_line.data[0]))
     {
         return D_HTTP_ERROR_OBS_FOLD;
     }
@@ -636,7 +636,7 @@ d_http1_parse_request(
          ( (!_out->fields.items) &&
            (_out->fields.capacity != 0u) ) )
     {
-        return D_HTTP_ERROR_ARGUMENT;
+        return D_HTTP_ERROR_INVALID_ARGUMENT;
     }
 
     size_t            end    = 0u;
@@ -707,7 +707,7 @@ d_http1_parse_response(
          ( (!_out->fields.items) &&
            (_out->fields.capacity != 0u) ) )
     {
-        return D_HTTP_ERROR_ARGUMENT;
+        return D_HTTP_ERROR_INVALID_ARGUMENT;
     }
 
     size_t            end    = 0u;

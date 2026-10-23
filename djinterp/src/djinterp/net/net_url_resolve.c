@@ -12,14 +12,15 @@
 * path:      /src/djinterp/net/net_url_resolve.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../inc/djinterp/net/net_url.h"  // corresponding header
 // std
 #include <string.h>  // memcmp, memmove
 // djinterp
-#include "../../../inc/djinterp/net/net.h"  // d_net_port_format, D_NET_PORT_TEXT_MAX
-#include "./net_url_internal.h"             // shared helpers
+#include "../../../inc/djinterp/net/codec/codec_hex.h"    // d_net_hex_*
+#include "../../../inc/djinterp/net/net_common.h"         // d_net_port_format, D_NET_PORT_TEXT_MAX
+#include "./net_url_internal.h"                           // shared helpers
 
 
 // d_net_url_dot_rule
@@ -304,7 +305,7 @@ d_net_url_resolve(
          ( (!_buffer) &&
            (_capacity != 0u) ) )
     {
-        return D_NET_URL_ERROR_ARGUMENT;
+        return D_NET_URL_ERROR_INVALID_ARGUMENT;
     }
 
     // only an absolute base can be resolved against
@@ -372,13 +373,13 @@ d_net_url_put_normal(
         char c = _text.data[i];
 
         // a well-formed escape: decoded if unreserved, else re-cased
-        if ( (c == '%')                            &&
-             (i + 2u < _text.length)               &&
-             (d_net_url_is_hex(_text.data[i + 1u])) &&
-             (d_net_url_is_hex(_text.data[i + 2u])) )
+        if ( (c == '%')                               &&
+             (i + 2u < _text.length)                  &&
+             (d_net_hex_is_digit(_text.data[i + 1u])) &&
+             (d_net_hex_is_digit(_text.data[i + 2u])) )
         {
-            const int value = (d_net_url_hex_value(_text.data[i + 1u]) * 16) +
-                              d_net_url_hex_value(_text.data[i + 2u]);
+            const int value = (d_net_hex_value(_text.data[i + 1u]) * 16) +
+                              d_net_hex_value(_text.data[i + 2u]);
 
             i += 2u;
             c  = (char)value;
@@ -394,7 +395,7 @@ d_net_url_put_normal(
         }
 
         d_net_url_put_char(_writer,
-                           (_lower) ? d_net_url_lower(c)
+                           (_lower) ? d_net_ascii_lower(c)
                                     : c);
     }
 
@@ -557,7 +558,7 @@ d_net_url_normalize(
          ( (!_buffer) &&
            (_capacity != 0u) ) )
     {
-        return D_NET_URL_ERROR_ARGUMENT;
+        return D_NET_URL_ERROR_INVALID_ARGUMENT;
     }
 
     struct d_net_url_writer out = { _buffer,

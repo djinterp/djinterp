@@ -6,31 +6,30 @@
 * member forwards to one C function, inline. Callbacks are templates, so any
 * functor -- or, from C++11, any lambda -- serves as a sink or a source with
 * no virtual call and no allocation.
-*   The interface is tiered. C++98 is the floor: this header needs only the C
-* headers, never djinterp.hpp, which requires C++11. From C++11 the
-* enumerations are enum classes, copying is deleted rather than hidden, and
-* the members are noexcept. The spelling is the same in both tiers:
-* ftp::error::timeout names the same value either way.
+*   C++98 is the floor; C++11 only adds: copying is deleted rather than hidden,
+* the members are noexcept, and lambdas serve as callbacks. The enumerations
+* are scoped in structs at every level (decision 3.4), so ftp::error::timed_out
+* names a value whose type is ftp::error::value, the same at every level.
 *   Errors are values, never exceptions, so the interface works under
 * -fno-exceptions. A callback must not throw: the C client beneath it cannot
 * unwind, so the trampolines are declared not to throw, and a throw from a
 * callback terminates the program.
 *
+*   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
+* compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
+* (decision 101 of the register).
+*
 *
 * path:      /inc/djinterp/net/ftp/ftp_client.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-1.  LANGUAGE TIER
-    -------------
-    1.  Qualifiers
-         1.  D_FTP_NOEXCEPT
-2.  VOCABULARY
+1.  VOCABULARY
     ----------
     1.  Errors
          1.  error
@@ -42,11 +41,11 @@ TABLE OF CONTENTS
     3.  Data connections
          1.  data_mode
          2.  Conversions
-3.  OPTIONS
+2.  OPTIONS
     -------
     1.  Builder
          1.  options
-4.  CLIENT
+3.  CLIENT
     ------
     1.  Callbacks
          1.  internal::string_sink
@@ -62,14 +61,13 @@ TABLE OF CONTENTS
 #define DJINTERP_NET_FTP_FTP_CLIENT_HPP 1
 
 // std
-#include <cstddef>   // std::size_t
-#include <cstring>   // std::memcpy
-#include <stdint.h>  // uint16_t, uint32_t
-#include <string>    // std::string
+#include <cstddef>  // std::size_t
+#include <cstring>  // std::memcpy
+#include <string>   // std::string
 // djinterp
-#include "../../c/djinterp.h"  // framework root
-#include "../net.h"            // d_net_error
-#include "../ssl/ssl.h"        // d_ssl_context, d_ssl_status
+#include "../../djinterp.hpp"  // framework root
+#include "../net_common.hpp"   // io_error; d_net_error, through it
+#include "../ssl/ssl.h"        // d_ssl_context, d_ssl_error
 #include "./ftp_client.h"      // the C client
 #include "./ftp_command.h"     // d_ftp_command
 #include "./ftp_common.h"      // d_ftp_error, d_ftp_error_string
@@ -78,29 +76,17 @@ TABLE OF CONTENTS
 #include "./ftp_reply.h"       // d_ftp_reply
 #include "./ftp_security.h"    // d_ftp_security, d_ftp_protection
 #include "./ftp_transfer.h"    // d_ftp_data_type
+#include "../net_common.h"      // D_INTERNAL_NET_HAS_INT64
+#include "../../config/net/cfg_net.h"  // D_INTERNAL_NET_REQUIRE_BACKENDS
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"  // uint16_t, uint32_t
 
-
-//==============================================================================
-// 1.  LANGUAGE TIER
-//==============================================================================
-// The one spelling that differs between the tiers.
-
-
-// 1.1    Qualifiers
-//------------------------------------------------------------------------------
-// 1.1.1
-// D_FTP_NOEXCEPT
-//   qualifier: `noexcept` from C++11, and `throw()` below it, whose check
-// table-driven unwinding makes free on the path that does not throw. Either
-// way, an exception reaching it terminates the program instead of unwinding
-// through the C client. Pre-definable.
-#ifndef D_FTP_NOEXCEPT
-    #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        #define D_FTP_NOEXCEPT noexcept
-    #else
-        #define D_FTP_NOEXCEPT throw()
-    #endif
-#endif  // D_FTP_NOEXCEPT
+// 64-bit floor: this header needs a 64-bit integer type, and compiles to
+// nothing where the build has none -- ISO strict C++98 on a 32-bit target
+// (the owner's ruling of 2026.10.03 on round 3's question 1, (a)). The
+// answer is net_common.h's, taken once per translation unit, so that net's
+// gated headers agree.
+#if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 
 namespace djinterp {
@@ -109,61 +95,21 @@ namespace ftp {
 
 
 //==============================================================================
-// 2.  VOCABULARY
+// 1.  VOCABULARY
 //==============================================================================
-// Each enumeration is an enum class from C++11 and, below it, a class
-// scoping a plain enumeration, which converts to it for `switch` and
-// comparison. Both are spelled type::enumerator, and each value is its C
-// counterpart's.
+// Each enumeration is scoped in a struct at every level (decision 3.4): the
+// enumerators are spelled type::enumerator, the type is type::value, and
+// each value is its C counterpart's.
 
 
-// 2.1    Errors
+// 1.1    Errors
 //------------------------------------------------------------------------------
-// 2.1.1
+// 1.1.1
 // error
 //   enum: why an operation failed; `none` is success. The values are
 // d_ftp_error's, whose documentation in ftp_common.h describes each.
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-enum class error : int
+struct error
 {
-    none                 = D_FTP_OK,
-    invalid_argument     = D_FTP_ERROR_INVALID_ARGUMENT,
-    buffer_too_small     = D_FTP_ERROR_BUFFER_TOO_SMALL,
-    malformed            = D_FTP_ERROR_MALFORMED,
-    unsupported          = D_FTP_ERROR_UNSUPPORTED,
-    out_of_memory        = D_FTP_ERROR_OUT_OF_MEMORY,
-    resolve              = D_FTP_ERROR_RESOLVE,
-    connect              = D_FTP_ERROR_CONNECT,
-    timeout              = D_FTP_ERROR_TIMEOUT,
-    connection_closed    = D_FTP_ERROR_CONNECTION_CLOSED,
-    tls                  = D_FTP_ERROR_TLS,
-    service_unavailable  = D_FTP_ERROR_SERVICE_UNAVAILABLE,
-    data_connection      = D_FTP_ERROR_DATA_CONNECTION,
-    transfer_aborted     = D_FTP_ERROR_TRANSFER_ABORTED,
-    file_unavailable     = D_FTP_ERROR_FILE_UNAVAILABLE,
-    local_error          = D_FTP_ERROR_LOCAL_ERROR,
-    insufficient_storage = D_FTP_ERROR_INSUFFICIENT_STORAGE,
-    command_unrecognized = D_FTP_ERROR_COMMAND_UNRECOGNIZED,
-    syntax               = D_FTP_ERROR_SYNTAX,
-    not_implemented      = D_FTP_ERROR_NOT_IMPLEMENTED,
-    bad_sequence         = D_FTP_ERROR_BAD_SEQUENCE,
-    protocol_unsupported = D_FTP_ERROR_PROTOCOL_UNSUPPORTED,
-    login_denied         = D_FTP_ERROR_LOGIN_DENIED,
-    account_required     = D_FTP_ERROR_ACCOUNT_REQUIRED,
-    page_type_unknown    = D_FTP_ERROR_PAGE_TYPE_UNKNOWN,
-    name_not_allowed     = D_FTP_ERROR_NAME_NOT_ALLOWED,
-    security             = D_FTP_ERROR_SECURITY,
-    rejected             = D_FTP_ERROR_REJECTED,
-    unexpected_reply     = D_FTP_ERROR_UNEXPECTED_REPLY,
-    unknown              = D_FTP_ERROR_UNKNOWN
-};
-
-#else
-
-class error
-{
-public:
     enum value
     {
         none                 = D_FTP_OK,
@@ -174,8 +120,8 @@ public:
         out_of_memory        = D_FTP_ERROR_OUT_OF_MEMORY,
         resolve              = D_FTP_ERROR_RESOLVE,
         connect              = D_FTP_ERROR_CONNECT,
-        timeout              = D_FTP_ERROR_TIMEOUT,
-        connection_closed    = D_FTP_ERROR_CONNECTION_CLOSED,
+        timed_out            = D_FTP_ERROR_TIMED_OUT,
+        closed               = D_FTP_ERROR_CLOSED,
         tls                  = D_FTP_ERROR_TLS,
         service_unavailable  = D_FTP_ERROR_SERVICE_UNAVAILABLE,
         data_connection      = D_FTP_ERROR_DATA_CONNECTION,
@@ -197,138 +143,68 @@ public:
         unexpected_reply     = D_FTP_ERROR_UNEXPECTED_REPLY,
         unknown              = D_FTP_ERROR_UNKNOWN
     };
-
-    error()
-        : m_value(none)
-    {}
-
-    error(
-        value _value
-    )
-        : m_value(_value)
-    {}
-
-    explicit error(
-        ::d_ftp_error _value
-    )
-        : m_value(static_cast<value>(_value))
-    {}
-
-    // value -- the enumerator, for switch and comparison
-    operator value() const
-    {
-        return m_value;
-    }
-
-private:
-    value m_value;
 };
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-// 2.1.2
+// 1.1.2
 // Conversions
 //   to_c and from_c cross to and from d_ftp_error; error_string describes
-// an error in a short static English phrase.
+// an error in a short static English phrase; to_net gives the io_error it
+// maps to, by the rules net.h gives with d_net_error.
 inline ::d_ftp_error
 to_c(
-    error _error
-) D_FTP_NOEXCEPT
+    error::value _error
+) D_NOEXCEPT
 {
     return static_cast< ::d_ftp_error>(static_cast<int>(_error));
 }
 
-inline error
+inline error::value
 from_c(
     ::d_ftp_error _error
-) D_FTP_NOEXCEPT
+) D_NOEXCEPT
 {
-    return error(_error);
+    return static_cast<error::value>(_error);
 }
 
 inline const char*
 error_string(
-    error _error
-) D_FTP_NOEXCEPT
+    error::value _error
+) D_NOEXCEPT
 {
     return ::d_ftp_error_string(to_c(_error));
 }
 
-// 2.2    Security
+inline io_error::value
+to_net(
+    error::value _error
+) D_NOEXCEPT
+{
+    return net::from_c(::d_ftp_error_to_net(to_c(_error)));
+}
+
+// 1.2    Security
 //------------------------------------------------------------------------------
-// 2.2.1
+// 1.2.1
 // security
 //   enum: TLS on the control connection: none, explicit (AUTH TLS after the
 // greeting), or implicit (from the first byte, port 990 by default).
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-enum class security : int
+struct security
 {
-    none         = D_FTP_SECURITY_NONE,
-    explicit_tls = D_FTP_SECURITY_EXPLICIT,
-    implicit_tls = D_FTP_SECURITY_IMPLICIT
-};
-
-#else
-
-class security
-{
-public:
     enum value
     {
         none         = D_FTP_SECURITY_NONE,
         explicit_tls = D_FTP_SECURITY_EXPLICIT,
         implicit_tls = D_FTP_SECURITY_IMPLICIT
     };
-
-    security()
-        : m_value(none)
-    {}
-
-    security(
-        value _value
-    )
-        : m_value(_value)
-    {}
-
-    explicit security(
-        ::d_ftp_security _value
-    )
-        : m_value(static_cast<value>(_value))
-    {}
-
-    // value -- the enumerator, for switch and comparison
-    operator value() const
-    {
-        return m_value;
-    }
-
-private:
-    value m_value;
 };
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-// 2.2.2
+// 1.2.2
 // protection
 //   enum: the PROT level asked for data connections under TLS. Only clear
 // and private_ mean anything to TLS (RFC 4217 section 9); `private` being a
 // keyword, the last takes a trailing underscore.
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-enum class protection : int
+struct protection
 {
-    clear        = D_FTP_PROTECTION_CLEAR,
-    safe         = D_FTP_PROTECTION_SAFE,
-    confidential = D_FTP_PROTECTION_CONFIDENTIAL,
-    private_     = D_FTP_PROTECTION_PRIVATE
-};
-
-#else
-
-class protection
-{
-public:
     enum value
     {
         clear        = D_FTP_PROTECTION_CLEAR,
@@ -336,94 +212,52 @@ public:
         confidential = D_FTP_PROTECTION_CONFIDENTIAL,
         private_     = D_FTP_PROTECTION_PRIVATE
     };
-
-    protection()
-        : m_value(clear)
-    {}
-
-    protection(
-        value _value
-    )
-        : m_value(_value)
-    {}
-
-    explicit protection(
-        ::d_ftp_protection _value
-    )
-        : m_value(static_cast<value>(_value))
-    {}
-
-    // value -- the enumerator, for switch and comparison
-    operator value() const
-    {
-        return m_value;
-    }
-
-private:
-    value m_value;
 };
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-// 2.2.3
+// 1.2.3
 // Conversions
 //   to_c and from_c for security and protection.
 inline ::d_ftp_security
 to_c(
-    security _security
-) D_FTP_NOEXCEPT
+    security::value _security
+) D_NOEXCEPT
 {
     return static_cast< ::d_ftp_security>(static_cast<int>(_security));
 }
 
-inline security
+inline security::value
 from_c(
     ::d_ftp_security _security
-) D_FTP_NOEXCEPT
+) D_NOEXCEPT
 {
-    return security(_security);
+    return static_cast<security::value>(_security);
 }
 
 inline ::d_ftp_protection
 to_c(
-    protection _protection
-) D_FTP_NOEXCEPT
+    protection::value _protection
+) D_NOEXCEPT
 {
     return static_cast< ::d_ftp_protection>(static_cast<int>(_protection));
 }
 
-inline protection
+inline protection::value
 from_c(
     ::d_ftp_protection _protection
-) D_FTP_NOEXCEPT
+) D_NOEXCEPT
 {
-    return protection(_protection);
+    return static_cast<protection::value>(_protection);
 }
 
-// 2.3    Data connections
+// 1.3    Data connections
 //------------------------------------------------------------------------------
-// 2.3.1
+// 1.3.1
 // data_mode
 //   enum: how data connections are made: passive, the client connecting, or
 // active, the server connecting back; extended (EPSV, EPRT) or classic
 // (PASV, PORT); and the automatic modes, which try extended first.
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-enum class data_mode : int
+struct data_mode
 {
-    passive_auto     = D_FTP_DATA_PASSIVE_AUTO,
-    passive          = D_FTP_DATA_PASSIVE,
-    extended_passive = D_FTP_DATA_EXTENDED_PASSIVE,
-    active_auto      = D_FTP_DATA_ACTIVE_AUTO,
-    active           = D_FTP_DATA_ACTIVE,
-    extended_active  = D_FTP_DATA_EXTENDED_ACTIVE
-};
-
-#else
-
-class data_mode
-{
-public:
     enum value
     {
         passive_auto     = D_FTP_DATA_PASSIVE_AUTO,
@@ -433,63 +267,36 @@ public:
         active           = D_FTP_DATA_ACTIVE,
         extended_active  = D_FTP_DATA_EXTENDED_ACTIVE
     };
-
-    data_mode()
-        : m_value(passive_auto)
-    {}
-
-    data_mode(
-        value _value
-    )
-        : m_value(_value)
-    {}
-
-    explicit data_mode(
-        ::d_ftp_data_mode _value
-    )
-        : m_value(static_cast<value>(_value))
-    {}
-
-    // value -- the enumerator, for switch and comparison
-    operator value() const
-    {
-        return m_value;
-    }
-
-private:
-    value m_value;
 };
 
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-// 2.3.2
+// 1.3.2
 // Conversions
 //   to_c and from_c for data_mode.
 inline ::d_ftp_data_mode
 to_c(
-    data_mode _mode
-) D_FTP_NOEXCEPT
+    data_mode::value _mode
+) D_NOEXCEPT
 {
     return static_cast< ::d_ftp_data_mode>(static_cast<int>(_mode));
 }
 
-inline data_mode
+inline data_mode::value
 from_c(
     ::d_ftp_data_mode _mode
-) D_FTP_NOEXCEPT
+) D_NOEXCEPT
 {
-    return data_mode(_mode);
+    return static_cast<data_mode::value>(_mode);
 }
 
 
 //==============================================================================
-// 3.  OPTIONS
+// 2.  OPTIONS
 //==============================================================================
 
 
-// 3.1    Builder
+// 2.1    Builder
 //------------------------------------------------------------------------------
-// 3.1.1
+// 2.1.1
 // options
 //   class: a client's settings, built fluently over d_ftp_options, whose
 // defaults it starts from: anonymous, plain, passive, binary, peer and host
@@ -498,14 +305,14 @@ from_c(
 class options
 {
 public:
-    options() D_FTP_NOEXCEPT
+    options() D_NOEXCEPT
     {
         ::d_ftp_options_init(&m_options);
     }
 
     explicit options(
         const ::d_ftp_options& _options
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
         : m_options(_options)
     {}
 
@@ -513,7 +320,7 @@ public:
     options&
     user(
         const char* _user
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         m_options.user = _user;
 
@@ -524,7 +331,7 @@ public:
     options&
     password(
         const char* _password
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         m_options.password = _password;
 
@@ -535,7 +342,7 @@ public:
     options&
     account(
         const char* _account
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         m_options.account = _account;
 
@@ -545,8 +352,8 @@ public:
     // security -- TLS on the control connection
     options&
     security(
-        ftp::security _security
-    ) D_FTP_NOEXCEPT
+        ftp::security::value _security
+    ) D_NOEXCEPT
     {
         m_options.security = to_c(_security);
 
@@ -557,7 +364,7 @@ public:
     options&
     require_security(
         bool _require
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         m_options.require_security = _require;
 
@@ -567,8 +374,8 @@ public:
     // protection -- the PROT level asked for data under TLS
     options&
     protection(
-        ftp::protection _protection
-    ) D_FTP_NOEXCEPT
+        ftp::protection::value _protection
+    ) D_NOEXCEPT
     {
         m_options.data_protection = to_c(_protection);
 
@@ -579,7 +386,7 @@ public:
     options&
     clear_control(
         bool _clear
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         m_options.clear_control = _clear;
 
@@ -589,8 +396,8 @@ public:
     // data_mode -- how data connections are made
     options&
     data_mode(
-        ftp::data_mode _mode
-    ) D_FTP_NOEXCEPT
+        ftp::data_mode::value _mode
+    ) D_NOEXCEPT
     {
         m_options.data_mode = to_c(_mode);
 
@@ -599,7 +406,7 @@ public:
 
     // binary -- TYPE I: bytes as they are
     options&
-    binary() D_FTP_NOEXCEPT
+    binary() D_NOEXCEPT
     {
         m_options.type.data_type = D_FTP_TYPE_IMAGE;
 
@@ -608,7 +415,7 @@ public:
 
     // ascii -- TYPE A: line ends converted to and from CR LF
     options&
-    ascii() D_FTP_NOEXCEPT
+    ascii() D_NOEXCEPT
     {
         m_options.type.data_type = D_FTP_TYPE_ASCII;
 
@@ -619,7 +426,7 @@ public:
     options&
     ignore_pasv_address(
         bool _ignore
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         m_options.ignore_pasv_address = _ignore;
 
@@ -630,7 +437,7 @@ public:
     options&
     verify_peer(
         bool _verify
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         m_options.verify_peer = _verify;
 
@@ -641,7 +448,7 @@ public:
     options&
     verify_host(
         bool _verify
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         m_options.verify_host = _verify;
 
@@ -652,7 +459,7 @@ public:
     options&
     use_utf8(
         bool _use
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         m_options.use_utf8 = _use;
 
@@ -663,7 +470,7 @@ public:
     options&
     connect_timeout(
         uint32_t _milliseconds
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         m_options.connect_timeout_ms = _milliseconds;
 
@@ -674,7 +481,7 @@ public:
     options&
     response_timeout(
         uint32_t _milliseconds
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         m_options.response_timeout_ms = _milliseconds;
 
@@ -685,7 +492,7 @@ public:
     options&
     idle_timeout(
         uint32_t _milliseconds
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         m_options.idle_timeout_ms = _milliseconds;
 
@@ -694,13 +501,13 @@ public:
 
     // c_options -- the d_ftp_options beneath, for what has no member here
     ::d_ftp_options&
-    c_options() D_FTP_NOEXCEPT
+    c_options() D_NOEXCEPT
     {
         return m_options;
     }
 
     const ::d_ftp_options&
-    c_options() const D_FTP_NOEXCEPT
+    c_options() const D_NOEXCEPT
     {
         return m_options;
     }
@@ -711,11 +518,11 @@ private:
 
 
 //==============================================================================
-// 4.  CLIENT
+// 3.  CLIENT
 //==============================================================================
 
 
-// 4.1    Callbacks
+// 3.1    Callbacks
 //------------------------------------------------------------------------------
 // A sink is called as `error sink(const char* data, std::size_t size)` for
 // each piece of a download, and returns error::none to continue; a source
@@ -726,7 +533,7 @@ private:
 // a temporary functor, or an unnamed lambda -- binds as well as a named one.
 namespace internal {
 
-    // 4.1.1
+    // 3.1.1
     // internal::string_sink
     //   class: a sink that appends to a string.
     class string_sink
@@ -734,12 +541,12 @@ namespace internal {
     public:
         explicit string_sink(
             std::string& _out
-        ) D_FTP_NOEXCEPT
+        ) D_NOEXCEPT
             : m_out(&_out)
         {}
 
         // operator() -- appends the data
-        error
+        error::value
         operator()(
             const char* _data,
             std::size_t _size
@@ -755,7 +562,7 @@ namespace internal {
         std::string* m_out;
     };
 
-    // 4.1.2
+    // 3.1.2
     // internal::string_source
     //   class: a source that supplies a string's bytes, in order.
     class string_source
@@ -763,18 +570,18 @@ namespace internal {
     public:
         explicit string_source(
             const std::string& _data
-        ) D_FTP_NOEXCEPT
+        ) D_NOEXCEPT
             : m_data(&_data),
               m_offset(0u)
         {}
 
         // operator() -- supplies the next bytes, and 0 at the end
-        error
+        error::value
         operator()(
             char*        _buffer,
             std::size_t  _capacity,
             std::size_t& _size
-        ) D_FTP_NOEXCEPT
+        ) D_NOEXCEPT
         {
             const std::size_t left = m_data->size() - m_offset;
 
@@ -798,7 +605,7 @@ namespace internal {
         std::size_t        m_offset;
     };
 
-    // 4.1.3
+    // 3.1.3
     // internal::context_of
     //   function: a callback's address as the C client's context, which is
     // never written through; const is restored by the trampoline's Sink.
@@ -806,12 +613,12 @@ namespace internal {
     void*
     context_of(
         Callback& _callback
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         return const_cast<void*>(static_cast<const void*>(&_callback));
     }
 
-    // 4.1.4
+    // 3.1.4
     // internal::sink_call
     //   function: the d_ftp_sink_fn for a Sink, whose address is the context;
     // Sink may be const-qualified.
@@ -821,7 +628,7 @@ namespace internal {
         void*       _context,
         const void* _data,
         std::size_t _size
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         Sink& sink = *static_cast<Sink*>(_context);
 
@@ -829,7 +636,7 @@ namespace internal {
                          _size));
     }
 
-    // 4.1.5
+    // 3.1.5
     // internal::source_call
     //   function: the d_ftp_source_fn for a Source, whose address is the
     // context; Source may be const-qualified.
@@ -840,7 +647,7 @@ namespace internal {
         void*        _buffer,
         std::size_t  _capacity,
         std::size_t* _out_size
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         Source& source = *static_cast<Source*>(_context);
 
@@ -851,9 +658,9 @@ namespace internal {
 
 }  // namespace internal
 
-// 4.2    Sessions
+// 3.2    Sessions
 //------------------------------------------------------------------------------
-// 4.2.1
+// 3.2.1
 // client
 //   class: an FTP or FTPS session: connect, login, then commands and
 // transfers, then quit. Every member blocks, as the C client does, and
@@ -863,12 +670,7 @@ namespace internal {
 class client
 {
 public:
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    client(const client&)            = delete;
-    client& operator=(const client&) = delete;
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-    client() D_FTP_NOEXCEPT
+    client() D_NOEXCEPT
     {
         ::d_ftp_client_init(&m_client,
                             NULL,
@@ -880,7 +682,7 @@ public:
     explicit client(
         const ftp::options&          _options,
         const ::d_ssl_context* const _tls = NULL
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         ::d_ftp_client_init(&m_client,
                             &_options.c_options(),
@@ -897,7 +699,7 @@ public:
     tls_config(
         const ftp::options&  _options,
         ::d_ssl_config&      _config
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         ::d_ftp_client_tls_config(&_options.c_options(),
                                   &_config);
@@ -905,41 +707,41 @@ public:
 
     // connect -- connects and reads the greeting; FTPS secures the control
     // connection first; port 0 picks 21, or 990 for implicit TLS
-    error
+    error::value
     connect(
         const char* _host,
         uint16_t    _port = 0u
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         return from_c(::d_ftp_client_connect(&m_client,
                                              _host,
                                              _port));
     }
 
-    error
+    error::value
     connect(
         const std::string& _host,
         uint16_t           _port = 0u
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         return connect(_host.c_str(),
                        _port);
     }
 
     // login -- USER, PASS, and ACCT as asked; under TLS, PBSZ and PROT
-    error
-    login() D_FTP_NOEXCEPT
+    error::value
+    login() D_NOEXCEPT
     {
         return from_c(::d_ftp_client_login(&m_client));
     }
 
     // command -- one command that neither changes session state nor opens a
     // data connection: CWD, MKD, DELE, SIZE, MDTM, NOOP, and the like
-    error
+    error::value
     command(
         ::d_ftp_command _command,
         const char*     _argument = NULL
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         return from_c(::d_ftp_client_command(&m_client,
                                              _command,
@@ -948,11 +750,11 @@ public:
 
     // retrieve -- downloads a file into a sink
     template<typename Sink>
-    error
+    error::value
     retrieve(
         const char* _path,
         Sink&       _sink
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         return from_c(::d_ftp_client_retrieve(&m_client,
                                               _path,
@@ -961,11 +763,11 @@ public:
     }
 
     template<typename Sink>
-    error
+    error::value
     retrieve(
         const char* _path,
         const Sink& _sink
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         return from_c(::d_ftp_client_retrieve(
                           &m_client,
@@ -975,11 +777,11 @@ public:
     }
 
     // retrieve -- downloads a file onto the end of a string
-    error
+    error::value
     retrieve(
         const char*  _path,
         std::string& _out
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         internal::string_sink sink(_out);
 
@@ -989,11 +791,11 @@ public:
 
     // store -- uploads a file from a source
     template<typename Source>
-    error
+    error::value
     store(
         const char* _path,
         Source&     _source
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         return from_c(::d_ftp_client_store(&m_client,
                                            _path,
@@ -1002,11 +804,11 @@ public:
     }
 
     template<typename Source>
-    error
+    error::value
     store(
         const char*   _path,
         const Source& _source
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         return from_c(::d_ftp_client_store(
                           &m_client,
@@ -1016,11 +818,11 @@ public:
     }
 
     // store -- uploads a string's bytes as a file
-    error
+    error::value
     store(
         const char*        _path,
         const std::string& _data
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         internal::string_source source(_data);
 
@@ -1030,11 +832,11 @@ public:
 
     // a string that is not const binds here: to the template above it would
     // bind more tightly, as a callback
-    error
+    error::value
     store(
         const char*  _path,
         std::string& _data
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         return store(_path,
                      static_cast<const std::string&>(_data));
@@ -1043,12 +845,12 @@ public:
     // list -- a directory listing into a sink: MLSD where FEAT offered it,
     // LIST otherwise, the format chosen reported through _out_format
     template<typename Sink>
-    error
+    error::value
     list(
         const char*             _path,
         Sink&                   _sink,
         ::d_ftp_listing_format* _out_format = NULL
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         return from_c(::d_ftp_client_list(&m_client,
                                           _path,
@@ -1058,12 +860,12 @@ public:
     }
 
     template<typename Sink>
-    error
+    error::value
     list(
         const char*             _path,
         const Sink&             _sink,
         ::d_ftp_listing_format* _out_format = NULL
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         return from_c(::d_ftp_client_list(&m_client,
                                           _path,
@@ -1073,12 +875,12 @@ public:
     }
 
     // list -- a directory listing onto the end of a string
-    error
+    error::value
     list(
         const char*             _path,
         std::string&            _out,
         ::d_ftp_listing_format* _out_format = NULL
-    ) D_FTP_NOEXCEPT
+    ) D_NOEXCEPT
     {
         internal::string_sink sink(_out);
 
@@ -1088,15 +890,15 @@ public:
     }
 
     // quit -- QUIT, then closes every connection in order
-    error
-    quit() D_FTP_NOEXCEPT
+    error::value
+    quit() D_NOEXCEPT
     {
         return from_c(::d_ftp_client_quit(&m_client));
     }
 
     // close -- closes every connection, sending nothing
     void
-    close() D_FTP_NOEXCEPT
+    close() D_NOEXCEPT
     {
         ::d_ftp_client_close(&m_client);
 
@@ -1105,19 +907,19 @@ public:
 
     // state -- O(1) reads of the session
     bool
-    connected() const D_FTP_NOEXCEPT
+    connected() const D_NOEXCEPT
     {
         return m_client.connected;
     }
 
     bool
-    logged_in() const D_FTP_NOEXCEPT
+    logged_in() const D_NOEXCEPT
     {
         return m_client.logged_in;
     }
 
     unsigned
-    reply_code() const D_FTP_NOEXCEPT
+    reply_code() const D_NOEXCEPT
     {
         return m_client.reply.code;
     }
@@ -1130,59 +932,57 @@ public:
     }
 
     const ::d_ftp_reply&
-    reply() const D_FTP_NOEXCEPT
+    reply() const D_NOEXCEPT
     {
         return m_client.reply;
     }
 
     uint32_t
-    features() const D_FTP_NOEXCEPT
+    features() const D_NOEXCEPT
     {
         return m_client.features;
     }
 
-    ftp::protection
-    protection() const D_FTP_NOEXCEPT
+    ftp::protection::value
+    protection() const D_NOEXCEPT
     {
         return from_c(m_client.protection);
     }
 
     bool
-    control_secured() const D_FTP_NOEXCEPT
+    control_secured() const D_NOEXCEPT
     {
         return m_client.control.secured;
     }
 
-    ::d_ssl_status
-    tls_status() const D_FTP_NOEXCEPT
+    ::d_ssl_error
+    tls_status() const D_NOEXCEPT
     {
         return m_client.tls_status;
     }
 
     ::d_net_error
-    net_error() const D_FTP_NOEXCEPT
+    net_error() const D_NOEXCEPT
     {
         return m_client.net_error;
     }
 
     // c_client -- the d_ftp_client beneath, for what has no member here
     ::d_ftp_client&
-    c_client() D_FTP_NOEXCEPT
+    c_client() D_NOEXCEPT
     {
         return m_client;
     }
 
     const ::d_ftp_client&
-    c_client() const D_FTP_NOEXCEPT
+    c_client() const D_NOEXCEPT
     {
         return m_client;
     }
 
 private:
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    client(const client&);
-    client& operator=(const client&);
-#endif  // !D_ENV_LANG_IS_CPP11_OR_HIGHER
+    D_DELETED_FN(client(const client&))
+    D_DELETED_FN(client& operator=(const client&))
 
     ::d_ftp_client m_client;
 };
@@ -1192,5 +992,9 @@ private:
 }  // namespace net
 }  // namespace djinterp
 
+
+#elif (D_INTERNAL_NET_REQUIRE_BACKENDS == 1)
+    #error "ftp_client.hpp: no 64-bit integer type (D_INTERNAL_NET_HAS_INT64)"
+#endif  // D_INTERNAL_NET_HAS_INT64
 
 #endif  // DJINTERP_NET_FTP_FTP_CLIENT_HPP

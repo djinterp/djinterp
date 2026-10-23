@@ -7,24 +7,31 @@
 * carry one. Session state lives on the heap -- a session is long-lived and
 * may run on a thread with a small stack -- and message data grows by
 * doubling up to the configured limit, so memory tracks the largest message
-* actually received rather than the largest allowed.
+* actually received rather than the largest allowed. STARTTLS makes a TLS
+* session of the SSL kernel over the connection, held in that state.
 *
 *
 * path:      /src/djinterp/net/smtp/smtp_server.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.13
 *******************************************************************************/
-#include "../../../../inc/djinterp/net/smtp/smtp_server.h"
+#include "../../../../inc/djinterp/net/smtp/smtp_server.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
-#include <stdint.h>   // SIZE_MAX
 #include <stdlib.h>   // calloc, free, realloc
 #include <string.h>   // memchr, memcpy, strcmp, strlen
 // djinterp
-#include "../../../../inc/djinterp/net/smtp/smtp_common.h"          // replies
-#include "../../../../inc/djinterp/net/smtp/smtp_transport.h"       // io
+#include "../../../../inc/djinterp/c/util/sink_common.h"      // d_pack_text
+#include "../../../../inc/djinterp/net/codec/codec_digest.h"  // d_net_wipe
+#include "../../../../inc/djinterp/net/codec/codec_line.h"    // d_net_line_is_clean
+#include "../../../../inc/djinterp/net/net_common.h"          // connections
+#include "../../../../inc/djinterp/net/smtp/smtp_common.h"    // replies
+#include "../../../../inc/djinterp/net/smtp/smtp_reader.h"    // d_smtp_reader
+#include "../../../../inc/djinterp/net/ssl/ssl.h"             // TLS sessions
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
 
 
 // D_INTERNAL_SMTP_USER_MAX
@@ -37,10 +44,14 @@
 
 // d_internal_smtp_session
 //   struct: everything one session knows. `info` points into the storage
-// members, so callbacks always see stable strings.
+// members, so callbacks always see stable strings. The reader reads
+// `connection` until STARTTLS, and then `tls`'s view.
 struct d_internal_smtp_session
 {
     struct d_smtp_reader                reader;
+    struct d_net_connection*            connection;
+    struct d_ssl_session                tls;
+    bool                                has_tls;
     const struct d_smtp_server_config*  config;
     const struct d_smtp_server_handler* handler;
     struct d_smtp_session_info          info;
@@ -79,6 +90,31 @@ struct d_internal_smtp_intake
     bool no_memory;
 };
 
+/*
+d_internal_smtp_send
+  Writes every byte through the stream the session reads, keeping what the
+connection reported when it fails, as the reader does for reads.
+*/
+static enum d_smtp_error
+d_internal_smtp_send(
+    struct d_internal_smtp_session* _session,
+    const void*                     _data,
+    size_t                          _length
+)
+{
+    const enum d_net_error written =
+        d_net_write_all(_session->reader.connection,
+                        _data,
+                        _length,
+                        NULL);
+
+    if (written != D_NET_OK)
+    {
+        _session->reader.net_error = written;
+    }
+
+    return d_smtp_error_from_net(written);
+}
 
 /*
 d_internal_smtp_respond
@@ -105,17 +141,20 @@ d_internal_smtp_respond(
 
     if (_status)
     {
-        result = d_smtp_buffer_append_text(&text, _status);
+        result = d_smtp_buffer_append_text(&text,
+                                           _status);
 
         if (result == D_SMTP_OK)
         {
-            result = d_smtp_buffer_append_text(&text, " ");
+            result = d_smtp_buffer_append_text(&text,
+                                               " ");
         }
     }
 
     if (result == D_SMTP_OK)
     {
-        result = d_smtp_buffer_append_text(&text, _text);
+        result = d_smtp_buffer_append_text(&text,
+                                           _text);
     }
 
     if (result == D_SMTP_OK)
@@ -128,9 +167,9 @@ d_internal_smtp_respond(
 
     if (result == D_SMTP_OK)
     {
-        result = d_smtp_transport_write_all(&_session->reader.transport,
-                                            reply.data,
-                                            reply.length);
+        result = d_internal_smtp_send(_session,
+                                      reply.data,
+                                      reply.length);
     }
 
     return result;
@@ -236,7 +275,8 @@ d_internal_smtp_join(
     {
         if (parts[i])
         {
-            result = d_smtp_buffer_append_text(_buffer, parts[i]);
+            result = d_smtp_buffer_append_text(_buffer,
+                                               parts[i]);
         }
     }
 
@@ -287,20 +327,16 @@ d_internal_smtp_auth_offer(
 
 /*
 d_internal_smtp_can_starttls
-  STARTTLS needs a plaintext session, an upgradeable transport, and a
-certificate with its key.
+  STARTTLS needs a plaintext session and a server context to make TLS with,
+which d_smtp_server_session has checked.
 */
 static bool
 d_internal_smtp_can_starttls(
     const struct d_internal_smtp_session* _session
 )
 {
-    const struct d_smtp_tls_options* tls = &_session->config->tls;
-
-    return ( (!_session->info.secure)                     &&
-             (_session->reader.transport.starttls != NULL) &&
-             (tls->certificate_file != NULL)              &&
-             (tls->private_key_file != NULL) );
+    return ( (!_session->info.secure) &&
+             (_session->config->tls != NULL) );
 }
 
 /*
@@ -324,7 +360,8 @@ d_internal_smtp_ehlo(
 
     if (result == D_SMTP_OK)
     {
-        result = d_smtp_buffer_append_text(&text, "\nPIPELINING\nSIZE ");
+        result = d_smtp_buffer_append_text(&text,
+                                           "\nPIPELINING\nSIZE ");
     }
 
     if (result == D_SMTP_OK)
@@ -344,7 +381,8 @@ d_internal_smtp_ehlo(
     if ( (result == D_SMTP_OK) &&
          (d_internal_smtp_can_starttls(_session)) )
     {
-        result = d_smtp_buffer_append_text(&text, "\nSTARTTLS");
+        result = d_smtp_buffer_append_text(&text,
+                                           "\nSTARTTLS");
     }
 
     if ( (result == D_SMTP_OK) &&
@@ -377,12 +415,16 @@ d_internal_smtp_on_hello(
     bool                            _extended
 )
 {
-    const size_t length = _command->argument_length;
+    const size_t             length   = _command->argument_length;
+    const struct d_pack_text argument = { _command->argument,
+                                          length };
 
-    if ( (length == 0)                                      ||
-         (length > D_SMTP_DOMAIN_MAX)                       ||
-         (!d_smtp_text_is_safe(_command->argument, length)) ||
-         (memchr(_command->argument, ' ', length)) )
+    if ( (length == 0)                    ||
+         (length > D_SMTP_DOMAIN_MAX)     ||
+         (!d_net_line_is_clean(argument)) ||
+         (memchr(_command->argument,
+                 ' ',
+                 length)) )
     {
         return d_internal_smtp_fault(_session,
                                      501u,
@@ -418,6 +460,51 @@ d_internal_smtp_on_hello(
                                                            NULL,
                                                            text.data)
                                  : result;
+}
+
+/*
+d_internal_smtp_secure
+  Makes TLS over the session's connection from the configuration's context,
+a server naming no one, and runs its handshake; on success the reader reads
+the TLS session's view. A session not made holds nothing to release; one
+made is released with the session, whatever its handshake did.
+*/
+static enum d_smtp_error
+d_internal_smtp_secure(
+    struct d_internal_smtp_session* _session
+)
+{
+    const struct d_pack_text none   = { "",
+                                        0u };
+    enum d_ssl_error         status = d_ssl_session_init(&_session->tls,
+                                                         _session->config->tls,
+                                                         _session->connection,
+                                                         none);
+
+    if (status != D_SSL_OK)
+    {
+        return (status == D_SSL_ERROR_OUT_OF_MEMORY)
+                   ? D_SMTP_ERROR_OUT_OF_MEMORY
+                   : D_SMTP_ERROR_TLS;
+    }
+
+    _session->has_tls = true;
+    status            = d_ssl_session_handshake(&_session->tls);
+
+    // a failed handshake ends the session, judged with what lay beneath it
+    if (status != D_SSL_OK)
+    {
+        const enum d_net_error cause =
+            d_ssl_session_transport_error(&_session->tls);
+
+        return d_smtp_error_from_ssl(status,
+                                     cause);
+    }
+
+    d_smtp_reader_init(&_session->reader,
+                       &_session->tls.base);
+
+    return D_SMTP_OK;
 }
 
 /*
@@ -471,10 +558,7 @@ d_internal_smtp_on_starttls(
 
     d_smtp_reader_discard(&_session->reader);
 
-    const struct d_smtp_transport* transport = &_session->reader.transport;
-    const enum d_smtp_error        upgraded  = transport->starttls(
-                                                   transport->context,
-                                                   &_session->config->tls);
+    const enum d_smtp_error upgraded = d_internal_smtp_secure(_session);
 
     if (upgraded != D_SMTP_OK)
     {
@@ -516,9 +600,9 @@ d_internal_smtp_sasl_decode(
         return D_SMTP_OK;
     }
 
-    return d_smtp_base64_decode(_text,
-                                _length,
-                                _buffer);
+    return d_smtp_buffer_append_from_base64(_buffer,
+                                            _text,
+                                            _length);
 }
 
 /*
@@ -551,7 +635,8 @@ d_internal_smtp_sasl_read(
     // an overlong response cannot be decoded, but the stream is still in step
     if (read != D_SMTP_OK)
     {
-        return (read == D_SMTP_ERROR_TOO_LONG) ? D_SMTP_ERROR_PROTOCOL : read;
+        return (read == D_SMTP_ERROR_LINE_TOO_LONG) ? D_SMTP_ERROR_PROTOCOL
+                                                    : read;
     }
 
     return d_internal_smtp_sasl_decode(_session->line,
@@ -562,7 +647,8 @@ d_internal_smtp_sasl_read(
 /*
 d_internal_smtp_sasl_failure
   A cancelled or undecodable response ends the exchange, not the session;
-transport errors pass through and do end it.
+a connection that failed ends it, whatever it reported -- a TLS record that
+broke TLS reads as PROTOCOL too -- which the cause the reader kept tells.
 */
 static enum d_smtp_error
 d_internal_smtp_sasl_failure(
@@ -570,6 +656,12 @@ d_internal_smtp_sasl_failure(
     enum d_smtp_error               _result
 )
 {
+    // the connection failed: there is no exchange left to end
+    if (_session->reader.net_error != D_NET_OK)
+    {
+        return _result;
+    }
+
     if (_result == D_SMTP_ERROR_AUTH)
     {
         return d_internal_smtp_fault(_session,
@@ -579,7 +671,7 @@ d_internal_smtp_sasl_failure(
     }
 
     if ( (_result == D_SMTP_ERROR_PROTOCOL) ||
-         (_result == D_SMTP_ERROR_TOO_LONG) )
+         (_result == D_SMTP_ERROR_LINE_TOO_LONG) )
     {
         return d_internal_smtp_fault(_session,
                                      501u,
@@ -604,10 +696,12 @@ d_internal_smtp_verify(
 {
     const struct d_smtp_server_handler* handler = _session->handler;
     const size_t                        length  = strlen(_user);
+    const struct d_pack_text            user    = { _user,
+                                                    length };
 
-    if ( (length == 0)                           ||
-         (length >= sizeof(_session->user))      ||
-         (!d_smtp_text_is_safe(_user, length))   ||
+    if ( (length == 0)                      ||
+         (length >= sizeof(_session->user)) ||
+         (!d_net_line_is_clean(user))       ||
          (!handler->auth(handler->context,
                          _user,
                          _secret)) )
@@ -652,7 +746,9 @@ d_internal_smtp_plain_check(
                                  : NULL;
 
     if ( (!second) ||
-         (memchr(second + 1, '\0', (size_t)(end - second - 1))) )
+         (memchr(second + 1,
+                 '\0',
+                 (size_t)(end - second - 1))) )
     {
         return d_internal_smtp_fault(_session,
                                      501u,
@@ -661,7 +757,8 @@ d_internal_smtp_plain_check(
     }
 
     if ( (first != data) &&
-         (strcmp(data, first + 1) != 0) )
+         (strcmp(data,
+                 first + 1) != 0) )
     {
         return d_internal_smtp_fault(_session,
                                      535u,
@@ -704,10 +801,8 @@ d_internal_smtp_auth_plain(
              : d_internal_smtp_sasl_failure(_session,
                                             result);
 
-    for (size_t i = 0; i < sizeof(storage); ++i)
-    {
-        ((volatile char*)storage)[i] = 0;
-    }
+    d_net_wipe(storage,
+               sizeof(storage));
 
     return result;
 }
@@ -767,10 +862,8 @@ d_internal_smtp_auth_login(
                                         secret.data);
     }
 
-    for (size_t i = 0; i < sizeof(secret_storage); ++i)
-    {
-        ((volatile char*)secret_storage)[i] = 0;
-    }
+    d_net_wipe(secret_storage,
+               sizeof(secret_storage));
 
     return result;
 }
@@ -848,6 +941,60 @@ d_internal_smtp_on_auth(
 }
 
 /*
+d_internal_smtp_size_declared
+  SIZE's value (RFC 1870): one or more decimal digits, read into `_declared`.
+False for anything else, or for a size past SIZE_MAX.
+*/
+static bool
+d_internal_smtp_size_declared(
+    const char* _value,
+    size_t      _size,
+    size_t*     _declared
+)
+{
+    size_t declared = 0;
+
+    for (size_t i = 0; i < _size; ++i)
+    {
+        // a digit, and room for another
+        if ( (!d_net_ascii_is_digit(_value[i])) ||
+             (declared > (SIZE_MAX - 9u) / 10u) )
+        {
+            return false;
+        }
+
+        declared = (declared * 10u) + (size_t)(_value[i] - '0');
+    }
+
+    *_declared = declared;
+
+    return (_size > 0);
+}
+
+/*
+d_internal_smtp_body_declared
+  BODY's value (RFC 6152): 8BITMIME, which the session records, or 7BIT.
+False for any other body type.
+*/
+static bool
+d_internal_smtp_body_declared(
+    struct d_internal_smtp_session* _session,
+    const char*                     _value,
+    size_t                          _size
+)
+{
+    const struct d_pack_text value = { _value,
+                                       _size };
+
+    _session->info.eight_bit = d_net_ascii_ieq_cstr(value,
+                                                    "8BITMIME");
+
+    return ( (_session->info.eight_bit) ||
+             (d_net_ascii_ieq_cstr(value,
+                                   "7BIT")) );
+}
+
+/*
 d_internal_smtp_mail_parameter
   One MAIL parameter. Every parameter belongs to an extension, so none is
 valid after HELO; SIZE is checked against the limit here, before any data
@@ -864,10 +1011,10 @@ d_internal_smtp_mail_parameter(
                                                       "5.5.4",
                                                       "Unsupported MAIL "
                                                       "parameter" };
-    const char*  keyword = _parameter->keyword;
-    const size_t length  = _parameter->keyword_length;
-    const char*  value   = _parameter->value;
-    const size_t size    = _parameter->value_length;
+    const struct d_pack_text keyword = { _parameter->keyword,
+                                         _parameter->keyword_length };
+    const char*              value   = _parameter->value;
+    const size_t             size    = _parameter->value_length;
 
     if (!_session->extended)
     {
@@ -875,17 +1022,18 @@ d_internal_smtp_mail_parameter(
     }
 
     if ( (value) &&
-         (d_smtp_keyword_is(keyword, length, "BODY")) )
+         (d_net_ascii_ieq_cstr(keyword,
+                               "BODY")) )
     {
-        _session->info.eight_bit = d_smtp_keyword_is(value, size, "8BITMIME");
-
-        return ( (_session->info.eight_bit) ||
-                 (d_smtp_keyword_is(value, size, "7BIT")) ) ? accepted
-                                                            : unknown;
+        return (d_internal_smtp_body_declared(_session,
+                                              value,
+                                              size)) ? accepted
+                                                     : unknown;
     }
 
     if ( (!value) &&
-         (d_smtp_keyword_is(keyword, length, "SMTPUTF8")) )
+         (d_net_ascii_ieq_cstr(keyword,
+                               "SMTPUTF8")) )
     {
         _session->info.utf8 = true;
 
@@ -893,25 +1041,19 @@ d_internal_smtp_mail_parameter(
     }
 
     if ( (!value) ||
-         (!d_smtp_keyword_is(keyword, length, "SIZE")) )
+         (!d_net_ascii_ieq_cstr(keyword,
+                                "SIZE")) )
     {
         return unknown;
     }
 
     size_t declared = 0;
 
-    for (size_t i = 0; i < size; ++i)
+    if (!d_internal_smtp_size_declared(value,
+                                       size,
+                                       &declared))
     {
-        const bool digit = ( (value[i] >= '0') &&
-                             (value[i] <= '9') );
-
-        if ( (!digit) ||
-             (declared > (SIZE_MAX - 9u) / 10u) )
-        {
-            return unknown;
-        }
-
-        declared = (declared * 10u) + (size_t)(value[i] - '0');
+        return unknown;
     }
 
     if (declared > _session->config->max_message_size)
@@ -924,7 +1066,71 @@ d_internal_smtp_mail_parameter(
         return oversize;
     }
 
-    return (size > 0) ? accepted : unknown;
+    return accepted;
+}
+
+/*
+d_internal_smtp_mail_sender
+  MAIL's parameters, each in turn until one is refused; the sender, where the
+null reverse-path is legal and anything else must be a mailbox; and then the
+handler's decision on the sender, which is copied into the session for it.
+A verdict with code 0 accepts the lot.
+*/
+static struct d_internal_smtp_verdict
+d_internal_smtp_mail_sender(
+    struct d_internal_smtp_session* _session,
+    const struct d_smtp_path*       _path
+)
+{
+    const char*             cursor    = _path->parameters;
+    const char*             end       = (cursor) ? cursor +
+                                                   _path->parameters_length
+                                                 : NULL;
+    struct d_smtp_parameter parameter = { .keyword = NULL };
+    struct d_internal_smtp_verdict verdict = { 0u, NULL, NULL };
+
+    while ( (verdict.code == 0) &&
+            (cursor) &&
+            (d_smtp_parameter_next(&cursor,
+                                   end,
+                                   &parameter)) )
+    {
+        verdict = d_internal_smtp_mail_parameter(_session,
+                                                 &parameter);
+    }
+
+    // the null reverse-path is legal; anything else must be a mailbox
+    if ( (verdict.code == 0)         &&
+         (_path->address_length > 0) &&
+         (!d_smtp_address_is_valid(_path->address,
+                                   _path->address_length,
+                                   _session->info.utf8)) )
+    {
+        verdict.code   = 553u;
+        verdict.status = "5.1.7";
+        verdict.text   = "Bad sender address syntax";
+    }
+
+    if (verdict.code != 0)
+    {
+        return verdict;
+    }
+
+    const struct d_smtp_server_handler* handler = _session->handler;
+
+    memcpy(_session->sender,
+           _path->address,
+           _path->address_length);
+    _session->sender[_path->address_length] = '\0';
+
+    return d_internal_smtp_decide(
+               (handler->mail) ? handler->mail(handler->context,
+                                               &_session->info,
+                                               _session->sender)
+                               : 0u,
+               "5.7.1",
+               "4.7.1",
+               "Sender rejected");
 }
 
 /*
@@ -938,9 +1144,8 @@ d_internal_smtp_on_mail(
     const struct d_smtp_command*    _command
 )
 {
-    const struct d_smtp_server_config*  config  = _session->config;
-    const struct d_smtp_server_handler* handler = _session->handler;
-    struct d_smtp_path                  path    = { .address = NULL };
+    const struct d_smtp_server_config* config = _session->config;
+    struct d_smtp_path                 path   = { .address = NULL };
 
     if ( (!_session->greeted) ||
          (_session->in_mail) )
@@ -978,49 +1183,9 @@ d_internal_smtp_on_mail(
 
     d_internal_smtp_reset(_session);
 
-    const char*             cursor    = path.parameters;
-    const char*             end       = (cursor) ? cursor +
-                                                   path.parameters_length
-                                                 : NULL;
-    struct d_smtp_parameter parameter = { .keyword = NULL };
-    struct d_internal_smtp_verdict verdict = { 0u, NULL, NULL };
-
-    while ( (verdict.code == 0) &&
-            (cursor) &&
-            (d_smtp_parameter_next(&cursor, end, &parameter)) )
-    {
-        verdict = d_internal_smtp_mail_parameter(_session,
-                                                 &parameter);
-    }
-
-    // the null reverse-path is legal; anything else must be a mailbox
-    if ( (verdict.code == 0)       &&
-         (path.address_length > 0) &&
-         (!d_smtp_address_is_valid(path.address,
-                                   path.address_length,
-                                   _session->info.utf8)) )
-    {
-        verdict.code   = 553u;
-        verdict.status = "5.1.7";
-        verdict.text   = "Bad sender address syntax";
-    }
-
-    if (verdict.code == 0)
-    {
-        memcpy(_session->sender,
-               path.address,
-               path.address_length);
-        _session->sender[path.address_length] = '\0';
-
-        verdict = d_internal_smtp_decide(
-                      (handler->mail) ? handler->mail(handler->context,
-                                                      &_session->info,
-                                                      _session->sender)
-                                      : 0u,
-                      "5.7.1",
-                      "4.7.1",
-                      "Sender rejected");
-    }
+    const struct d_internal_smtp_verdict verdict =
+        d_internal_smtp_mail_sender(_session,
+                                    &path);
 
     if (verdict.code != 0)
     {
@@ -1050,74 +1215,37 @@ d_internal_smtp_recipient_valid(
     const struct d_smtp_path*             _path
 )
 {
-    return ( (d_smtp_keyword_is(_path->address,
-                                _path->address_length,
-                                "postmaster")) ||
+    const struct d_pack_text address = { _path->address,
+                                         _path->address_length };
+
+    return ( (d_net_ascii_ieq_cstr(address,
+                                   "postmaster")) ||
              (d_smtp_address_is_valid(_path->address,
                                       _path->address_length,
                                       _session->info.utf8)) );
 }
 
 /*
-d_internal_smtp_on_rcpt
-  RCPT TO: no RCPT parameters are offered (DSN is not advertised), and the
-recipient limit answers 452, which tells the client to retry the rest in a
-later transaction (RFC 5321 section 4.5.3.1.10).
+d_internal_smtp_add_recipient
+  A valid recipient within the limit: copied into the next slot, put to the
+handler, and on its acceptance added to the transaction.
 */
 static enum d_smtp_error
-d_internal_smtp_on_rcpt(
+d_internal_smtp_add_recipient(
     struct d_internal_smtp_session* _session,
-    const struct d_smtp_command*    _command
+    const struct d_smtp_path*       _path
 )
 {
-    const struct d_smtp_server_handler* handler = _session->handler;
-    struct d_smtp_path                  path    = { .address = NULL };
-
-    if (!_session->in_mail)
-    {
-        return d_internal_smtp_fault(_session,
-                                     503u,
-                                     "5.5.1",
-                                     "Need MAIL before RCPT");
-    }
-
-    if ( (d_smtp_path_parse(_command->argument,
-                            _command->argument_length,
-                            "TO:",
-                            &path) != D_SMTP_OK) ||
-         (path.parameters) )
-    {
-        return d_internal_smtp_fault(_session,
-                                     501u,
-                                     "5.5.4",
-                                     "Syntax: RCPT TO:<address>");
-    }
-
-    if (!d_internal_smtp_recipient_valid(_session, &path))
-    {
-        return d_internal_smtp_fault(_session,
-                                     553u,
-                                     "5.1.3",
-                                     "Bad recipient address syntax");
-    }
-
     const size_t count = _session->info.recipient_count;
-
-    if (count >= _session->config->max_recipients)
-    {
-        return d_internal_smtp_respond(_session,
-                                       452u,
-                                       "4.5.3",
-                                       "Too many recipients");
-    }
-
-    char* slot = _session->recipient_storage + (count * D_SMTP_PATH_MAX);
+    char* const  slot  = _session->recipient_storage +
+                         (count * D_SMTP_PATH_MAX);
 
     memcpy(slot,
-           path.address,
-           path.address_length);
-    slot[path.address_length] = '\0';
+           _path->address,
+           _path->address_length);
+    slot[_path->address_length] = '\0';
 
+    const struct d_smtp_server_handler*  handler = _session->handler;
     const struct d_internal_smtp_verdict verdict = d_internal_smtp_decide(
         (handler->rcpt) ? handler->rcpt(handler->context,
                                         &_session->info,
@@ -1140,6 +1268,63 @@ d_internal_smtp_on_rcpt(
                                    250u,
                                    "2.1.5",
                                    "Recipient OK");
+}
+
+/*
+d_internal_smtp_on_rcpt
+  RCPT TO: no RCPT parameters are offered (DSN is not advertised), and the
+recipient limit answers 452, which tells the client to retry the rest in a
+later transaction (RFC 5321 section 4.5.3.1.10).
+*/
+static enum d_smtp_error
+d_internal_smtp_on_rcpt(
+    struct d_internal_smtp_session* _session,
+    const struct d_smtp_command*    _command
+)
+{
+    struct d_smtp_path path = { .address = NULL };
+
+    if (!_session->in_mail)
+    {
+        return d_internal_smtp_fault(_session,
+                                     503u,
+                                     "5.5.1",
+                                     "Need MAIL before RCPT");
+    }
+
+    if ( (d_smtp_path_parse(_command->argument,
+                            _command->argument_length,
+                            "TO:",
+                            &path) != D_SMTP_OK) ||
+         (path.parameters) )
+    {
+        return d_internal_smtp_fault(_session,
+                                     501u,
+                                     "5.5.4",
+                                     "Syntax: RCPT TO:<address>");
+    }
+
+    if (!d_internal_smtp_recipient_valid(_session,
+                                         &path))
+    {
+        return d_internal_smtp_fault(_session,
+                                     553u,
+                                     "5.1.3",
+                                     "Bad recipient address syntax");
+    }
+
+    const size_t count = _session->info.recipient_count;
+
+    if (count >= _session->config->max_recipients)
+    {
+        return d_internal_smtp_respond(_session,
+                                       452u,
+                                       "4.5.3",
+                                       "Too many recipients");
+    }
+
+    return d_internal_smtp_add_recipient(_session,
+                                         &path);
 }
 
 /*
@@ -1217,7 +1402,8 @@ d_internal_smtp_store(
         return;
     }
 
-    if (!d_internal_smtp_reserve(_session, needed + 1u))
+    if (!d_internal_smtp_reserve(_session,
+                                 needed + 1u))
     {
         _intake->no_memory = true;
 
@@ -1268,7 +1454,7 @@ d_internal_smtp_receive(
                                              &length);
 
         if ( (read != D_SMTP_OK) &&
-             (read != D_SMTP_ERROR_TOO_LONG) )
+             (read != D_SMTP_ERROR_LINE_TOO_LONG) )
         {
             return read;
         }
@@ -1286,7 +1472,7 @@ d_internal_smtp_receive(
             return D_SMTP_OK;
         }
 
-        if (read == D_SMTP_ERROR_TOO_LONG)
+        if (read == D_SMTP_ERROR_LINE_TOO_LONG)
         {
             _intake->overlong = true;
         }
@@ -1440,19 +1626,24 @@ d_internal_smtp_dispatch(
                                              D_SMTP_VERB_EHLO));
 
         case D_SMTP_VERB_STARTTLS:
-            return d_internal_smtp_on_starttls(_session, _command);
+            return d_internal_smtp_on_starttls(_session,
+                                               _command);
 
         case D_SMTP_VERB_AUTH:
-            return d_internal_smtp_on_auth(_session, _command);
+            return d_internal_smtp_on_auth(_session,
+                                           _command);
 
         case D_SMTP_VERB_MAIL:
-            return d_internal_smtp_on_mail(_session, _command);
+            return d_internal_smtp_on_mail(_session,
+                                           _command);
 
         case D_SMTP_VERB_RCPT:
-            return d_internal_smtp_on_rcpt(_session, _command);
+            return d_internal_smtp_on_rcpt(_session,
+                                           _command);
 
         case D_SMTP_VERB_DATA:
-            return d_internal_smtp_on_data(_session, _command);
+            return d_internal_smtp_on_data(_session,
+                                           _command);
 
         case D_SMTP_VERB_RSET:
             d_internal_smtp_reset(_session);
@@ -1517,7 +1708,7 @@ d_internal_smtp_next(
                                                          sizeof(_session->line),
                                                          &length);
 
-    if (read == D_SMTP_ERROR_TOO_LONG)
+    if (read == D_SMTP_ERROR_LINE_TOO_LONG)
     {
         return d_internal_smtp_fault(_session,
                                      500u,
@@ -1525,7 +1716,7 @@ d_internal_smtp_next(
                                      "Line too long");
     }
 
-    if (read == D_SMTP_ERROR_TIMEOUT)
+    if (read == D_SMTP_ERROR_TIMED_OUT)
     {
         (void)d_internal_smtp_respond(_session,
                                       421u,
@@ -1552,12 +1743,13 @@ d_internal_smtp_session_new
 */
 static struct d_internal_smtp_session*
 d_internal_smtp_session_new(
-    const struct d_smtp_transport*      _transport,
+    struct d_net_connection*            _connection,
     const struct d_smtp_server_config*  _config,
     const struct d_smtp_server_handler* _handler
 )
 {
-    struct d_internal_smtp_session* session = calloc(1, sizeof(*session));
+    struct d_internal_smtp_session* session = calloc(1,
+                                                     sizeof(*session));
     char*                           storage = (session)
                                               ? calloc(_config->max_recipients,
                                                        D_SMTP_PATH_MAX)
@@ -1576,7 +1768,8 @@ d_internal_smtp_session_new(
     }
 
     d_smtp_reader_init(&session->reader,
-                       _transport);
+                       _connection);
+    session->connection           = _connection;
     session->config               = _config;
     session->handler              = _handler;
     session->recipient_storage    = storage;
@@ -1590,13 +1783,19 @@ d_internal_smtp_session_new(
 
 /*
 d_internal_smtp_session_free
-  Releases a session and everything it allocated.
+  Releases a session and everything it allocated or made.
 */
 static void
 d_internal_smtp_session_free(
     struct d_internal_smtp_session* _session
 )
 {
+    // the TLS session STARTTLS made, if it made one
+    if (_session->has_tls)
+    {
+        d_ssl_session_destroy(&_session->tls);
+    }
+
     free(_session->message);
     free(_session->recipient_storage);
     free((void*)_session->recipient_list);
@@ -1605,6 +1804,12 @@ d_internal_smtp_session_free(
     return;
 }
 
+/*
+d_smtp_server_config_init
+  The documented defaults: "localhost", the message and recipient
+limits of smtp_server.h, PLAIN and LOGIN, no TLS context, nothing
+required, AUTH in the clear refused, the channel taken as plain.
+*/
 void
 d_smtp_server_config_init(
     struct d_smtp_server_config* _config
@@ -1620,15 +1825,20 @@ d_smtp_server_config_init(
     _config->max_message_size    = D_SMTP_SERVER_MESSAGE_MAX;
     _config->max_recipients      = D_SMTP_SERVER_RECIPIENTS_MAX;
     _config->auth_mechanisms     = D_SMTP_AUTH_PLAIN | D_SMTP_AUTH_LOGIN;
+    _config->tls                 = NULL;
     _config->require_tls         = false;
     _config->require_auth        = false;
     _config->allow_insecure_auth = false;
     _config->secure              = false;
-    d_smtp_tls_options_init(&_config->tls);
 
     return;
 }
 
+/*
+d_smtp_server_handler_init
+  No context and no callbacks: every sender and recipient is then
+accepted, a message accepted and discarded, and AUTH not offered.
+*/
 void
 d_smtp_server_handler_init(
     struct d_smtp_server_handler* _handler
@@ -1650,42 +1860,57 @@ d_smtp_server_handler_init(
 }
 
 /*
+d_internal_smtp_config_ok
+  A configuration a session can run on: a valid domain, limits above zero,
+and, when there is a context, a server's.
+*/
+static bool
+d_internal_smtp_config_ok(
+    const struct d_smtp_server_config* _config
+)
+{
+    return ( (_config->domain)               &&
+             (_config->max_message_size > 0) &&
+             (_config->max_recipients > 0)   &&
+             (d_smtp_domain_is_valid(_config->domain,
+                                     strlen(_config->domain),
+                                     false)) &&
+             ( (!_config->tls) ||
+               ( (_config->tls->engine) &&
+                 (_config->tls->plan.role == D_SSL_ROLE_SERVER) ) ) );
+}
+
+/*
 d_smtp_server_session
   Greets, then runs one command per turn until QUIT or until the connection
-ends. The session never closes the transport: the caller that opened it
-decides its fate.
+ends. A TLS session STARTTLS made says close_notify as the session ends,
+where it still can, and goes with the session; the connection is never
+closed here: the caller that opened it decides its fate.
 */
 enum d_smtp_error
 d_smtp_server_session(
-    const struct d_smtp_transport*      _transport,
+    struct d_net_connection*            _connection,
     const struct d_smtp_server_config*  _config,
     const struct d_smtp_server_handler* _handler
 )
 {
     // parameter validation first
-    if ( (!_transport)                     ||
-         (!_transport->read)               ||
-         (!_transport->write)              ||
-         (!_config)                        ||
-         (!_handler)                       ||
-         (!_config->domain)                ||
-         (_config->max_message_size == 0)  ||
-         (_config->max_recipients == 0)    ||
-         (!d_smtp_domain_is_valid(_config->domain,
-                                  strlen(_config->domain),
-                                  false)) )
+    if ( (!d_net_connection_is_complete(_connection)) ||
+         (!_config)                                   ||
+         (!_handler)                                  ||
+         (!d_internal_smtp_config_ok(_config)) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     struct d_internal_smtp_session* session = d_internal_smtp_session_new(
-                                                  _transport,
+                                                  _connection,
                                                   _config,
                                                   _handler);
 
     if (!session)
     {
-        return D_SMTP_ERROR_NO_MEMORY;
+        return D_SMTP_ERROR_OUT_OF_MEMORY;
     }
 
     char                 storage[D_SMTP_COMMAND_LINE_MAX] = { 0 };
@@ -1709,6 +1934,21 @@ d_smtp_server_session(
             (!session->quit) )
     {
         result = d_internal_smtp_next(session);
+    }
+
+    // a stream TLS carries is judged by the TLS session, when it failed
+    result = d_smtp_error_from_tls((session->has_tls) ? &session->tls
+                                                      : NULL,
+                                   result,
+                                   NULL,
+                                   NULL);
+
+    // TLS ends in an orderly way where it still can, so a client sees no
+    // truncation: a failed session cannot, and one the client closed owes
+    // nothing more
+    if (session->has_tls)
+    {
+        (void)d_ssl_session_shutdown(&session->tls);
     }
 
     d_internal_smtp_session_free(session);

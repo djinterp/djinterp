@@ -13,18 +13,25 @@
 * path:      /src/djinterp/net/imap/imap.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.18
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/imap/imap.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool, true, false
-#include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // fixed-width integers
+#include <stddef.h>   // size_t, NULL, offsetof
 #include <string.h>   // memchr, memcmp, memcpy, strchr, strlen
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"             // D_STATIC_ASSERT
-#include "../../../../inc/djinterp/c/util/sink_common.h"     // d_sink_emit
-#include "../../../../inc/djinterp/env/net/imap/env_imap.h"  // D_ENV_IMAP_*
+#include "../../../../inc/djinterp/c/djinterp.h"               // framework root
+#include "../../../../inc/djinterp/c/util/sink_common.h"       // d_sink_emit
+#include "../../../../inc/djinterp/env/net/imap/env_imap.h"    // D_ENV_IMAP_*
+#include "../../../../inc/djinterp/net/net_common.h"   // d_net_ascii_*
+#include "../../../../inc/djinterp/net/codec/codec_base64.h"  // d_net_base64_*
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // int32_t, int64_t,
+                                                     // uint16_t, uint32_t,
+                                                     // uint64_t, INT64_C,
+                                                     // UINT32_MAX, UINT64_MAX,
+                                                     // UINT64_C
 
 
 // imap.h restates env_imap.h's backend identifiers rather than include the
@@ -63,94 +70,16 @@ D_STATIC_ASSERT(D_IMAP_SEQ_STAR == 0,
 // internal helpers: ASCII
 
 /*
-d_imap_internal_fold
-  ASCII-only case folding. IMAP keywords are ASCII, and folding through the C
-library's tolower() would let a single-byte Turkish locale turn "I" into a
-dotless i, breaking every keyword that contains one.
-*/
-D_STATIC unsigned char
-d_imap_internal_fold(
-    unsigned char _c
-)
-{
-    if ( (_c >= 'A') &&
-         (_c <= 'Z') )
-    {
-        return (unsigned char)(_c + ('a' - 'A'));
-    }
-
-    return _c;
-}
-
-/*
-d_imap_internal_equals_nocase
-  Compares a span with a NUL-terminated ASCII keyword, folding both sides.
-Lengths are compared first, so a span that merely begins with the keyword does
-not match.
-*/
-D_STATIC bool
-d_imap_internal_equals_nocase(
-    struct d_pack_text _text,
-    const char*        _keyword
-)
-{
-    if (_text.length != strlen(_keyword))
-    {
-        return false;
-    }
-
-    for (size_t i = 0; i < _text.length; ++i)
-    {
-        unsigned char left  = (unsigned char)_text.data[i];
-        unsigned char right = (unsigned char)_keyword[i];
-
-        if (d_imap_internal_fold(left) != d_imap_internal_fold(right))
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/*
-d_imap_internal_has_prefix_nocase
-  Whether a span begins with an ASCII keyword, ignoring case: the prefix test
-behind "AUTH=" and "APPENDLIMIT=".
-*/
-D_STATIC bool
-d_imap_internal_has_prefix_nocase(
-    struct d_pack_text _text,
-    const char*        _keyword
-)
-{
-    size_t             length = strlen(_keyword);
-    struct d_pack_text head;
-
-    if (_text.length < length)
-    {
-        return false;
-    }
-
-    head.data   = _text.data;
-    head.length = length;
-
-    return d_imap_internal_equals_nocase(head,
-                                         _keyword);
-}
-
-/*
 d_imap_internal_is_digit
-  An ASCII decimal digit. isdigit() is avoided for the same locale reason as
-tolower().
+  An ASCII decimal digit, as the scanners' predicates take an octet: the
+codec's class, which never consults the locale as isdigit() would.
 */
 D_STATIC bool
 d_imap_internal_is_digit(
     unsigned char _c
 )
 {
-    return ( (_c >= '0') &&
-             (_c <= '9') );
+    return d_net_ascii_is_digit((char)_c);
 }
 
 /*
@@ -248,7 +177,7 @@ d_imap_internal_span(
     size_t      _end
 )
 {
-    struct d_pack_text span;
+    struct d_pack_text span = { 0 };
 
     span.data   = (_data != NULL) ? (_data + _start) : NULL;
     span.length = _end - _start;
@@ -273,7 +202,7 @@ d_imap_internal_parse_decimal(
 
     if (_text.length == 0)
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     for (size_t i = 0; i < _text.length; ++i)
@@ -282,7 +211,7 @@ d_imap_internal_parse_decimal(
 
         if (!d_imap_internal_is_digit(c))
         {
-            return D_IMAP_ERROR_SYNTAX;
+            return D_IMAP_ERROR_MALFORMED;
         }
 
         // refuse before multiplying, so the accumulator never wraps
@@ -296,7 +225,7 @@ d_imap_internal_parse_decimal(
 
     *_value = value;
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -313,7 +242,7 @@ d_imap_internal_format_decimal(
     size_t   _width
 )
 {
-    char   reversed[20];
+    char   reversed[20];  // filled before it is read
     size_t count = 0;
 
     // generate the digits, least significant first
@@ -354,7 +283,7 @@ d_imap_internal_append_decimal(
     size_t   _width
 )
 {
-    char   digits[20];
+    char   digits[20];  // filled before it is read
     size_t count = d_imap_internal_format_decimal(digits,
                                                   _value,
                                                   _width);
@@ -388,7 +317,7 @@ d_imap_internal_emit(
         return D_IMAP_ERROR_SINK;
     }
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -405,7 +334,7 @@ d_imap_internal_emit_after(
     size_t             _size
 )
 {
-    if (_error != D_IMAP_ERROR_NONE)
+    if (_error != D_IMAP_OK)
     {
         return _error;
     }
@@ -441,7 +370,7 @@ d_imap_internal_writer_init(
 )
 {
     _writer->sink  = _sink;
-    _writer->error = D_IMAP_ERROR_NONE;
+    _writer->error = D_IMAP_OK;
     _writer->used  = 0;
 
     return;
@@ -518,7 +447,7 @@ d_imap_internal_writer_decimal(
     uint64_t                       _value
 )
 {
-    char   digits[20];
+    char   digits[20];  // filled before it is read
     size_t count = d_imap_internal_format_decimal(digits,
                                                   _value,
                                                   1);
@@ -684,7 +613,7 @@ d_imap_internal_writer_utf8(
     uint32_t                       _code_point
 )
 {
-    char   octets[4];
+    char   octets[4];  // filled before it is read
     size_t count;
 
     if (_code_point < 0x80u)
@@ -763,8 +692,8 @@ d_imap_internal_table_find(
     for (size_t i = 0; i < _count; ++i)
     {
         if ( (_table[i][0] != '\0') &&
-             (d_imap_internal_equals_nocase(_name,
-                                            _table[i])) )
+             (d_net_ascii_ieq_cstr(_name,
+                                   _table[i])) )
         {
             *_index = i;
 
@@ -855,13 +784,13 @@ d_imap_backend_default(
 // d_imap_error.
 static const char* const d_imap_internal_error_names[] =
 {
-    "none",
-    "invalid_argument", "sink", "capacity", "syntax", "incomplete", "range",
-    "encoding", "limit",
+    "ok",
+    "invalid_argument", "sink", "buffer_too_small", "malformed",
+    "incomplete", "range", "encoding", "limit",
     "state", "unsupported", "security", "auth",
     "no", "bad", "bye", "protocol",
-    "resolve", "connect", "tls", "timeout", "closed", "io",
-    "memory", "internal"
+    "resolve", "connect", "tls", "timed_out", "closed", "transport",
+    "out_of_memory", "unknown"
 };
 
 D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_error_names) ==
@@ -958,7 +887,61 @@ d_imap_error_is_transport(
 )
 {
     return ( (_error >= D_IMAP_ERROR_RESOLVE) &&
-             (_error <= D_IMAP_ERROR_IO) );
+             (_error <= D_IMAP_ERROR_TRANSPORT) );
+}
+
+/*
+d_imap_error_to_net
+  One case per enumerator and no default, so the compiler reports a missing
+case; the groups follow net.h's rules. A value outside the enum is UNKNOWN.
+*/
+enum d_net_error
+d_imap_error_to_net(
+    enum d_imap_error _error
+)
+{
+    switch (_error)
+    {
+        case D_IMAP_OK:
+            return D_NET_OK;
+        case D_IMAP_ERROR_INVALID_ARGUMENT:
+        case D_IMAP_ERROR_BUFFER_TOO_SMALL:
+        case D_IMAP_ERROR_STATE:
+            return D_NET_ERROR_INVALID_ARGUMENT;
+        case D_IMAP_ERROR_MALFORMED:
+        case D_IMAP_ERROR_RANGE:
+        case D_IMAP_ERROR_ENCODING:
+        case D_IMAP_ERROR_BAD:
+        case D_IMAP_ERROR_PROTOCOL:
+        case D_IMAP_ERROR_TLS:
+            return D_NET_ERROR_PROTOCOL;
+        case D_IMAP_ERROR_LIMIT:
+            return D_NET_ERROR_MESSAGE_TOO_LARGE;
+        case D_IMAP_ERROR_RESOLVE:
+            return D_NET_ERROR_HOST_UNREACHABLE;
+        case D_IMAP_ERROR_CONNECT:
+            return D_NET_ERROR_CONNECTION_REFUSED;
+        case D_IMAP_ERROR_BYE:
+        case D_IMAP_ERROR_CLOSED:
+            return D_NET_ERROR_CLOSED;
+        case D_IMAP_ERROR_INCOMPLETE:
+            return D_NET_ERROR_WOULD_BLOCK;
+        case D_IMAP_ERROR_TIMED_OUT:
+            return D_NET_ERROR_TIMED_OUT;
+        case D_IMAP_ERROR_OUT_OF_MEMORY:
+            return D_NET_ERROR_OUT_OF_MEMORY;
+        case D_IMAP_ERROR_SECURITY:
+        case D_IMAP_ERROR_AUTH:
+            return D_NET_ERROR_ACCESS_DENIED;
+        case D_IMAP_ERROR_SINK:
+        case D_IMAP_ERROR_UNSUPPORTED:
+        case D_IMAP_ERROR_NO:
+        case D_IMAP_ERROR_TRANSPORT:
+        case D_IMAP_ERROR_UNKNOWN:
+            return D_NET_ERROR_UNKNOWN;
+    }
+
+    return D_NET_ERROR_UNKNOWN;
 }
 
 // d_imap_internal_state_names
@@ -1142,7 +1125,7 @@ d_imap_tagger_init(
 
     _tagger->next = 1;
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -1185,7 +1168,7 @@ d_imap_tagger_next(
     // advance, wrapping past the largest counter back to 1
     _tagger->next = (counter == UINT32_MAX) ? 1u : (counter + 1u);
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -1463,11 +1446,11 @@ d_imap_internal_capability_add(
     struct d_pack_text          _atom
 )
 {
-    enum d_imap_auth_mechanism mechanism;
-    enum d_imap_capability     capability;
+    enum d_imap_auth_mechanism mechanism = D_IMAP_AUTH_LOGIN_COMMAND;
+    enum d_imap_capability     capability = D_IMAP_CAPABILITY_IMAP4REV1;
 
-    if (d_imap_internal_has_prefix_nocase(_atom,
-                                          "AUTH="))
+    if (d_net_ascii_istarts(_atom,
+                            "AUTH="))
     {
         if (d_imap_auth_from_name(d_imap_internal_span(_atom.data,
                                                        5,
@@ -1481,11 +1464,11 @@ d_imap_internal_capability_add(
             ++_caps->unknown;
         }
 
-        return D_IMAP_ERROR_NONE;
+        return D_IMAP_OK;
     }
 
-    if (d_imap_internal_has_prefix_nocase(_atom,
-                                          "APPENDLIMIT="))
+    if (d_net_ascii_istarts(_atom,
+                            "APPENDLIMIT="))
     {
         _caps->set |= D_IMAP_CAPABILITY_BIT(D_IMAP_CAPABILITY_APPENDLIMIT);
 
@@ -1507,14 +1490,14 @@ d_imap_internal_capability_add(
         ++_caps->unknown;
     }
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
 d_imap_capabilities_parse
   Accumulates into a local set and copies it out only on success, which is
 what keeps the caller's set untouched on failure. Any lexer error means an
-entry was not an atom, so all of them report as SYNTAX.
+entry was not an atom, so all of them report as MALFORMED.
 */
 enum d_imap_error
 d_imap_capabilities_parse(
@@ -1523,9 +1506,9 @@ d_imap_capabilities_parse(
 )
 {
     struct d_imap_capabilities caps = { 0, 0, 0, 0 };
-    struct d_imap_lexer        lexer;
-    struct d_imap_token        token;
-    enum d_imap_error          error;
+    struct d_imap_lexer        lexer = { 0 };
+    struct d_imap_token        token = { 0 };
+    enum d_imap_error          error = D_IMAP_OK;
 
     if ( (!_caps) ||
          (!d_imap_internal_text_is_valid(_list)) )
@@ -1541,9 +1524,9 @@ d_imap_capabilities_parse(
     {
         if (d_imap_lexer_next(&lexer,
                               0,
-                              &token) != D_IMAP_ERROR_NONE)
+                              &token) != D_IMAP_OK)
         {
-            return D_IMAP_ERROR_SYNTAX;
+            return D_IMAP_ERROR_MALFORMED;
         }
 
         if ( (token.kind == D_IMAP_TOKEN_END) ||
@@ -1555,13 +1538,13 @@ d_imap_capabilities_parse(
         if ( (token.kind != D_IMAP_TOKEN_ATOM) &&
              (token.kind != D_IMAP_TOKEN_NUMBER) )
         {
-            return D_IMAP_ERROR_SYNTAX;
+            return D_IMAP_ERROR_MALFORMED;
         }
 
         error = d_imap_internal_capability_add(&caps,
                                                token.text);
 
-        if (error != D_IMAP_ERROR_NONE)
+        if (error != D_IMAP_OK)
         {
             return error;
         }
@@ -1569,7 +1552,7 @@ d_imap_capabilities_parse(
 
     *_caps = caps;
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 // d_imap_internal_auth_preference
@@ -1727,7 +1710,7 @@ d_imap_auth_select(
 
         *_mechanism = mechanism;
 
-        return D_IMAP_ERROR_NONE;
+        return D_IMAP_OK;
     }
 
     return (blocked) ? D_IMAP_ERROR_SECURITY : D_IMAP_ERROR_UNSUPPORTED;
@@ -1744,7 +1727,7 @@ d_imap_options_init(
     struct d_imap_options* _options
 )
 {
-    static const struct d_imap_options zero;
+    static const struct d_imap_options zero = { 0 };
 
     if (_options)
     {
@@ -1856,7 +1839,7 @@ d_imap_options_validate(
         return D_IMAP_ERROR_SECURITY;
     }
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -2068,29 +2051,29 @@ d_imap_internal_lex_name_list(
     uint32_t*            _unknown
 )
 {
-    struct d_imap_token token;
+    struct d_imap_token token = { 0 };
     size_t              index;
 
     if ( (d_imap_lexer_next(_lexer,
                             0,
-                            &token) != D_IMAP_ERROR_NONE) ||
+                            &token) != D_IMAP_OK) ||
          (token.kind != D_IMAP_TOKEN_LPAREN) )
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     for (;;)
     {
         if (d_imap_lexer_next(_lexer,
                               0,
-                              &token) != D_IMAP_ERROR_NONE)
+                              &token) != D_IMAP_OK)
         {
-            return D_IMAP_ERROR_SYNTAX;
+            return D_IMAP_ERROR_MALFORMED;
         }
 
         if (token.kind == D_IMAP_TOKEN_RPAREN)
         {
-            return D_IMAP_ERROR_NONE;
+            return D_IMAP_OK;
         }
 
         if ( (token.kind != D_IMAP_TOKEN_FLAG) &&
@@ -2098,7 +2081,7 @@ d_imap_internal_lex_name_list(
              (token.kind != D_IMAP_TOKEN_NUMBER) &&
              (token.kind != D_IMAP_TOKEN_NIL) )
         {
-            return D_IMAP_ERROR_SYNTAX;
+            return D_IMAP_ERROR_MALFORMED;
         }
 
         if (d_imap_internal_table_find(_table,
@@ -2124,18 +2107,18 @@ d_imap_internal_expect_line_end(
     struct d_imap_lexer* _lexer
 )
 {
-    struct d_imap_token token;
+    struct d_imap_token token = { 0 };
 
     if ( (d_imap_lexer_next(_lexer,
                             0,
-                            &token) != D_IMAP_ERROR_NONE) ||
+                            &token) != D_IMAP_OK) ||
          ( (token.kind != D_IMAP_TOKEN_END) &&
            (token.kind != D_IMAP_TOKEN_CRLF) ) )
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -2152,10 +2135,10 @@ d_imap_internal_parse_name_list(
     uint32_t*          _unknown
 )
 {
-    struct d_imap_lexer lexer;
+    struct d_imap_lexer lexer = { 0 };
     uint32_t            set     = 0;
     uint32_t            unknown = 0;
-    enum d_imap_error   error;
+    enum d_imap_error   error = D_IMAP_OK;
 
     if ( (!_set) ||
          (!d_imap_internal_text_is_valid(_list)) )
@@ -2172,12 +2155,12 @@ d_imap_internal_parse_name_list(
                                           &set,
                                           &unknown);
 
-    if (error == D_IMAP_ERROR_NONE)
+    if (error == D_IMAP_OK)
     {
         error = d_imap_internal_expect_line_end(&lexer);
     }
 
-    if (error != D_IMAP_ERROR_NONE)
+    if (error != D_IMAP_OK)
     {
         return error;
     }
@@ -2189,7 +2172,7 @@ d_imap_internal_parse_name_list(
         *_unknown = unknown;
     }
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -2205,7 +2188,7 @@ d_imap_internal_write_name_list(
     uint32_t           _set
 )
 {
-    struct d_imap_internal_writer writer;
+    struct d_imap_internal_writer writer = { 0 };
     bool                          first = true;
 
     d_imap_internal_writer_init(&writer,
@@ -2338,9 +2321,9 @@ d_imap_internal_skip_value(
     struct d_imap_lexer* _lexer
 )
 {
-    struct d_imap_token token;
+    struct d_imap_token token = { 0 };
     size_t              depth = 0;
-    enum d_imap_error   error;
+    enum d_imap_error   error = D_IMAP_OK;
 
     do
     {
@@ -2348,7 +2331,7 @@ d_imap_internal_skip_value(
                                   0,
                                   &token);
 
-        if (error != D_IMAP_ERROR_NONE)
+        if (error != D_IMAP_OK)
         {
             return error;
         }
@@ -2362,7 +2345,7 @@ d_imap_internal_skip_value(
              ( (token.kind == D_IMAP_TOKEN_RPAREN) &&
                (depth == 0) ) )
         {
-            return D_IMAP_ERROR_SYNTAX;
+            return D_IMAP_ERROR_MALFORMED;
         }
 
         if (token.kind == D_IMAP_TOKEN_LPAREN)
@@ -2375,13 +2358,39 @@ d_imap_internal_skip_value(
         }
     } while (depth > 0);
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
+
+// d_imap_internal_status_fields
+//   table: where each 32-bit STATUS item is filed in the record, by item
+// (decision 115 of the register); SIZE and HIGHESTMODSEQ follow them.
+static const size_t d_imap_internal_status_fields[] =
+{
+    offsetof(struct d_imap_status_data,
+             messages),
+    offsetof(struct d_imap_status_data,
+             recent),
+    offsetof(struct d_imap_status_data,
+             uidnext),
+    offsetof(struct d_imap_status_data,
+             uidvalidity),
+    offsetof(struct d_imap_status_data,
+             unseen),
+    offsetof(struct d_imap_status_data,
+             deleted)
+};
+
+D_STATIC_ASSERT( (sizeof(d_imap_internal_status_fields) /
+                  sizeof(d_imap_internal_status_fields[0])) ==
+                 (D_IMAP_STATUS_DELETED + 1),
+                "every 32-bit STATUS item has its field");
 
 /*
 d_imap_internal_status_store
   Files one known item's value after checking that it fits: 32 bits for the
-counts and UIDs, 63 for SIZE and HIGHESTMODSEQ.
+counts and UIDs, 63 for SIZE and HIGHESTMODSEQ. A 32-bit item's field is
+found by its offset in the record, a load where a switch took an indirect
+jump.
 */
 D_STATIC enum d_imap_error
 d_imap_internal_status_store(
@@ -2390,18 +2399,11 @@ d_imap_internal_status_store(
     uint64_t                   _value
 )
 {
-    uint32_t* narrow = NULL;
-
-    switch (_item)
-    {
-        case D_IMAP_STATUS_MESSAGES:    { narrow = &_data->messages;    break; }
-        case D_IMAP_STATUS_RECENT:      { narrow = &_data->recent;      break; }
-        case D_IMAP_STATUS_UIDNEXT:     { narrow = &_data->uidnext;     break; }
-        case D_IMAP_STATUS_UIDVALIDITY: { narrow = &_data->uidvalidity; break; }
-        case D_IMAP_STATUS_UNSEEN:      { narrow = &_data->unseen;      break; }
-        case D_IMAP_STATUS_DELETED:     { narrow = &_data->deleted;     break; }
-        default:                        { break; }
-    }
+    uint32_t* const narrow =
+        ((unsigned int)_item <= (unsigned int)D_IMAP_STATUS_DELETED)
+            ? (uint32_t*)(void*)((char*)_data +
+                                 d_imap_internal_status_fields[_item])
+            : NULL;
 
     if (_value > ((narrow) ? D_IMAP_NUMBER_MAX : D_IMAP_NUMBER64_MAX))
     {
@@ -2423,7 +2425,7 @@ d_imap_internal_status_store(
 
     _data->present |= D_IMAP_STATUS_BIT(_item);
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -2438,9 +2440,9 @@ d_imap_internal_status_pair(
     struct d_imap_status_data* _data
 )
 {
-    struct d_imap_token     token;
-    enum d_imap_status_item item;
-    enum d_imap_error       error;
+    struct d_imap_token     token = { 0 };
+    enum d_imap_status_item item = D_IMAP_STATUS_MESSAGES;
+    enum d_imap_error       error = D_IMAP_OK;
 
     if (!d_imap_status_item_from_name(_name,
                                       &item))
@@ -2452,7 +2454,7 @@ d_imap_internal_status_pair(
                               0,
                               &token);
 
-    if (error != D_IMAP_ERROR_NONE)
+    if (error != D_IMAP_OK)
     {
         return error;
     }
@@ -2464,7 +2466,7 @@ d_imap_internal_status_pair(
 
     if (token.kind != D_IMAP_TOKEN_NUMBER)
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     return d_imap_internal_status_store(_data,
@@ -2475,7 +2477,7 @@ d_imap_internal_status_pair(
 /*
 d_imap_internal_status_pairs
   The pairs of a STATUS list, after its "(" and through its ")". Running out
-of input before the ")" is INCOMPLETE rather than SYNTAX, since more of the
+of input before the ")" is INCOMPLETE rather than MALFORMED, since more of the
 line may yet arrive.
 */
 D_STATIC enum d_imap_error
@@ -2484,17 +2486,17 @@ d_imap_internal_status_pairs(
     struct d_imap_status_data* _data
 )
 {
-    struct d_imap_token token;
-    enum d_imap_error   error = D_IMAP_ERROR_NONE;
+    struct d_imap_token token = { 0 };
+    enum d_imap_error   error = D_IMAP_OK;
 
     // each pair is a name atom and its value, until ")"
-    while (error == D_IMAP_ERROR_NONE)
+    while (error == D_IMAP_OK)
     {
         error = d_imap_lexer_next(_lexer,
                                   0,
                                   &token);
 
-        if ( (error != D_IMAP_ERROR_NONE) ||
+        if ( (error != D_IMAP_OK) ||
              (token.kind == D_IMAP_TOKEN_RPAREN) )
         {
             break;
@@ -2506,7 +2508,7 @@ d_imap_internal_status_pairs(
         }
         else if (token.kind != D_IMAP_TOKEN_ATOM)
         {
-            error = D_IMAP_ERROR_SYNTAX;
+            error = D_IMAP_ERROR_MALFORMED;
         }
         else
         {
@@ -2530,11 +2532,11 @@ d_imap_status_data_parse(
     struct d_imap_status_data* _data
 )
 {
-    static const struct d_imap_status_data empty;
+    static const struct d_imap_status_data empty = { 0 };
     struct d_imap_status_data              data = empty;
-    struct d_imap_lexer                    lexer;
-    struct d_imap_token                    token;
-    enum d_imap_error                      error;
+    struct d_imap_lexer                    lexer = { 0 };
+    struct d_imap_token                    token = { 0 };
+    enum d_imap_error                      error = D_IMAP_OK;
 
     if ( (!_data) ||
          (!d_imap_internal_text_is_valid(_list)) )
@@ -2548,25 +2550,25 @@ d_imap_status_data_parse(
                               0,
                               &token);
 
-    if ( (error == D_IMAP_ERROR_NONE) &&
+    if ( (error == D_IMAP_OK) &&
          (token.kind != D_IMAP_TOKEN_LPAREN) )
     {
         error = (token.kind == D_IMAP_TOKEN_END) ? D_IMAP_ERROR_INCOMPLETE
-                                                 : D_IMAP_ERROR_SYNTAX;
+                                                 : D_IMAP_ERROR_MALFORMED;
     }
 
-    if (error == D_IMAP_ERROR_NONE)
+    if (error == D_IMAP_OK)
     {
         error = d_imap_internal_status_pairs(&lexer,
                                              &data);
     }
 
-    if (error == D_IMAP_ERROR_NONE)
+    if (error == D_IMAP_OK)
     {
         error = d_imap_internal_expect_line_end(&lexer);
     }
 
-    if (error == D_IMAP_ERROR_NONE)
+    if (error == D_IMAP_OK)
     {
         *_data = data;
     }
@@ -2637,8 +2639,8 @@ d_imap_internal_classify(
     }
 
     if ( (_value.length == 0) ||
-         (d_imap_internal_equals_nocase(_value,
-                                        "NIL")) )
+         (d_net_ascii_ieq_cstr(_value,
+                               "NIL")) )
     {
         result.atom = false;
     }
@@ -2723,7 +2725,7 @@ d_imap_internal_write_literal_prefix(
     enum d_imap_string_form _form
 )
 {
-    char   line[25];
+    char   line[25];  // filled before it is read
     size_t used = 0;
 
     line[used++] = '{';
@@ -2758,7 +2760,7 @@ d_imap_astring_form(
     enum d_imap_string_form* _form
 )
 {
-    struct d_imap_internal_string_class kind;
+    struct d_imap_internal_string_class kind = { 0 };
 
     if ( (!_form) ||
          (!d_imap_internal_text_is_valid(_value)) )
@@ -2788,7 +2790,7 @@ d_imap_astring_form(
                                               _flags);
     }
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -2804,8 +2806,8 @@ d_imap_astring_write(
     enum d_imap_string_form* _form
 )
 {
-    enum d_imap_string_form form;
-    enum d_imap_error       error;
+    enum d_imap_string_form form = D_IMAP_STRING_ATOM;
+    enum d_imap_error       error = D_IMAP_OK;
 
     if (!_sink.write)
     {
@@ -2816,7 +2818,7 @@ d_imap_astring_write(
                                 _flags,
                                 &form);
 
-    if (error != D_IMAP_ERROR_NONE)
+    if (error != D_IMAP_OK)
     {
         return error;
     }
@@ -2892,7 +2894,7 @@ d_imap_literal_prefix_write(
     enum d_imap_string_form* _form
 )
 {
-    enum d_imap_string_form form;
+    enum d_imap_string_form form = D_IMAP_STRING_ATOM;
 
     if (!_sink.write)
     {
@@ -2928,7 +2930,7 @@ d_imap_quoted_unescape(
     struct d_pack_text _content
 )
 {
-    enum d_imap_error error = D_IMAP_ERROR_NONE;
+    enum d_imap_error error = D_IMAP_OK;
     size_t            start = 0;
     size_t            i     = 0;
 
@@ -2952,7 +2954,7 @@ d_imap_quoted_unescape(
              ( (_content.data[i + 1] != '"') &&
                (_content.data[i + 1] != '\\') ) )
         {
-            return D_IMAP_ERROR_SYNTAX;
+            return D_IMAP_ERROR_MALFORMED;
         }
 
         error = d_imap_internal_emit_after(error,
@@ -2967,50 +2969,6 @@ d_imap_quoted_unescape(
                                       _sink,
                                       _content.data + start,
                                       _content.length - start);
-}
-
-// d_imap_internal_base64
-//   table: the modified BASE64 alphabet of RFC 3501 section 5.1.3: standard
-// BASE64 with "," in place of "/", and no padding.
-static const char d_imap_internal_base64[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,";
-
-D_STATIC_ASSERT(D_ARRAY_STATIC_SIZE(d_imap_internal_base64) == 64 + 1,
-                "the alphabet has 64 characters and a terminator");
-
-/*
-d_imap_internal_base64_value
-  A character's sextet, or -1 for one outside the modified alphabet.
-*/
-D_STATIC int
-d_imap_internal_base64_value(
-    unsigned char _c
-)
-{
-    if ( (_c >= 'A') &&
-         (_c <= 'Z') )
-    {
-        return _c - 'A';
-    }
-
-    if ( (_c >= 'a') &&
-         (_c <= 'z') )
-    {
-        return _c - 'a' + 26;
-    }
-
-    if ( (_c >= '0') &&
-         (_c <= '9') )
-    {
-        return _c - '0' + 52;
-    }
-
-    if (_c == '+')
-    {
-        return 62;
-    }
-
-    return (_c == ',') ? 63 : -1;
 }
 
 /*
@@ -3057,7 +3015,8 @@ d_imap_internal_mutf7_unit(
         _encoder->count -= 6;
         sextet           = (_encoder->bits >> _encoder->count) & 0x3Fu;
         d_imap_internal_writer_put(&_encoder->writer,
-                                   d_imap_internal_base64[sextet]);
+                                   d_net_base64_digit(sextet,
+                                                      D_NET_BASE64_MODIFIED));
     }
 
     // keep only the bits still owed, so the next shift loses none
@@ -3086,7 +3045,8 @@ d_imap_internal_mutf7_close(
         uint32_t sextet = (_encoder->bits << (6 - _encoder->count)) & 0x3Fu;
 
         d_imap_internal_writer_put(&_encoder->writer,
-                                   d_imap_internal_base64[sextet]);
+                                   d_net_base64_digit(sextet,
+                                                      D_NET_BASE64_MODIFIED));
     }
 
     d_imap_internal_writer_put(&_encoder->writer,
@@ -3146,7 +3106,7 @@ d_imap_internal_mutf7_encode(
     bool               _escape
 )
 {
-    struct d_imap_internal_mutf7_encoder encoder;
+    struct d_imap_internal_mutf7_encoder encoder = { 0 };
     const unsigned char* data     = (const unsigned char*)_utf8.data;
     size_t               position = 0;
 
@@ -3263,7 +3223,7 @@ d_imap_internal_mutf7_accept(
 
         *_high = _unit;
 
-        return D_IMAP_ERROR_NONE;
+        return D_IMAP_OK;
     }
 
     if ( (_unit >= 0xDC00u) &&
@@ -3280,7 +3240,7 @@ d_imap_internal_mutf7_accept(
                                     (_unit - 0xDC00u));
         *_high = 0;
 
-        return D_IMAP_ERROR_NONE;
+        return D_IMAP_OK;
     }
 
     if ( (*_high != 0u) ||
@@ -3294,7 +3254,7 @@ d_imap_internal_mutf7_accept(
     d_imap_internal_writer_utf8(_writer,
                                 _unit);
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -3317,11 +3277,12 @@ d_imap_internal_mutf7_run(
     uint32_t          count = 0;
     uint32_t          high  = 0;
     bool              any   = false;
-    enum d_imap_error error;
+    enum d_imap_error error = D_IMAP_OK;
 
     for (; (i < _text.length) && (_text.data[i] != '-'); ++i)
     {
-        int value = d_imap_internal_base64_value((unsigned char)_text.data[i]);
+        int value = d_net_base64_value(_text.data[i],
+                                       D_NET_BASE64_MODIFIED);
 
         if (value < 0)
         {
@@ -3340,7 +3301,7 @@ d_imap_internal_mutf7_run(
             bits  &= (1u << count) - 1u;
             any    = true;
 
-            if (error != D_IMAP_ERROR_NONE)
+            if (error != D_IMAP_OK)
             {
                 return error;
             }
@@ -3358,7 +3319,7 @@ d_imap_internal_mutf7_run(
 
     *_position = i + 1;
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -3376,16 +3337,16 @@ d_imap_internal_mutf7_decode(
     bool               _escaped
 )
 {
-    struct d_imap_internal_writer writer;
+    struct d_imap_internal_writer writer = { 0 };
     size_t                        i         = 0;
     bool                          after_run = false;
-    enum d_imap_error             error     = D_IMAP_ERROR_NONE;
+    enum d_imap_error             error     = D_IMAP_OK;
 
     d_imap_internal_writer_init(&writer,
                                 _sink);
 
     while ( (i < _text.length) &&
-            (error == D_IMAP_ERROR_NONE) )
+            (error == D_IMAP_OK) )
     {
         unsigned char c    = (unsigned char)_text.data[i];
         bool          amp  = (c == '&');
@@ -3410,8 +3371,8 @@ d_imap_internal_mutf7_decode(
         {
             ++i;
             c = (i < _text.length) ? (unsigned char)_text.data[i] : 0;
-            error = ( (c == '"') || (c == '\\') ) ? D_IMAP_ERROR_NONE
-                                                  : D_IMAP_ERROR_SYNTAX;
+            error = ( (c == '"') || (c == '\\') ) ? D_IMAP_OK
+                                                  : D_IMAP_ERROR_MALFORMED;
         }
         else if ( (c < 0x20) ||
                   (c > 0x7E) )
@@ -3425,7 +3386,7 @@ d_imap_internal_mutf7_decode(
         after_run = false;
     }
 
-    if (error != D_IMAP_ERROR_NONE)
+    if (error != D_IMAP_OK)
     {
         return error;
     }
@@ -3470,8 +3431,8 @@ d_imap_internal_name_needs_quotes(
     bool wildcards = ((_flags & D_IMAP_STRING_LIST_WILDCARDS) != 0u);
 
     if ( (_name.length == 0) ||
-         (d_imap_internal_equals_nocase(_name,
-                                        "NIL")) )
+         (d_net_ascii_ieq_cstr(_name,
+                               "NIL")) )
     {
         return true;
     }
@@ -3508,8 +3469,8 @@ d_imap_mailbox_write(
     enum d_imap_string_form* _form
 )
 {
-    bool              quoted;
-    enum d_imap_error error = D_IMAP_ERROR_NONE;
+    bool              quoted = false;
+    enum d_imap_error error = D_IMAP_OK;
 
     if ( (!_sink.write) ||
          (!d_imap_internal_text_is_valid(_name)) )
@@ -3545,7 +3506,7 @@ d_imap_mailbox_write(
                                      1);
     }
 
-    if (error == D_IMAP_ERROR_NONE)
+    if (error == D_IMAP_OK)
     {
         error = d_imap_internal_mutf7_encode(_sink,
                                              _name,
@@ -3578,8 +3539,8 @@ d_imap_mailbox_is_inbox(
         return false;
     }
 
-    return d_imap_internal_equals_nocase(_name,
-                                         "INBOX");
+    return d_net_ascii_ieq_cstr(_name,
+                                "INBOX");
 }
 
 /*
@@ -3618,7 +3579,7 @@ d_imap_seqset_write(
     size_t                         _count
 )
 {
-    struct d_imap_internal_writer writer;
+    struct d_imap_internal_writer writer = { 0 };
 
     if ( (!_sink.write) ||
          (!_ranges) ||
@@ -3668,7 +3629,7 @@ d_imap_internal_seq_number(
 {
     size_t            end   = *_position;
     uint64_t          value = 0;
-    enum d_imap_error error;
+    enum d_imap_error error = D_IMAP_OK;
 
     if ( (end < _text.length) &&
          (_text.data[end] == '*') )
@@ -3676,7 +3637,7 @@ d_imap_internal_seq_number(
         *_value    = D_IMAP_SEQ_STAR;
         *_position = end + 1;
 
-        return D_IMAP_ERROR_NONE;
+        return D_IMAP_OK;
     }
 
     while ( (end < _text.length) &&
@@ -3691,7 +3652,7 @@ d_imap_internal_seq_number(
                                           D_IMAP_NUMBER_MAX,
                                           &value);
 
-    if (error != D_IMAP_ERROR_NONE)
+    if (error != D_IMAP_OK)
     {
         return error;
     }
@@ -3704,7 +3665,7 @@ d_imap_internal_seq_number(
     *_value    = (uint32_t)value;
     *_position = end;
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -3722,7 +3683,7 @@ d_imap_internal_seq_range(
                                                          _position,
                                                          &_range->first);
 
-    if (error != D_IMAP_ERROR_NONE)
+    if (error != D_IMAP_OK)
     {
         return error;
     }
@@ -3769,12 +3730,12 @@ d_imap_seqset_parse(
     // elements separated by commas, to the end of the text
     for (;;)
     {
-        struct d_imap_seq_range range;
+        struct d_imap_seq_range range = { 0 };
         enum d_imap_error       error = d_imap_internal_seq_range(_text,
                                                                   &position,
                                                                   &range);
 
-        if (error != D_IMAP_ERROR_NONE)
+        if (error != D_IMAP_OK)
         {
             return error;
         }
@@ -3793,7 +3754,7 @@ d_imap_seqset_parse(
 
         if (_text.data[position] != ',')
         {
-            return D_IMAP_ERROR_SYNTAX;
+            return D_IMAP_ERROR_MALFORMED;
         }
 
         ++position;
@@ -3801,7 +3762,7 @@ d_imap_seqset_parse(
 
     *_count = count;
 
-    return (count > _capacity) ? D_IMAP_ERROR_CAPACITY : D_IMAP_ERROR_NONE;
+    return (count > _capacity) ? D_IMAP_ERROR_BUFFER_TOO_SMALL : D_IMAP_OK;
 }
 
 /*
@@ -4004,7 +3965,7 @@ d_imap_datetime_from_unix(
     struct d_imap_datetime* _datetime
 )
 {
-    struct d_imap_datetime result;
+    struct d_imap_datetime result = { 0 };
     int64_t                local;
     int64_t                days;
     int64_t                second_of_day;
@@ -4047,7 +4008,7 @@ d_imap_datetime_from_unix(
     result.zone   = _zone;
     *_datetime    = result;
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -4083,7 +4044,7 @@ d_imap_datetime_to_unix(
                 _datetime.second -
                 ((int64_t)_datetime.zone * 60);
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -4174,7 +4135,7 @@ d_imap_date_write(
     struct d_imap_datetime _datetime
 )
 {
-    char   line[16];
+    char   line[16];  // filled before it is read
     size_t used = 0;
 
     if (!_sink.write)
@@ -4207,7 +4168,7 @@ d_imap_datetime_write(
     struct d_imap_datetime _datetime
 )
 {
-    char   line[32];
+    char   line[32];  // filled before it is read
     size_t used = 0;
 
     if (!_sink.write)
@@ -4300,9 +4261,9 @@ d_imap_internal_cursor_number(
     size_t  count = 0;
     int     c     = d_imap_internal_cursor_peek(_cursor);
 
+    // digits while they last, to the most asked for
     while ( (count < _max) &&
-            (c >= '0') &&
-            (c <= '9') )
+            (d_net_ascii_is_digit((char)c)) )
     {
         value = (value * 10) + (c - '0');
         ++_cursor->position;
@@ -4325,7 +4286,7 @@ d_imap_internal_cursor_month(
     int32_t*                       _month
 )
 {
-    struct d_pack_text word;
+    struct d_pack_text word = { 0 };
 
     if (_cursor->text.length - _cursor->position < 3)
     {
@@ -4338,8 +4299,8 @@ d_imap_internal_cursor_month(
 
     for (int32_t i = 0; i < 12; ++i)
     {
-        if (d_imap_internal_equals_nocase(word,
-                                          d_imap_internal_months[i]))
+        if (d_net_ascii_ieq_cstr(word,
+                                 d_imap_internal_months[i]))
         {
             *_month            = i + 1;
             _cursor->position += 3;
@@ -4415,7 +4376,7 @@ d_imap_internal_cursor_time(
 
 /*
 d_imap_internal_cursor_zone
-  "+hhmm" or "-hhmm" into minutes east of UTC. Syntax failures are SYNTAX;
+  "+hhmm" or "-hhmm" into minutes east of UTC. Syntax failures are MALFORMED;
 minutes of 60 or more are RANGE, since the text was well formed.
 */
 D_STATIC enum d_imap_error
@@ -4435,7 +4396,7 @@ d_imap_internal_cursor_zone(
     else if (!d_imap_internal_cursor_take(_cursor,
                                           '+'))
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     if (!d_imap_internal_cursor_number(_cursor,
@@ -4443,7 +4404,7 @@ d_imap_internal_cursor_zone(
                                        4,
                                        &hhmm))
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     if ((hhmm % 100) >= 60)
@@ -4453,7 +4414,7 @@ d_imap_internal_cursor_zone(
 
     *_zone = sign * (((hhmm / 100) * 60) + (hhmm % 100));
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -4466,9 +4427,9 @@ d_imap_date_parse(
     struct d_imap_datetime* _datetime
 )
 {
-    struct d_imap_internal_cursor cursor;
+    struct d_imap_internal_cursor cursor = { 0 };
     struct d_imap_datetime        result = { 0, 0, 0, 0, 0, 0, 0 };
-    bool                          quoted;
+    bool                          quoted = false;
 
     if ( (!_datetime) ||
          (!d_imap_internal_text_is_valid(_text)) )
@@ -4489,7 +4450,7 @@ d_imap_date_parse(
                                          '"')) ) ||
          (cursor.position != _text.length) )
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     if (!d_imap_internal_date_is_valid(result))
@@ -4499,13 +4460,13 @@ d_imap_date_parse(
 
     *_datetime = result;
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
 d_imap_datetime_parse
   Date, space, time, space, zone; quoted or not. A zone whose minutes reach
-60 is RANGE rather than SYNTAX, since its shape is right.
+60 is RANGE rather than MALFORMED, since its shape is right.
 */
 enum d_imap_error
 d_imap_datetime_parse(
@@ -4513,10 +4474,10 @@ d_imap_datetime_parse(
     struct d_imap_datetime* _datetime
 )
 {
-    struct d_imap_internal_cursor cursor;
+    struct d_imap_internal_cursor cursor = { 0 };
     struct d_imap_datetime        result = { 0, 0, 0, 0, 0, 0, 0 };
-    enum d_imap_error             error  = D_IMAP_ERROR_SYNTAX;
-    bool                          quoted;
+    enum d_imap_error             error  = D_IMAP_ERROR_MALFORMED;
+    bool                          quoted = false;
 
     if ( (!_datetime) ||
          (!d_imap_internal_text_is_valid(_text)) )
@@ -4543,22 +4504,22 @@ d_imap_datetime_parse(
                                             &result.zone);
     }
 
-    if ( (error == D_IMAP_ERROR_NONE) &&
+    if ( (error == D_IMAP_OK) &&
          ( ( (quoted) &&
              (!d_imap_internal_cursor_take(&cursor,
                                            '"')) ) ||
            (cursor.position != _text.length) ) )
     {
-        error = D_IMAP_ERROR_SYNTAX;
+        error = D_IMAP_ERROR_MALFORMED;
     }
 
-    if ( (error == D_IMAP_ERROR_NONE) &&
+    if ( (error == D_IMAP_OK) &&
          (!d_imap_internal_datetime_is_valid(result)) )
     {
         error = D_IMAP_ERROR_RANGE;
     }
 
-    if (error == D_IMAP_ERROR_NONE)
+    if (error == D_IMAP_OK)
     {
         *_datetime = result;
     }
@@ -4684,25 +4645,38 @@ d_imap_code_from_name(
     return D_IMAP_CODE_OTHER;
 }
 
+// d_imap_internal_condition_errors
+//   table: the error each status condition is, by condition (decision 115 of
+// the register).
+static const enum d_imap_error d_imap_internal_condition_errors[] =
+{
+    [D_IMAP_CONDITION_NONE]    = D_IMAP_OK,
+    [D_IMAP_CONDITION_OK]      = D_IMAP_OK,
+    [D_IMAP_CONDITION_NO]      = D_IMAP_ERROR_NO,
+    [D_IMAP_CONDITION_BAD]     = D_IMAP_ERROR_BAD,
+    [D_IMAP_CONDITION_PREAUTH] = D_IMAP_OK,
+    [D_IMAP_CONDITION_BYE]     = D_IMAP_ERROR_BYE
+};
+
+D_STATIC_ASSERT( (sizeof(d_imap_internal_condition_errors) /
+                  sizeof(d_imap_internal_condition_errors[0])) ==
+                 (D_IMAP_CONDITION_BYE + 1),
+                "every condition has its error");
+
 /*
 d_imap_error_from_condition
   The three refusals map to their own codes; OK and PREAUTH are successes,
-and NONE is no status at all.
+and NONE is no status at all. A lookup, by the condition; a value outside
+the enum is no status either.
 */
 enum d_imap_error
 d_imap_error_from_condition(
     enum d_imap_condition _condition
 )
 {
-    switch (_condition)
-    {
-        case D_IMAP_CONDITION_NO:  { return D_IMAP_ERROR_NO; }
-        case D_IMAP_CONDITION_BAD: { return D_IMAP_ERROR_BAD; }
-        case D_IMAP_CONDITION_BYE: { return D_IMAP_ERROR_BYE; }
-        default:                   { break; }
-    }
-
-    return D_IMAP_ERROR_NONE;
+    return ((unsigned int)_condition <= (unsigned int)D_IMAP_CONDITION_BYE)
+               ? d_imap_internal_condition_errors[_condition]
+               : D_IMAP_OK;
 }
 
 /*
@@ -4803,7 +4777,7 @@ d_imap_internal_parse_code(
 
     if (i == start)
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     _response->code_name = d_imap_internal_span(_line.data,
@@ -4832,12 +4806,12 @@ d_imap_internal_parse_code(
     if ( (i >= _end) ||
          (_line.data[i] != ']') )
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     *_position = i + 1;
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -4856,7 +4830,7 @@ d_imap_internal_parse_resp_text(
 )
 {
     size_t            i     = _start;
-    enum d_imap_error error = D_IMAP_ERROR_NONE;
+    enum d_imap_error error = D_IMAP_OK;
 
     if ( (i < _end) &&
          (_line.data[i] == ' ') )
@@ -4932,14 +4906,14 @@ d_imap_internal_parse_number_prefix(
 
     if (i == start)
     {
-        return D_IMAP_ERROR_NONE;
+        return D_IMAP_OK;
     }
 
     if (d_imap_internal_parse_decimal(d_imap_internal_span(_line.data,
                                                            start,
                                                            i),
                                       D_IMAP_NUMBER_MAX,
-                                      &number) != D_IMAP_ERROR_NONE)
+                                      &number) != D_IMAP_OK)
     {
         return D_IMAP_ERROR_RANGE;
     }
@@ -4947,14 +4921,14 @@ d_imap_internal_parse_number_prefix(
     if ( (i >= _end) ||
          (_line.data[i] != ' ') )
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     _response->has_number = 1;
     _response->number     = (uint32_t)number;
     *_position            = i + 1;
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -4972,15 +4946,15 @@ d_imap_internal_parse_untagged(
 {
     size_t                i = 2;
     size_t                keyword_end;
-    enum d_imap_condition condition;
-    enum d_imap_error     error;
+    enum d_imap_condition condition = D_IMAP_CONDITION_NONE;
+    enum d_imap_error     error = D_IMAP_OK;
 
     _response->kind = D_IMAP_RESPONSE_UNTAGGED;
 
     if ( (_end < 2) ||
          (_line.data[1] != ' ') )
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     error = d_imap_internal_parse_number_prefix(_line,
@@ -4988,7 +4962,7 @@ d_imap_internal_parse_untagged(
                                                 &i,
                                                 _response);
 
-    if (error != D_IMAP_ERROR_NONE)
+    if (error != D_IMAP_OK)
     {
         return error;
     }
@@ -5000,7 +4974,7 @@ d_imap_internal_parse_untagged(
 
     if (keyword_end == i)
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     _response->keyword = d_imap_internal_span(_line.data,
@@ -5023,7 +4997,7 @@ d_imap_internal_parse_untagged(
     _response->rest = d_imap_internal_data_after(_line,
                                                  keyword_end);
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -5044,7 +5018,7 @@ d_imap_internal_parse_tagged(
                                         _end,
                                         d_imap_internal_is_tag_char);
     size_t                keyword_end;
-    enum d_imap_condition condition;
+    enum d_imap_condition condition = D_IMAP_CONDITION_NONE;
 
     _response->kind = D_IMAP_RESPONSE_TAGGED;
 
@@ -5052,7 +5026,7 @@ d_imap_internal_parse_tagged(
          (tag_end >= _end) ||
          (_line.data[tag_end] != ' ') )
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     keyword_end        = d_imap_internal_scan(_line,
@@ -5071,7 +5045,7 @@ d_imap_internal_parse_tagged(
          (condition != D_IMAP_CONDITION_NO) &&
          (condition != D_IMAP_CONDITION_BAD) )
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     _response->condition = (int32_t)condition;
@@ -5094,10 +5068,10 @@ d_imap_response_parse(
     struct d_imap_response* _response
 )
 {
-    static const struct d_imap_response empty;
+    static const struct d_imap_response empty = { 0 };
     struct d_imap_response              result = empty;
     size_t                              end;
-    enum d_imap_error                   error;
+    enum d_imap_error                   error = D_IMAP_OK;
 
     if ( (!_response) ||
          (!d_imap_internal_text_is_valid(_line)) )
@@ -5109,7 +5083,7 @@ d_imap_response_parse(
 
     if (end == 0)
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     if (_line.data[0] == '+')
@@ -5133,7 +5107,7 @@ d_imap_response_parse(
                                              &result);
     }
 
-    if (error == D_IMAP_ERROR_NONE)
+    if (error == D_IMAP_OK)
     {
         *_response = result;
     }
@@ -5171,7 +5145,7 @@ d_imap_internal_input(
     const struct d_imap_lexer* _lexer
 )
 {
-    struct d_pack_text input;
+    struct d_pack_text input = { 0 };
 
     input.data   = _lexer->data;
     input.length = _lexer->length;
@@ -5199,7 +5173,7 @@ d_imap_internal_lex_finish(
                                             _end);
     _lexer->position = _end;
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -5224,7 +5198,7 @@ d_imap_internal_lex_crlf(
 
         if (_lexer->data[end] != '\n')
         {
-            return D_IMAP_ERROR_SYNTAX;
+            return D_IMAP_ERROR_MALFORMED;
         }
 
         ++end;
@@ -5266,7 +5240,7 @@ d_imap_internal_lex_quoted(
                                              i);
             _lexer->position = i + 1;
 
-            return D_IMAP_ERROR_NONE;
+            return D_IMAP_OK;
         }
 
         if (c == '\\')
@@ -5279,7 +5253,7 @@ d_imap_internal_lex_quoted(
         if ( (c == '\r') ||
              (c == '\n') )
         {
-            return D_IMAP_ERROR_SYNTAX;
+            return D_IMAP_ERROR_MALFORMED;
         }
 
         ++i;
@@ -5291,7 +5265,7 @@ d_imap_internal_lex_quoted(
 /*
 d_imap_internal_lex_expect
   Consumes the octet `_c` at `*_position`: INCOMPLETE if the input ends
-first, SYNTAX if another octet is there.
+first, MALFORMED if another octet is there.
 */
 D_STATIC enum d_imap_error
 d_imap_internal_lex_expect(
@@ -5307,19 +5281,19 @@ d_imap_internal_lex_expect(
 
     if (_lexer->data[*_position] != _c)
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     ++*_position;
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
 d_imap_internal_lex_literal_head
   From the "{" at `*_position`: the count, an optional "+", "}", and the line
 break, leaving `*_position` on the first octet. The count is bounded by
-number64 as it is read, and a missing count is SYNTAX.
+number64 as it is read, and a missing count is MALFORMED.
 */
 D_STATIC enum d_imap_error
 d_imap_internal_lex_literal_head(
@@ -5335,7 +5309,7 @@ d_imap_internal_lex_literal_head(
                                                     start,
                                                     _lexer->length,
                                                     d_imap_internal_is_digit);
-    enum d_imap_error  error;
+    enum d_imap_error  error = D_IMAP_OK;
 
     if (i >= _lexer->length)
     {
@@ -5348,14 +5322,14 @@ d_imap_internal_lex_literal_head(
                                           D_IMAP_NUMBER64_MAX,
                                           _count);
 
-    if ( (error == D_IMAP_ERROR_NONE) &&
+    if ( (error == D_IMAP_OK) &&
          (_lexer->data[i] == '+') )
     {
         *_flags |= D_IMAP_TOKEN_NONSYNC;
         ++i;
     }
 
-    if (error == D_IMAP_ERROR_NONE)
+    if (error == D_IMAP_OK)
     {
         error = d_imap_internal_lex_expect(_lexer,
                                            &i,
@@ -5363,21 +5337,21 @@ d_imap_internal_lex_literal_head(
     }
 
     // the line break's CR is optional; its LF is not
-    if ( (error == D_IMAP_ERROR_NONE) &&
+    if ( (error == D_IMAP_OK) &&
          (i < _lexer->length) &&
          (_lexer->data[i] == '\r') )
     {
         ++i;
     }
 
-    if (error == D_IMAP_ERROR_NONE)
+    if (error == D_IMAP_OK)
     {
         error = d_imap_internal_lex_expect(_lexer,
                                            &i,
                                            '\n');
     }
 
-    if (error == D_IMAP_ERROR_NONE)
+    if (error == D_IMAP_OK)
     {
         *_position = i;
     }
@@ -5402,7 +5376,7 @@ d_imap_internal_lex_literal(
     size_t            body  = _start;
     uint64_t          count = 0;
     size_t            available;
-    enum d_imap_error error;
+    enum d_imap_error error = D_IMAP_OK;
 
     if (_lexer->data[_start] == '~')
     {
@@ -5415,7 +5389,7 @@ d_imap_internal_lex_literal(
                                              &count,
                                              &_token->flags);
 
-    if (error != D_IMAP_ERROR_NONE)
+    if (error != D_IMAP_OK)
     {
         return error;
     }
@@ -5436,7 +5410,7 @@ d_imap_internal_lex_literal(
 
     _lexer->position = body + (size_t)count;
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -5466,7 +5440,7 @@ d_imap_internal_lex_flag(
 
     if (end == _start + 1)
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     return d_imap_internal_lex_finish(_lexer,
@@ -5512,7 +5486,7 @@ d_imap_internal_lex_atom(
 {
     size_t                 end  = _start;
     enum d_imap_token_kind kind = D_IMAP_TOKEN_ATOM;
-    struct d_pack_text     text;
+    struct d_pack_text     text = { 0 };
 
     while ( (end < _lexer->length) &&
             (d_imap_internal_lex_atom_char((unsigned char)_lexer->data[end],
@@ -5523,7 +5497,7 @@ d_imap_internal_lex_atom(
 
     if (end == _start)
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     text = d_imap_internal_span(_lexer->data,
@@ -5532,12 +5506,12 @@ d_imap_internal_lex_atom(
 
     if (d_imap_internal_parse_decimal(text,
                                       UINT64_MAX,
-                                      &_token->number) == D_IMAP_ERROR_NONE)
+                                      &_token->number) == D_IMAP_OK)
     {
         kind = D_IMAP_TOKEN_NUMBER;
     }
-    else if (d_imap_internal_equals_nocase(text,
-                                           "NIL"))
+    else if (d_net_ascii_ieq_cstr(text,
+                                  "NIL"))
     {
         kind = D_IMAP_TOKEN_NIL;
     }
@@ -5549,10 +5523,26 @@ d_imap_internal_lex_atom(
                                       end);
 }
 
+// d_imap_internal_punctuation_tokens
+//   table: the token each single-octet punctuation mark makes, by octet; END,
+// 0, for every other (decision 115 of the register).
+static const unsigned char d_imap_internal_punctuation_tokens[256] =
+{
+    ['('] = D_IMAP_TOKEN_LPAREN,
+    [')'] = D_IMAP_TOKEN_RPAREN,
+    ['*'] = D_IMAP_TOKEN_STAR,
+    ['['] = D_IMAP_TOKEN_LBRACKET,
+    [']'] = D_IMAP_TOKEN_RBRACKET
+};
+
+D_STATIC_ASSERT(D_IMAP_TOKEN_END == 0,
+                "an octet the punctuation table does not name makes END");
+
 /*
 d_imap_internal_punctuation
   The token a single punctuation octet makes, or END for an octet that
-starts something longer.
+starts something longer: one load from the table, then the brackets'
+context.
 */
 D_STATIC enum d_imap_token_kind
 d_imap_internal_punctuation(
@@ -5560,27 +5550,18 @@ d_imap_internal_punctuation(
     uint32_t      _flags
 )
 {
+    const enum d_imap_token_kind kind =
+        (enum d_imap_token_kind)d_imap_internal_punctuation_tokens[_c];
+
     // brackets are punctuation only outside astring context
-    if ( (_c == '[') ||
-         (_c == ']') )
+    if ( ( (kind == D_IMAP_TOKEN_LBRACKET)  ||
+           (kind == D_IMAP_TOKEN_RBRACKET) ) &&
+         ((_flags & D_IMAP_LEX_ASTRING) != 0u) )
     {
-        if ((_flags & D_IMAP_LEX_ASTRING) != 0u)
-        {
-            return D_IMAP_TOKEN_END;
-        }
-
-        return (_c == '[') ? D_IMAP_TOKEN_LBRACKET : D_IMAP_TOKEN_RBRACKET;
+        return D_IMAP_TOKEN_END;
     }
 
-    switch (_c)
-    {
-        case '(': { return D_IMAP_TOKEN_LPAREN; }
-        case ')': { return D_IMAP_TOKEN_RPAREN; }
-        case '*': { return D_IMAP_TOKEN_STAR; }
-        default:  { break; }
-    }
-
-    return D_IMAP_TOKEN_END;
+    return kind;
 }
 
 /*
@@ -5652,7 +5633,7 @@ d_imap_lexer_next(
 )
 {
     size_t                 start;
-    enum d_imap_token_kind kind;
+    enum d_imap_token_kind kind = D_IMAP_TOKEN_END;
 
     if ( (!_lexer) ||
          (!_token) ||
@@ -5741,7 +5722,7 @@ d_imap_string_decode(
 
     if (_token->kind == D_IMAP_TOKEN_NIL)
     {
-        return D_IMAP_ERROR_NONE;
+        return D_IMAP_OK;
     }
 
     if ( (_token->kind == D_IMAP_TOKEN_QUOTED) &&
@@ -5778,7 +5759,7 @@ d_imap_mailbox_decode(
     uint32_t                   _flags
 )
 {
-    bool escaped;
+    bool escaped = false;
 
     if ( (!_sink.write) ||
          (!_token) ||
@@ -5820,21 +5801,21 @@ d_imap_internal_list_delimiter(
     int32_t*             _delimiter
 )
 {
-    struct d_imap_token token;
-    const char*         text;
+    struct d_imap_token token = { 0 };
+    const char*         text = NULL;
 
     if (d_imap_lexer_next(_lexer,
                           0,
-                          &token) != D_IMAP_ERROR_NONE)
+                          &token) != D_IMAP_OK)
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     if (token.kind == D_IMAP_TOKEN_NIL)
     {
         *_delimiter = -1;
 
-        return D_IMAP_ERROR_NONE;
+        return D_IMAP_OK;
     }
 
     text = token.text.data;
@@ -5845,7 +5826,7 @@ d_imap_internal_list_delimiter(
     {
         *_delimiter = (unsigned char)text[0];
 
-        return D_IMAP_ERROR_NONE;
+        return D_IMAP_OK;
     }
 
     if ( (token.kind == D_IMAP_TOKEN_QUOTED) &&
@@ -5856,10 +5837,10 @@ d_imap_internal_list_delimiter(
     {
         *_delimiter = (unsigned char)text[1];
 
-        return D_IMAP_ERROR_NONE;
+        return D_IMAP_OK;
     }
 
-    return D_IMAP_ERROR_SYNTAX;
+    return D_IMAP_ERROR_MALFORMED;
 }
 
 /*
@@ -5883,16 +5864,16 @@ d_imap_internal_list_name(
         return error;
     }
 
-    if ( (error != D_IMAP_ERROR_NONE) ||
+    if ( (error != D_IMAP_OK) ||
          ( (_name->kind != D_IMAP_TOKEN_ATOM) &&
            (_name->kind != D_IMAP_TOKEN_NUMBER) &&
            (_name->kind != D_IMAP_TOKEN_QUOTED) &&
            (_name->kind != D_IMAP_TOKEN_LITERAL) ) )
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -5906,11 +5887,11 @@ d_imap_list_parse(
     struct d_imap_list_entry* _entry
 )
 {
-    static const struct d_imap_list_entry empty;
+    static const struct d_imap_list_entry empty = { 0 };
     struct d_imap_list_entry              entry = empty;
-    struct d_imap_lexer                   lexer;
-    struct d_pack_text                    rest;
-    enum d_imap_error                     error;
+    struct d_imap_lexer                   lexer = { 0 };
+    struct d_pack_text                    rest = { 0 };
+    enum d_imap_error                     error = D_IMAP_OK;
 
     if ( (!_entry) ||
          (!d_imap_internal_text_is_valid(_data)) )
@@ -5927,19 +5908,19 @@ d_imap_list_parse(
                 &entry.attributes,
                 &entry.unknown);
 
-    if (error == D_IMAP_ERROR_NONE)
+    if (error == D_IMAP_OK)
     {
         error = d_imap_internal_list_delimiter(&lexer,
                                                &entry.delimiter);
     }
 
-    if (error == D_IMAP_ERROR_NONE)
+    if (error == D_IMAP_OK)
     {
         error = d_imap_internal_list_name(&lexer,
                                           &entry.name);
     }
 
-    if (error != D_IMAP_ERROR_NONE)
+    if (error != D_IMAP_OK)
     {
         return error;
     }
@@ -5953,7 +5934,7 @@ d_imap_list_parse(
                                               d_imap_internal_is_space));
     *_entry        = entry;
 
-    return D_IMAP_ERROR_NONE;
+    return D_IMAP_OK;
 }
 
 /*
@@ -5967,26 +5948,26 @@ d_imap_internal_search_modseq(
     uint64_t*            _modseq
 )
 {
-    struct d_imap_token keyword;
-    struct d_imap_token value;
-    struct d_imap_token close;
+    struct d_imap_token keyword = { 0 };
+    struct d_imap_token value = { 0 };
+    struct d_imap_token close = { 0 };
 
     if ( (d_imap_lexer_next(_lexer,
                             0,
-                            &keyword) != D_IMAP_ERROR_NONE) ||
+                            &keyword) != D_IMAP_OK) ||
          (keyword.kind != D_IMAP_TOKEN_ATOM) ||
-         (!d_imap_internal_equals_nocase(keyword.text,
-                                         "MODSEQ")) ||
+         (!d_net_ascii_ieq_cstr(keyword.text,
+                                "MODSEQ")) ||
          (d_imap_lexer_next(_lexer,
                             0,
-                            &value) != D_IMAP_ERROR_NONE) ||
+                            &value) != D_IMAP_OK) ||
          (value.kind != D_IMAP_TOKEN_NUMBER) ||
          (d_imap_lexer_next(_lexer,
                             0,
-                            &close) != D_IMAP_ERROR_NONE) ||
+                            &close) != D_IMAP_OK) ||
          (close.kind != D_IMAP_TOKEN_RPAREN) )
     {
-        return D_IMAP_ERROR_SYNTAX;
+        return D_IMAP_ERROR_MALFORMED;
     }
 
     if (value.number > D_IMAP_NUMBER64_MAX)
@@ -6014,16 +5995,16 @@ d_imap_internal_search_numbers(
     uint64_t*            _modseq
 )
 {
-    struct d_imap_token token;
-    enum d_imap_error   error = D_IMAP_ERROR_NONE;
+    struct d_imap_token token = { 0 };
+    enum d_imap_error   error = D_IMAP_OK;
 
-    while (error == D_IMAP_ERROR_NONE)
+    while (error == D_IMAP_OK)
     {
         if (d_imap_lexer_next(_lexer,
                               0,
-                              &token) != D_IMAP_ERROR_NONE)
+                              &token) != D_IMAP_OK)
         {
-            return D_IMAP_ERROR_SYNTAX;
+            return D_IMAP_ERROR_MALFORMED;
         }
 
         if ( (token.kind == D_IMAP_TOKEN_END) ||
@@ -6040,7 +6021,7 @@ d_imap_internal_search_numbers(
 
         if (token.kind != D_IMAP_TOKEN_NUMBER)
         {
-            error = D_IMAP_ERROR_SYNTAX;
+            error = D_IMAP_ERROR_MALFORMED;
         }
         else if ( (token.number == 0u) ||
                   (token.number > D_IMAP_NUMBER_MAX) )
@@ -6072,10 +6053,10 @@ d_imap_search_parse(
     uint64_t*          _modseq
 )
 {
-    struct d_imap_lexer lexer;
+    struct d_imap_lexer lexer = { 0 };
     size_t              count  = 0;
     uint64_t            modseq = 0;
-    enum d_imap_error   error;
+    enum d_imap_error   error = D_IMAP_OK;
 
     if ( (!_count) ||
          (!d_imap_internal_text_is_valid(_data)) ||
@@ -6093,7 +6074,7 @@ d_imap_search_parse(
                                            &count,
                                            &modseq);
 
-    if (error != D_IMAP_ERROR_NONE)
+    if (error != D_IMAP_OK)
     {
         return error;
     }
@@ -6105,5 +6086,5 @@ d_imap_search_parse(
         *_modseq = modseq;
     }
 
-    return (count > _capacity) ? D_IMAP_ERROR_CAPACITY : D_IMAP_ERROR_NONE;
+    return (count > _capacity) ? D_IMAP_ERROR_BUFFER_TOO_SMALL : D_IMAP_OK;
 }

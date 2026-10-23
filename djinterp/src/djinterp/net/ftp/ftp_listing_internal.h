@@ -11,7 +11,7 @@
 * path:      /src/djinterp/net/ftp/ftp_listing_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -33,12 +33,13 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>  // size_t
-#include <stdint.h>  // uint32_t
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"             // framework root
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"     // d_ftp_span
-#include "../../../../inc/djinterp/net/ftp/ftp_fact.h"       // d_ftp_time
-#include "../../../../inc/djinterp/net/ftp/ftp_listing.h"    // d_ftp_entry
+#include "../../../../inc/djinterp/c/djinterp.h"           // framework root
+#include "../../../../inc/djinterp/c/util/sink_common.h"   // d_pack_text
+#include "../../../../inc/djinterp/net/ftp/ftp_fact.h"     // d_ftp_time
+#include "../../../../inc/djinterp/net/ftp/ftp_listing.h"  // d_ftp_entry
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++
@@ -57,20 +58,20 @@ D_EXTERN_C_BEGIN
 // position at or after `_position` that is not a space or tab, token_end()
 // the first that is, and span_at() the part of `_line` from `_start` to
 // `_end`, both clamped to the line.
-size_t            d_ftp_internal_skip_blanks(struct d_ftp_span _line,
-                                             size_t            _position);
-size_t            d_ftp_internal_token_end(struct d_ftp_span _line,
-                                           size_t            _position);
-struct d_ftp_span d_ftp_internal_span_at(struct d_ftp_span _line,
-                                         size_t            _start,
-                                         size_t            _end);
+size_t             d_ftp_internal_skip_blanks(struct d_pack_text _line,
+                                              size_t             _position);
+size_t             d_ftp_internal_token_end(struct d_pack_text _line,
+                                            size_t             _position);
+struct d_pack_text d_ftp_internal_span_at(struct d_pack_text _line,
+                                          size_t             _start,
+                                          size_t             _end);
 
 
 // 1.2    Clocks
 //------------------------------------------------------------------------------
 // d_ftp_internal_read_clock() reads "HH:MM" into `_time`'s hour and minute,
 // as both the Unix and the DOS dialects write a time of day.
-bool d_ftp_internal_read_clock(struct d_ftp_span  _token,
+bool d_ftp_internal_read_clock(struct d_pack_text _token,
                                struct d_ftp_time* _time);
 
 
@@ -87,35 +88,31 @@ bool d_ftp_internal_read_clock(struct d_ftp_span  _token,
 // d_ftp_internal_unix_mode() reads a permission field, "drwxr-xr-x" and
 // kin, into an entry type and mode bits; `_now` places year-less dates.
 bool                   d_ftp_internal_unix_mode(
-                           struct d_ftp_span      _field,
+                           struct d_pack_text     _field,
                            enum d_ftp_entry_type* _out_type,
                            uint32_t*              _out_mode);
-enum d_ftp_line_result d_ftp_internal_parse_unix(
-                           struct d_ftp_span        _line,
-                           const struct d_ftp_time* _now,
-                           struct d_ftp_entry*      _out);
+enum d_ftp_line_result d_ftp_internal_parse_unix(struct d_pack_text       _line,
+                                                 const struct d_ftp_time* _now,
+                                                 struct d_ftp_entry*      _out);
 
 
 // 2.2    DOS
 //------------------------------------------------------------------------------
 // d_ftp_internal_is_dos_date() recognizes "MM-DD-YY" and "MM-DD-YYYY".
-bool                   d_ftp_internal_is_dos_date(struct d_ftp_span _token);
-enum d_ftp_line_result d_ftp_internal_parse_dos(
-                           struct d_ftp_span   _line,
-                           struct d_ftp_entry* _out);
+bool                   d_ftp_internal_is_dos_date(struct d_pack_text _token);
+enum d_ftp_line_result d_ftp_internal_parse_dos(struct d_pack_text  _line,
+                                                struct d_ftp_entry* _out);
 
 
 // 2.3    MLSx
 //------------------------------------------------------------------------------
 // d_ftp_internal_mlsx_split() divides a line into its facts and its name at
 // the first space after a ';', reporting whether the line had facts.
-bool                   d_ftp_internal_mlsx_split(
-                           struct d_ftp_span  _line,
-                           struct d_ftp_span* _out_facts,
-                           struct d_ftp_span* _out_name);
-enum d_ftp_line_result d_ftp_internal_parse_mlsx(
-                           struct d_ftp_span   _line,
-                           struct d_ftp_entry* _out);
+bool                   d_ftp_internal_mlsx_split(struct d_pack_text  _line,
+                                                 struct d_pack_text* _out_facts,
+                                                 struct d_pack_text* _out_name);
+enum d_ftp_line_result d_ftp_internal_parse_mlsx(struct d_pack_text  _line,
+                                                 struct d_ftp_entry* _out);
 
 
 D_EXTERN_C_END

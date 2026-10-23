@@ -11,15 +11,21 @@
 * path:      /src/djinterp/net/smtp/smtp_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.13
 *******************************************************************************/
-#include "../../../../inc/djinterp/net/smtp/smtp_common.h"
+#include "../../../../inc/djinterp/net/smtp/smtp_common.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
-#include <stdint.h>   // SIZE_MAX
 #include <stdio.h>    // snprintf
 #include <string.h>   // memchr, memcpy, strchr, strlen
+// djinterp
+#include "../../../../inc/djinterp/c/util/sink_common.h"      // d_pack_bytes, d_pack_text
+#include "../../../../inc/djinterp/net/net_common.h"   // d_net_ascii_*
+#include "../../../../inc/djinterp/net/codec/codec_base64.h"  // d_net_base64_*
+#include "../../../../inc/djinterp/net/codec/codec_hex.h"     // d_net_hex_is_digit
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
 
 
 // d_internal_smtp_name
@@ -73,97 +79,9 @@ static const struct d_internal_smtp_name VERB_NAMES[] =
     { "AUTH",     D_SMTP_VERB_AUTH }
 };
 
-// BASE64_ALPHABET
-//   constant: the RFC 4648 section 4 alphabet.
-static const char BASE64_ALPHABET[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
 // ATEXT_SPECIALS
 //   constant: the non-alphanumeric characters of RFC 5322 atext.
 static const char ATEXT_SPECIALS[] = "!#$%&'*+-/=?^_`{|}~";
-
-
-/*
-d_internal_smtp_lower
-  ASCII-only case folding. Protocol keywords are ASCII by definition, and
-tolower() would make matching depend on the process locale.
-*/
-static char
-d_internal_smtp_lower(
-    char _character
-)
-{
-    // only the 26 upper-case ASCII letters change
-    if ( (_character >= 'A') &&
-         (_character <= 'Z') )
-    {
-        return (char)(_character - 'A' + 'a');
-    }
-
-    return _character;
-}
-
-/*
-d_internal_smtp_is_digit
-  ASCII decimal digit test, locale-independent like the rest of the parser.
-*/
-static bool
-d_internal_smtp_is_digit(
-    char _character
-)
-{
-    return ( (_character >= '0') &&
-             (_character <= '9') );
-}
-
-/*
-d_internal_smtp_is_alnum
-  ASCII letter-or-digit test.
-*/
-static bool
-d_internal_smtp_is_alnum(
-    char _character
-)
-{
-    const char lower = d_internal_smtp_lower(_character);
-
-    return ( ( (lower >= 'a') &&
-               (lower <= 'z') ) ||
-             (d_internal_smtp_is_digit(_character)) );
-}
-
-/*
-d_internal_smtp_match
-  Case-insensitive comparison of a counted span against a whole NUL-terminated
-keyword.
-*/
-static bool
-d_internal_smtp_match(
-    const char* _text,
-    size_t      _length,
-    const char* _keyword
-)
-{
-    // the span must be exactly as long as the keyword
-    if (strlen(_keyword) != _length)
-    {
-        return false;
-    }
-
-    // then equal to it byte by byte, under ASCII case folding
-    for (size_t i = 0; i < _length; ++i)
-    {
-        const char left  = d_internal_smtp_lower(_text[i]);
-        const char right = d_internal_smtp_lower(_keyword[i]);
-
-        if (left != right)
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
 
 /*
 d_internal_smtp_lookup
@@ -179,11 +97,14 @@ d_internal_smtp_lookup(
     unsigned int                       _fallback
 )
 {
+    const struct d_pack_text text = { _text,
+                                      _length };
+
+    // each name in turn, ignoring case
     for (size_t i = 0; i < _count; ++i)
     {
-        if (d_internal_smtp_match(_text,
-                                  _length,
-                                  _table[i].name))
+        if (d_net_ascii_ieq_cstr(text,
+                                 _table[i].name))
         {
             return _table[i].value;
         }
@@ -192,6 +113,11 @@ d_internal_smtp_lookup(
     return _fallback;
 }
 
+/*
+d_smtp_error_string
+  A switch with one case per error; a value outside the enum falls
+through to "unknown error", so the result is never NULL.
+*/
 const char*
 d_smtp_error_string(
     enum d_smtp_error _error
@@ -199,28 +125,211 @@ d_smtp_error_string(
 {
     switch (_error)
     {
-        case D_SMTP_OK:                return "success";
-        case D_SMTP_ERROR_INVALID:     return "invalid argument";
-        case D_SMTP_ERROR_STATE:       return "operation out of sequence";
-        case D_SMTP_ERROR_NO_MEMORY:   return "out of memory";
-        case D_SMTP_ERROR_RESOLVE:     return "host name did not resolve";
-        case D_SMTP_ERROR_CONNECT:     return "connection failed";
-        case D_SMTP_ERROR_TIMEOUT:     return "timed out";
-        case D_SMTP_ERROR_IO:          return "transport error";
-        case D_SMTP_ERROR_CLOSED:      return "connection closed by peer";
-        case D_SMTP_ERROR_TLS:         return "TLS failure";
-        case D_SMTP_ERROR_PROTOCOL:    return "protocol violation";
-        case D_SMTP_ERROR_TOO_LONG:    return "limit exceeded";
-        case D_SMTP_ERROR_REJECTED:    return "rejected by peer";
-        case D_SMTP_ERROR_UNSUPPORTED: return "not supported";
-        case D_SMTP_ERROR_AUTH:        return "authentication failed";
-        case D_SMTP_ERROR_INSECURE:    return "refused to authenticate in the "
-                                              "clear";
+        case D_SMTP_OK:                     return "success";
+        case D_SMTP_ERROR_INVALID_ARGUMENT: return "invalid argument";
+        case D_SMTP_ERROR_STATE:            return "operation out of sequence";
+        case D_SMTP_ERROR_OUT_OF_MEMORY:    return "out of memory";
+        case D_SMTP_ERROR_RESOLVE:          return "host not found";
+        case D_SMTP_ERROR_CONNECT:          return "connection failed";
+        case D_SMTP_ERROR_TIMED_OUT:        return "timed out";
+        case D_SMTP_ERROR_TRANSPORT:        return "transport error";
+        case D_SMTP_ERROR_CLOSED:           return "connection closed by peer";
+        case D_SMTP_ERROR_TLS:              return "TLS failure";
+        case D_SMTP_ERROR_PROTOCOL:         return "protocol violation";
+        case D_SMTP_ERROR_LINE_TOO_LONG:    return "limit exceeded";
+        case D_SMTP_ERROR_REJECTED:         return "rejected by peer";
+        case D_SMTP_ERROR_UNSUPPORTED:      return "not supported";
+        case D_SMTP_ERROR_AUTH:             return "authentication failed";
+        case D_SMTP_ERROR_INSECURE:         return "refused to authenticate "
+                                                   "in the clear";
     }
 
     return "unknown error";
 }
 
+/*
+d_smtp_error_to_net
+  One case per enumerator and no default, so the compiler reports a missing
+case; the groups follow net.h's rules. A value outside the enum is UNKNOWN.
+*/
+enum d_net_error
+d_smtp_error_to_net(
+    enum d_smtp_error _error
+)
+{
+    switch (_error)
+    {
+        case D_SMTP_OK:
+            return D_NET_OK;
+        case D_SMTP_ERROR_INVALID_ARGUMENT:
+        case D_SMTP_ERROR_STATE:
+            return D_NET_ERROR_INVALID_ARGUMENT;
+        case D_SMTP_ERROR_TLS:
+        case D_SMTP_ERROR_PROTOCOL:
+            return D_NET_ERROR_PROTOCOL;
+        case D_SMTP_ERROR_LINE_TOO_LONG:
+            return D_NET_ERROR_MESSAGE_TOO_LARGE;
+        case D_SMTP_ERROR_RESOLVE:
+            return D_NET_ERROR_HOST_UNREACHABLE;
+        case D_SMTP_ERROR_CONNECT:
+            return D_NET_ERROR_CONNECTION_REFUSED;
+        case D_SMTP_ERROR_CLOSED:
+            return D_NET_ERROR_CLOSED;
+        case D_SMTP_ERROR_TIMED_OUT:
+            return D_NET_ERROR_TIMED_OUT;
+        case D_SMTP_ERROR_OUT_OF_MEMORY:
+            return D_NET_ERROR_OUT_OF_MEMORY;
+        case D_SMTP_ERROR_AUTH:
+        case D_SMTP_ERROR_INSECURE:
+            return D_NET_ERROR_ACCESS_DENIED;
+        case D_SMTP_ERROR_TRANSPORT:
+        case D_SMTP_ERROR_REJECTED:
+        case D_SMTP_ERROR_UNSUPPORTED:
+            return D_NET_ERROR_UNKNOWN;
+    }
+
+    return D_NET_ERROR_UNKNOWN;
+}
+
+/*
+d_smtp_error_from_net
+  One case per enumerator and no default, so the compiler reports a missing
+case; the groups follow net.h's rules the other way. A value outside the
+enum is TRANSPORT.
+*/
+enum d_smtp_error
+d_smtp_error_from_net(
+    enum d_net_error _error
+)
+{
+    switch (_error)
+    {
+        case D_NET_OK:
+            return D_SMTP_OK;
+        case D_NET_ERROR_INVALID_ARGUMENT:
+            return D_SMTP_ERROR_INVALID_ARGUMENT;
+        case D_NET_ERROR_OUT_OF_MEMORY:
+            return D_SMTP_ERROR_OUT_OF_MEMORY;
+        case D_NET_ERROR_TIMED_OUT:
+            return D_SMTP_ERROR_TIMED_OUT;
+        case D_NET_ERROR_PROTOCOL:
+            return D_SMTP_ERROR_PROTOCOL;
+        case D_NET_ERROR_CLOSED:
+        case D_NET_ERROR_CONNECTION_RESET:
+        case D_NET_ERROR_CONNECTION_ABORTED:
+            return D_SMTP_ERROR_CLOSED;
+        case D_NET_ERROR_WOULD_BLOCK:
+        case D_NET_ERROR_INTERRUPTED:
+        case D_NET_ERROR_CONNECTION_REFUSED:
+        case D_NET_ERROR_ADDRESS_IN_USE:
+        case D_NET_ERROR_ADDRESS_INVALID:
+        case D_NET_ERROR_HOST_UNREACHABLE:
+        case D_NET_ERROR_NETWORK_DOWN:
+        case D_NET_ERROR_ACCESS_DENIED:
+        case D_NET_ERROR_MESSAGE_TOO_LARGE:
+        case D_NET_ERROR_TOO_MANY_OPEN_FILES:
+        case D_NET_ERROR_UNKNOWN:
+            return D_SMTP_ERROR_TRANSPORT;
+    }
+
+    return D_SMTP_ERROR_TRANSPORT;
+}
+
+/*
+d_smtp_error_from_ssl
+  One case per enumerator and no default, so the compiler reports a missing
+case. A transport failure that reported nothing -- a write that took
+nothing -- has no error of its own to give, and is TRANSPORT.
+*/
+enum d_smtp_error
+d_smtp_error_from_ssl(
+    enum d_ssl_error _status,
+    enum d_net_error _cause
+)
+{
+    switch (_status)
+    {
+        case D_SSL_OK:
+            return D_SMTP_OK;
+        case D_SSL_ERROR_TRANSPORT:
+        case D_SSL_ERROR_WOULD_BLOCK:
+            return (_cause == D_NET_OK) ? D_SMTP_ERROR_TRANSPORT
+                                        : d_smtp_error_from_net(_cause);
+        case D_SSL_ERROR_TRUNCATED:
+        case D_SSL_ERROR_CLOSED:
+            return D_SMTP_ERROR_CLOSED;
+        case D_SSL_ERROR_OUT_OF_MEMORY:
+            return D_SMTP_ERROR_OUT_OF_MEMORY;
+        case D_SSL_ERROR_INVALID_ARGUMENT:
+        case D_SSL_ERROR_MALFORMED:
+        case D_SSL_ERROR_NOT_FOUND:
+        case D_SSL_ERROR_UNSUPPORTED:
+        case D_SSL_ERROR_CONFIG:
+        case D_SSL_ERROR_STATE:
+        case D_SSL_ERROR_NOT_TLS:
+        case D_SSL_ERROR_HANDSHAKE:
+        case D_SSL_ERROR_VERIFY:
+        case D_SSL_ERROR_PROTOCOL:
+        case D_SSL_ERROR_BUFFER_TOO_SMALL:
+        case D_SSL_ERROR_WANT_READ:
+        case D_SSL_ERROR_BACKEND:
+            break;
+    }
+
+    return D_SMTP_ERROR_TLS;
+}
+
+/*
+d_smtp_error_from_tls
+  Only a session that failed is judged by its status: one still sound, or
+ended by the peer's close_notify, leaves the stream's own judgment.
+*/
+enum d_smtp_error
+d_smtp_error_from_tls(
+    const struct d_ssl_session* _tls,
+    enum d_smtp_error           _result,
+    enum d_ssl_error*           _status,
+    enum d_net_error*           _cause
+)
+{
+    // nothing failed, or no TLS that could have failed beneath it
+    if ( (_result == D_SMTP_OK) ||
+         (!_tls) )
+    {
+        return _result;
+    }
+
+    const enum d_ssl_error status = d_ssl_session_failure(_tls);
+
+    // a session that has not failed leaves the stream's judgment
+    if (status == D_SSL_OK)
+    {
+        return _result;
+    }
+
+    const enum d_net_error cause = d_ssl_session_transport_error(_tls);
+
+    if (_status)
+    {
+        *_status = status;
+    }
+
+    // the connection's own error is the cause beneath TLS
+    if ( (_cause) &&
+         (cause != D_NET_OK) )
+    {
+        *_cause = cause;
+    }
+
+    return d_smtp_error_from_ssl(status,
+                                 cause);
+}
+
+/*
+d_smtp_buffer_init
+  A NULL buffer is ignored, and NULL storage gets a capacity of 0, so
+every append on it fails cleanly; otherwise the text starts empty.
+*/
 void
 d_smtp_buffer_init(
     struct d_smtp_buffer* _buffer,
@@ -264,14 +373,14 @@ d_smtp_buffer_append(
          ( (!_data) &&
            (_length > 0) ) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     // one byte always stays free for the terminating NUL
     if ( (_buffer->capacity == 0) ||
          (_length >= _buffer->capacity - _buffer->length) )
     {
-        return D_SMTP_ERROR_TOO_LONG;
+        return D_SMTP_ERROR_LINE_TOO_LONG;
     }
 
     if (_length > 0)
@@ -287,6 +396,11 @@ d_smtp_buffer_append(
     return D_SMTP_OK;
 }
 
+/*
+d_smtp_buffer_append_text
+  d_smtp_buffer_append() over the text's strlen(); NULL text is refused
+before it is measured.
+*/
 enum d_smtp_error
 d_smtp_buffer_append_text(
     struct d_smtp_buffer* _buffer,
@@ -296,7 +410,7 @@ d_smtp_buffer_append_text(
     // parameter validation first
     if (!_text)
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     return d_smtp_buffer_append(_buffer,
@@ -304,6 +418,11 @@ d_smtp_buffer_append_text(
                                 strlen(_text));
 }
 
+/*
+d_smtp_buffer_append_number
+  Formats into a local buffer wide enough for any size_t, then
+appends the digits.
+*/
 enum d_smtp_error
 d_smtp_buffer_append_number(
     struct d_smtp_buffer* _buffer,
@@ -319,7 +438,7 @@ d_smtp_buffer_append_number(
     // a size_t always fits in 32 digits; this guards a broken libc
     if (length <= 0)
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     return d_smtp_buffer_append(_buffer,
@@ -327,6 +446,11 @@ d_smtp_buffer_append_number(
                                 (size_t)length);
 }
 
+/*
+d_smtp_reply_clear
+  Zeroes every field and empties the text, so a cleared reply reads as
+no reply at all.
+*/
 void
 d_smtp_reply_clear(
     struct d_smtp_reply* _reply
@@ -377,7 +501,7 @@ d_internal_smtp_parse_status(
 
         while ( (position < _length)                          &&
                 (digits < limit)                              &&
-                (d_internal_smtp_is_digit(_text[position])) )
+                (d_net_ascii_is_digit(_text[position])) )
         {
             parts[part] = (parts[part] * 10u) +
                           (unsigned int)(_text[position] - '0');
@@ -483,15 +607,15 @@ d_smtp_reply_feed(
          (!_line)           ||
          (_reply->complete) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     // a reply line opens with a three-digit code whose first digit is 2 to 5
-    if ( (_length < 3)                          ||
-         (_line[0] < '2')                       ||
-         (_line[0] > '5')                       ||
-         (!d_internal_smtp_is_digit(_line[1]))  ||
-         (!d_internal_smtp_is_digit(_line[2])) )
+    if ( (_length < 3)                     ||
+         (_line[0] < '2')                  ||
+         (_line[0] > '5')                  ||
+         (!d_net_ascii_is_digit(_line[1])) ||
+         (!d_net_ascii_is_digit(_line[2])) )
     {
         return D_SMTP_ERROR_PROTOCOL;
     }
@@ -588,6 +712,10 @@ d_smtp_reply_line(
     return cursor;
 }
 
+/*
+d_smtp_code_is_positive
+  A range test on the code: 2yz.
+*/
 bool
 d_smtp_code_is_positive(
     unsigned int _code
@@ -597,6 +725,10 @@ d_smtp_code_is_positive(
              (_code <= 299u) );
 }
 
+/*
+d_smtp_code_is_intermediate
+  A range test on the code: 3yz.
+*/
 bool
 d_smtp_code_is_intermediate(
     unsigned int _code
@@ -606,6 +738,10 @@ d_smtp_code_is_intermediate(
              (_code <= 399u) );
 }
 
+/*
+d_smtp_code_is_transient
+  A range test on the code: 4yz.
+*/
 bool
 d_smtp_code_is_transient(
     unsigned int _code
@@ -615,6 +751,10 @@ d_smtp_code_is_transient(
              (_code <= 499u) );
 }
 
+/*
+d_smtp_code_is_permanent
+  A range test on the code: 5yz.
+*/
 bool
 d_smtp_code_is_permanent(
     unsigned int _code
@@ -665,6 +805,43 @@ d_internal_smtp_reply_head(
 }
 
 /*
+d_internal_smtp_reply_append
+  Appends one reply line: its head, its text, and CRLF. A head of size 0, one
+d_internal_smtp_reply_head could not write, makes the reply invalid.
+*/
+static enum d_smtp_error
+d_internal_smtp_reply_append(
+    struct d_smtp_buffer* _buffer,
+    const char*           _head,
+    size_t                _head_size,
+    const char*           _text,
+    size_t                _length
+)
+{
+    enum d_smtp_error result = (_head_size > 0)
+                               ? d_smtp_buffer_append(_buffer,
+                                                      _head,
+                                                      _head_size)
+                               : D_SMTP_ERROR_INVALID_ARGUMENT;
+
+    if (result == D_SMTP_OK)
+    {
+        result = d_smtp_buffer_append(_buffer,
+                                      _text,
+                                      _length);
+    }
+
+    if (result == D_SMTP_OK)
+    {
+        result = d_smtp_buffer_append(_buffer,
+                                      "\r\n",
+                                      2);
+    }
+
+    return result;
+}
+
+/*
 d_smtp_reply_format
   Emits one reply line per '\n'-separated line of text. Any failure rolls the
 buffer back to its length on entry, so callers never send half a reply.
@@ -682,9 +859,10 @@ d_smtp_reply_format(
          (!_text)                 ||
          (_code < 200u)           ||
          (_code > 599u)           ||
-         (strchr(_text, '\r')) )
+         (strchr(_text,
+                 '\r')) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     const size_t      saved  = _buffer->length;
@@ -694,33 +872,21 @@ d_smtp_reply_format(
     // one reply line per text line; all but the last carry a hyphen
     while (result == D_SMTP_OK)
     {
-        const char*  feed   = strchr(cursor, '\n');
+        const char*  feed   = strchr(cursor,
+                                     '\n');
         const size_t length = (feed) ? (size_t)(feed - cursor) : strlen(cursor);
-        char         head[64];
+        char         head[64];  // filled before it is read
         const size_t size   = d_internal_smtp_reply_head(head,
                                                          sizeof(head),
                                                          _code,
                                                          (feed) ? '-' : ' ',
                                                          _status);
 
-        result = (size > 0) ? d_smtp_buffer_append(_buffer,
-                                                   head,
-                                                   size)
-                            : D_SMTP_ERROR_INVALID;
-
-        if (result == D_SMTP_OK)
-        {
-            result = d_smtp_buffer_append(_buffer,
-                                          cursor,
-                                          length);
-        }
-
-        if (result == D_SMTP_OK)
-        {
-            result = d_smtp_buffer_append(_buffer,
-                                          "\r\n",
-                                          2);
-        }
+        result = d_internal_smtp_reply_append(_buffer,
+                                              head,
+                                              size,
+                                              cursor,
+                                              length);
 
         // the last line has been written
         if (!feed)
@@ -745,6 +911,11 @@ d_smtp_reply_format(
     return result;
 }
 
+/*
+d_smtp_capabilities_clear
+  Back to what a server that never said EHLO offers: no extensions,
+no mechanisms, no size limit.
+*/
 void
 d_smtp_capabilities_clear(
     struct d_smtp_capabilities* _capabilities
@@ -780,7 +951,7 @@ d_internal_smtp_decimal(
     for (size_t i = 0; i < _length; ++i)
     {
         // the number ends at the first non-digit
-        if (!d_internal_smtp_is_digit(_text[i]))
+        if (!d_net_ascii_is_digit(_text[i]))
         {
             break;
         }
@@ -903,7 +1074,7 @@ d_smtp_capabilities_parse(
          (!_reply->complete)   ||
          (_reply->code != 250u) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     d_smtp_capabilities_clear(_capabilities);
@@ -930,6 +1101,11 @@ d_smtp_capabilities_parse(
     return D_SMTP_OK;
 }
 
+/*
+d_smtp_auth_name
+  A linear search of the mechanism table, which is short; a value it
+does not hold gives NULL.
+*/
 const char*
 d_smtp_auth_name(
     enum d_smtp_auth _mechanism
@@ -947,6 +1123,12 @@ d_smtp_auth_name(
     return NULL;
 }
 
+/*
+d_smtp_auth_from_name
+  The table lookup d_smtp_auth_name() uses, the other way: matched
+case-insensitively over the given length, D_SMTP_AUTH_NONE when no name
+matches.
+*/
 enum d_smtp_auth
 d_smtp_auth_from_name(
     const char* _name,
@@ -1071,9 +1253,10 @@ d_internal_smtp_is_atext(
         return true;
     }
 
-    return ( (d_internal_smtp_is_alnum(_character)) ||
+    return ( (d_net_ascii_is_alnum(_character)) ||
              ( (octet != 0) &&
-               (strchr(ATEXT_SPECIALS, octet) != NULL) ) );
+               (strchr(ATEXT_SPECIALS,
+                       octet) != NULL) ) );
 }
 
 /*
@@ -1167,7 +1350,8 @@ d_internal_smtp_local_part(
 
             atom = 0;
         }
-        else if (d_internal_smtp_is_atext(_text[position], _allow_utf8))
+        else if (d_internal_smtp_is_atext(_text[position],
+                                          _allow_utf8))
         {
             ++atom;
         }
@@ -1200,9 +1384,9 @@ d_internal_smtp_ipv4_literal(
         size_t       digits = 0;
         unsigned int value  = 0;
 
-        while ( (position < _length)                        &&
-                (digits < 3)                                &&
-                (d_internal_smtp_is_digit(_text[position])) )
+        while ( (position < _length)                    &&
+                (digits < 3)                            &&
+                (d_net_ascii_is_digit(_text[position])) )
         {
             value = (value * 10u) + (unsigned int)(_text[position] - '0');
             ++position;
@@ -1250,22 +1434,23 @@ d_internal_smtp_address_literal(
         return false;
     }
 
-    const char*  inner  = _text + 1;
-    const size_t length = _length - 2;
+    const char*              inner   = _text + 1;
+    const size_t             length  = _length - 2;
+    const struct d_pack_text literal = { inner,
+                                         length };
 
     // IPv6 literals carry a tag
     if ( (length > 5) &&
-         (d_internal_smtp_match(inner, 5, "IPv6:")) )
+         (d_net_ascii_istarts(literal,
+                              "IPv6:")) )
     {
+        // after it, hex digits in either case, ':' and '.' only
         for (size_t i = 5; i < length; ++i)
         {
-            const char lower = d_internal_smtp_lower(inner[i]);
-
-            if ( (!d_internal_smtp_is_digit(lower)) &&
-                 ( (lower < 'a') ||
-                   (lower > 'f') ) &&
-                 (lower != ':') &&
-                 (lower != '.') )
+            // any other character refuses the literal
+            if ( (!d_net_hex_is_digit(inner[i])) &&
+                 (inner[i] != ':')               &&
+                 (inner[i] != '.') )
             {
                 return false;
             }
@@ -1278,6 +1463,14 @@ d_internal_smtp_address_literal(
                                         length);
 }
 
+/*
+d_smtp_domain_is_valid
+  An address literal goes to its own parser. Otherwise the name is
+read in one pass as labels of 1 to 63 characters -- letters, digits, and
+hyphens neither leading nor trailing -- joined by single dots; with UTF-8
+allowed, bytes from 0x80 count as letters once the whole name has been
+checked as valid UTF-8.
+*/
 bool
 d_smtp_domain_is_valid(
     const char* _domain,
@@ -1300,7 +1493,8 @@ d_smtp_domain_is_valid(
     }
 
     if ( (_allow_utf8) &&
-         (!d_internal_smtp_utf8_valid(_domain, _length)) )
+         (!d_internal_smtp_utf8_valid(_domain,
+                                      _length)) )
     {
         return false;
     }
@@ -1325,9 +1519,9 @@ d_smtp_domain_is_valid(
             continue;
         }
 
-        const bool allowed = ( (d_internal_smtp_is_alnum(character)) ||
+        const bool allowed = ( (d_net_ascii_is_alnum(character)) ||
                                ( (character == '-') &&
-                                 (label > 0) ) ||
+                                 (label > 0) )                   ||
                                ( (_allow_utf8) &&
                                  ((unsigned char)character >= 0x80u) ) );
 
@@ -1342,6 +1536,12 @@ d_smtp_domain_is_valid(
              (_domain[_length - 1] != '-') );
 }
 
+/*
+d_smtp_address_is_valid
+  The local-part is measured first, by its own grammar; then it must
+be followed by "@" and a domain that d_smtp_domain_is_valid() accepts.
+The path's limit leaves room for the angle brackets.
+*/
 bool
 d_smtp_address_is_valid(
     const char* _address,
@@ -1358,7 +1558,8 @@ d_smtp_address_is_valid(
     }
 
     if ( (_allow_utf8) &&
-         (!d_internal_smtp_utf8_valid(_address, _length)) )
+         (!d_internal_smtp_utf8_valid(_address,
+                                      _length)) )
     {
         return false;
     }
@@ -1381,51 +1582,6 @@ d_smtp_address_is_valid(
                                   _allow_utf8);
 }
 
-bool
-d_smtp_text_is_safe(
-    const char* _text,
-    size_t      _length
-)
-{
-    // parameter validation first
-    if (!_text)
-    {
-        return false;
-    }
-
-    // CR and LF would end the command early; NUL would truncate it
-    for (size_t i = 0; i < _length; ++i)
-    {
-        if ( (_text[i] == '\r') ||
-             (_text[i] == '\n') ||
-             (_text[i] == '\0') )
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool
-d_smtp_keyword_is(
-    const char* _text,
-    size_t      _length,
-    const char* _keyword
-)
-{
-    // parameter validation first
-    if ( (!_text) ||
-         (!_keyword) )
-    {
-        return false;
-    }
-
-    return d_internal_smtp_match(_text,
-                                 _length,
-                                 _keyword);
-}
-
 /*
 d_smtp_command_parse
   The verb runs to the first space; the argument is the rest of the line with
@@ -1442,7 +1598,7 @@ d_smtp_command_parse(
     if ( (!_line) ||
          (!_command) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     size_t verb = 0;
@@ -1520,6 +1676,84 @@ d_internal_smtp_path_end(
     return _length;
 }
 
+/*
+d_internal_smtp_path_route
+  Moves the address's start past a source route ("@a,@b:"), which RFC 5321
+section 4.1.1.3 says to accept and ignore, through its colon. False when a
+route has no colon before the closing bracket.
+*/
+static bool
+d_internal_smtp_path_route(
+    const char* _argument,
+    size_t      _close,
+    size_t*     _address
+)
+{
+    // only an address that opens with '@' carries a route
+    if ( (*_address >= _close) ||
+         (_argument[*_address] != '@') )
+    {
+        return true;
+    }
+
+    const char* colon = memchr(_argument + *_address,
+                               ':',
+                               _close - *_address);
+
+    if (!colon)
+    {
+        return false;
+    }
+
+    *_address = (size_t)(colon - _argument) + 1;
+
+    return true;
+}
+
+/*
+d_internal_smtp_path_store
+  Fills the path from the brackets' contents and what follows them: the
+parameters, separated from the path by at least one space, or none.
+*/
+static enum d_smtp_error
+d_internal_smtp_path_store(
+    const char*         _argument,
+    size_t              _length,
+    size_t              _address,
+    size_t              _close,
+    struct d_smtp_path* _path
+)
+{
+    size_t parameters = _close + 1;
+
+    // parameters are separated from the path by at least one space
+    if ( (parameters < _length) &&
+         (_argument[parameters] != ' ') )
+    {
+        return D_SMTP_ERROR_PROTOCOL;
+    }
+
+    while ( (parameters < _length) &&
+            (_argument[parameters] == ' ') )
+    {
+        ++parameters;
+    }
+
+    _path->address           = _argument + _address;
+    _path->address_length    = _close - _address;
+    _path->parameters        = (parameters < _length) ? _argument + parameters
+                                                      : NULL;
+    _path->parameters_length = _length - parameters;
+
+    return D_SMTP_OK;
+}
+
+/*
+d_smtp_path_parse
+  The keyword, a space some clients put after it, then the bracketed path:
+its end is the first '>' outside a quoted local part, and a source route
+inside it is skipped. What follows the brackets is the parameters.
+*/
 enum d_smtp_error
 d_smtp_path_parse(
     const char*         _argument,
@@ -1533,14 +1767,16 @@ d_smtp_path_parse(
          (!_keyword)  ||
          (!_path) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const size_t keyword = strlen(_keyword);
+    const struct d_pack_text argument = { _argument,
+                                          _length };
+    const size_t             keyword  = strlen(_keyword);
 
     // "FROM:" or "TO:", in any case, opens the argument
-    if ( (_length < keyword) ||
-         (!d_internal_smtp_match(_argument, keyword, _keyword)) )
+    if (!d_net_ascii_istarts(argument,
+                             _keyword))
     {
         return D_SMTP_ERROR_PROTOCOL;
     }
@@ -1560,57 +1796,32 @@ d_smtp_path_parse(
         return D_SMTP_ERROR_PROTOCOL;
     }
 
-    const size_t close = d_internal_smtp_path_end(_argument,
-                                                  _length,
-                                                  open + 1);
+    const size_t close   = d_internal_smtp_path_end(_argument,
+                                                    _length,
+                                                    open + 1);
+    size_t       address = open + 1;
 
-    if (close >= _length)
+    if ( (close >= _length) ||
+         (!d_internal_smtp_path_route(_argument,
+                                      close,
+                                      &address)) )
     {
         return D_SMTP_ERROR_PROTOCOL;
     }
 
-    size_t address = open + 1;
-
-    // a source route is skipped through its colon (RFC 5321 4.1.1.3)
-    if ( (address < close) &&
-         (_argument[address] == '@') )
-    {
-        const char* colon = memchr(_argument + address,
-                                   ':',
-                                   close - address);
-
-        if (!colon)
-        {
-            return D_SMTP_ERROR_PROTOCOL;
-        }
-
-        address = (size_t)(colon - _argument) + 1;
-    }
-
-    size_t parameters = close + 1;
-
-    // parameters are separated from the path by at least one space
-    if ( (parameters < _length) &&
-         (_argument[parameters] != ' ') )
-    {
-        return D_SMTP_ERROR_PROTOCOL;
-    }
-
-    while ( (parameters < _length) &&
-            (_argument[parameters] == ' ') )
-    {
-        ++parameters;
-    }
-
-    _path->address           = _argument + address;
-    _path->address_length    = close - address;
-    _path->parameters        = (parameters < _length) ? _argument + parameters
-                                                      : NULL;
-    _path->parameters_length = _length - parameters;
-
-    return D_SMTP_OK;
+    return d_internal_smtp_path_store(_argument,
+                                      _length,
+                                      address,
+                                      close,
+                                      _path);
 }
 
+/*
+d_smtp_parameter_next
+  Skips spaces, then takes the next space-delimited word; its first
+"=", if any, splits keyword from value. The cursor stops after the word, so
+repeated calls walk the list; nothing is copied.
+*/
 bool
 d_smtp_parameter_next(
     const char**             _cursor,
@@ -1664,24 +1875,17 @@ d_smtp_parameter_next(
     return true;
 }
 
-size_t
-d_smtp_base64_size(
-    size_t _length
-)
-{
-    return ((_length + 2u) / 3u) * 4u;
-}
-
 /*
-d_smtp_base64_encode
-  Encodes whole three-byte groups directly, then pads the one- or two-byte
-tail with '='.
+d_smtp_buffer_append_base64
+  The codec writes the encoding straight into the buffer's free space, its NUL
+included; a refusal writes only a NUL over the one already there, so the
+buffer is as it was.
 */
 enum d_smtp_error
-d_smtp_base64_encode(
+d_smtp_buffer_append_base64(
+    struct d_smtp_buffer* _buffer,
     const void*           _data,
-    size_t                _length,
-    struct d_smtp_buffer* _buffer
+    size_t                _length
 )
 {
     // parameter validation first
@@ -1689,138 +1893,97 @@ d_smtp_base64_encode(
          ( (!_data) &&
            (_length > 0) ) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const size_t size = d_smtp_base64_size(_length);
-
-    if ( (_buffer->capacity == 0) ||
-         (size >= _buffer->capacity - _buffer->length) )
+    // a buffer without storage has no room even for the NUL
+    if (_buffer->capacity == 0)
     {
-        return D_SMTP_ERROR_TOO_LONG;
+        return D_SMTP_ERROR_LINE_TOO_LONG;
     }
 
-    const unsigned char* input  = _data;
-    char*                output = _buffer->data + _buffer->length;
+    const struct d_pack_bytes    data    = { _data,
+                                             _length };
+    size_t                       written = 0;
+    const enum d_net_codec_error status  =
+        d_net_base64_encode(data,
+                            D_NET_BASE64_STANDARD,
+                            _buffer->data + _buffer->length,
+                            _buffer->capacity - _buffer->length,
+                            &written);
 
-    for (size_t i = 0; i < _length; i += 3)
+    // a success grows the buffer; a refusal says why
+    if (status == D_NET_CODEC_OK)
     {
-        const size_t  left  = _length - i;
-        const unsigned long group =
-            ((unsigned long)input[i] << 16) |
-            ((left > 1) ? ((unsigned long)input[i + 1] << 8) : 0ul) |
-            ((left > 2) ? (unsigned long)input[i + 2] : 0ul);
+        _buffer->length += written;
 
-        *output++ = BASE64_ALPHABET[(group >> 18) & 0x3Fu];
-        *output++ = BASE64_ALPHABET[(group >> 12) & 0x3Fu];
-        *output++ = (left > 1) ? BASE64_ALPHABET[(group >> 6) & 0x3Fu] : '=';
-        *output++ = (left > 2) ? BASE64_ALPHABET[group & 0x3Fu] : '=';
+        return D_SMTP_OK;
     }
 
-    _buffer->length               += size;
-    _buffer->data[_buffer->length] = '\0';
-
-    return D_SMTP_OK;
+    return (status == D_NET_CODEC_ERROR_BUFFER_TOO_SMALL)
+               ? D_SMTP_ERROR_LINE_TOO_LONG
+               : D_SMTP_ERROR_INVALID_ARGUMENT;
 }
 
 /*
-d_internal_smtp_base64_value
-  Value of one base64 character, or -1.
-*/
-static int
-d_internal_smtp_base64_value(
-    char _character
-)
-{
-    const char* found = ( (_character != '\0') &&
-                          (_character != '=') )
-                        ? strchr(BASE64_ALPHABET, _character)
-                        : NULL;
-
-    return (found) ? (int)(found - BASE64_ALPHABET) : -1;
-}
-
-/*
-d_smtp_base64_decode
-  Validates length and padding up front, then decodes in groups of four;
-padding may appear only as the last one or two characters.
+d_smtp_buffer_append_from_base64
+  Decodes into the free space less the byte held for the NUL; the codec judges
+the whole text before writing, so a refusal leaves the buffer untouched.
 */
 enum d_smtp_error
-d_smtp_base64_decode(
+d_smtp_buffer_append_from_base64(
+    struct d_smtp_buffer* _buffer,
     const char*           _text,
-    size_t                _length,
-    struct d_smtp_buffer* _buffer
+    size_t                _length
 )
 {
     // parameter validation first
     if ( (!_text) ||
          (!_buffer) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
-    if (_length % 4u != 0)
+    // a buffer without storage has no room even for the NUL
+    if (_buffer->capacity == 0)
+    {
+        return D_SMTP_ERROR_LINE_TOO_LONG;
+    }
+
+    const struct d_pack_text     text    = { _text,
+                                             _length };
+    size_t                       decoded = 0;
+    const enum d_net_codec_error status  =
+        d_net_base64_decode(text,
+                            D_NET_BASE64_STANDARD,
+                            _buffer->data + _buffer->length,
+                            _buffer->capacity - _buffer->length - 1u,
+                            &decoded);
+
+    // a success grows the buffer and ends it with a NUL
+    if (status == D_NET_CODEC_OK)
+    {
+        _buffer->length               += decoded;
+        _buffer->data[_buffer->length] = '\0';
+
+        return D_SMTP_OK;
+    }
+
+    // text that is not base64 is the peer's fault
+    if (status == D_NET_CODEC_ERROR_MALFORMED)
     {
         return D_SMTP_ERROR_PROTOCOL;
     }
 
-    // padding is one or two trailing '='; any other '=' is refused below
-    const bool   padded  = ( (_length >= 4) &&
-                             (_text[_length - 1] == '=') );
-    const size_t padding = ( (padded) &&
-                             (_text[_length - 2] == '=') ) ? 2
-                         : (padded) ? 1
-                         : 0;
-    const size_t size    = ((_length / 4u) * 3u) - padding;
-
-    if ( (_buffer->capacity == 0) ||
-         (size >= _buffer->capacity - _buffer->length) )
-    {
-        return D_SMTP_ERROR_TOO_LONG;
-    }
-
-    char* output = _buffer->data + _buffer->length;
-
-    for (size_t i = 0; i < _length; i += 4)
-    {
-        const bool    last    = (i + 4 == _length);
-        const size_t  data    = (last) ? 4 - padding : 4;
-        unsigned long group   = 0;
-
-        // characters beyond `data` are the padding already counted
-        for (size_t j = 0; j < 4; ++j)
-        {
-            const int value = (j < data)
-                              ? d_internal_smtp_base64_value(_text[i + j])
-                              : 0;
-
-            if (value < 0)
-            {
-                return D_SMTP_ERROR_PROTOCOL;
-            }
-
-            group = (group << 6) | (unsigned long)value;
-        }
-
-        *output++ = (char)((group >> 16) & 0xFFu);
-
-        if (data > 2)
-        {
-            *output++ = (char)((group >> 8) & 0xFFu);
-        }
-
-        if (data > 3)
-        {
-            *output++ = (char)(group & 0xFFu);
-        }
-    }
-
-    _buffer->length               += size;
-    _buffer->data[_buffer->length] = '\0';
-
-    return D_SMTP_OK;
+    return (status == D_NET_CODEC_ERROR_BUFFER_TOO_SMALL)
+               ? D_SMTP_ERROR_LINE_TOO_LONG
+               : D_SMTP_ERROR_INVALID_ARGUMENT;
 }
 
+/*
+d_smtp_data_encoder_init
+  A new message starts at the beginning of a line, after no CR.
+*/
 void
 d_smtp_data_encoder_init(
     struct d_smtp_data_encoder* _encoder
@@ -1893,6 +2056,12 @@ d_internal_smtp_encode_byte(
     return;
 }
 
+/*
+d_smtp_data_encode
+  Encodes byte by byte while the buffer has room for the two bytes a
+byte can become plus the terminator; what is left is for the next call,
+and the encoder's state carries line starts across calls.
+*/
 size_t
 d_smtp_data_encode(
     struct d_smtp_data_encoder* _encoder,
@@ -1927,6 +2096,12 @@ d_smtp_data_encode(
     return consumed;
 }
 
+/*
+d_smtp_data_finish
+  The end-of-data marker needs a line start: ".\r\n" when the message
+ended at one, "\r\n.\r\n" otherwise. The encoder is reset only once the
+marker fits.
+*/
 enum d_smtp_error
 d_smtp_data_finish(
     struct d_smtp_data_encoder* _encoder,
@@ -1937,7 +2112,7 @@ d_smtp_data_finish(
     if ( (!_encoder) ||
          (!_buffer) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     // an unterminated last line gets its CRLF before the lone dot
@@ -1953,6 +2128,11 @@ d_smtp_data_finish(
     return result;
 }
 
+/*
+d_smtp_data_unstuff
+  A lone "." ends the data; otherwise one leading dot is the sender's
+stuffing, dropped from the payload, which points into the line.
+*/
 bool
 d_smtp_data_unstuff(
     const char*  _line,

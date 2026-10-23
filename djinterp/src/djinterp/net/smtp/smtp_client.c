@@ -2,38 +2,40 @@
 * djinterp [net]                                                   smtp_client.c
 *
 * djinterp SMTP client -- implementation.
-*   The client state machine over a d_smtp_transport. Command lines are
-* assembled from validated parts into fixed buffers, so nothing a caller
-* passes can smuggle CR or LF onto the wire; SASL buffers holding secrets are
-* wiped through volatile stores once used.
+*   The client state machine over a net.h connection, with TLS from the SSL
+* kernel and connections from tcp.h. Command lines are assembled from
+* validated parts into fixed buffers, so nothing a caller passes can smuggle
+* CR or LF onto the wire; SASL buffers holding secrets are wiped through
+* volatile stores once used.
 *
 *
 * path:      /src/djinterp/net/smtp/smtp_client.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.16
 *******************************************************************************/
-#include "../../../../inc/djinterp/net/smtp/smtp_client.h"
+#include "../../../../inc/djinterp/net/smtp/smtp_client.h"  // corresponding header
 // std
-#include <limits.h>   // INT_MAX
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
-#include <string.h>   // memchr, memcpy, memset, strlen
+#include <stdio.h>    // snprintf
+#include <string.h>   // memchr, memcpy, memset, strchr, strlen
 // djinterp
-#include "../../../../inc/djinterp/net/smtp/smtp_common.h"          // replies
-#include "../../../../inc/djinterp/net/smtp/smtp_transport.h"       // io
-#include "../../../../inc/djinterp/env/net/smtp/env_smtp.h"         // flags
-
-#if D_ENV_SMTP_HAS_CRAM_MD5
-    // openssl
-    #include <openssl/evp.h>   // EVP_md5
-    #include <openssl/hmac.h>  // HMAC
-#endif
+#include "../../../../inc/djinterp/c/util/sink_common.h"      // d_pack_bytes, d_pack_text
+#include "../../../../inc/djinterp/net/codec/codec_digest.h"  // d_net_hmac, d_net_wipe
+#include "../../../../inc/djinterp/net/codec/codec_hex.h"     // d_net_hex_encode
+#include "../../../../inc/djinterp/net/net_common.h"          // connections
+#include "../../../../inc/djinterp/net/smtp/smtp_common.h"    // replies
+#include "../../../../inc/djinterp/net/smtp/smtp_reader.h"    // d_smtp_reader
+#include "../../../../inc/djinterp/net/ssl/ssl.h"             // TLS sessions
+#include "../../../../inc/djinterp/net/tcp/tcp.h"             // connecting
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t
 
 
 // D_INTERNAL_SMTP_CHUNK
 //   macro: bytes of encoded message data, or of pipelined commands, gathered
-// per transport write.
+// per write.
 #define D_INTERNAL_SMTP_CHUNK     8192u
 
 // D_INTERNAL_SMTP_SASL_MAX
@@ -44,46 +46,75 @@
 //   macro: the longest message line, without its CRLF (RFC 5321 4.5.3.1.6).
 #define D_INTERNAL_SMTP_DATA_LINE 998u
 
-// d_internal_smtp_part
-//   struct: one piece of a line under assembly.
-struct d_internal_smtp_part
+// d_internal_smtp_pipeline
+//   struct: what the replies to a pipelined batch said: whether MAIL was
+// accepted, how many recipients were, and the refusal to keep for the
+// caller.
+struct d_internal_smtp_pipeline
 {
-    const char* data;
-    size_t      length;
+    bool                mail_ok;
+    size_t              accepted;
+    struct d_smtp_reply cause;
 };
 
-
 /*
-d_internal_smtp_wipe
-  Zeroes memory through volatile stores, which the compiler may not elide the
-way it may elide a memset() of a buffer that is about to go out of scope.
+d_internal_smtp_judge
+  What a failed read or write of the session's stream is: judged by the TLS
+session beneath it, when this client made one and it failed, whose status
+is then kept in `tls_status`.
 */
-static void
-d_internal_smtp_wipe(
-    void*  _data,
-    size_t _length
+static enum d_smtp_error
+d_internal_smtp_judge(
+    struct d_smtp_client* _client,
+    enum d_smtp_error     _result
 )
 {
-    volatile unsigned char* cursor = _data;
+    return d_smtp_error_from_tls((_client->has_tls) ? &_client->tls
+                                                    : NULL,
+                                 _result,
+                                 &_client->tls_status,
+                                 &_client->reader.net_error);
+}
 
-    for (size_t i = 0; i < _length; ++i)
+/*
+d_internal_smtp_send
+  Writes every byte through the stream the session reads, keeping what the
+connection reported when it fails, as the reader does for reads.
+*/
+static enum d_smtp_error
+d_internal_smtp_send(
+    struct d_smtp_client* _client,
+    const void*           _data,
+    size_t                _length
+)
+{
+    const enum d_net_error written =
+        d_net_write_all(_client->reader.connection,
+                        _data,
+                        _length,
+                        NULL);
+
+    if (written == D_NET_OK)
     {
-        cursor[i] = 0;
+        return D_SMTP_OK;
     }
 
-    return;
+    _client->reader.net_error = written;
+
+    return d_internal_smtp_judge(_client,
+                                 d_smtp_error_from_net(written));
 }
 
 /*
 d_internal_smtp_compose
-  Appends every part or none: on failure the buffer is rolled back to its
-length on entry.
+  Appends every part, each a span, or none: on failure the buffer is rolled
+back to its length on entry.
 */
 static enum d_smtp_error
 d_internal_smtp_compose(
-    struct d_smtp_buffer*              _buffer,
-    const struct d_internal_smtp_part* _parts,
-    size_t                             _count
+    struct d_smtp_buffer*     _buffer,
+    const struct d_pack_text* _parts,
+    size_t                    _count
 )
 {
     const size_t saved = _buffer->length;
@@ -131,9 +162,10 @@ d_internal_smtp_read_reply(
                                                              &length);
 
         if ( (outcome != D_SMTP_OK) &&
-             (outcome != D_SMTP_ERROR_TOO_LONG) )
+             (outcome != D_SMTP_ERROR_LINE_TOO_LONG) )
         {
-            return outcome;
+            return d_internal_smtp_judge(_client,
+                                         outcome);
         }
 
         const enum d_smtp_error parsed = d_smtp_reply_feed(&_client->reply,
@@ -145,7 +177,7 @@ d_internal_smtp_read_reply(
             return parsed;
         }
 
-        if (outcome == D_SMTP_ERROR_TOO_LONG)
+        if (outcome == D_SMTP_ERROR_LINE_TOO_LONG)
         {
             _client->reply.truncated = true;
         }
@@ -168,10 +200,9 @@ d_internal_smtp_exchange(
     unsigned int          _class
 )
 {
-    const enum d_smtp_error sent = d_smtp_transport_write_all(
-                                       &_client->reader.transport,
-                                       _line,
-                                       _length);
+    const enum d_smtp_error sent = d_internal_smtp_send(_client,
+                                                        _line,
+                                                        _length);
 
     if (sent != D_SMTP_OK)
     {
@@ -206,6 +237,11 @@ d_internal_smtp_command(
                                     _class);
 }
 
+/*
+d_smtp_client_options_init
+  Every field to the documented default: STARTTLS, no TLS context,
+the connect and I/O timeouts of smtp_client.h, AUTH in the clear refused.
+*/
 void
 d_smtp_client_options_init(
     struct d_smtp_client_options* _options
@@ -220,15 +256,22 @@ d_smtp_client_options_init(
     _options->host                = NULL;
     _options->port                = 0;
     _options->security            = D_SMTP_SECURITY_STARTTLS;
+    _options->tls                 = NULL;
+    _options->server_name         = NULL;
     _options->helo_domain         = NULL;
     _options->connect_timeout_ms  = D_SMTP_CLIENT_CONNECT_TIMEOUT_MS;
     _options->io_timeout_ms       = D_SMTP_CLIENT_IO_TIMEOUT_MS;
     _options->allow_insecure_auth = false;
-    d_smtp_tls_options_init(&_options->tls);
 
     return;
 }
 
+/*
+d_smtp_client_init
+  Zeroes the whole client, then sets what zero does not mean: the
+reader with no connection, an unopened TCP connection, the closed state,
+and D_SSL_OK.
+*/
 void
 d_smtp_client_init(
     struct d_smtp_client* _client
@@ -243,26 +286,111 @@ d_smtp_client_init(
     memset(_client,
            0,
            sizeof(*_client));
-    d_smtp_socket_init(&_client->socket);
-    _client->state = D_SMTP_CLIENT_CLOSED;
+    d_smtp_reader_init(&_client->reader,
+                       NULL);
+    d_tcp_connection_init(&_client->tcp);
+    _client->state      = D_SMTP_CLIENT_CLOSED;
+    _client->tls_status = D_SSL_OK;
 
     return;
 }
 
+/*
+d_internal_smtp_set_helo
+  Validates and stores the identity announced in EHLO; NULL keeps the one
+already stored, which must then exist.
+*/
+static enum d_smtp_error
+d_internal_smtp_set_helo(
+    struct d_smtp_client* _client,
+    const char*           _domain
+)
+{
+    if (!_domain)
+    {
+        return (_client->helo[0] != '\0') ? D_SMTP_OK
+                                          : D_SMTP_ERROR_INVALID_ARGUMENT;
+    }
+
+    const size_t length = strlen(_domain);
+
+    if ( (length >= sizeof(_client->helo)) ||
+         (!d_smtp_domain_is_valid(_domain,
+                                  length,
+                                  false)) )
+    {
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
+    }
+
+    memcpy(_client->helo,
+           _domain,
+           length + 1u);
+
+    return D_SMTP_OK;
+}
+
+/*
+d_smtp_client_attach
+  d_smtp_client_attach_with() with the defaults and `_secure`.
+*/
 enum d_smtp_error
 d_smtp_client_attach(
-    struct d_smtp_client*          _client,
-    const struct d_smtp_transport* _transport,
-    bool                           _secure
+    struct d_smtp_client*    _client,
+    struct d_net_connection* _connection,
+    bool                     _secure
+)
+{
+    struct d_smtp_client_attach_options options = { .secure = false };
+
+    d_smtp_client_attach_options_init(&options);
+    options.secure = _secure;
+
+    return d_smtp_client_attach_with(_client,
+                                     _connection,
+                                     &options);
+}
+
+/*
+d_smtp_client_attach_options_init
+  The defaults are the refusals: nothing is taken as encrypted, and AUTH
+waits for TLS.
+*/
+void
+d_smtp_client_attach_options_init(
+    struct d_smtp_client_attach_options* _options
+)
+{
+    if (_options)
+    {
+        _options->secure              = false;
+        _options->helo_domain         = NULL;
+        _options->allow_insecure_auth = false;
+    }
+
+    return;
+}
+
+/*
+d_smtp_client_attach_with
+  The connection is borrowed: close leaves it to its owner. The identity is
+checked and kept before anything else changes, so a malformed one leaves
+the client as it was. What explained an earlier session's end -- its reply,
+its causes -- is forgotten here, where a new one starts, and so is an
+earlier session's leave to authenticate in the clear.
+*/
+enum d_smtp_error
+d_smtp_client_attach_with(
+    struct d_smtp_client*                      _client,
+    struct d_net_connection*                   _connection,
+    const struct d_smtp_client_attach_options* _options
 )
 {
     // parameter validation first
-    if ( (!_client)           ||
-         (!_transport)        ||
-         (!_transport->read)  ||
-         (!_transport->write) )
+    if ( (!_client)  ||
+         (!_options) ||
+         (!d_net_connection_is_complete(_connection)) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if (_client->state != D_SMTP_CLIENT_CLOSED)
@@ -270,19 +398,36 @@ d_smtp_client_attach(
         return D_SMTP_ERROR_STATE;
     }
 
+    // an identity given now is the one hello() reuses
+    if ( (_options->helo_domain) &&
+         (d_internal_smtp_set_helo(_client,
+                                   _options->helo_domain) != D_SMTP_OK) )
+    {
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
+    }
+
+    _client->connection = _connection;
     d_smtp_reader_init(&_client->reader,
-                       _transport);
+                       _connection);
     d_smtp_capabilities_clear(&_client->capabilities);
     d_smtp_reply_clear(&_client->reply);
 
-    _client->state         = D_SMTP_CLIENT_GREETING;
-    _client->secure        = _secure;
-    _client->authenticated = false;
-    _client->utf8          = false;
+    _client->state               = D_SMTP_CLIENT_GREETING;
+    _client->tls_status          = D_SSL_OK;
+    _client->secure              = _options->secure;
+    _client->allow_insecure_auth = _options->allow_insecure_auth;
+    _client->authenticated       = false;
+    _client->utf8                = false;
 
     return D_SMTP_OK;
 }
 
+/*
+d_smtp_client_greeting
+  Reads one reply. Only 220 opens a session; 554, or any other code,
+is the server refusing it, D_SMTP_ERROR_REJECTED, and the client stays
+where it was.
+*/
 enum d_smtp_error
 d_smtp_client_greeting(
     struct d_smtp_client* _client
@@ -291,7 +436,7 @@ d_smtp_client_greeting(
     // parameter validation first
     if (!_client)
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if (_client->state != D_SMTP_CLIENT_GREETING)
@@ -318,37 +463,6 @@ d_smtp_client_greeting(
 }
 
 /*
-d_internal_smtp_set_helo
-  Validates and stores the identity announced in EHLO; NULL keeps the one
-already stored, which must then exist.
-*/
-static enum d_smtp_error
-d_internal_smtp_set_helo(
-    struct d_smtp_client* _client,
-    const char*           _domain
-)
-{
-    if (!_domain)
-    {
-        return (_client->helo[0] != '\0') ? D_SMTP_OK : D_SMTP_ERROR_INVALID;
-    }
-
-    const size_t length = strlen(_domain);
-
-    if ( (length >= sizeof(_client->helo)) ||
-         (!d_smtp_domain_is_valid(_domain, length, false)) )
-    {
-        return D_SMTP_ERROR_INVALID;
-    }
-
-    memcpy(_client->helo,
-           _domain,
-           length + 1u);
-
-    return D_SMTP_OK;
-}
-
-/*
 d_internal_smtp_greet
   One EHLO or HELO exchange. EHLO's reply lists the extensions; HELO's
 carries none, so the capabilities are cleared.
@@ -363,7 +477,7 @@ d_internal_smtp_greet(
     struct d_smtp_buffer              line    = { .data     = storage,
                                                   .capacity = sizeof(storage),
                                                   .length   = 0 };
-    const struct d_internal_smtp_part parts[] =
+    const struct d_pack_text parts[] =
     {
         { (_extended) ? "EHLO " : "HELO ", 5 },
         { _client->helo,                   strlen(_client->helo) },
@@ -402,6 +516,13 @@ d_internal_smtp_greet(
     return result;
 }
 
+/*
+d_smtp_client_hello
+  Keeps the identity first, then sends EHLO. A server that does not
+know EHLO answers 500 or 502 (RFC 5321 section 3.2), and HELO is tried
+once; any other refusal stands. A client already READY says hello again,
+as after STARTTLS.
+*/
 enum d_smtp_error
 d_smtp_client_hello(
     struct d_smtp_client* _client,
@@ -411,7 +532,7 @@ d_smtp_client_hello(
     // parameter validation first
     if (!_client)
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if ( (_client->state != D_SMTP_CLIENT_HELLO) &&
@@ -443,17 +564,153 @@ d_smtp_client_hello(
     return result;
 }
 
+/*
+d_internal_smtp_tls_usable
+  Whether `_tls` and `_server_name` can make a client's TLS session: a
+context made, and made for a client, and a name the kernel can use -- one
+there must be when the context checks names. The name is checked here, so
+that a bad one is refused before anything is sent.
+*/
+static bool
+d_internal_smtp_tls_usable(
+    const struct d_ssl_context* _tls,
+    const char*                 _server_name
+)
+{
+    const struct d_pack_text name =
+    {
+        (_server_name) ? _server_name : "",
+        (_server_name) ? strlen(_server_name) : 0u
+    };
+
+    // a context, for a client
+    if ( (!_tls)         ||
+         (!_tls->engine) ||
+         (_tls->plan.role != D_SSL_ROLE_CLIENT) )
+    {
+        return false;
+    }
+
+    // no name, or one a TLS session can carry
+    if (name.length == 0u)
+    {
+        return (!_tls->plan.verify_hostname);
+    }
+
+    return ( (d_ssl_host_is_ip(name)) ||
+             (d_ssl_hostname_is_valid(name)) );
+}
+
+/*
+d_internal_smtp_injected
+  Whether plaintext arrived after the go-ahead: bytes the reader already
+holds, or bytes waiting in a connection that can count them. Either would be
+read as though TLS had protected it.
+*/
+static bool
+d_internal_smtp_injected(
+    const struct d_smtp_client* _client
+)
+{
+    size_t waiting = 0;
+
+    return ( (d_smtp_reader_pending(&_client->reader) > 0) ||
+             ( (d_net_connection_available(_client->connection,
+                                           &waiting)) &&
+               (waiting > 0) ) );
+}
+
+/*
+d_internal_smtp_unmade
+  What a TLS session the kernel would not make is: a lack of memory, or
+anything else the engine refused, since the arguments were checked first.
+*/
+static enum d_smtp_error
+d_internal_smtp_unmade(
+    enum d_ssl_error _status
+)
+{
+    return (_status == D_SSL_ERROR_OUT_OF_MEMORY) ? D_SMTP_ERROR_OUT_OF_MEMORY
+                                                  : D_SMTP_ERROR_TLS;
+}
+
+/*
+d_internal_smtp_secure
+  Makes TLS over the session's connection from `_tls`, a client naming
+`_server_name`, and runs its handshake. On success the reader reads the
+session's view. On failure the kernel's status is kept in `tls_status`, the
+connection's error in the reader, and a session made is kept, for its
+record of why, until close.
+*/
+static enum d_smtp_error
+d_internal_smtp_secure(
+    struct d_smtp_client*       _client,
+    const struct d_ssl_context* _tls,
+    const char*                 _server_name
+)
+{
+    const char* const        name   = (_server_name) ? _server_name : "";
+    const struct d_pack_text host   = { name,
+                                        strlen(name) };
+    enum d_ssl_error         status = d_ssl_session_init(&_client->tls,
+                                                         _tls,
+                                                         _client->connection,
+                                                         host);
+
+    // a session not made holds nothing to release
+    if (status != D_SSL_OK)
+    {
+        _client->tls_status = status;
+
+        return d_internal_smtp_unmade(status);
+    }
+
+    _client->has_tls = true;
+    status           = d_ssl_session_handshake(&_client->tls);
+
+    if (status != D_SSL_OK)
+    {
+        const enum d_net_error cause =
+            d_ssl_session_transport_error(&_client->tls);
+
+        _client->tls_status = status;
+
+        // the connection's own error is the cause beneath TLS
+        if (cause != D_NET_OK)
+        {
+            _client->reader.net_error = cause;
+        }
+
+        return d_smtp_error_from_ssl(status,
+                                     cause);
+    }
+
+    d_smtp_reader_init(&_client->reader,
+                       &_client->tls.base);
+    _client->secure = true;
+
+    return D_SMTP_OK;
+}
+
+/*
+d_smtp_client_starttls
+  Everything is checked before STARTTLS is sent. After the go-ahead the
+server awaits a handshake, so a failure from there on leaves nothing to say
+in plaintext, and the client is left to be closed.
+*/
 enum d_smtp_error
 d_smtp_client_starttls(
-    struct d_smtp_client*            _client,
-    const struct d_smtp_tls_options* _options
+    struct d_smtp_client*       _client,
+    const struct d_ssl_context* _tls,
+    const char*                 _server_name
 )
 {
     // parameter validation first
     if ( (!_client) ||
-         (!_options) )
+         (!d_internal_smtp_tls_usable(_tls,
+                                      _server_name)) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if ( (_client->state != D_SMTP_CLIENT_READY) ||
@@ -462,9 +719,7 @@ d_smtp_client_starttls(
         return D_SMTP_ERROR_STATE;
     }
 
-    if ( ((_client->capabilities.extensions &
-           D_SMTP_EXTENSION_STARTTLS) == 0u) ||
-         (!_client->reader.transport.starttls) )
+    if ((_client->capabilities.extensions & D_SMTP_EXTENSION_STARTTLS) == 0u)
     {
         return D_SMTP_ERROR_UNSUPPORTED;
     }
@@ -478,26 +733,23 @@ d_smtp_client_starttls(
         return result;
     }
 
-    // bytes already buffered arrived in plaintext after the 220 and would be
-    // read as though protected: a response-injection attempt
-    if (d_smtp_reader_pending(&_client->reader) > 0)
-    {
-        return D_SMTP_ERROR_PROTOCOL;
-    }
-
-    const struct d_smtp_transport* transport = &_client->reader.transport;
-
-    result = transport->starttls(transport->context,
-                                 _options);
+    // plaintext after the 220 would be read as though protected: a
+    // response-injection attempt
+    result = (d_internal_smtp_injected(_client))
+                 ? D_SMTP_ERROR_PROTOCOL
+                 : d_internal_smtp_secure(_client,
+                                          _tls,
+                                          _server_name);
 
     if (result != D_SMTP_OK)
     {
+        _client->state = D_SMTP_CLIENT_QUIT;
+
         return result;
     }
 
     // everything learnt before the handshake is discarded (RFC 3207 4.2)
-    _client->secure = true;
-    _client->state  = D_SMTP_CLIENT_HELLO;
+    _client->state = D_SMTP_CLIENT_HELLO;
     d_smtp_capabilities_clear(&_client->capabilities);
 
     return d_smtp_client_hello(_client,
@@ -539,9 +791,9 @@ d_internal_smtp_auth_respond(
 
     if (result == D_SMTP_OK)
     {
-        result = d_smtp_base64_encode(_data,
-                                      _length,
-                                      &line);
+        result = d_smtp_buffer_append_base64(&line,
+                                             _data,
+                                             _length);
     }
 
     if (result == D_SMTP_OK)
@@ -558,8 +810,8 @@ d_internal_smtp_auth_respond(
                                           _class);
     }
 
-    d_internal_smtp_wipe(storage,
-                         sizeof(storage));
+    d_net_wipe(storage,
+               sizeof(storage));
 
     return result;
 }
@@ -579,7 +831,7 @@ d_internal_smtp_auth_plain(
     struct d_smtp_buffer              message = { .data     = raw,
                                                   .capacity = sizeof(raw),
                                                   .length   = 0 };
-    const struct d_internal_smtp_part parts[] =
+    const struct d_pack_text parts[] =
     {
         { "",                   1 },
         { _credentials->user,   strlen(_credentials->user) },
@@ -599,8 +851,8 @@ d_internal_smtp_auth_plain(
                                               2u);
     }
 
-    d_internal_smtp_wipe(raw,
-                         sizeof(raw));
+    d_net_wipe(raw,
+               sizeof(raw));
 
     return d_internal_smtp_auth_result(result);
 }
@@ -640,13 +892,11 @@ d_internal_smtp_auth_login(
     return d_internal_smtp_auth_result(result);
 }
 
-#if D_ENV_SMTP_HAS_CRAM_MD5
-
 /*
 d_internal_smtp_cram_digest
-  HMAC-MD5 of the challenge keyed with the secret, as 32 lower-case hex
-digits (RFC 2195). A FIPS-restricted libcrypto may refuse MD5; that is
-reported as D_SMTP_ERROR_UNSUPPORTED.
+  HMAC-MD5 of the challenge keyed with the secret, as 32 lower-case hex digits
+(RFC 2195). The MAC is a secret's derivative until it is sent, so it is wiped
+once rendered; d_net_hmac wipes its own copies of the key.
 */
 static enum d_smtp_error
 d_internal_smtp_cram_digest(
@@ -656,64 +906,31 @@ d_internal_smtp_cram_digest(
     char*       _hex
 )
 {
-    static const char HEX_DIGITS[] = "0123456789abcdef";
-    unsigned char     mac[EVP_MAX_MD_SIZE] = { 0 };
-    unsigned int      mac_length           = 0;
-    const size_t      key_length           = strlen(_secret);
+    const struct d_pack_bytes key       = { _secret,
+                                            strlen(_secret) };
+    const struct d_pack_bytes challenge = { _challenge,
+                                            _length };
+    uint8_t                   mac[D_NET_DIGEST_MD5_SIZE] = { 0 };
+    const struct d_pack_bytes octets    = { mac,
+                                            sizeof(mac) };
 
-    if (key_length > (size_t)INT_MAX)
-    {
-        return D_SMTP_ERROR_TOO_LONG;
-    }
+    // the MAC, then its digits; each refuses only an argument that is missing
+    const bool done = ( (d_net_hmac(D_NET_DIGEST_MD5,
+                                    key,
+                                    challenge,
+                                    mac))                        &&
+                        (d_net_hex_encode(octets,
+                                          D_NET_HEX_LOWER,
+                                          _hex,
+                                          (2u * sizeof(mac)) + 1u,
+                                          NULL) == D_NET_CODEC_OK) );
 
-    if ( (!HMAC(EVP_md5(),
-                _secret,
-                (int)key_length,
-                (const unsigned char*)_challenge,
-                _length,
-                mac,
-                &mac_length)) ||
-         (mac_length != 16u) )
-    {
-        return D_SMTP_ERROR_UNSUPPORTED;
-    }
+    d_net_wipe(mac,
+               sizeof(mac));
 
-    for (size_t i = 0; i < 16u; ++i)
-    {
-        _hex[2u * i]      = HEX_DIGITS[mac[i] >> 4];
-        _hex[2u * i + 1u] = HEX_DIGITS[mac[i] & 0x0Fu];
-    }
-
-    _hex[32] = '\0';
-    d_internal_smtp_wipe(mac,
-                         sizeof(mac));
-
-    return D_SMTP_OK;
+    return (done) ? D_SMTP_OK
+                  : D_SMTP_ERROR_INVALID_ARGUMENT;
 }
-
-#else
-
-/*
-d_internal_smtp_cram_digest
-  CRAM-MD5 is not compiled in (D_ENV_SMTP_HAS_CRAM_MD5 is 0).
-*/
-static enum d_smtp_error
-d_internal_smtp_cram_digest(
-    const char* _secret,
-    const char* _challenge,
-    size_t      _length,
-    char*       _hex
-)
-{
-    (void)_secret;
-    (void)_challenge;
-    (void)_length;
-    (void)_hex;
-
-    return D_SMTP_ERROR_UNSUPPORTED;
-}
-
-#endif  // D_ENV_SMTP_HAS_CRAM_MD5
 
 /*
 d_internal_smtp_cram_answer
@@ -736,9 +953,10 @@ d_internal_smtp_cram_answer(
                                                         0,
                                                         &length);
     enum d_smtp_error    result     = (text)
-                                      ? d_smtp_base64_decode(text,
-                                                             length,
-                                                             &challenge)
+                                      ? d_smtp_buffer_append_from_base64(
+                                            &challenge,
+                                            text,
+                                            length)
                                       : D_SMTP_ERROR_PROTOCOL;
 
     if (result == D_SMTP_OK)
@@ -751,7 +969,7 @@ d_internal_smtp_cram_answer(
 
     if (result == D_SMTP_OK)
     {
-        const struct d_internal_smtp_part parts[] =
+        const struct d_pack_text parts[] =
         {
             { _credentials->user, strlen(_credentials->user) },
             { " ",                1 },
@@ -763,8 +981,8 @@ d_internal_smtp_cram_answer(
                                          3);
     }
 
-    d_internal_smtp_wipe(digest,
-                         sizeof(digest));
+    d_net_wipe(digest,
+               sizeof(digest));
 
     return result;
 }
@@ -812,8 +1030,8 @@ d_internal_smtp_auth_cram(
                                           answer.data,
                                           answer.length,
                                           2u);
-    d_internal_smtp_wipe(storage,
-                         sizeof(storage));
+    d_net_wipe(storage,
+               sizeof(storage));
 
     return d_internal_smtp_auth_result(result);
 }
@@ -834,17 +1052,21 @@ d_internal_smtp_auth_xoauth2(
     const size_t secret_length = strlen(_credentials->secret);
 
     // ^A separates the fields, so neither value may contain one
-    if ( (memchr(_credentials->user, '\x01', user_length)) ||
-         (memchr(_credentials->secret, '\x01', secret_length)) )
+    if ( (memchr(_credentials->user,
+                 '\x01',
+                 user_length)) ||
+         (memchr(_credentials->secret,
+                 '\x01',
+                 secret_length)) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     char                              raw[D_INTERNAL_SMTP_SASL_MAX] = { 0 };
     struct d_smtp_buffer              message = { .data     = raw,
                                                   .capacity = sizeof(raw),
                                                   .length   = 0 };
-    const struct d_internal_smtp_part parts[] =
+    const struct d_pack_text parts[] =
     {
         { "user=",                5 },
         { _credentials->user,     user_length },
@@ -873,16 +1095,16 @@ d_internal_smtp_auth_xoauth2(
                                          2u);
     }
 
-    d_internal_smtp_wipe(raw,
-                         sizeof(raw));
+    d_net_wipe(raw,
+               sizeof(raw));
 
     return d_internal_smtp_auth_result(result);
 }
 
 /*
 d_internal_smtp_choose
-  The mechanism to use: the most preferred one that is acceptable, offered,
-and compiled in. XOAUTH2 ranks first but is acceptable only on request.
+  The mechanism to use: the most preferred one that is acceptable and
+offered. XOAUTH2 ranks first but is acceptable only on request.
 */
 static unsigned int
 d_internal_smtp_choose(
@@ -903,12 +1125,8 @@ d_internal_smtp_choose(
     const unsigned int acceptable = (_requested != D_SMTP_AUTH_NONE)
                                     ? _requested
                                     : passwords;
-    const unsigned int built      = (D_ENV_SMTP_HAS_CRAM_MD5)
-                                    ? ~0u
-                                    : ~(unsigned int)D_SMTP_AUTH_CRAM_MD5;
     const unsigned int usable     = acceptable &
-                                    _capabilities->auth &
-                                    built;
+                                    _capabilities->auth;
 
     for (size_t i = 0; i < sizeof(PREFERENCE) / sizeof(PREFERENCE[0]); ++i)
     {
@@ -921,6 +1139,14 @@ d_internal_smtp_choose(
     return D_SMTP_AUTH_NONE;
 }
 
+/*
+d_smtp_client_authenticate
+  Refused before anything is sent on a plain channel unless the
+caller allowed it. The mechanism is the most preferred one the server
+offers and the credentials accept, XOAUTH2 only on request
+(d_internal_smtp_choose); with no AUTH extension, or none in common,
+D_SMTP_ERROR_UNSUPPORTED. Each mechanism has its own exchange.
+*/
 enum d_smtp_error
 d_smtp_client_authenticate(
     struct d_smtp_client*            _client,
@@ -933,7 +1159,7 @@ d_smtp_client_authenticate(
          (!_credentials->user)    ||
          (!_credentials->secret) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if ( (_client->state != D_SMTP_CLIENT_READY) ||
@@ -960,19 +1186,23 @@ d_smtp_client_authenticate(
     switch (mechanism)
     {
         case D_SMTP_AUTH_PLAIN:
-            result = d_internal_smtp_auth_plain(_client, _credentials);
+            result = d_internal_smtp_auth_plain(_client,
+                                                _credentials);
             break;
 
         case D_SMTP_AUTH_LOGIN:
-            result = d_internal_smtp_auth_login(_client, _credentials);
+            result = d_internal_smtp_auth_login(_client,
+                                                _credentials);
             break;
 
         case D_SMTP_AUTH_CRAM_MD5:
-            result = d_internal_smtp_auth_cram(_client, _credentials);
+            result = d_internal_smtp_auth_cram(_client,
+                                               _credentials);
             break;
 
         case D_SMTP_AUTH_XOAUTH2:
-            result = d_internal_smtp_auth_xoauth2(_client, _credentials);
+            result = d_internal_smtp_auth_xoauth2(_client,
+                                                  _credentials);
             break;
 
         default:
@@ -982,6 +1212,54 @@ d_smtp_client_authenticate(
     _client->authenticated = (result == D_SMTP_OK);
 
     return result;
+}
+
+/*
+d_internal_smtp_mail_parameters
+  What follows MAIL's path, and the line's end: SIZE when the server offered
+it, then BODY=8BITMIME and SMTPUTF8 when the envelope needs them.
+*/
+static enum d_smtp_error
+d_internal_smtp_mail_parameters(
+    const struct d_smtp_envelope* _envelope,
+    bool                          _sized,
+    size_t                        _size,
+    struct d_smtp_buffer*         _line
+)
+{
+    enum d_smtp_error result = D_SMTP_OK;
+
+    // SIZE lets the server refuse before the data is sent (RFC 1870)
+    if ( (_sized) &&
+         (_size > 0) )
+    {
+        result = d_smtp_buffer_append_text(_line,
+                                           " SIZE=");
+
+        if (result == D_SMTP_OK)
+        {
+            result = d_smtp_buffer_append_number(_line,
+                                                 _size);
+        }
+    }
+
+    if ( (result == D_SMTP_OK) &&
+         (_envelope->eight_bit) )
+    {
+        result = d_smtp_buffer_append_text(_line,
+                                           " BODY=8BITMIME");
+    }
+
+    if ( (result == D_SMTP_OK) &&
+         (_envelope->utf8) )
+    {
+        result = d_smtp_buffer_append_text(_line,
+                                           " SMTPUTF8");
+    }
+
+    return (result == D_SMTP_OK) ? d_smtp_buffer_append_text(_line,
+                                                             "\r\n")
+                                 : result;
 }
 
 /*
@@ -1004,9 +1282,11 @@ d_internal_smtp_build_mail(
 
     // the null reverse-path "<>" is legal; anything else must be a mailbox
     if ( (length > 0) &&
-         (!d_smtp_address_is_valid(sender, length, _envelope->utf8)) )
+         (!d_smtp_address_is_valid(sender,
+                                   length,
+                                   _envelope->utf8)) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if ( ( (_envelope->eight_bit) &&
@@ -1023,45 +1303,23 @@ d_internal_smtp_build_mail(
          (_client->capabilities.size_limit > 0)    &&
          (_size > _client->capabilities.size_limit) )
     {
-        return D_SMTP_ERROR_TOO_LONG;
+        return D_SMTP_ERROR_LINE_TOO_LONG;
     }
 
-    const struct d_internal_smtp_part parts[] =
+    const struct d_pack_text parts[] =
     {
         { "MAIL FROM:<", 11 },
         { sender,        length },
         { ">",           1 }
     };
-    enum d_smtp_error result = d_internal_smtp_compose(_line,
-                                                       parts,
-                                                       3);
+    const enum d_smtp_error result = d_internal_smtp_compose(_line,
+                                                             parts,
+                                                             3);
 
-    // SIZE lets the server refuse before the data is sent (RFC 1870)
-    if ( (result == D_SMTP_OK) &&
-         (sized)               &&
-         (_size > 0) )
-    {
-        result = d_smtp_buffer_append_text(_line, " SIZE=");
-
-        if (result == D_SMTP_OK)
-        {
-            result = d_smtp_buffer_append_number(_line, _size);
-        }
-    }
-
-    if ( (result == D_SMTP_OK) &&
-         (_envelope->eight_bit) )
-    {
-        result = d_smtp_buffer_append_text(_line, " BODY=8BITMIME");
-    }
-
-    if ( (result == D_SMTP_OK) &&
-         (_envelope->utf8) )
-    {
-        result = d_smtp_buffer_append_text(_line, " SMTPUTF8");
-    }
-
-    return (result == D_SMTP_OK) ? d_smtp_buffer_append_text(_line, "\r\n")
+    return (result == D_SMTP_OK) ? d_internal_smtp_mail_parameters(_envelope,
+                                                                   sized,
+                                                                   _size,
+                                                                   _line)
                                  : result;
 }
 
@@ -1078,12 +1336,14 @@ d_internal_smtp_build_rcpt(
 {
     const size_t length = (_recipient) ? strlen(_recipient) : 0;
 
-    if (!d_smtp_address_is_valid(_recipient, length, _utf8))
+    if (!d_smtp_address_is_valid(_recipient,
+                                 length,
+                                 _utf8))
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const struct d_internal_smtp_part parts[] =
+    const struct d_pack_text parts[] =
     {
         { "RCPT TO:<", 9 },
         { _recipient,  length },
@@ -1095,6 +1355,12 @@ d_internal_smtp_build_rcpt(
                                    3);
 }
 
+/*
+d_smtp_client_mail
+  Builds the MAIL FROM line, with its parameters, in a buffer of the
+longest line the protocol allows, and sends it, expecting 2yz. The
+envelope's SMTPUTF8 choice holds for the transaction.
+*/
 enum d_smtp_error
 d_smtp_client_mail(
     struct d_smtp_client*         _client,
@@ -1106,7 +1372,7 @@ d_smtp_client_mail(
     if ( (!_client) ||
          (!_envelope) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if (_client->state != D_SMTP_CLIENT_READY)
@@ -1142,6 +1408,11 @@ d_smtp_client_mail(
     return result;
 }
 
+/*
+d_smtp_client_rcpt
+  One RCPT TO line, built as MAIL's is, expecting 2yz; the
+transaction's SMTPUTF8 choice decides whether the address may carry it.
+*/
 enum d_smtp_error
 d_smtp_client_rcpt(
     struct d_smtp_client* _client,
@@ -1152,7 +1423,7 @@ d_smtp_client_rcpt(
     if ( (!_client) ||
          (!_recipient) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if (_client->state != D_SMTP_CLIENT_MAIL)
@@ -1201,7 +1472,7 @@ d_internal_smtp_check_lines(
 
         if (run > D_INTERNAL_SMTP_DATA_LINE)
         {
-            return D_SMTP_ERROR_TOO_LONG;
+            return D_SMTP_ERROR_LINE_TOO_LONG;
         }
     }
 
@@ -1237,9 +1508,9 @@ d_internal_smtp_body(
                                      _message + offset,
                                      _length - offset,
                                      &chunk);
-        result  = d_smtp_transport_write_all(&_client->reader.transport,
-                                             chunk.data,
-                                             chunk.length);
+        result  = d_internal_smtp_send(_client,
+                                       chunk.data,
+                                       chunk.length);
     }
 
     struct d_smtp_buffer tail = { .data     = storage,
@@ -1271,6 +1542,12 @@ d_internal_smtp_body(
     return result;
 }
 
+/*
+d_smtp_client_data
+  Every line of the message is checked against RFC 5321's limit before
+DATA goes out, since a server may truncate or refuse a long line partway
+through; then DATA, expecting 3yz, and the dot-stuffed body.
+*/
 enum d_smtp_error
 d_smtp_client_data(
     struct d_smtp_client* _client,
@@ -1283,7 +1560,7 @@ d_smtp_client_data(
          ( (!_message) &&
            (_length > 0) ) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if (_client->state != D_SMTP_CLIENT_MAIL)
@@ -1441,8 +1718,8 @@ d_internal_smtp_queue(
 {
     if (_line->length >= _batch->capacity - _batch->length)
     {
-        const enum d_smtp_error flushed = d_smtp_transport_write_all(
-                                              &_client->reader.transport,
+        const enum d_smtp_error flushed = d_internal_smtp_send(
+                                              _client,
                                               _batch->data,
                                               _batch->length);
 
@@ -1501,7 +1778,8 @@ d_internal_smtp_send_batch(
                      ? d_internal_smtp_build_rcpt(_envelope->recipients[i],
                                                   _envelope->utf8,
                                                   &line)
-                     : d_smtp_buffer_append_text(&line, "DATA\r\n");
+                     : d_smtp_buffer_append_text(&line,
+                                                 "DATA\r\n");
         }
     }
 
@@ -1513,10 +1791,61 @@ d_internal_smtp_send_batch(
     }
 
     return (result == D_SMTP_OK)
-           ? d_smtp_transport_write_all(&_client->reader.transport,
-                                        batch.data,
-                                        batch.length)
+           ? d_internal_smtp_send(_client,
+                                  batch.data,
+                                  batch.length)
            : result;
+}
+
+/*
+d_internal_smtp_read_pipelined
+  Reads every reply to a pipelined batch, in order, as RFC 2920 requires even
+after a refusal: MAIL's, then one per recipient, each recorded in the
+report, then DATA's, which stays in the client's reply. The refusal kept
+for the caller is MAIL's, else the last recipient's.
+*/
+static enum d_smtp_error
+d_internal_smtp_read_pipelined(
+    struct d_smtp_client*            _client,
+    size_t                           _count,
+    struct d_smtp_send_report*       _report,
+    struct d_internal_smtp_pipeline* _tally
+)
+{
+    // MAIL's reply, one per recipient, then DATA's: all of them are read
+    for (size_t i = 0; i < _count + 2u; ++i)
+    {
+        const enum d_smtp_error result = d_internal_smtp_read_reply(_client);
+
+        if (result != D_SMTP_OK)
+        {
+            return result;
+        }
+
+        const bool positive = d_smtp_code_is_positive(_client->reply.code);
+
+        // the refusal kept for the caller: MAIL's, else the last recipient's
+        if (i == 0)
+        {
+            _tally->mail_ok = positive;
+            _tally->cause   = _client->reply;
+        }
+        else if (i <= _count)
+        {
+            d_internal_smtp_record(_report,
+                                   i - 1u,
+                                   &_client->reply);
+            _tally->accepted += (positive) ? 1u : 0u;
+
+            if ( (_tally->mail_ok) &&
+                 (!positive) )
+            {
+                _tally->cause = _client->reply;
+            }
+        }
+    }
+
+    return D_SMTP_OK;
 }
 
 /*
@@ -1533,54 +1862,29 @@ d_internal_smtp_open_pipelined(
     struct d_smtp_send_report*    _report
 )
 {
-    const size_t        count    = _envelope->recipient_count;
-    struct d_smtp_reply cause    = { .code = 0 };
-    size_t              accepted = 0;
-    bool                mail_ok  = false;
-    enum d_smtp_error   result   = d_internal_smtp_send_batch(_client,
-                                                              _envelope,
-                                                              _size);
+    struct d_internal_smtp_pipeline tally  = { .mail_ok = false };
+    enum d_smtp_error               result = d_internal_smtp_send_batch(
+                                                 _client,
+                                                 _envelope,
+                                                 _size);
 
-    // MAIL's reply, one per recipient, then DATA's: all of them are read
-    for (size_t i = 0; i < count + 2u; ++i)
+    if (result == D_SMTP_OK)
     {
-        if (result == D_SMTP_OK)
-        {
-            result = d_internal_smtp_read_reply(_client);
-        }
+        result = d_internal_smtp_read_pipelined(_client,
+                                                _envelope->recipient_count,
+                                                _report,
+                                                &tally);
+    }
 
-        if (result != D_SMTP_OK)
-        {
-            return result;
-        }
-
-        const bool positive = d_smtp_code_is_positive(_client->reply.code);
-
-        // the refusal kept for the caller: MAIL's, else the last recipient's
-        if (i == 0)
-        {
-            mail_ok = positive;
-            cause   = _client->reply;
-        }
-        else if (i <= count)
-        {
-            d_internal_smtp_record(_report,
-                                   i - 1u,
-                                   &_client->reply);
-            accepted += (positive) ? 1u : 0u;
-
-            if ( (mail_ok) &&
-                 (!positive) )
-            {
-                cause = _client->reply;
-            }
-        }
+    if (result != D_SMTP_OK)
+    {
+        return result;
     }
 
     const bool data_ok = (_client->reply.code == 354u);
 
-    if ( (mail_ok)      &&
-         (accepted > 0) &&
+    if ( (tally.mail_ok)      &&
+         (tally.accepted > 0) &&
          (data_ok) )
     {
         _client->state = D_SMTP_CLIENT_MAIL;
@@ -1590,10 +1894,10 @@ d_internal_smtp_open_pipelined(
     }
 
     // with MAIL and a recipient accepted, DATA itself was refused
-    if ( (mail_ok) &&
-         (accepted > 0) )
+    if ( (tally.mail_ok) &&
+         (tally.accepted > 0) )
     {
-        cause = _client->reply;
+        tally.cause = _client->reply;
     }
 
     // a 354 must be answered before anything else can be said
@@ -1611,7 +1915,7 @@ d_internal_smtp_open_pipelined(
     }
 
     return d_internal_smtp_abandon(_client,
-                                   &cause);
+                                   &tally.cause);
 }
 
 /*
@@ -1649,6 +1953,14 @@ d_internal_smtp_check_envelope(
     return result;
 }
 
+/*
+d_smtp_client_send
+  Checks the envelope and the message's lines before anything is sent.
+With PIPELINING, MAIL, every RCPT and DATA go out together and their
+replies are read in order; without it, one command at a time. The body
+follows, and the report records the accepted recipients and DATA's final
+code.
+*/
 enum d_smtp_error
 d_smtp_client_send(
     struct d_smtp_client*         _client,
@@ -1666,7 +1978,7 @@ d_smtp_client_send(
          ( (!_message) &&
            (_length > 0) ) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if (_client->state != D_SMTP_CLIENT_READY)
@@ -1724,6 +2036,11 @@ d_smtp_client_send(
     return result;
 }
 
+/*
+d_smtp_client_reset
+  RSET, expecting 2yz; a success ends any transaction, and its
+SMTPUTF8 choice with it.
+*/
 enum d_smtp_error
 d_smtp_client_reset(
     struct d_smtp_client* _client
@@ -1732,7 +2049,7 @@ d_smtp_client_reset(
     // parameter validation first
     if (!_client)
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if ( (_client->state != D_SMTP_CLIENT_READY) &&
@@ -1754,6 +2071,10 @@ d_smtp_client_reset(
     return result;
 }
 
+/*
+d_smtp_client_noop
+  NOOP, expecting 2yz, in any state with a session to keep alive.
+*/
 enum d_smtp_error
 d_smtp_client_noop(
     struct d_smtp_client* _client
@@ -1762,7 +2083,7 @@ d_smtp_client_noop(
     // parameter validation first
     if (!_client)
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if ( (_client->state != D_SMTP_CLIENT_HELLO) &&
@@ -1777,6 +2098,11 @@ d_smtp_client_noop(
                                    2u);
 }
 
+/*
+d_smtp_client_quit
+  QUIT, expecting 2yz. The client is QUIT whatever the reply, since
+the session ends either way; close() releases it.
+*/
 enum d_smtp_error
 d_smtp_client_quit(
     struct d_smtp_client* _client
@@ -1785,7 +2111,7 @@ d_smtp_client_quit(
     // parameter validation first
     if (!_client)
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if ( (_client->state != D_SMTP_CLIENT_HELLO) &&
@@ -1804,6 +2130,12 @@ d_smtp_client_quit(
     return result;
 }
 
+/*
+d_smtp_client_close
+  The TLS session goes first, sending close_notify where it still can; then
+a connection connect() opened. What explains the session's end -- the last
+reply, the causes kept -- survives for the caller.
+*/
 void
 d_smtp_client_close(
     struct d_smtp_client* _client
@@ -1815,45 +2147,195 @@ d_smtp_client_close(
         return;
     }
 
-    // the transport's own release, then the built-in socket (idempotent)
-    if (_client->reader.transport.close)
+    // the TLS session this client made, ended in an orderly way if it can be
+    if (_client->has_tls)
     {
-        _client->reader.transport.close(_client->reader.transport.context);
+        (void)d_ssl_session_shutdown(&_client->tls);
+        d_ssl_session_destroy(&_client->tls);
+        _client->has_tls = false;
     }
 
-    d_smtp_socket_close(&_client->socket);
-    memset(&_client->reader.transport,
-           0,
-           sizeof(_client->reader.transport));
+    // a connection connect() opened; an attached one is its owner's
+    if (_client->owns_tcp)
+    {
+        d_tcp_connection_close(&_client->tcp);
+        _client->owns_tcp = false;
+    }
+
     d_smtp_reader_discard(&_client->reader);
     d_smtp_capabilities_clear(&_client->capabilities);
 
-    _client->state         = D_SMTP_CLIENT_CLOSED;
-    _client->secure        = false;
-    _client->authenticated = false;
-    _client->utf8          = false;
+    _client->reader.connection = NULL;
+    _client->connection        = NULL;
+    _client->state             = D_SMTP_CLIENT_CLOSED;
+    _client->secure            = false;
+    _client->authenticated     = false;
+    _client->utf8              = false;
 
     return;
 }
 
 /*
-d_internal_smtp_tls_for
-  The client's TLS options, with the name to verify defaulting to the host
-connected to.
+d_smtp_client_tls_session
+  Only a live session is offered: close releases it.
 */
-static struct d_smtp_tls_options
-d_internal_smtp_tls_for(
+const struct d_ssl_session*
+d_smtp_client_tls_session(
+    const struct d_smtp_client* _client
+)
+{
+    return ( (_client) &&
+             (_client->has_tls) ) ? &_client->tls
+                                  : NULL;
+}
+
+/*
+d_internal_smtp_host_name
+  The machine's name, when it is fully qualified and valid as EHLO's
+argument; anything else leaves the caller to fall back to an address
+literal.
+*/
+static enum d_smtp_error
+d_internal_smtp_host_name(
+    struct d_smtp_buffer* _buffer
+)
+{
+    char name[D_SMTP_DOMAIN_MAX + 1u] = { 0 };
+
+    if (d_tcp_host_name(name,
+                        sizeof(name)) != D_NET_OK)
+    {
+        return D_SMTP_ERROR_UNSUPPORTED;
+    }
+
+    const size_t length = strlen(name);
+
+    if ( (!strchr(name,
+                  '.')) ||
+         (!d_smtp_domain_is_valid(name,
+                                  length,
+                                  false)) )
+    {
+        return D_SMTP_ERROR_UNSUPPORTED;
+    }
+
+    return d_smtp_buffer_append(_buffer,
+                                name,
+                                length);
+}
+
+/*
+d_internal_smtp_local_literal
+  "[a.b.c.d]" or "[IPv6:...]" for the connection's own address, which must
+make a valid address literal: a connection that knows none, or reports
+something else, leaves nothing to offer.
+*/
+static enum d_smtp_error
+d_internal_smtp_local_literal(
+    const struct d_net_connection* _connection,
+    struct d_smtp_buffer*          _buffer
+)
+{
+    struct d_net_endpoint local                      = { .port = 0 };
+    char                  text[D_NET_HOST_MAX + 16u] = { 0 };
+
+    d_net_endpoint_init(&local);
+
+    if ( (!d_net_connection_local_endpoint(_connection,
+                                           &local)) ||
+         (local.host[0] == '\0') )
+    {
+        return D_SMTP_ERROR_UNSUPPORTED;
+    }
+
+    const int written = snprintf(text,
+                                 sizeof(text),
+                                 (strchr(local.host,
+                                         ':')) ? "[IPv6:%s]" : "[%s]",
+                                 local.host);
+
+    // only a literal EHLO would take
+    if ( (written < 0)                     ||
+         ((size_t)written >= sizeof(text)) ||
+         (!d_smtp_domain_is_valid(text,
+                                  (size_t)written,
+                                  false)) )
+    {
+        return D_SMTP_ERROR_UNSUPPORTED;
+    }
+
+    return d_smtp_buffer_append(_buffer,
+                                text,
+                                (size_t)written);
+}
+
+/*
+d_smtp_client_identity
+  A fully qualified name is preferred over an address literal, as RFC 5321
+section 4.1.4 asks.
+*/
+enum d_smtp_error
+d_smtp_client_identity(
+    const struct d_net_connection* _connection,
+    struct d_smtp_buffer*          _buffer
+)
+{
+    // parameter validation first
+    if ( (!_connection) ||
+         (!_buffer) )
+    {
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
+    }
+
+    // a fully qualified host name is preferred over an address literal
+    if (d_internal_smtp_host_name(_buffer) == D_SMTP_OK)
+    {
+        return D_SMTP_OK;
+    }
+
+    return d_internal_smtp_local_literal(_connection,
+                                         _buffer);
+}
+
+/*
+d_internal_smtp_name_for
+  The name to check the server's certificate against: the one given, or
+else the host connected to.
+*/
+static const char*
+d_internal_smtp_name_for(
     const struct d_smtp_client_options* _options
 )
 {
-    struct d_smtp_tls_options tls = _options->tls;
+    return (_options->server_name) ? _options->server_name
+                                   : _options->host;
+}
 
-    if (!tls.server_name)
+/*
+d_internal_smtp_tls_fits
+  Whether the options' context suits their mode: a mode that requires TLS
+needs a usable client context, STARTTLS_OPTIONAL one if any is given, and a
+plaintext session none at all.
+*/
+static bool
+d_internal_smtp_tls_fits(
+    const struct d_smtp_client_options* _options
+)
+{
+    const bool required = ( (_options->security ==
+                             D_SMTP_SECURITY_STARTTLS) ||
+                            (_options->security == D_SMTP_SECURITY_TLS) );
+
+    // plaintext, or an opportunistic upgrade with nothing to upgrade with
+    if ( (_options->security == D_SMTP_SECURITY_NONE) ||
+         ( (!required) &&
+           (!_options->tls) ) )
     {
-        tls.server_name = _options->host;
+        return true;
     }
 
-    return tls;
+    return d_internal_smtp_tls_usable(_options->tls,
+                                      d_internal_smtp_name_for(_options));
 }
 
 /*
@@ -1882,9 +2364,53 @@ d_internal_smtp_port(
 }
 
 /*
+d_internal_smtp_connect_error
+  What a failure to open the connection is. One tcp.h could not find the
+host for -- by its name, or by any route, both of which it reports as
+HOST_UNREACHABLE -- or whose address is malformed is RESOLVE; one the host
+refused, or that failed on the way, is CONNECT. A timeout, a lack of memory,
+and a bad argument are their namesakes.
+*/
+static enum d_smtp_error
+d_internal_smtp_connect_error(
+    enum d_net_error _error
+)
+{
+    switch (_error)
+    {
+        case D_NET_OK:
+            return D_SMTP_OK;
+        case D_NET_ERROR_INVALID_ARGUMENT:
+            return D_SMTP_ERROR_INVALID_ARGUMENT;
+        case D_NET_ERROR_OUT_OF_MEMORY:
+            return D_SMTP_ERROR_OUT_OF_MEMORY;
+        case D_NET_ERROR_TIMED_OUT:
+            return D_SMTP_ERROR_TIMED_OUT;
+        case D_NET_ERROR_ADDRESS_INVALID:
+        case D_NET_ERROR_HOST_UNREACHABLE:
+            return D_SMTP_ERROR_RESOLVE;
+        case D_NET_ERROR_CLOSED:
+        case D_NET_ERROR_WOULD_BLOCK:
+        case D_NET_ERROR_INTERRUPTED:
+        case D_NET_ERROR_CONNECTION_RESET:
+        case D_NET_ERROR_CONNECTION_REFUSED:
+        case D_NET_ERROR_CONNECTION_ABORTED:
+        case D_NET_ERROR_ADDRESS_IN_USE:
+        case D_NET_ERROR_NETWORK_DOWN:
+        case D_NET_ERROR_ACCESS_DENIED:
+        case D_NET_ERROR_MESSAGE_TOO_LARGE:
+        case D_NET_ERROR_TOO_MANY_OPEN_FILES:
+        case D_NET_ERROR_UNKNOWN:
+        case D_NET_ERROR_PROTOCOL:
+            break;
+    }
+
+    return D_SMTP_ERROR_CONNECT;
+}
+
+/*
 d_internal_smtp_open
-  Connects the built-in socket, negotiates implicit TLS, adopts the socket as
-the transport, and settles the EHLO identity.
+  Opens the TCP connection the client owns, and adopts it.
 */
 static enum d_smtp_error
 d_internal_smtp_open(
@@ -1892,35 +2418,64 @@ d_internal_smtp_open(
     const struct d_smtp_client_options* _options
 )
 {
-    const struct d_smtp_tls_options tls  = d_internal_smtp_tls_for(_options);
-    const unsigned int              port = d_internal_smtp_port(_options);
-    const bool implicit = (_options->security == D_SMTP_SECURITY_TLS);
-    struct d_smtp_transport transport = { .context = NULL };
-    enum d_smtp_error       result    =
-        d_smtp_socket_connect(&_client->socket,
-                              _options->host,
-                              port,
-                              _options->connect_timeout_ms,
-                              _options->io_timeout_ms);
+    struct d_net_endpoint endpoint = { .port = 0 };
+    struct d_tcp_options  tcp      = { .connect_timeout_ms = 0 };
+    const size_t          length   = strlen(_options->host);
+
+    // without a socket backend there is nothing to connect with
+    if (!d_tcp_available())
+    {
+        return D_SMTP_ERROR_UNSUPPORTED;
+    }
+
+    d_net_endpoint_init(&endpoint);
+    d_tcp_options_init(&tcp);
+    memcpy(endpoint.host,
+           _options->host,
+           length + 1u);
+    endpoint.port          = (d_net_port)d_internal_smtp_port(_options);
+    endpoint.protocol      = D_NET_PROTOCOL_TCP;
+    tcp.connect_timeout_ms = _options->connect_timeout_ms;
+    tcp.io_timeout_ms      = _options->io_timeout_ms;
+
+    const enum d_net_error opened = d_tcp_connect(&_client->tcp,
+                                                  &endpoint,
+                                                  &tcp);
+
+    if (opened != D_NET_OK)
+    {
+        _client->reader.net_error = opened;
+
+        return d_internal_smtp_connect_error(opened);
+    }
+
+    _client->owns_tcp = true;
+
+    return d_smtp_client_attach(_client,
+                                &_client->tcp.base,
+                                false);
+}
+
+/*
+d_internal_smtp_settle
+  Negotiates implicit TLS, then settles the EHLO identity: the one given,
+or this machine's.
+*/
+static enum d_smtp_error
+d_internal_smtp_settle(
+    struct d_smtp_client*               _client,
+    const struct d_smtp_client_options* _options
+)
+{
+    enum d_smtp_error result = D_SMTP_OK;
 
     // implicit TLS negotiates before the server says a word (RFC 8314)
-    if ( (result == D_SMTP_OK) &&
-         (implicit) )
+    if (_options->security == D_SMTP_SECURITY_TLS)
     {
-        result = d_smtp_socket_start_tls(&_client->socket,
-                                         &tls);
+        result = d_internal_smtp_secure(_client,
+                                        _options->tls,
+                                        d_internal_smtp_name_for(_options));
     }
-
-    if (result != D_SMTP_OK)
-    {
-        return result;
-    }
-
-    d_smtp_socket_transport(&_client->socket,
-                            &transport);
-    result = d_smtp_client_attach(_client,
-                                  &transport,
-                                  implicit);
 
     if (result != D_SMTP_OK)
     {
@@ -1939,7 +2494,7 @@ d_internal_smtp_open(
                                       .capacity = sizeof(_client->helo),
                                       .length   = 0 };
 
-    return d_smtp_socket_identity(&_client->socket,
+    return d_smtp_client_identity(&_client->tcp.base,
                                   &identity);
 }
 
@@ -1947,7 +2502,8 @@ d_internal_smtp_open(
 d_internal_smtp_establish
   Greeting, EHLO, then the STARTTLS policy. A required upgrade that is not
 offered fails closed: a missing STARTTLS is exactly what a downgrade attack
-looks like.
+looks like. An optional one is made when offered and there is a context to
+make it with.
 */
 static enum d_smtp_error
 d_internal_smtp_establish(
@@ -1974,18 +2530,21 @@ d_internal_smtp_establish(
 
     if ( (_options->security == D_SMTP_SECURITY_STARTTLS) ||
          ( (_options->security == D_SMTP_SECURITY_STARTTLS_OPTIONAL) &&
-           (offered) ) )
+           (offered)                                                 &&
+           (_options->tls) ) )
     {
-        const struct d_smtp_tls_options tls = d_internal_smtp_tls_for(
-                                                  _options);
-
         return d_smtp_client_starttls(_client,
-                                      &tls);
+                                      _options->tls,
+                                      d_internal_smtp_name_for(_options));
     }
 
     return D_SMTP_OK;
 }
 
+/*
+d_smtp_client_connect
+  Everything the options say is checked before a connection is opened.
+*/
 enum d_smtp_error
 d_smtp_client_connect(
     struct d_smtp_client*               _client,
@@ -1993,13 +2552,16 @@ d_smtp_client_connect(
 )
 {
     // parameter validation first
-    if ( (!_client)                                ||
-         (!_options)                               ||
-         (!_options->host)                         ||
-         (_options->host[0] == '\0')               ||
-         (_options->security > D_SMTP_SECURITY_TLS) )
+    if ( (!_client)                                 ||
+         (!_options)                                ||
+         (!_options->host)                          ||
+         (_options->host[0] == '\0')                ||
+         (strlen(_options->host) > D_NET_HOST_MAX)  ||
+         (_options->port > 65535u)                  ||
+         (_options->security > D_SMTP_SECURITY_TLS) ||
+         (!d_internal_smtp_tls_fits(_options)) )
     {
-        return D_SMTP_ERROR_INVALID;
+        return D_SMTP_ERROR_INVALID_ARGUMENT;
     }
 
     if (_client->state != D_SMTP_CLIENT_CLOSED)
@@ -2007,8 +2569,20 @@ d_smtp_client_connect(
         return D_SMTP_ERROR_STATE;
     }
 
+    // what explained an earlier session's end is forgotten here, where a
+    // new one starts, as attach forgets it
+    d_smtp_reply_clear(&_client->reply);
+    _client->reader.net_error = D_NET_OK;
+    _client->tls_status       = D_SSL_OK;
+
     enum d_smtp_error result = d_internal_smtp_open(_client,
                                                     _options);
+
+    if (result == D_SMTP_OK)
+    {
+        result = d_internal_smtp_settle(_client,
+                                        _options);
+    }
 
     if (result == D_SMTP_OK)
     {
@@ -2016,7 +2590,7 @@ d_smtp_client_connect(
                                            _options);
     }
 
-    // a failed opening leaves nothing behind but the reply explaining it
+    // a failed opening leaves nothing behind but what explains it
     if (result != D_SMTP_OK)
     {
         d_smtp_client_close(_client);

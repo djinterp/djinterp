@@ -9,16 +9,19 @@
 * path:      /src/djinterp/net/ftp/ftp_transfer.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_transfer.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
-#include <stdint.h>   // uint64_t
 // djinterp
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_span
-#include "./ftp_internal.h"                               // shared helpers
+#include "../../../../inc/djinterp/c/util/sink_common.h"     // d_pack_text
+#include "../../../../inc/djinterp/net/net_common.h"  // d_net_ascii_lower
+#include "../../../../inc/djinterp/net/ftp/ftp_common.h"     // d_ftp_buffer, d_ftp_error, D_FTP_EOL
+#include "./ftp_internal.h"                                  // shared helpers
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint64_t
 
 
 //==============================================================================
@@ -126,7 +129,7 @@ size of 1 to 255.
 */
 D_STATIC enum d_ftp_error
 d_ftp_internal_type_local(
-    struct d_ftp_span  _text,
+    struct d_pack_text _text,
     struct d_ftp_type* _out
 )
 {
@@ -157,7 +160,7 @@ then N, T, or C, in either case.
 */
 D_STATIC enum d_ftp_error
 d_ftp_internal_type_control(
-    struct d_ftp_span           _text,
+    struct d_pack_text          _text,
     enum d_ftp_format_control*  _out
 )
 {
@@ -168,7 +171,7 @@ d_ftp_internal_type_control(
         return D_FTP_ERROR_MALFORMED;
     }
 
-    switch (d_ftp_internal_to_lower(_text.data[2]))
+    switch (d_net_ascii_lower(_text.data[2]))
     {
         case 'n':
             *_out = D_FTP_FORMAT_NON_PRINT;
@@ -212,8 +215,8 @@ d_ftp_type_parse(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const struct d_ftp_span text = d_ftp_internal_trim(_text,
-                                                       _length);
+    const struct d_pack_text text = d_ftp_internal_trim(_text,
+                                                        _length);
 
     // an argument is at least its type code
     if (text.length == 0u)
@@ -221,7 +224,7 @@ d_ftp_type_parse(
         return D_FTP_ERROR_MALFORMED;
     }
 
-    const char        code  = d_ftp_internal_to_lower(text.data[0]);
+    const char        code  = d_net_ascii_lower(text.data[0]);
     struct d_ftp_type type  = { D_FTP_TYPE_IMAGE, D_FTP_FORMAT_NONE, 8u };
     enum d_ftp_error  error = D_FTP_ERROR_UNSUPPORTED;
 
@@ -271,7 +274,7 @@ d_ftp_structure_from_code(
         return false;
     }
 
-    switch (d_ftp_internal_to_lower(_code))
+    switch (d_net_ascii_lower(_code))
     {
         case 'f':
             *_out = D_FTP_STRUCTURE_FILE;
@@ -311,7 +314,7 @@ d_ftp_mode_from_code(
         return false;
     }
 
-    switch (d_ftp_internal_to_lower(_code))
+    switch (d_net_ascii_lower(_code))
     {
         case 's':
             *_out = D_FTP_MODE_STREAM;

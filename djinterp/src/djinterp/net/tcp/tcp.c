@@ -12,12 +12,12 @@
 * path:      /src/djinterp/net/tcp/tcp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.18
 *******************************************************************************/
-// enable POSIX.1-2008 (getaddrinfo, poll, inet_ntop) under a strict C
-// compiler, and Windows Vista's API (WSAPoll, InitOnceExecuteOnce) under
-// Winsock; a feature-test macro must precede every include, so these sit
-// ahead of the corresponding header
+// enable POSIX.1-2008 (getaddrinfo, poll, inet_ntop, gethostname) under a
+// strict C compiler, and Windows Vista's API (WSAPoll, InitOnceExecuteOnce)
+// under Winsock; a feature-test macro must precede every include, so these
+// sit ahead of the corresponding header
 #if defined(_WIN32) || defined(_WIN64)
     #ifndef _WIN32_WINNT
         #define _WIN32_WINNT 0x0600
@@ -42,11 +42,18 @@
     #include <netinet/in.h>   // sockaddr_in, sockaddr_in6, IPPROTO_TCP
     #include <poll.h>         // poll, struct pollfd
     #include <sys/socket.h>   // socket, bind, listen, accept, connect
+    #include <sys/time.h>     // struct timeval
     #include <sys/un.h>       // sockaddr_un
-    #include <unistd.h>       // close, pipe, write, unlink
+    #include <unistd.h>       // close, pipe, write, unlink, gethostname
     #if D_ENV_TCP_HAS_NODELAY
         #include <netinet/tcp.h>  // TCP_NODELAY
     #endif  // D_ENV_TCP_HAS_NODELAY
+    #if D_ENV_TCP_HAS_SYS_IOCTL_H
+        #include <sys/ioctl.h>    // ioctl, FIONREAD
+    #endif  // D_ENV_TCP_HAS_SYS_IOCTL_H
+    #if D_ENV_TCP_HAS_SYS_FILIO_H
+        #include <sys/filio.h>    // FIONREAD on Solaris and illumos
+    #endif  // D_ENV_TCP_HAS_SYS_FILIO_H
 #elif (D_INTERNAL_TCP_BACKEND == D_ENV_TCP_BACKEND_WINSOCK)
     #include <winsock2.h>     // SOCKET, WSAStartup, WSAPoll, closesocket
     #include <ws2tcpip.h>     // getaddrinfo, inet_ntop, socklen_t
@@ -102,7 +109,7 @@ d_tcp_os_map(
     switch (_code)
     {
         case 0:
-            return D_NET_ERROR_NONE;
+            return D_NET_OK;
         case EINTR:
             return D_NET_ERROR_INTERRUPTED;
         case ECONNRESET:
@@ -344,7 +351,7 @@ d_tcp_os_receive(
         if (received >= 0)
         {
             return d_net_io_result_make((size_t)received,
-                                        D_NET_ERROR_NONE);
+                                        D_NET_OK);
         }
 
         // anything but an interruption is the answer
@@ -379,7 +386,7 @@ d_tcp_os_send(
         if (sent >= 0)
         {
             return d_net_io_result_make((size_t)sent,
-                                        D_NET_ERROR_NONE);
+                                        D_NET_OK);
         }
 
         // anything but an interruption is the answer
@@ -515,12 +522,15 @@ d_tcp_os_wake_close(
 /*
 d_tcp_os_await_accept
   Waits until the listener has a connection to accept or its wake pipe is
-written. The pipe is examined first, so a close always wins; any event on
-it, a hang-up included, counts as a wake.
+written, or until the wait runs out; a negative wait is unlimited. The pipe
+is examined first, so a close always wins; any event on it, a hang-up
+included, counts as a wake. A signal restarts the wait with its whole
+limit, which can stretch it.
 */
 static enum d_net_error
 d_tcp_os_await_accept(
-    struct d_tcp_listener* _listener
+    struct d_tcp_listener* _listener,
+    int                    _wait_ms
 )
 {
     struct pollfd watched[2] =
@@ -538,7 +548,7 @@ d_tcp_os_await_accept(
     {
         const int ready = d_tcp_os_poll(watched,
                                         2u,
-                                        -1);
+                                        _wait_ms);
 
         // a failed wait is the system's error, unless a signal caused it
         if (ready < 0)
@@ -552,6 +562,12 @@ d_tcp_os_await_accept(
             return d_tcp_os_error();
         }
 
+        // nothing arrived in time
+        if (ready == 0)
+        {
+            return D_NET_ERROR_TIMED_OUT;
+        }
+
         // the listener is closing
         if (watched[1].revents != 0)
         {
@@ -562,7 +578,7 @@ d_tcp_os_await_accept(
         if (watched[0].revents != 0)
         {
             return ((watched[0].revents & POLLIN) != 0)
-                       ? D_NET_ERROR_NONE
+                       ? D_NET_OK
                        : D_NET_ERROR_UNKNOWN;
         }
     }
@@ -599,7 +615,7 @@ d_tcp_os_unix_address(
            path.length);
     *_length = (socklen_t)sizeof(*local);
 
-    return D_NET_ERROR_NONE;
+    return D_NET_OK;
 }
 
 /*
@@ -637,7 +653,7 @@ d_tcp_os_endpoint_other(
                                             : room };
 
     return (d_net_endpoint_set_local(_out,
-                                     path) == D_NET_ERROR_NONE);
+                                     path) == D_NET_OK);
 }
 
 /*
@@ -674,6 +690,142 @@ d_tcp_os_shutdown_how(
         default:
             return -1;
     }
+}
+
+/*
+d_tcp_os_listening
+  A listening socket is non-blocking, so a connection that leaves between
+the wait and the accept fails the accept rather than stalling it.
+*/
+static void
+d_tcp_os_listening(
+    d_tcp_socket _socket
+)
+{
+    (void)d_tcp_os_set_blocking(_socket,
+                                false);
+
+    return;
+}
+
+/*
+d_tcp_os_set_timeout
+  SO_RCVTIMEO and SO_SNDTIMEO, a struct timeval apiece; zero lifts both.
+*/
+static bool
+d_tcp_os_set_timeout(
+    d_tcp_socket _socket,
+    long         _timeout_ms
+)
+{
+    const d_tcp_native   handle = d_tcp_os_handle(_socket);
+    const struct timeval limit  =
+    {
+        .tv_sec  = (time_t)(_timeout_ms / 1000),
+        .tv_usec = (suseconds_t)((_timeout_ms % 1000) * 1000)
+    };
+
+    return ( (setsockopt(handle,
+                         SOL_SOCKET,
+                         SO_RCVTIMEO,
+                         &limit,
+                         (socklen_t)sizeof(limit)) == 0) &&
+             (setsockopt(handle,
+                         SOL_SOCKET,
+                         SO_SNDTIMEO,
+                         &limit,
+                         (socklen_t)sizeof(limit)) == 0) );
+}
+
+/*
+d_tcp_os_expired
+  An expired SO_RCVTIMEO or SO_SNDTIMEO surfaces as EAGAIN, which a
+non-blocking socket also reports when it simply has nothing; on a blocking
+socket it can only be the limit.
+*/
+static enum d_net_error
+d_tcp_os_expired(
+    d_tcp_socket     _socket,
+    enum d_net_error _error
+)
+{
+    // only "would block" can be a limit in disguise
+    if (_error != D_NET_ERROR_WOULD_BLOCK)
+    {
+        return _error;
+    }
+
+    const int flags = fcntl(d_tcp_os_handle(_socket),
+                            F_GETFL,
+                            0);
+
+    return ( (flags >= 0) &&
+             ((flags & O_NONBLOCK) == 0) ) ? D_NET_ERROR_TIMED_OUT
+                                           : _error;
+}
+
+#if ( (D_ENV_TCP_CAN_COUNT) &&                                                 \
+      (defined(FIONREAD)) )
+
+/*
+d_tcp_os_count
+  FIONREAD counts what recv could return now, taking none of it.
+*/
+static bool
+d_tcp_os_count(
+    d_tcp_socket _socket,
+    size_t*      _out_count
+)
+{
+    int count = 0;
+
+    // a refused request leaves the count unknown
+    if (ioctl(d_tcp_os_handle(_socket),
+              FIONREAD,
+              &count) != 0)
+    {
+        return false;
+    }
+
+    *_out_count = (count > 0) ? (size_t)count
+                              : 0u;
+
+    return true;
+}
+
+#else
+
+/*
+d_tcp_os_count
+  Without FIONREAD there is no counting.
+*/
+static bool
+d_tcp_os_count(
+    d_tcp_socket _socket,
+    size_t*      _out_count
+)
+{
+    (void)_socket;
+    (void)_out_count;
+
+    return false;
+}
+
+#endif  // D_ENV_TCP_CAN_COUNT
+
+/*
+d_tcp_os_host_name
+  gethostname into storage whose last byte the caller has zeroed and does
+not offer, so a name the call truncates is still terminated.
+*/
+static bool
+d_tcp_os_host_name(
+    char*  _name,
+    size_t _size
+)
+{
+    return (gethostname(_name,
+                        _size) == 0);
 }
 
 #elif (D_INTERNAL_TCP_BACKEND == D_ENV_TCP_BACKEND_WINSOCK)
@@ -713,7 +865,7 @@ d_tcp_os_map(
     switch (_code)
     {
         case 0:
-            return D_NET_ERROR_NONE;
+            return D_NET_OK;
         case WSAEINTR:
             return D_NET_ERROR_INTERRUPTED;
         case WSAEWOULDBLOCK:
@@ -972,7 +1124,7 @@ d_tcp_os_receive(
     }
 
     return d_net_io_result_make((size_t)received,
-                                D_NET_ERROR_NONE);
+                                D_NET_OK);
 }
 
 /*
@@ -1001,7 +1153,7 @@ d_tcp_os_send(
     }
 
     return d_net_io_result_make((size_t)sent,
-                                D_NET_ERROR_NONE);
+                                D_NET_OK);
 }
 
 /*
@@ -1085,16 +1237,37 @@ d_tcp_os_wake_close(
 
 /*
 d_tcp_os_await_accept
-  Nothing to await: accept itself blocks, and closesocket interrupts it.
+  Without a limit there is nothing to await: accept itself blocks, and
+closesocket interrupts it. With one, WSAPoll waits on the listening socket,
+and a close from another thread is seen when the wait ends.
 */
 static enum d_net_error
 d_tcp_os_await_accept(
-    struct d_tcp_listener* _listener
+    struct d_tcp_listener* _listener,
+    int                    _wait_ms
 )
 {
-    (void)_listener;
+    // an unlimited wait is accept's own
+    if (_wait_ms < 0)
+    {
+        return D_NET_OK;
+    }
 
-    return D_NET_ERROR_NONE;
+    struct pollfd watched = { .fd      = d_tcp_os_handle(_listener->socket),
+                              .events  = POLLIN,
+                              .revents = 0 };
+    const int     ready   = d_tcp_os_poll(&watched,
+                                          1u,
+                                          _wait_ms);
+
+    // a failed wait is the system's error
+    if (ready < 0)
+    {
+        return d_tcp_os_error();
+    }
+
+    return (ready == 0) ? D_NET_ERROR_TIMED_OUT
+                        : D_NET_OK;
 }
 
 /*
@@ -1167,6 +1340,104 @@ d_tcp_os_shutdown_how(
         default:
             return -1;
     }
+}
+
+/*
+d_tcp_os_listening
+  A Winsock listener stays blocking: closesocket wakes an accept blocked on
+it, and that is how an unlimited wait ends.
+*/
+static void
+d_tcp_os_listening(
+    d_tcp_socket _socket
+)
+{
+    (void)_socket;
+
+    return;
+}
+
+/*
+d_tcp_os_set_timeout
+  SO_RCVTIMEO and SO_SNDTIMEO, a DWORD of milliseconds apiece; zero lifts
+both.
+*/
+static bool
+d_tcp_os_set_timeout(
+    d_tcp_socket _socket,
+    long         _timeout_ms
+)
+{
+    const d_tcp_native handle = d_tcp_os_handle(_socket);
+    const DWORD        limit  = (DWORD)_timeout_ms;
+
+    return ( (setsockopt(handle,
+                         SOL_SOCKET,
+                         SO_RCVTIMEO,
+                         (const char*)&limit,
+                         (int)sizeof(limit)) == 0) &&
+             (setsockopt(handle,
+                         SOL_SOCKET,
+                         SO_SNDTIMEO,
+                         (const char*)&limit,
+                         (int)sizeof(limit)) == 0) );
+}
+
+/*
+d_tcp_os_expired
+  Winsock reports an expired limit as WSAETIMEDOUT, which maps to
+D_NET_ERROR_TIMED_OUT already.
+*/
+static enum d_net_error
+d_tcp_os_expired(
+    d_tcp_socket     _socket,
+    enum d_net_error _error
+)
+{
+    (void)_socket;
+
+    return _error;
+}
+
+/*
+d_tcp_os_count
+  ioctlsocket with FIONREAD counts what recv could return now.
+*/
+static bool
+d_tcp_os_count(
+    d_tcp_socket _socket,
+    size_t*      _out_count
+)
+{
+    // FIONREAD is unsigned in the headers, while the parameter is a long
+    const long request = (long)FIONREAD;
+    u_long     count   = 0u;
+
+    // a refused request leaves the count unknown
+    if (ioctlsocket(d_tcp_os_handle(_socket),
+                    request,
+                    &count) != 0)
+    {
+        return false;
+    }
+
+    *_out_count = (size_t)count;
+
+    return true;
+}
+
+/*
+d_tcp_os_host_name
+  Winsock's gethostname, which takes its size as an int.
+*/
+static bool
+d_tcp_os_host_name(
+    char*  _name,
+    size_t _size
+)
+{
+    return (gethostname(_name,
+                        (int)_size) == 0);
 }
 
 #endif  // D_INTERNAL_TCP_BACKEND
@@ -1301,7 +1572,7 @@ d_tcp_endpoint_numeric(
     return (d_net_endpoint_set(_out,
                                host,
                                _port,
-                               _protocol) == D_NET_ERROR_NONE);
+                               _protocol) == D_NET_OK);
 }
 
 /*
@@ -1412,7 +1683,7 @@ d_tcp_take(
     _connection->protocol = _protocol;
     d_tcp_record_endpoints(_connection);
 
-    return D_NET_ERROR_NONE;
+    return D_NET_OK;
 }
 
 /*
@@ -1442,7 +1713,7 @@ d_tcp_wait_writable(
         // finished, one way or the other
         if (ready > 0)
         {
-            return D_NET_ERROR_NONE;
+            return D_NET_OK;
         }
 
         // out of time
@@ -1505,7 +1776,7 @@ d_tcp_connect_once(
                 _address,
                 _length) == 0)
     {
-        return D_NET_ERROR_NONE;
+        return D_NET_OK;
     }
 
     // under way: wait for the outcome
@@ -1515,7 +1786,7 @@ d_tcp_connect_once(
         const enum d_net_error ready = d_tcp_wait_writable(_socket,
                                                            _wait_ms);
 
-        return (ready == D_NET_ERROR_NONE) ? d_tcp_pending_error(_socket)
+        return (ready == D_NET_OK) ? d_tcp_pending_error(_socket)
                                            : ready;
     }
 
@@ -1595,7 +1866,7 @@ d_tcp_resolve(
                                  &hints,
                                  _out);
 
-    return (code == 0) ? D_NET_ERROR_NONE
+    return (code == 0) ? D_NET_OK
                        : d_tcp_resolver_error(code);
 }
 
@@ -1631,7 +1902,7 @@ d_tcp_connect_address(
                                         _options->connect_timeout_ms);
 
     // a failed connect's socket is discarded
-    if (result != D_NET_ERROR_NONE)
+    if (result != D_NET_OK)
     {
         d_tcp_os_close(candidate);
 
@@ -1661,7 +1932,7 @@ d_tcp_connect_tcp(
                                                    &results);
 
     // an unresolved host has no address to try
-    if (found != D_NET_ERROR_NONE)
+    if (found != D_NET_OK)
     {
         return found;
     }
@@ -1678,7 +1949,7 @@ d_tcp_connect_tcp(
                                      _options);
 
         // the first connection ends the search
-        if (last == D_NET_ERROR_NONE)
+        if (last == D_NET_OK)
         {
             break;
         }
@@ -1707,7 +1978,7 @@ d_tcp_connect_unix(
                                                             &length);
 
     // a path the platform cannot address fails before a socket exists
-    if (built != D_NET_ERROR_NONE)
+    if (built != D_NET_OK)
     {
         return built;
     }
@@ -1727,7 +1998,7 @@ d_tcp_connect_unix(
                                         _options->connect_timeout_ms);
 
     // a failed connect's socket is discarded
-    if (result != D_NET_ERROR_NONE)
+    if (result != D_NET_OK)
     {
         d_tcp_os_close(candidate);
 
@@ -1800,9 +2071,67 @@ d_tcp_socket_no_sigpipe(
 }
 
 /*
+d_tcp_limit
+  Gives a connection just opened its I/O timeout. A limit that cannot be
+set closes the connection again: a caller who asked for one must not be
+handed a socket that can hang.
+*/
+static enum d_net_error
+d_tcp_limit(
+    struct d_tcp_connection* _connection,
+    long                     _timeout_ms
+)
+{
+    // no limit asked for, none to set
+    if (_timeout_ms <= 0)
+    {
+        return D_NET_OK;
+    }
+
+    const enum d_net_error limited = d_tcp_connection_set_timeout(
+                                         _connection,
+                                         _timeout_ms);
+
+    // a connection that could hang is no connection
+    if (limited != D_NET_OK)
+    {
+        d_tcp_connection_close(_connection);
+    }
+
+    return limited;
+}
+
+/*
+d_tcp_connect_protocol
+  Connects by the endpoint's protocol.
+*/
+static enum d_net_error
+d_tcp_connect_protocol(
+    struct d_tcp_connection*     _connection,
+    const struct d_net_endpoint* _endpoint,
+    const struct d_tcp_options*  _options
+)
+{
+    switch (_endpoint->protocol)
+    {
+        case D_NET_PROTOCOL_TCP:
+            return d_tcp_connect_tcp(_connection,
+                                     _endpoint,
+                                     _options);
+        case D_NET_PROTOCOL_UNIX:
+            return d_tcp_connect_unix(_connection,
+                                      _endpoint,
+                                      _options);
+        default:
+            return D_NET_ERROR_INVALID_ARGUMENT;
+    }
+}
+
+/*
 d_tcp_connect
-  Validates, starts the backend, and dispatches on the protocol. The
-connection is closed first, so every failure leaves it closed.
+  Validates, starts the backend, dispatches on the protocol, and limits the
+connection's I/O. The connection is closed first, so every failure leaves
+it closed.
 */
 enum d_net_error
 d_tcp_connect(
@@ -1831,22 +2160,21 @@ d_tcp_connect(
         return D_NET_ERROR_NETWORK_DOWN;
     }
 
-    const struct d_tcp_options* chosen = (_options) ? _options
-                                                    : &defaults;
+    const struct d_tcp_options* chosen    = (_options) ? _options
+                                                       : &defaults;
+    const enum d_net_error      connected = d_tcp_connect_protocol(
+                                                _connection,
+                                                _endpoint,
+                                                chosen);
 
-    switch (_endpoint->protocol)
+    // a connection that failed to open has nothing to limit
+    if (connected != D_NET_OK)
     {
-        case D_NET_PROTOCOL_TCP:
-            return d_tcp_connect_tcp(_connection,
-                                     _endpoint,
-                                     chosen);
-        case D_NET_PROTOCOL_UNIX:
-            return d_tcp_connect_unix(_connection,
-                                      _endpoint,
-                                      chosen);
-        default:
-            return D_NET_ERROR_INVALID_ARGUMENT;
+        return connected;
     }
+
+    return d_tcp_limit(_connection,
+                       chosen->io_timeout_ms);
 }
 
 /*
@@ -1917,12 +2245,21 @@ d_tcp_connection_read(
     if (_size == 0u)
     {
         return d_net_io_result_make(0u,
-                                    D_NET_ERROR_NONE);
+                                    D_NET_OK);
     }
 
-    return d_tcp_os_receive(_connection->socket,
-                            _buffer,
-                            _size);
+    struct d_net_io_result result = d_tcp_os_receive(_connection->socket,
+                                                     _buffer,
+                                                     _size);
+
+    // under a limit, the system's "nothing yet" is the limit expiring
+    if (_connection->timeout_ms > 0)
+    {
+        result.error = d_tcp_os_expired(_connection->socket,
+                                        result.error);
+    }
+
+    return result;
 }
 
 /*
@@ -1956,12 +2293,21 @@ d_tcp_connection_write(
     if (_size == 0u)
     {
         return d_net_io_result_make(0u,
-                                    D_NET_ERROR_NONE);
+                                    D_NET_OK);
     }
 
-    return d_tcp_os_send(_connection->socket,
-                         _data,
-                         _size);
+    struct d_net_io_result result = d_tcp_os_send(_connection->socket,
+                                                  _data,
+                                                  _size);
+
+    // under a limit, the system's "nothing yet" is the limit expiring
+    if (_connection->timeout_ms > 0)
+    {
+        result.error = d_tcp_os_expired(_connection->socket,
+                                        result.error);
+    }
+
+    return result;
 }
 
 /*
@@ -1995,8 +2341,83 @@ d_tcp_connection_shutdown(
     }
 
     return (shutdown(d_tcp_os_handle(_connection->socket),
-                     how) == 0) ? D_NET_ERROR_NONE
+                     how) == 0) ? D_NET_OK
                                 : d_tcp_os_error();
+}
+
+/*
+d_tcp_connection_set_timeout
+  The system holds the limit; the connection remembers it, so its reads and
+writes know what an expired wait looks like.
+*/
+enum d_net_error
+d_tcp_connection_set_timeout(
+    struct d_tcp_connection* _connection,
+    long                     _timeout_ms
+)
+{
+    // parameter validation
+    if (!_connection)
+    {
+        return D_NET_ERROR_INVALID_ARGUMENT;
+    }
+
+    // a closed connection has no socket to limit
+    if (_connection->socket == D_TCP_SOCKET_INVALID)
+    {
+        return D_NET_ERROR_CLOSED;
+    }
+
+    const long limit = (_timeout_ms > 0) ? _timeout_ms
+                                         : 0;
+
+    // a limit the system refuses is not recorded
+    if (!d_tcp_os_set_timeout(_connection->socket,
+                              limit))
+    {
+        return d_tcp_os_error();
+    }
+
+    _connection->timeout_ms = limit;
+
+    return D_NET_OK;
+}
+
+/*
+d_tcp_connection_available
+  The count is zeroed first, so a refusal never leaves a stale one behind.
+*/
+bool
+d_tcp_connection_available(
+    const struct d_tcp_connection* _connection,
+    size_t*                        _out_count
+)
+{
+    // there must be somewhere to report the count
+    if (!_out_count)
+    {
+        return false;
+    }
+
+    *_out_count = 0u;
+
+    // a closed connection has no socket to ask
+    if ( (!_connection) ||
+         (_connection->socket == D_TCP_SOCKET_INVALID) )
+    {
+        return false;
+    }
+
+    // a failed count leaves the count unknown
+    if (!d_tcp_os_count(_connection->socket,
+                        _out_count))
+    {
+        *_out_count = 0u;
+
+        return false;
+    }
+
+    return true;
 }
 
 /*
@@ -2045,7 +2466,7 @@ d_tcp_bind_listen(
     }
 
     return (listen(handle,
-                   _backlog) == 0) ? D_NET_ERROR_NONE
+                   _backlog) == 0) ? D_NET_OK
                                    : d_tcp_os_error();
 }
 
@@ -2069,10 +2490,15 @@ d_tcp_bind_address(
         return d_tcp_os_error();
     }
 
-    d_tcp_set_option(candidate,
-                     SOL_SOCKET,
-                     SO_REUSEADDR,
-                     _options->reuse_address);
+    // SO_REUSEADDR as BSD sockets mean it; Winsock's would let this socket
+    // take a port another holds, and Windows rebinds past TIME_WAIT anyway
+    if (D_INTERNAL_TCP_BACKEND != D_ENV_TCP_BACKEND_WINSOCK)
+    {
+        d_tcp_set_option(candidate,
+                         SOL_SOCKET,
+                         SO_REUSEADDR,
+                         _options->reuse_address);
+    }
 
     // SO_REUSEPORT is only ever turned on
     if (_options->reuse_port)
@@ -2087,7 +2513,7 @@ d_tcp_bind_address(
                                        _options->listen_backlog);
 
     // a socket that failed to bind is discarded
-    if (bound != D_NET_ERROR_NONE)
+    if (bound != D_NET_OK)
     {
         d_tcp_os_close(candidate);
 
@@ -2097,7 +2523,7 @@ d_tcp_bind_address(
     _listener->socket   = candidate;
     _listener->protocol = D_NET_PROTOCOL_TCP;
 
-    return D_NET_ERROR_NONE;
+    return D_NET_OK;
 }
 
 /*
@@ -2118,7 +2544,7 @@ d_tcp_listen_tcp(
                                                    &results);
 
     // an unresolved host has no address to bind
-    if (found != D_NET_ERROR_NONE)
+    if (found != D_NET_OK)
     {
         return found;
     }
@@ -2135,7 +2561,7 @@ d_tcp_listen_tcp(
                                   _options);
 
         // the first bound address ends the search
-        if (last == D_NET_ERROR_NONE)
+        if (last == D_NET_OK)
         {
             break;
         }
@@ -2165,7 +2591,7 @@ d_tcp_listen_unix(
                                                             &length);
 
     // a path the platform cannot address fails before a socket exists
-    if (built != D_NET_ERROR_NONE)
+    if (built != D_NET_OK)
     {
         return built;
     }
@@ -2187,7 +2613,7 @@ d_tcp_listen_unix(
                                        _options->listen_backlog);
 
     // a socket that failed to bind is discarded
-    if (bound != D_NET_ERROR_NONE)
+    if (bound != D_NET_OK)
     {
         d_tcp_os_close(candidate);
 
@@ -2290,7 +2716,7 @@ d_tcp_listen(
                                   : D_NET_ERROR_NETWORK_DOWN;
 
     // without an open socket there is nothing more to do
-    if (bound != D_NET_ERROR_NONE)
+    if (bound != D_NET_OK)
     {
         return bound;
     }
@@ -2305,16 +2731,19 @@ d_tcp_listen(
         return failed;
     }
 
-    _listener->no_delay = chosen->no_delay;
+    _listener->io_timeout_ms = chosen->io_timeout_ms;
+    _listener->no_delay      = chosen->no_delay;
+    d_tcp_os_listening(_listener->socket);
     d_tcp_record_listener(_listener);
 
-    return D_NET_ERROR_NONE;
+    return D_NET_OK;
 }
 
 /*
 d_tcp_welcome
-  Makes a connection of an accepted socket, disabling Nagle first when the
-listener was asked to.
+  Makes a connection of an accepted socket: blocking, as BSD systems do not
+make it when the listener is not; without Nagle when the listener was asked
+to; and limited by the listener's I/O timeout.
 */
 static enum d_net_error
 d_tcp_welcome(
@@ -2323,6 +2752,9 @@ d_tcp_welcome(
     d_tcp_socket             _accepted
 )
 {
+    (void)d_tcp_os_set_blocking(_accepted,
+                                true);
+
     // Nagle applies to TCP alone
     if ( (_listener->no_delay) &&
          (_listener->protocol == D_NET_PROTOCOL_TCP) )
@@ -2330,20 +2762,56 @@ d_tcp_welcome(
         d_tcp_set_no_delay(_accepted);
     }
 
-    return d_tcp_take(_connection,
-                      _accepted,
-                      _listener->protocol);
+    (void)d_tcp_take(_connection,
+                     _accepted,
+                     _listener->protocol);
+
+    return d_tcp_limit(_connection,
+                       _listener->io_timeout_ms);
 }
 
 /*
-d_tcp_accept
+d_tcp_refused
+  What a failed accept answers: CLOSED for a listener closed meanwhile; for
+a connection that left between the wait and the accept, which a
+non-blocking listener reports as "would block", nothing under an unlimited
+wait, which goes on, and an expired limit under a limited one; and the
+system's error otherwise.
+*/
+static enum d_net_error
+d_tcp_refused(
+    const struct d_tcp_listener* _listener,
+    int                          _wait_ms
+)
+{
+    const enum d_net_error failed = d_tcp_os_error();
+
+    // a close from another thread wins
+    if (_listener->socket == D_TCP_SOCKET_INVALID)
+    {
+        return D_NET_ERROR_CLOSED;
+    }
+
+    // a connection that left is no reason to stop an unlimited wait
+    if (failed == D_NET_ERROR_WOULD_BLOCK)
+    {
+        return (_wait_ms < 0) ? D_NET_OK
+                              : D_NET_ERROR_TIMED_OUT;
+    }
+
+    return failed;
+}
+
+/*
+d_tcp_accept_wait
   Waits, then accepts. The listener's socket is read afresh each time round,
 so a close from another thread is seen however the wait ends.
 */
 enum d_net_error
-d_tcp_accept(
+d_tcp_accept_wait(
     struct d_tcp_listener*   _listener,
-    struct d_tcp_connection* _connection
+    struct d_tcp_connection* _connection,
+    long                     _wait_ms
 )
 {
     d_tcp_connection_init(_connection);
@@ -2355,6 +2823,10 @@ d_tcp_accept(
         return D_NET_ERROR_INVALID_ARGUMENT;
     }
 
+    const int wait = (_wait_ms < 0)              ? -1
+                   : (_wait_ms > (long)INT_MAX) ? INT_MAX
+                                                : (int)_wait_ms;
+
     // wait and accept, retrying what signals interrupt
     for (;;)
     {
@@ -2364,10 +2836,11 @@ d_tcp_accept(
             return D_NET_ERROR_CLOSED;
         }
 
-        const enum d_net_error ready = d_tcp_os_await_accept(_listener);
+        const enum d_net_error ready = d_tcp_os_await_accept(_listener,
+                                                             wait);
 
-        // a woken or failed wait ends here
-        if (ready != D_NET_ERROR_NONE)
+        // a woken, expired, or failed wait ends here
+        if (ready != D_NET_OK)
         {
             return (_listener->socket == D_TCP_SOCKET_INVALID)
                        ? D_NET_ERROR_CLOSED
@@ -2384,14 +2857,71 @@ d_tcp_accept(
                                  accepted);
         }
 
-        // anything but an interruption is the answer
+        // an interruption, or a connection gone under an unlimited wait, goes
+        // round again; anything else is the answer
         if (!d_tcp_os_interrupted())
         {
-            return (_listener->socket == D_TCP_SOCKET_INVALID)
-                       ? D_NET_ERROR_CLOSED
-                       : d_tcp_os_error();
+            const enum d_net_error refused = d_tcp_refused(_listener,
+                                                           wait);
+
+            // the answer, unless the wait goes on
+            if (refused != D_NET_OK)
+            {
+                return refused;
+            }
         }
     }
+}
+
+/*
+d_tcp_host_name
+  POSIX bounds a host name at 255 bytes, so the system writes into a local
+buffer one byte larger, whose last byte stays the terminator however the
+call truncates; only then is the name measured against the caller's room.
+*/
+enum d_net_error
+d_tcp_host_name(
+    char*  _buffer,
+    size_t _capacity
+)
+{
+    // parameter validation
+    if ( (!_buffer) ||
+         (_capacity == 0u) )
+    {
+        return D_NET_ERROR_INVALID_ARGUMENT;
+    }
+
+    _buffer[0] = '\0';
+
+    // Winsock starts here on first use
+    if (!d_tcp_os_startup())
+    {
+        return D_NET_ERROR_NETWORK_DOWN;
+    }
+
+    char name[256] = { 0 };
+
+    // the system's name, its last byte left as the terminator
+    if (!d_tcp_os_host_name(name,
+                            sizeof(name) - 1u))
+    {
+        return d_tcp_os_error();
+    }
+
+    const size_t length = strlen(name);
+
+    // the name and its terminator must fit
+    if (length >= _capacity)
+    {
+        return D_NET_ERROR_MESSAGE_TOO_LARGE;
+    }
+
+    memcpy(_buffer,
+           name,
+           length + 1u);
+
+    return D_NET_OK;
 }
 
 /*
@@ -2451,7 +2981,7 @@ d_tcp_error_from_native(
     int _code
 )
 {
-    return (_code == 0) ? D_NET_ERROR_NONE
+    return (_code == 0) ? D_NET_OK
                         : D_NET_ERROR_UNKNOWN;
 }
 
@@ -2615,20 +3145,82 @@ d_tcp_listen(
 }
 
 /*
-d_tcp_accept
+d_tcp_accept_wait
   A stub listener is never open.
 */
 enum d_net_error
-d_tcp_accept(
+d_tcp_accept_wait(
     struct d_tcp_listener*   _listener,
-    struct d_tcp_connection* _connection
+    struct d_tcp_connection* _connection,
+    long                     _wait_ms
 )
 {
+    (void)_wait_ms;
     d_tcp_connection_init(_connection);
 
     return ( (_listener) &&
              (_connection) ) ? D_NET_ERROR_CLOSED
                              : D_NET_ERROR_INVALID_ARGUMENT;
+}
+
+/*
+d_tcp_connection_set_timeout
+  A stub connection is never open.
+*/
+enum d_net_error
+d_tcp_connection_set_timeout(
+    struct d_tcp_connection* _connection,
+    long                     _timeout_ms
+)
+{
+    (void)_timeout_ms;
+
+    return (_connection) ? D_NET_ERROR_CLOSED
+                         : D_NET_ERROR_INVALID_ARGUMENT;
+}
+
+/*
+d_tcp_connection_available
+  A stub connection is never open, so nothing is ever counted.
+*/
+bool
+d_tcp_connection_available(
+    const struct d_tcp_connection* _connection,
+    size_t*                        _out_count
+)
+{
+    (void)_connection;
+
+    // the count is zeroed even here
+    if (_out_count)
+    {
+        *_out_count = 0u;
+    }
+
+    return false;
+}
+
+/*
+d_tcp_host_name
+  Without a backend there is no system to ask; the arguments are still
+checked, as the backends check them.
+*/
+enum d_net_error
+d_tcp_host_name(
+    char*  _buffer,
+    size_t _capacity
+)
+{
+    // parameter validation
+    if ( (!_buffer) ||
+         (_capacity == 0u) )
+    {
+        return D_NET_ERROR_INVALID_ARGUMENT;
+    }
+
+    _buffer[0] = '\0';
+
+    return D_NET_ERROR_NETWORK_DOWN;
 }
 
 /*
@@ -2652,8 +3244,24 @@ d_tcp_listener_close(
 #endif  // D_INTERNAL_TCP_BACKEND
 
 /*
+d_tcp_accept
+  d_tcp_accept_wait without a limit, in every build.
+*/
+enum d_net_error
+d_tcp_accept(
+    struct d_tcp_listener*   _listener,
+    struct d_tcp_connection* _connection
+)
+{
+    return d_tcp_accept_wait(_listener,
+                             _connection,
+                             -1);
+}
+
+/*
 d_tcp_options_init
-  The defaults tcp.hpp's socket_options had, the backlog from cfg_tcp.h.
+  The defaults tcp.hpp's socket_options had, the backlog from cfg_tcp.h,
+and no I/O timeout.
 */
 void
 d_tcp_options_init(
@@ -2664,6 +3272,7 @@ d_tcp_options_init(
     if (_options)
     {
         _options->connect_timeout_ms = 0;
+        _options->io_timeout_ms      = 0;
         _options->listen_backlog     = D_INTERNAL_TCP_LISTEN_BACKLOG;
         _options->no_delay           = false;
         _options->reuse_address      = true;
@@ -2778,6 +3387,21 @@ d_tcp_local_operation(
 }
 
 /*
+d_tcp_available_operation
+  The table's available, as d_tcp_read_operation.
+*/
+static bool
+d_tcp_available_operation(
+    const struct d_net_connection* _connection,
+    size_t*                        _out_count
+)
+{
+    return d_tcp_connection_available(
+               (const struct d_tcp_connection*)_connection,
+               _out_count);
+}
+
+/*
 TCP_OPERATIONS
   The table every TCP connection's base points at. It has no destroy: a
 connection's storage is its owner's.
@@ -2791,7 +3415,8 @@ static const struct d_net_connection_vtable TCP_OPERATIONS =
     d_tcp_shutdown_operation,
     d_tcp_remote_operation,
     d_tcp_local_operation,
-    NULL
+    NULL,
+    d_tcp_available_operation
 };
 
 /*
@@ -2810,8 +3435,9 @@ d_tcp_connection_init(
                                     &TCP_OPERATIONS);
         d_net_endpoint_init(&_connection->remote);
         d_net_endpoint_init(&_connection->local);
-        _connection->socket   = D_TCP_SOCKET_INVALID;
-        _connection->protocol = D_NET_PROTOCOL_TCP;
+        _connection->socket     = D_TCP_SOCKET_INVALID;
+        _connection->protocol   = D_NET_PROTOCOL_TCP;
+        _connection->timeout_ms = 0;
     }
 
     return;
@@ -2931,12 +3557,13 @@ d_tcp_listener_init(
     if (_listener)
     {
         d_net_endpoint_init(&_listener->local);
-        _listener->socket     = D_TCP_SOCKET_INVALID;
-        _listener->wake_read  = D_TCP_SOCKET_INVALID;
-        _listener->wake_write = D_TCP_SOCKET_INVALID;
-        _listener->protocol   = D_NET_PROTOCOL_TCP;
-        _listener->no_delay   = false;
-        _listener->owns_path  = false;
+        _listener->socket        = D_TCP_SOCKET_INVALID;
+        _listener->wake_read     = D_TCP_SOCKET_INVALID;
+        _listener->wake_write    = D_TCP_SOCKET_INVALID;
+        _listener->protocol      = D_NET_PROTOCOL_TCP;
+        _listener->io_timeout_ms = 0;
+        _listener->no_delay      = false;
+        _listener->owns_path     = false;
     }
 
     return;

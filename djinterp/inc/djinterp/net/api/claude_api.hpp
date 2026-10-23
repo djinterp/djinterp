@@ -11,7 +11,7 @@
 * CONTENTS:
 *   0.  batches endpoint constant
 *   I.   json_int (added to claude::internal; reuses the readers in claude.hpp)
-*   namespace djinterp::web::vendor::claude::batch
+*   namespace djinterp::net::vendor::claude::batch
 *     II.  processing_state, request_counts, result_type (+ string helpers)
 *     III. status  (a batch object view over its JSON)
 *     IV.  result  (one line of the JSONL results file) + parsing/indexing
@@ -19,7 +19,7 @@
 *     VI.  poll_config, outcome
 *     VII. client -- create / retrieve / cancel / delete / list / results /
 *          poll / submit_and_wait
-*   namespace djinterp::web::vendor::claude::queue
+*   namespace djinterp::net::vendor::claude::queue
 *     VIII. run_conversation -- linear dependent-turn runner over claude::client
 *
 *   WHY BATCHES: a batch request is exactly {custom_id, params} where params is
@@ -28,30 +28,36 @@
 * an hour; 24-hour ceiling), then stream the JSONL results and reconcile them
 * by custom_id (batch results are not returned in submission order).
 *
-*   Requires:  web/vendor/claude.hpp (and therefore curl.hpp + libcurl).
+*   Requires:  api/claude.hpp (and therefore curl.hpp + libcurl);
+*              C++98 and later. The polling wait sleeps through dmutex.h's
+*              d_thread_sleep (link dmutex.c), and the enumerations are
+*              scoped in structs (decision 3.4): result_type::value.
 *
 *
 * path:      /inc/djinterp/net/api/claude_api.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 #ifndef DJINTERP_NET_API_CLAUDE_API_HPP
 #define DJINTERP_NET_API_CLAUDE_API_HPP 1
 
 // std
-#include <chrono>
-#include <cstddef>
-#include <string>
-#include <thread>
-#include <vector>
-// djinterp -- typed synchronous Claude surface (pulls curl.hpp + web.hpp)
-#include "claude.hpp"
+#include <cstddef>  // std::size_t
+#include <cstdio>   // std::sprintf
+#include <ctime>    // timespec
+#include <string>   // std::string
+#include <vector>   // std::vector
+// djinterp -- typed synchronous Claude surface (pulls curl.hpp and http.hpp)
+#include "../../c/sync/dmutex.h"   // d_thread_sleep, for the polling wait
+#include "../net_common.h"  // d_net_ascii_is_*
+#include "../codec/codec_line.h"   // d_net_line_next, d_net_line_chomp
+#include "./claude.hpp"            // client, message_request, json helpers
 
 
 NS_DJINTERP
-NS_WEB
+NS_NET
 D_NAMESPACE(D_KEYWORD_VENDOR)
 D_NAMESPACE(D_KEYWORD_CLAUDE)
 
@@ -87,7 +93,8 @@ NS_INTERNAL
     )
     {
         const std::string needle = "\"" + _key + "\"";
-        std::size_t       pos    = _s.find(needle, _from);
+        std::size_t       pos    = _s.find(needle,
+                                           _from);
 
         // scan each candidate key occurrence
         while (pos != std::string::npos)
@@ -96,8 +103,7 @@ NS_INTERNAL
 
             // skip whitespace before the ':'
             while ( (i < _s.size()) &&
-                    ( (_s[i] == ' ')  || (_s[i] == '\t') ||
-                      (_s[i] == '\n') || (_s[i] == '\r') ) )
+                    (::d_net_ascii_is_space(_s[i])) )
             {
                 ++i;
             }
@@ -110,8 +116,7 @@ NS_INTERNAL
 
                 // skip whitespace before the value
                 while ( (i < _s.size()) &&
-                        ( (_s[i] == ' ')  || (_s[i] == '\t') ||
-                          (_s[i] == '\n') || (_s[i] == '\r') ) )
+                        (::d_net_ascii_is_space(_s[i])) )
                 {
                     ++i;
                 }
@@ -128,12 +133,12 @@ NS_INTERNAL
 
                 // require at least one digit
                 if ( (i < _s.size()) &&
-                     (_s[i] >= '0') && (_s[i] <= '9') )
+                     (::d_net_ascii_is_digit(_s[i])) )
                 {
                     long value = 0;
 
                     while ( (i < _s.size()) &&
-                            (_s[i] >= '0') && (_s[i] <= '9') )
+                            (::d_net_ascii_is_digit(_s[i])) )
                     {
                         value = (value * 10) + (_s[i] - '0');
                         ++i;
@@ -145,7 +150,8 @@ NS_INTERNAL
                 }
             }
 
-            pos = _s.find(needle, pos + needle.size());
+            pos = _s.find(needle,
+                          pos + needle.size());
         }
 
         return false;
@@ -163,7 +169,10 @@ NS_INTERNAL
     {
         long value = 0;
 
-        return json_int_value(_s, _key, 0, value) ? value : _fallback;
+        return json_int_value(_s,
+                              _key,
+                              0,
+                              value) ? value : _fallback;
     }
 
 NS_END  // internal
@@ -178,19 +187,22 @@ D_NAMESPACE(batch)
 // processing_state
 //   enum: the stage a Message Batch is in. `unknown` covers an unrecognized or
 // absent status string.
-enum class processing_state : unsigned char
+struct processing_state
 {
-    unknown = 0,
-    in_progress,
-    canceling,
-    ended
+    enum value
+    {
+        unknown = 0,
+        in_progress,
+        canceling,
+        ended
+    };
 };
 
 // to_string(processing_state)
 //   function: the API token for a processing state.
 D_NODISCARD inline const char*
 to_string(
-    processing_state _state
+    processing_state::value _state
 )
 {
     switch (_state)
@@ -206,7 +218,7 @@ to_string(
 
 // processing_state_from_string
 //   function: maps a status token to a processing_state.
-D_NODISCARD inline processing_state
+D_NODISCARD inline processing_state::value
 processing_state_from_string(
     const std::string& _token
 )
@@ -249,20 +261,23 @@ struct request_counts
 // result_type
 //   enum: the outcome of a single request within a completed batch. `unknown`
 // covers an unrecognized type string.
-enum class result_type : unsigned char
+struct result_type
 {
-    unknown = 0,
-    succeeded,
-    errored,
-    canceled,
-    expired
+    enum value
+    {
+        unknown = 0,
+        succeeded,
+        errored,
+        canceled,
+        expired
+    };
 };
 
 // to_string(result_type)
 //   function: the API token for a result type.
 D_NODISCARD inline const char*
 to_string(
-    result_type _type
+    result_type::value _type
 )
 {
     switch (_type)
@@ -279,7 +294,7 @@ to_string(
 
 // result_type_from_string
 //   function: maps a result-type token to a result_type.
-D_NODISCARD inline result_type
+D_NODISCARD inline result_type::value
 result_type_from_string(
     const std::string& _token
 )
@@ -322,7 +337,7 @@ struct status
         return http.status;
     }
 
-    D_NODISCARD transport_error
+    D_NODISCARD transport_error::value
     transport() const
     {
         return http.error;
@@ -339,7 +354,8 @@ struct status
     D_NODISCARD std::string
     id() const
     {
-        return internal::json_string(http.body, "id");
+        return internal::json_string(http.body,
+                                     "id");
     }
 
     // processing_status
@@ -348,12 +364,13 @@ struct status
     D_NODISCARD std::string
     processing_status() const
     {
-        return internal::json_string(http.body, "processing_status");
+        return internal::json_string(http.body,
+                                     "processing_status");
     }
 
     // state
     //   function: the processing status as an enum.
-    D_NODISCARD processing_state
+    D_NODISCARD processing_state::value
     state() const
     {
         return processing_state_from_string(processing_status());
@@ -384,11 +401,16 @@ struct status
     counts() const
     {
         request_counts c;
-        c.processing = internal::json_int(http.body, "processing");
-        c.succeeded  = internal::json_int(http.body, "succeeded");
-        c.errored    = internal::json_int(http.body, "errored");
-        c.canceled   = internal::json_int(http.body, "canceled");
-        c.expired    = internal::json_int(http.body, "expired");
+        c.processing = internal::json_int(http.body,
+                                          "processing");
+        c.succeeded  = internal::json_int(http.body,
+                                          "succeeded");
+        c.errored    = internal::json_int(http.body,
+                                          "errored");
+        c.canceled   = internal::json_int(http.body,
+                                          "canceled");
+        c.expired    = internal::json_int(http.body,
+                                          "expired");
 
         return c;
     }
@@ -399,7 +421,8 @@ struct status
     D_NODISCARD std::string
     results_url() const
     {
-        return internal::json_string(http.body, "results_url");
+        return internal::json_string(http.body,
+                                     "results_url");
     }
 
     // has_results
@@ -415,19 +438,22 @@ struct status
     D_NODISCARD std::string
     created_at() const
     {
-        return internal::json_string(http.body, "created_at");
+        return internal::json_string(http.body,
+                                     "created_at");
     }
 
     D_NODISCARD std::string
     expires_at() const
     {
-        return internal::json_string(http.body, "expires_at");
+        return internal::json_string(http.body,
+                                     "expires_at");
     }
 
     D_NODISCARD std::string
     ended_at() const
     {
-        return internal::json_string(http.body, "ended_at");
+        return internal::json_string(http.body,
+                                     "ended_at");
     }
 
     // error_type / error_message
@@ -436,13 +462,17 @@ struct status
     D_NODISCARD std::string
     error_type() const
     {
-        return internal::json_string_after(http.body, "error", "type");
+        return internal::json_string_after(http.body,
+                                           "error",
+                                           "type");
     }
 
     D_NODISCARD std::string
     error_message() const
     {
-        return internal::json_string_after(http.body, "error", "message");
+        return internal::json_string_after(http.body,
+                                           "error",
+                                           "message");
     }
 };
 
@@ -457,9 +487,9 @@ struct status
 // demand; the full line is available via raw().
 struct result
 {
-    std::string custom_id;
-    result_type type;
-    std::string line;  // the raw JSON for this result
+    std::string        custom_id;
+    result_type::value type;
+    std::string        line;  // the raw JSON for this result
 
     result()
         : custom_id(),
@@ -490,7 +520,8 @@ struct result
     D_NODISCARD std::string
     text() const
     {
-        return ok() ? internal::concat_string_values(line, "text")
+        return ok() ? internal::concat_string_values(line,
+                                                     "text")
                     : std::string();
     }
 
@@ -499,7 +530,8 @@ struct result
     D_NODISCARD std::string
     stop_reason() const
     {
-        return internal::json_string(line, "stop_reason");
+        return internal::json_string(line,
+                                     "stop_reason");
     }
 
     // message_id
@@ -508,7 +540,9 @@ struct result
     D_NODISCARD std::string
     message_id() const
     {
-        return internal::json_string_after(line, "message", "id");
+        return internal::json_string_after(line,
+                                           "message",
+                                           "id");
     }
 
     // model
@@ -516,7 +550,8 @@ struct result
     D_NODISCARD std::string
     model() const
     {
-        return internal::json_string(line, "model");
+        return internal::json_string(line,
+                                     "model");
     }
 
     // error_type / error_message
@@ -525,13 +560,17 @@ struct result
     D_NODISCARD std::string
     error_type() const
     {
-        return internal::json_string_after(line, "error", "type");
+        return internal::json_string_after(line,
+                                           "error",
+                                           "type");
     }
 
     D_NODISCARD std::string
     error_message() const
     {
-        return internal::json_string_after(line, "error", "message");
+        return internal::json_string_after(line,
+                                           "error",
+                                           "message");
     }
 };
 
@@ -545,51 +584,40 @@ parse_results(
 )
 {
     std::vector<result> out;
-    std::size_t         start = 0;
+    ::d_pack_text       cursor = { _jsonl.data(),
+                                   _jsonl.size() };
+    ::d_pack_text       piece  = { D_NULLPTR,
+                                   0u };
 
-    // split on newlines and parse each line
-    while (start <= _jsonl.size())
+    // each line, CRLF or LF, without the CRs that end it
+    while (::d_net_line_next(&cursor,
+                             &piece))
     {
-        std::size_t nl  = _jsonl.find('\n', start);
-        std::size_t end = (nl == std::string::npos) ? _jsonl.size() : nl;
+        const ::d_pack_text text = ::d_net_line_chomp(piece);
 
-        if (end > start)
+        // parse non-blank lines
+        if (text.length > 0u)
         {
-            std::string line = _jsonl.substr(start, end - start);
+            const std::string line(text.data,
+                                   text.length);
+            result            r;
 
-            // tolerate CRLF endings
-            while ( (!line.empty()) &&
-                    (line.back() == '\r') )
-            {
-                line.pop_back();
-            }
+            r.line      = line;
+            r.custom_id = internal::json_string(line,
+                                                "custom_id");
+            r.type      = result_type_from_string(
+                              internal::json_string(line,
+                                                    "type"));
 
-            // parse non-blank lines
-            if (!line.empty())
-            {
-                result r;
-                r.line      = line;
-                r.custom_id = internal::json_string(line, "custom_id");
-                r.type      = result_type_from_string(
-                                  internal::json_string(line, "type"));
-
-                out.push_back(r);
-            }
+            out.push_back(r);
         }
-
-        if (nl == std::string::npos)
-        {
-            break;
-        }
-
-        start = nl + 1;
     }
 
     return out;
 }
 
 // find_result
-//   function: a pointer to the result with the given custom_id, or nullptr.
+//   function: a pointer to the result with the given custom_id, or null.
 // Since batch results are unordered, callers reconcile by custom_id.
 D_NODISCARD inline const result*
 find_result(
@@ -606,7 +634,7 @@ find_result(
         }
     }
 
-    return nullptr;
+    return D_NULLPTR;
 }
 
 
@@ -659,10 +687,9 @@ is_valid_custom_id(
     {
         const char c = _id[i];
 
-        const bool allowed = ( ( (c >= 'a') && (c <= 'z') ) ||
-                               ( (c >= 'A') && (c <= 'Z') ) ||
-                               ( (c >= '0') && (c <= '9') ) ||
-                               (c == '-') || (c == '_') );
+        const bool allowed = ( (::d_net_ascii_is_alnum(c)) ||
+                               (c == '-')                  ||
+                               (c == '_') );
 
         if (!allowed)
         {
@@ -689,7 +716,8 @@ user_item(
     req.max_tokens = _max_tokens;
     req.add_user(_prompt);
 
-    return item(_custom_id, req);
+    return item(_custom_id,
+                req);
 }
 
 // build_create_body
@@ -820,7 +848,9 @@ public:
         const std::string& _value
     )
     {
-        set_header(m_extra_headers, _name, _value);
+        set_header(m_extra_headers,
+                   _name,
+                   _value);
 
         return *this;
     }
@@ -852,10 +882,11 @@ public:
     {
         status st;
 
-        const request req = base_request(http_method::post,
+        const request req = base_request(net::http_method::post,
                                          batches_url(),
                                          build_create_body(_items));
-        st.http = curl::perform(req, m_options);
+        st.http = curl::perform(req,
+                                m_options);
 
         return st;
     }
@@ -869,10 +900,11 @@ public:
     {
         status st;
 
-        const request req = base_request(http_method::get,
+        const request req = base_request(net::http_method::get,
                                          batch_url(_batch_id),
                                          std::string());
-        st.http = curl::perform(req, m_options);
+        st.http = curl::perform(req,
+                                m_options);
 
         return st;
     }
@@ -887,10 +919,11 @@ public:
     {
         status st;
 
-        const request req = base_request(http_method::post,
+        const request req = base_request(net::http_method::post,
                                          batch_url(_batch_id) + "/cancel",
                                          std::string());
-        st.http = curl::perform(req, m_options);
+        st.http = curl::perform(req,
+                                m_options);
 
         return st;
     }
@@ -903,11 +936,12 @@ public:
         const std::string& _batch_id
     ) const
     {
-        const request req = base_request(http_method::delete_,
+        const request req = base_request(net::http_method::delete_,
                                          batch_url(_batch_id),
                                          std::string());
 
-        return curl::perform(req, m_options);
+        return curl::perform(req,
+                             m_options);
     }
 
     // list
@@ -919,12 +953,21 @@ public:
         int _limit = 20
     ) const
     {
+        char        digits[24];
+        const int   length = std::sprintf(digits,
+                                          "%d",
+                                          _limit);
         const std::string url =
-            batches_url() + "?limit=" + std::to_string(_limit);
+            batches_url() + "?limit=" +
+            std::string(digits,
+                        static_cast<std::size_t>(length));
 
-        const request req = base_request(http_method::get, url, std::string());
+        const request req = base_request(net::http_method::get,
+                                         url,
+                                         std::string());
 
-        return curl::perform(req, m_options);
+        return curl::perform(req,
+                             m_options);
     }
 
     // fetch_results
@@ -949,10 +992,11 @@ public:
 
         // the results URL is pre-signed: a bare GET, no auth headers
         request req;
-        req.method = http_method::get;
+        req.method = net::http_method::get;
         req.url    = url;
 
-        const response r = curl::perform(req, m_options);
+        const response r = curl::perform(req,
+                                         m_options);
 
         return parse_results(r.body);
     }
@@ -1004,8 +1048,13 @@ public:
                 return st;
             }
 
-            std::this_thread::sleep_for(
-                std::chrono::milliseconds(_config.interval_ms));
+            // the polling interval, slept through dmutex.h at every level
+            struct timespec span;
+
+            span.tv_sec  = static_cast<time_t>(_config.interval_ms / 1000L);
+            span.tv_nsec = (_config.interval_ms % 1000L) * 1000000L;
+            (void)::d_thread_sleep(&span,
+                                   D_NULLPTR);
 
             waited += _config.interval_ms;
         }
@@ -1035,7 +1084,8 @@ public:
         }
 
         // wait for completion
-        out.final_status = poll(created.id(), _config);
+        out.final_status = poll(created.id(),
+                                _config);
 
         // collect results once ended
         if (out.final_status.is_ended())
@@ -1048,12 +1098,12 @@ public:
 
 private:
     // base_request
-    //   function: builds a neutral web::request for a batch endpoint, applying
+    //   function: builds a neutral net::request for a batch endpoint, applying
     // the standard Anthropic auth/version headers, any default headers, and --
     // when a body is supplied -- the JSON content type and body.
     D_NODISCARD request
     base_request(
-        http_method        _method,
+        net::http_method::value _method,
         const std::string& _url,
         const std::string& _body
     ) const
@@ -1063,13 +1113,16 @@ private:
         req.method = _method;
         req.url    = _url;
 
-        req.set_header(header_api_key, m_api_key);
-        req.set_header(header_version, m_version);
+        req.set_header(header_api_key,
+                       m_api_key);
+        req.set_header(header_version,
+                       m_version);
 
         // optional beta opt-in header
         if (!m_beta.empty())
         {
-            req.set_header(header_beta, m_beta);
+            req.set_header(header_beta,
+                           m_beta);
         }
 
         // caller-supplied default headers
@@ -1083,7 +1136,8 @@ private:
         // body + content type when present
         if (!_body.empty())
         {
-            req.set_header(header_name::content_type, content_type::json);
+            req.set_header(http_field::content_type,
+                           http_media::json);
             req.body = _body;
         }
 
@@ -1182,7 +1236,7 @@ NS_END  // queue
 
 NS_END  // claude
 NS_END  // vendor
-NS_END  // web
+NS_END  // net
 NS_END  // djinterp
 
 

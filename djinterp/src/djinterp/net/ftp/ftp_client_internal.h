@@ -12,7 +12,7 @@
 * path:      /src/djinterp/net/ftp/ftp_client_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -32,13 +32,14 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>  // size_t
-#include <stdint.h>  // uint16_t
 // djinterp
 #include "../../../../inc/djinterp/c/djinterp.h"             // framework root
 #include "../../../../inc/djinterp/net/ftp/ftp_client.h"     // d_ftp_client
 #include "../../../../inc/djinterp/net/ftp/ftp_command.h"    // d_ftp_command
 #include "../../../../inc/djinterp/net/ftp/ftp_common.h"     // d_ftp_error
-#include "../../../../inc/djinterp/net/ssl/ssl.h"            // d_ssl_status
+#include "../../../../inc/djinterp/net/ssl/ssl.h"            // d_ssl_error
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint16_t
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++
@@ -55,40 +56,49 @@ D_EXTERN_C_BEGIN
 //------------------------------------------------------------------------------
 // Reads and writes go through a connection's TLS session while one is in
 // force and through its transport otherwise, both reported as SSL statuses:
-// D_SSL_STATUS_CONNECTION_CLOSED at the end of the stream, and
-// D_SSL_STATUS_TRANSPORT_ERROR for a transport failure, whose error the
-// connection's `failure` keeps. A write sends everything and flushes it.
-// d_ftp_internal_client_failure() turns a failed status into an FTP error:
-// a timeout, `_lost` for a stream that ended or broke, or D_FTP_ERROR_TLS
-// with the status kept -- a TLS stream ending without close_notify counts
-// as lost, not as TLS, on the control connection alone, whose replies frame
-// themselves.
-enum d_ssl_status d_ftp_internal_client_read(
-                      struct d_ftp_connection* _connection,
-                      void*                    _buffer,
-                      size_t                   _capacity,
-                      size_t*                  _out_read);
-enum d_ssl_status d_ftp_internal_client_write(
-                      struct d_ftp_connection* _connection,
-                      const void*              _data,
-                      size_t                   _size);
-enum d_ftp_error  d_ftp_internal_client_failure(
-                      struct d_ftp_client*           _client,
-                      const struct d_ftp_connection* _connection,
-                      enum d_ssl_status              _status,
-                      enum d_ftp_error               _lost);
+// D_SSL_ERROR_CLOSED at the end of the stream, and
+// D_SSL_ERROR_TRANSPORT for a transport failure. A write sends everything
+// and flushes it. The transport's last error is the connection's `failure`
+// without TLS, and the session's record of its transport with it.
+// d_ftp_internal_client_failure() turns a failed status, from these calls or
+// from the session called directly, into an FTP error, taking the
+// transport's error into `failure` and `net_error` first: a timeout, `_lost`
+// for a stream that ended or broke, or D_FTP_ERROR_TLS with the status kept
+// -- a TLS stream ending without close_notify counts as lost, not as TLS,
+// on the control connection alone, whose replies frame themselves.
+enum d_ssl_error d_ftp_internal_client_read(
+                     struct d_ftp_connection* _connection,
+                     void*                    _buffer,
+                     size_t                   _capacity,
+                     size_t*                  _out_read);
+enum d_ssl_error d_ftp_internal_client_write(
+                     struct d_ftp_connection* _connection,
+                     const void*              _data,
+                     size_t                   _size);
+enum d_ftp_error d_ftp_internal_client_failure(
+                     struct d_ftp_client*     _client,
+                     struct d_ftp_connection* _connection,
+                     enum d_ssl_error         _status,
+                     enum d_ftp_error         _lost);
 
 
 // 1.2    Lifetime
 //------------------------------------------------------------------------------
 // d_ftp_internal_client_dial() connects a closed connection to a host and
 // port, bounded by the options' connect_timeout_ms, and on failure returns
-// D_FTP_ERROR_RESOLVE, D_FTP_ERROR_TIMEOUT, D_FTP_ERROR_OUT_OF_MEMORY, or
-// `_lost`, the transport's error kept in `net_error`.
+// D_FTP_ERROR_RESOLVE, D_FTP_ERROR_TIMED_OUT, D_FTP_ERROR_OUT_OF_MEMORY, or
+// `_lost`, the transport's error kept in `net_error`; it bounds what it
+// connects as d_ftp_internal_client_bound() does.
+// d_ftp_internal_client_bound() bounds a connection's reads and writes: the
+// control connection's by response_timeout_ms, a data connection's by
+// idle_timeout_ms, 0 being no limit; it returns the transport's error.
 // d_ftp_internal_client_secure() runs a TLS client handshake over a
 // connection, naming the server's host, and leaves no session behind on
 // failure. d_ftp_internal_client_drop() closes a connection, saying
 // close_notify first when `_orderly`.
+enum d_net_error d_ftp_internal_client_bound(
+                     struct d_ftp_client*     _client,
+                     struct d_ftp_connection* _connection);
 enum d_ftp_error d_ftp_internal_client_dial(
                      struct d_ftp_client*     _client,
                      struct d_ftp_connection* _connection,
@@ -123,10 +133,9 @@ enum d_ftp_error d_ftp_internal_client_reply(struct d_ftp_client* _client);
 enum d_ftp_error d_ftp_internal_client_send(struct d_ftp_client* _client,
                                             enum d_ftp_command   _command,
                                             const char*          _argument);
-enum d_ftp_error d_ftp_internal_client_exchange(
-                     struct d_ftp_client* _client,
-                     enum d_ftp_command   _command,
-                     const char*          _argument);
+enum d_ftp_error d_ftp_internal_client_exchange(struct d_ftp_client* _client,
+                                                enum d_ftp_command   _command,
+                                                const char*          _argument);
 bool             d_ftp_internal_client_positive(
                      const struct d_ftp_client* _client);
 enum d_ftp_error d_ftp_internal_client_refusal(

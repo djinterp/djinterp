@@ -6,13 +6,13 @@
 * in; the response's status comes back, and its body and header fields flow
 * to callbacks as they arrive. One call performs one transfer on its own easy
 * handle, blocking until it ends:
-*     - status codes, one per way a transfer can fail                [2]
+*     - error codes, one per way a transfer can fail                 [2]
 *     - library queries: version, features, global state             [3]
 *     - requests and options, with libcurl's defaults made explicit  [4]
 *     - transfers: the sink callbacks, the result, and the driver    [5]
 *   NO LIBCURL TYPE APPEARS HERE. The header compiles everywhere; where the
 * build lacks libcurl (cfg_curl.h), every transfer reports
-* D_CURL_STATUS_UNSUPPORTED and the queries report nothing, so a caller
+* D_CURL_ERROR_UNSUPPORTED and the queries report nothing, so a caller
 * decides at run time instead of by conditional compilation.
 *   Text spans are d_pack_text and byte spans d_pack_bytes, from
 * sink_common.h. Every declaration has C linkage.
@@ -24,7 +24,7 @@
 * path:      /inc/djinterp/net/curl/curl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -35,11 +35,11 @@ TABLE OF CONTENTS
     1.  Defaults
          1.  D_CURL_USER_AGENT_DEFAULT
          2.  D_CURL_MAX_REDIRECTS_DEFAULT
-2.  RESULT STATUS
-    -------------
-    1.  Status codes
-         1.  d_curl_status
-    2.  Status queries
+2.  ERRORS
+    ------
+    1.  Error codes
+         1.  d_curl_error
+    2.  Error queries
 3.  LIBRARY
     -------
     1.  Features
@@ -69,10 +69,12 @@ TABLE OF CONTENTS
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
-#include <stdint.h>   // uint32_t
 // djinterp
 #include "../../c/djinterp.h"          // framework root
 #include "../../c/util/sink_common.h"  // d_pack_text, d_pack_bytes
+#include "../net_common.h"             // d_net_error
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // uint32_t
 
 
 D_EXTERN_C_BEGIN
@@ -98,55 +100,58 @@ D_EXTERN_C_BEGIN
 
 
 //==============================================================================
-// 2.  RESULT STATUS
+// 2.  ERRORS
 //==============================================================================
 // How a transfer ended, as seen from the transport: OK means a response
-// arrived, whatever its HTTP status. The categories are those of the C++ web
+// arrived, whatever its HTTP status. The categories are those of the C++
 // layer's transport_error, so the two translate one for one; the C binding
 // adds INVALID_ARGUMENT and UNSUPPORTED.
 
 
-// 2.1    Status codes
+// 2.1    Error codes
 //------------------------------------------------------------------------------
 // 2.1.1
-// d_curl_status
+// d_curl_error
 //   enum: the result of a transfer or a library call. Values are pinned. The
 // less obvious ones:
 //     UNSUPPORTED           the build has no libcurl.
 //     UNSUPPORTED_PROTOCOL  libcurl does not speak the URL's scheme, or the
 //                           URL is malformed.
-//     TLS_ERROR             the TLS handshake failed, or the peer failed
+//     TLS                   the TLS handshake failed, or the peer failed
 //                           verification.
-//     WRITE_ERROR           a sink refused data, or libcurl could not
+//     SINK                  a sink refused data, or libcurl could not
 //                           deliver it.
 //     UNKNOWN               any other libcurl failure; the result's code
 //                           holds libcurl's own number.
-enum d_curl_status
+enum d_curl_error
 {
-    D_CURL_STATUS_OK                     = 0,
-    D_CURL_STATUS_INVALID_ARGUMENT       = 0x001,
-    D_CURL_STATUS_UNSUPPORTED            = 0x002,
-    D_CURL_STATUS_UNSUPPORTED_PROTOCOL   = 0x003,
-    D_CURL_STATUS_COULD_NOT_RESOLVE_HOST = 0x004,
-    D_CURL_STATUS_COULD_NOT_CONNECT      = 0x005,
-    D_CURL_STATUS_TIMED_OUT              = 0x006,
-    D_CURL_STATUS_TLS_ERROR              = 0x007,
-    D_CURL_STATUS_TOO_MANY_REDIRECTS     = 0x008,
-    D_CURL_STATUS_WRITE_ERROR            = 0x009,
-    D_CURL_STATUS_READ_ERROR             = 0x00A,
-    D_CURL_STATUS_CANCELED               = 0x00B,
-    D_CURL_STATUS_OUT_OF_MEMORY          = 0x00C,
-    D_CURL_STATUS_UNKNOWN                = 0x00D
+    D_CURL_OK                         = 0,
+    D_CURL_ERROR_INVALID_ARGUMENT     = 0x001,
+    D_CURL_ERROR_UNSUPPORTED          = 0x002,
+    D_CURL_ERROR_UNSUPPORTED_PROTOCOL = 0x003,
+    D_CURL_ERROR_RESOLVE              = 0x004,
+    D_CURL_ERROR_CONNECT              = 0x005,
+    D_CURL_ERROR_TIMED_OUT            = 0x006,
+    D_CURL_ERROR_TLS                  = 0x007,
+    D_CURL_ERROR_TOO_MANY_REDIRECTS   = 0x008,
+    D_CURL_ERROR_SINK                 = 0x009,
+    D_CURL_ERROR_SOURCE               = 0x00A,
+    D_CURL_ERROR_CANCELED             = 0x00B,
+    D_CURL_ERROR_OUT_OF_MEMORY        = 0x00C,
+    D_CURL_ERROR_UNKNOWN              = 0x00D
 };
 
-// 2.2    Status queries
+// 2.2    Error queries
 //------------------------------------------------------------------------------
-// Pure lookups; they never fail. d_curl_status_name gives the status's name
+// Pure lookups; they never fail. d_curl_error_string gives the error's name
 // in lower case ("timed out"), or "invalid status" for a value not listed.
 // d_curl_code_message gives libcurl's own text for one of its codes, as
 // d_curl_result.code carries them, or NULL without libcurl.
-const char* d_curl_status_name(enum d_curl_status _status);
-const char* d_curl_code_message(int _code);
+// d_curl_error_to_net gives the d_net_error an error maps to, by the rules
+// net.h gives with it.
+const char*      d_curl_error_string(enum d_curl_error _error);
+const char*      d_curl_code_message(int _code);
+enum d_net_error d_curl_error_to_net(enum d_curl_error _error);
 
 
 //==============================================================================
@@ -208,12 +213,12 @@ bool        d_curl_supports(enum d_curl_feature _feature);
  * @post Each successful call is balanced by one d_curl_global_cleanup,
  *       which releases what it acquired; the last frees libcurl's global
  *       state. Without libcurl, d_curl_global_cleanup does nothing.
- * @return D_CURL_STATUS_OK; D_CURL_STATUS_OUT_OF_MEMORY or
- *         D_CURL_STATUS_UNKNOWN if libcurl fails; or
- *         D_CURL_STATUS_UNSUPPORTED without libcurl.
+ * @return D_CURL_OK; D_CURL_ERROR_OUT_OF_MEMORY or
+ *         D_CURL_ERROR_UNKNOWN if libcurl fails; or
+ *         D_CURL_ERROR_UNSUPPORTED without libcurl.
  */
-enum d_curl_status d_curl_global_init(void);
-void               d_curl_global_cleanup(void);
+enum d_curl_error d_curl_global_init(void);
+void              d_curl_global_cleanup(void);
 
 
 //==============================================================================
@@ -303,7 +308,7 @@ void d_curl_options_init(struct d_curl_options* _options);
 // pieces the network yields, and each header field parsed into a name and a
 // value. Where redirects are followed, the header fields of every response
 // in the chain are delivered, in order, and only the last response's body.
-// A callback that returns false ends the transfer with WRITE_ERROR.
+// A callback that returns false ends the transfer with SINK.
 
 
 // 5.1    Sinks and results
@@ -349,9 +354,9 @@ struct d_curl_sink
 //                  ended it.
 struct d_curl_result
 {
-    enum d_curl_status status;
-    int                code;
-    long               http_status;
+    enum d_curl_error status;
+    int               code;
+    long              http_status;
 };
 
 // 5.2    Performing a transfer
@@ -369,17 +374,17 @@ struct d_curl_result
  * @param[in]  _sink     where the response goes; NULL discards it.
  * @param[out] _out      receives how the transfer ended; may be NULL.
  * @return the transfer's status, as stored in `_out->status`:
- *         D_CURL_STATUS_OK once a response has been received, whatever its
- *         HTTP status; D_CURL_STATUS_INVALID_ARGUMENT for a NULL `_request`
+ *         D_CURL_OK once a response has been received, whatever its
+ *         HTTP status; D_CURL_ERROR_INVALID_ARGUMENT for a NULL `_request`
  *         or URL, a header field breaking d_curl_header's rules, or a span
  *         with a NULL pointer and a nonzero size, checked before libcurl is
- *         asked anything; D_CURL_STATUS_UNSUPPORTED without libcurl; or the
+ *         asked anything; D_CURL_ERROR_UNSUPPORTED without libcurl; or the
  *         category of the transfer's failure.
  */
-enum d_curl_status d_curl_perform(const struct d_curl_request* _request,
-                                  const struct d_curl_options* _options,
-                                  const struct d_curl_sink*    _sink,
-                                  struct d_curl_result*        _out);
+enum d_curl_error d_curl_perform(const struct d_curl_request* _request,
+                                 const struct d_curl_options* _options,
+                                 const struct d_curl_sink*    _sink,
+                                 struct d_curl_result*        _out);
 
 
 D_EXTERN_C_END

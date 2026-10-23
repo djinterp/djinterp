@@ -18,7 +18,7 @@
 * path:      /inc/djinterp/net/http/http.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -90,6 +90,7 @@ TABLE OF CONTENTS
 7.  ERRORS
     ------
     1.  Names
+    2.  Mapping
 */
 
 #ifndef DJINTERP_NET_HTTP_HTTP_H
@@ -100,6 +101,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../c/djinterp.h"          // framework root
 #include "../../c/util/sink_common.h"  // d_pack_text
+#include "../net_common.h"             // d_net_error
 
 
 D_EXTERN_C_BEGIN
@@ -244,7 +246,7 @@ enum d_http_status_class
 enum d_http_error
 {
     D_HTTP_OK = 0,                     // no error
-    D_HTTP_ERROR_ARGUMENT,             // a NULL argument
+    D_HTTP_ERROR_INVALID_ARGUMENT,     // a NULL argument
     D_HTTP_ERROR_METHOD,               // a method that is not a token
     D_HTTP_ERROR_VERSION,              // a version other than "HTTP/1.<digit>"
     D_HTTP_ERROR_STATUS,               // not three digits from 100 to 599
@@ -452,8 +454,8 @@ const char*          d_http_method_name(enum d_http_method _method);
  * @param[in]  _text  the name.
  * @param[out] _out   receives the method: D_HTTP_METHOD_OTHER for a token
  *                    naming none of the registered ones.
- * @return D_HTTP_OK, D_HTTP_ERROR_ARGUMENT, or D_HTTP_ERROR_METHOD when the
- *         text is not a token.
+ * @return D_HTTP_OK, D_HTTP_ERROR_INVALID_ARGUMENT, or D_HTTP_ERROR_METHOD when
+ *         the text is not a token.
  */
 enum d_http_error    d_http_method_parse(struct d_pack_text  _text,
                                          enum d_http_method* _out);
@@ -485,8 +487,8 @@ const char*          d_http_version_name(enum d_http_version _version);
  * @param[out] _out   receives D_HTTP_VERSION_1_0 or D_HTTP_VERSION_1_1; a
  *                    higher 1.x minor version is taken as 1.1, as RFC 9112
  *                    directs a recipient to.
- * @return D_HTTP_OK, D_HTTP_ERROR_ARGUMENT, or D_HTTP_ERROR_VERSION for any
- *         other text, including a major version other than 1.
+ * @return D_HTTP_OK, D_HTTP_ERROR_INVALID_ARGUMENT, or D_HTTP_ERROR_VERSION for
+ *         any other text, including a major version other than 1.
  */
 enum d_http_error    d_http_version_parse(struct d_pack_text   _text,
                                           enum d_http_version* _out);
@@ -508,7 +510,7 @@ bool                 d_http_status_is_valid(unsigned int _status);
  *
  * @param[in]  _text  the digits.
  * @param[out] _out   receives the code.
- * @return D_HTTP_OK, D_HTTP_ERROR_ARGUMENT, or D_HTTP_ERROR_STATUS.
+ * @return D_HTTP_OK, D_HTTP_ERROR_INVALID_ARGUMENT, or D_HTTP_ERROR_STATUS.
  */
 enum d_http_error    d_http_status_parse(struct d_pack_text _text,
                                          unsigned int*      _out);
@@ -564,6 +566,12 @@ bool                 d_http_field_name_equal(struct d_pack_text _name,
 //------------------------------------------------------------------------------
 // d_http_error_name -- a short phrase for each error, for messages
 const char*          d_http_error_name(enum d_http_error _error);
+
+// 7.2    Mapping
+//------------------------------------------------------------------------------
+// d_http_error_to_net -- the d_net_error an error maps to, by the rules
+// net.h gives with it
+enum d_net_error     d_http_error_to_net(enum d_http_error _error);
 
 
 D_EXTERN_C_END

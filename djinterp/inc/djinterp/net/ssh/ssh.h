@@ -10,8 +10,6 @@
 *     ssh_common.h       outcomes, sockets, and the default port
 *     ssh_wire.h         RFC 4251 readers and writers, for SFTP, the agent
 *                        protocol, and key blobs
-*     ssh_base64.h       strict Base64, as known_hosts and fingerprints
-*                        use it
 *     ssh_key.h          key blobs, SHA256 fingerprints, secure randomness
 *     ssh_known_hosts.h  OpenSSH known_hosts lookup and recording
 *     ssh_engine.h       the engine interface over an SSH library
@@ -28,23 +26,24 @@
 *   The session runs over a connected stream socket the caller supplies --
 * the one transport every SSH library accepts. Every call blocks, and a
 * session and its channels belong to one thread at a time.
-*   Requires cfg_ssh.h, and through it env_ssh.h. The libssh2 engine links
-* against libssh2; on Windows, the random source links against bcrypt.
+*   Requires cfg_ssh.h, and through it env_ssh.h; the digests and base64
+* come from net's codec (net/codec/codec.h), whose sources a build links. The
+* libssh2 engine links against libssh2; on Windows, the random source links
+* against bcrypt.
 *
 *
 * path:      /inc/djinterp/net/ssh/ssh.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 #ifndef DJINTERP_NET_SSH_SSH_H
 #define DJINTERP_NET_SSH_SSH_H 1
 
 // djinterp
-#include "./ssh_common.h"       // d_ssh_status, d_ssh_socket
+#include "./ssh_common.h"       // d_ssh_error, d_ssh_socket
 #include "./ssh_wire.h"         // d_ssh_reader, d_ssh_writer
-#include "./ssh_base64.h"       // d_ssh_base64_*
 #include "./ssh_key.h"          // key blobs, fingerprints, d_ssh_random
 #include "./ssh_known_hosts.h"  // d_ssh_known_hosts_*
 #include "./ssh_engine.h"       // d_ssh_engine_vtable, library lifetime

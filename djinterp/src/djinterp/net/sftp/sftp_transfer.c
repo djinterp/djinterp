@@ -14,13 +14,12 @@
 * path:      /src/djinterp/net/sftp/sftp_transfer.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/sftp/sftp_client.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // uint32_t, uint64_t
 #include <stdlib.h>   // malloc, free
 #include <string.h>   // memcpy, memset
 // djinterp
@@ -28,6 +27,8 @@
 #include "../../../../inc/djinterp/c/util/sink_common.h"    // d_pack_bytes
 #include "../../../../inc/djinterp/net/sftp/sftp_common.h"  // codec
 #include "./sftp_client_internal.h"                         // shared helpers
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t, uint64_t
 
 
 //==============================================================================
@@ -109,7 +110,7 @@ d_sftp_internal_client_broken(
     return ( (_error == D_SFTP_ERROR_PROTOCOL)        ||
              (_error == D_SFTP_ERROR_TRANSPORT)       ||
              (_error == D_SFTP_ERROR_CONNECTION_LOST) ||
-             (_error == D_SFTP_ERROR_TOO_LARGE) );
+             (_error == D_SFTP_ERROR_MESSAGE_TOO_LARGE) );
 }
 
 /*
@@ -248,7 +249,7 @@ d_sftp_internal_client_upload(
     void*                       _context
 )
 {
-    struct d_sftp_internal_upload upload;
+    struct d_sftp_internal_upload upload = { 0 };
 
     memset(&upload,
            0,
@@ -264,7 +265,7 @@ d_sftp_internal_client_upload(
     // nowhere to stage the data
     if (!upload.chunk)
     {
-        return D_SFTP_ERROR_MEMORY;
+        return D_SFTP_ERROR_OUT_OF_MEMORY;
     }
 
     enum d_sftp_error broken = D_SFTP_OK;
@@ -537,7 +538,7 @@ d_sftp_internal_download_hold(
 
         if (!_slot->data)
         {
-            return D_SFTP_ERROR_MEMORY;
+            return D_SFTP_ERROR_OUT_OF_MEMORY;
         }
     }
 
@@ -802,7 +803,7 @@ d_sftp_internal_client_download(
     void*                       _context
 )
 {
-    struct d_sftp_internal_download download;
+    struct d_sftp_internal_download download = { 0 };
     enum d_sftp_error               error = D_SFTP_OK;
 
     memset(&download,
@@ -850,7 +851,7 @@ d_sftp_client_get(
     void*                 _context
 )
 {
-    struct d_sftp_handle handle;
+    struct d_sftp_handle handle = { 0 };
     enum d_sftp_error    error = d_sftp_internal_client_ready(_client,
                                                               _path,
                                                               _path);
@@ -905,7 +906,7 @@ d_sftp_client_put(
     void*                           _context
 )
 {
-    struct d_sftp_handle handle;
+    struct d_sftp_handle handle = { 0 };
     enum d_sftp_error    error = d_sftp_internal_client_ready(_client,
                                                               _path,
                                                               _path);

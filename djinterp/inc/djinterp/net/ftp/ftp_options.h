@@ -10,7 +10,7 @@
 * path:      /inc/djinterp/net/ftp/ftp_options.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -28,13 +28,13 @@ TABLE OF CONTENTS
 #ifndef DJINTERP_NET_FTP_FTP_OPTIONS_H
 #define DJINTERP_NET_FTP_FTP_OPTIONS_H 1
 
-// std
-#include <stdint.h>  // uint32_t
 // djinterp
 #include "../../c/djinterp.h"  // framework root
 #include "./ftp_transfer.h"    // d_ftp_type
 #include "./ftp_endpoint.h"    // d_ftp_data_mode
 #include "./ftp_security.h"    // d_ftp_security, d_ftp_protection
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // uint32_t
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++

@@ -13,13 +13,12 @@
 * path:      /src/djinterp/net/ftp/ftp_client_data.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_client.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // uint16_t
 #include <string.h>   // memchr, memcpy, strchr, strcmp, strcspn, strlen
 // djinterp
 #include "../../../../inc/djinterp/c/djinterp.h"            // framework root
@@ -33,10 +32,12 @@
 #include "../../../../inc/djinterp/net/ftp/ftp_reply.h"     // replies
 #include "../../../../inc/djinterp/net/ftp/ftp_security.h"  // PROT levels
 #include "../../../../inc/djinterp/net/ftp/ftp_transfer.h"  // TYPE, ASCII
-#include "../../../../inc/djinterp/net/net.h"               // d_net_endpoint
+#include "../../../../inc/djinterp/net/net_common.h"        // d_net_endpoint
 #include "../../../../inc/djinterp/net/ssl/ssl.h"           // d_ssl_session
 #include "../../../../inc/djinterp/net/tcp/tcp.h"           // d_tcp_listener
 #include "./ftp_client_internal.h"                          // shared helpers
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint16_t
 
 
 //==============================================================================
@@ -216,7 +217,7 @@ d_ftp_internal_client_passive(
 {
     const enum d_ftp_data_mode mode   = _client->options.data_mode;
     struct d_ftp_endpoint      target = { .family = D_FTP_FAMILY_NONE };
-    struct d_net_endpoint      peer;
+    struct d_net_endpoint      peer = { 0 };
     enum d_ftp_error           error  = D_FTP_OK;
 
     d_net_endpoint_init(&peer);
@@ -322,9 +323,9 @@ d_ftp_internal_client_listen(
     struct d_ftp_endpoint* _out_local
 )
 {
-    struct d_net_endpoint local;
-    struct d_net_endpoint bound;
-    struct d_net_endpoint where;
+    struct d_net_endpoint local = { 0 };
+    struct d_net_endpoint bound = { 0 };
+    struct d_net_endpoint where = { 0 };
 
     d_net_endpoint_init(&local);
     d_net_endpoint_init(&bound);
@@ -344,7 +345,7 @@ d_ftp_internal_client_listen(
                                                         D_NET_PROTOCOL_TCP);
 
     // a listener on it, at a port the system picks
-    if (error == D_NET_ERROR_NONE)
+    if (error == D_NET_OK)
     {
         error = d_tcp_listen(_listener,
                              &where,
@@ -354,7 +355,7 @@ d_ftp_internal_client_listen(
     _client->net_error = error;
 
     // the port it picked, as the commands name it
-    if ( (error != D_NET_ERROR_NONE)                                ||
+    if ( (error != D_NET_OK)                                        ||
          (!d_tcp_listener_local_endpoint(_listener,
                                          &bound))                   ||
          (!d_ftp_internal_client_endpoint(&bound,
@@ -477,8 +478,8 @@ d_ftp_internal_client_accept(
     struct d_tcp_listener* _listener
 )
 {
-    struct d_net_endpoint expected;
-    struct d_net_endpoint actual;
+    struct d_net_endpoint expected = { 0 };
+    struct d_net_endpoint actual = { 0 };
     enum d_net_error      error = d_tcp_accept(_listener,
                                                &_client->data.tcp);
 
@@ -486,7 +487,7 @@ d_ftp_internal_client_accept(
     d_net_endpoint_init(&actual);
 
     // the connection must come from the server
-    if ( (error == D_NET_ERROR_NONE)                                  &&
+    if ( (error == D_NET_OK)                                  &&
          ( (!d_tcp_connection_remote_endpoint(&_client->control.tcp,
                                               &expected))           ||
            (!d_tcp_connection_remote_endpoint(&_client->data.tcp,
@@ -497,10 +498,17 @@ d_ftp_internal_client_accept(
         error = D_NET_ERROR_ACCESS_DENIED;
     }
 
+    // a transfer's reads and writes are bounded as a dialled one's are
+    if (error == D_NET_OK)
+    {
+        error = d_ftp_internal_client_bound(_client,
+                                            &_client->data);
+    }
+
     _client->net_error = error;
 
     // anything else closes it
-    if (error != D_NET_ERROR_NONE)
+    if (error != D_NET_OK)
     {
         d_tcp_connection_close(&_client->data.tcp);
 
@@ -564,7 +572,7 @@ d_ftp_internal_client_begin(
         ( (mode == D_FTP_DATA_ACTIVE_AUTO) ||
           (mode == D_FTP_DATA_ACTIVE)      ||
           (mode == D_FTP_DATA_EXTENDED_ACTIVE) );
-    struct d_tcp_listener      listener;
+    struct d_tcp_listener      listener = { 0 };
 
     d_tcp_listener_init(&listener);
 
@@ -752,21 +760,21 @@ d_ftp_internal_client_receive(
     // until the data ends
     for (;;)
     {
-        size_t                  received = 0u;
-        const enum d_ssl_status status   =
+        size_t                 received = 0u;
+        const enum d_ssl_error status   =
             d_ftp_internal_client_read(&_client->data,
                                        chunk,
                                        sizeof(chunk),
                                        &received);
 
         // close_notify, or a plain stream's end: the data is complete
-        if (status == D_SSL_STATUS_CONNECTION_CLOSED)
+        if (status == D_SSL_ERROR_CLOSED)
         {
             break;
         }
 
         // anything else failed, TLS ending without close_notify included
-        if (status != D_SSL_STATUS_OK)
+        if (status != D_SSL_OK)
         {
             return d_ftp_internal_client_failure(
                        _client,
@@ -810,12 +818,12 @@ d_ftp_internal_client_write_data(
         return D_FTP_OK;
     }
 
-    const enum d_ssl_status status =
+    const enum d_ssl_error status =
         d_ftp_internal_client_write(&_client->data,
                                     _data,
                                     _size);
 
-    return (status == D_SSL_STATUS_OK)
+    return (status == D_SSL_OK)
            ? D_FTP_OK
            : d_ftp_internal_client_failure(_client,
                                            &_client->data,
@@ -987,12 +995,12 @@ d_ftp_internal_client_close_upload(
     struct d_ftp_client* _client
 )
 {
-    char              scratch[256] = { 0 };
-    enum d_ssl_status status       =
+    char             scratch[256] = { 0 };
+    enum d_ssl_error status       =
         d_ssl_session_shutdown(&_client->data.tls);
 
     // without close_notify the server cannot tell the upload is complete
-    if (status != D_SSL_STATUS_OK)
+    if (status != D_SSL_OK)
     {
         return d_ftp_internal_client_failure(_client,
                                              &_client->data,
@@ -1002,7 +1010,7 @@ d_ftp_internal_client_close_upload(
 
     // then the server's close_notify, or the end of the stream
     for (size_t discarded = 0u;
-         (status == D_SSL_STATUS_OK) &&
+         (status == D_SSL_OK) &&
          (discarded <= D_FTP_CLIENT_CHUNK_SIZE); )
     {
         size_t received = 0u;

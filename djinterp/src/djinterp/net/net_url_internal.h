@@ -4,13 +4,14 @@
 * Private helpers shared by the net_url sources.
 *   RFC 3986's character classes, text views, and a writer that counts every
 * byte, written or not. Static inline, since the parser calls the classes per
-* character; not installed, and not part of the public interface.
+* character; not installed, and not part of the public interface. Letters,
+* digits, case and hex are net's codec's (codec_ascii.h, codec_hex.h).
 *
 *
 * path:      /src/djinterp/net/net_url_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -18,9 +19,8 @@ TABLE OF CONTENTS
 =================
 1.  CHARACTER CLASSES
     -----------------
-    1.  Letters, digits, and case
-    2.  RFC 3986 classes
-    3.  Component classes
+    1.  RFC 3986 classes
+    2.  Component classes
 2.  TEXT
     ----
     1.  Views
@@ -40,9 +40,11 @@ TABLE OF CONTENTS
 #include <stddef.h>  // size_t
 #include <string.h>  // memcpy
 // djinterp
-#include "../../../inc/djinterp/c/djinterp.h"          // framework root
-#include "../../../inc/djinterp/c/util/sink_common.h"  // d_pack_text
-#include "../../../inc/djinterp/net/net_url.h"         // d_net_url
+#include "../../../inc/djinterp/c/djinterp.h"             // framework root
+#include "../../../inc/djinterp/c/util/sink_common.h"     // d_pack_text
+#include "../../../inc/djinterp/net/net_common.h"  // d_net_ascii_is_*
+#include "../../../inc/djinterp/net/codec/codec_hex.h"    // d_net_hex_digit
+#include "../../../inc/djinterp/net/net_url.h"            // d_net_url
 
 
 //==============================================================================
@@ -51,76 +53,7 @@ TABLE OF CONTENTS
 // ASCII only, never locale-dependent, so a URL parses the same everywhere.
 
 
-// 1.1    Letters, digits, and case
-//------------------------------------------------------------------------------
-// d_net_url_is_alpha
-//   function: ASCII letters, never locale letters.
-static inline bool
-d_net_url_is_alpha(
-    char _c
-)
-{
-    return ( ( (_c >= 'a') && (_c <= 'z') ) ||
-             ( (_c >= 'A') && (_c <= 'Z') ) );
-}
-
-// d_net_url_lower
-//   function: ASCII lowercase, never locale case.
-static inline char
-d_net_url_lower(
-    char _c
-)
-{
-    return ( (_c >= 'A') &&
-             (_c <= 'Z') ) ? (char)(_c + ('a' - 'A'))
-                           : _c;
-}
-
-// d_net_url_is_digit
-//   function: ASCII digits.
-static inline bool
-d_net_url_is_digit(
-    char _c
-)
-{
-    return ( (_c >= '0') &&
-             (_c <= '9') );
-}
-
-// d_net_url_hex_value
-//   function: a hex digit's value, or -1.
-static inline int
-d_net_url_hex_value(
-    char _c
-)
-{
-    // each range of digits in turn
-    if (d_net_url_is_digit(_c))
-    {
-        return _c - '0';
-    }
-
-    // lowercase letters
-    if ( (_c >= 'a') && (_c <= 'f') )
-    {
-        return _c - 'a' + 10;
-    }
-
-    return ( (_c >= 'A') && (_c <= 'F') ) ? (_c - 'A' + 10)
-                                          : -1;
-}
-
-// d_net_url_is_hex
-//   function: whether a character is a hex digit.
-static inline bool
-d_net_url_is_hex(
-    char _c
-)
-{
-    return (d_net_url_hex_value(_c) >= 0);
-}
-
-// 1.2    RFC 3986 classes
+// 1.1    RFC 3986 classes
 //------------------------------------------------------------------------------
 // d_net_url_is_unreserved
 //   function: unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
@@ -129,11 +62,11 @@ d_net_url_is_unreserved(
     char _c
 )
 {
-    return ( (d_net_url_is_alpha(_c)) ||
-             (d_net_url_is_digit(_c)) ||
-             (_c == '-')              ||
-             (_c == '.')              ||
-             (_c == '_')              ||
+    return ( (d_net_ascii_is_alpha(_c)) ||
+             (d_net_ascii_is_digit(_c)) ||
+             (_c == '-')                ||
+             (_c == '.')                ||
+             (_c == '_')                ||
              (_c == '~') );
 }
 
@@ -178,7 +111,7 @@ d_net_url_is_pchar(
              (_c == '@') );
 }
 
-// 1.3    Component classes
+// 1.2    Component classes
 //------------------------------------------------------------------------------
 // d_net_url_allows
 //   type: a character class. Answering true for '%' permits percent
@@ -372,14 +305,14 @@ d_net_url_put_escape(
     unsigned char            _byte
 )
 {
-    const char* const DIGITS = "0123456789ABCDEF";
-
     d_net_url_put_char(_writer,
                        '%');
     d_net_url_put_char(_writer,
-                       DIGITS[_byte >> 4u]);
+                       d_net_hex_digit((unsigned int)(_byte >> 4u),
+                                       D_NET_HEX_UPPER));
     d_net_url_put_char(_writer,
-                       DIGITS[_byte & 0x0Fu]);
+                       d_net_hex_digit((unsigned int)(_byte & 0x0fu),
+                                       D_NET_HEX_UPPER));
 
     return;
 }
@@ -403,7 +336,7 @@ d_net_url_finish(
         return D_NET_URL_OK;
     }
 
-    return D_NET_URL_ERROR_BUFFER;
+    return D_NET_URL_ERROR_BUFFER_TOO_SMALL;
 }
 
 // 3.2    Component writers

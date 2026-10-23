@@ -15,7 +15,7 @@
 * path:      /inc/djinterp/net/ssl/ssl_openssl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -48,7 +48,7 @@ D_EXTERN_C_BEGIN
 //     ALPN, MEMORY_PEM, CLIENT_AUTH, and SYSTEM_TRUST in every build.
 // It declares neither HOSTNAME nor LEGACY: the kernel checks names itself,
 // through peer_name, and refuses TLS 1.0 and 1.1 configurations with
-// D_SSL_STATUS_UNSUPPORTED.
+// D_SSL_ERROR_UNSUPPORTED.
 //   The system trust store is loaded in this order. When SSL_CERT_FILE or
 // SSL_CERT_DIR is set, those variables alone decide it. Otherwise the
 // library's default locations are loaded, then the first file of

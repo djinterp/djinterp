@@ -9,7 +9,7 @@
 * path:      /inc/djinterp/net/ftp/ftp_feature.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -30,10 +30,12 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>  // size_t
-#include <stdint.h>  // uint32_t
 // djinterp
-#include "../../c/djinterp.h"  // framework root
-#include "./ftp_common.h"      // d_ftp_span, d_ftp_error
+#include "../../c/djinterp.h"          // framework root
+#include "../../c/util/sink_common.h"  // d_pack_text
+#include "./ftp_common.h"              // d_ftp_error
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // uint32_t
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++
@@ -80,9 +82,9 @@ enum d_ftp_feature
 //   struct: a parsed FEAT reply. The spans point into the parsed text.
 struct d_ftp_features
 {
-    uint32_t          flags;       // D_FTP_FEATURE_* bits
-    struct d_ftp_span mlst_facts;  // the MLST argument, e.g. "type*;size*;"
-    struct d_ftp_span languages;   // the LANG argument, e.g. "EN*;FR"
+    uint32_t           flags;       // D_FTP_FEATURE_* bits
+    struct d_pack_text mlst_facts;  // the MLST argument, e.g. "type*;size*;"
+    struct d_pack_text languages;   // the LANG argument, e.g. "EN*;FR"
 };
 
 

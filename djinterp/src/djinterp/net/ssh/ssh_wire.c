@@ -10,18 +10,21 @@
 * path:      /src/djinterp/net/ssh/ssh_wire.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.08
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ssh/ssh_wire.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // SIZE_MAX, UINT32_MAX, uint*_t
 #include <stdlib.h>   // realloc, free
 #include <string.h>   // memcmp, memcpy, strlen
 // djinterp
 #include "../../../../inc/djinterp/c/djinterp.h"            // framework root
 #include "../../../../inc/djinterp/net/ssh/ssh_internal.h"  // d_ssh_internal_*
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t, uint32_t,
+                                                     // uint64_t, UINT32_MAX,
+                                                     // SIZE_MAX
 
 
 // d_ssh_internal_empty
@@ -139,7 +142,8 @@ d_ssh_read_byte(
 
     *_value = 0;
 
-    const unsigned char* const bytes = d_ssh_internal_take(_reader, 1);
+    const unsigned char* const bytes = d_ssh_internal_take(_reader,
+                                                           1);
 
     if (!bytes)
     {
@@ -167,7 +171,8 @@ d_ssh_read_boolean(
     }
 
     uint8_t    byte = 0;
-    const bool read = d_ssh_read_byte(_reader, &byte);
+    const bool read = d_ssh_read_byte(_reader,
+                                      &byte);
 
     *_value = (byte != 0);
 
@@ -191,7 +196,8 @@ d_ssh_read_uint32(
 
     *_value = 0;
 
-    const unsigned char* const bytes = d_ssh_internal_take(_reader, 4);
+    const unsigned char* const bytes = d_ssh_internal_take(_reader,
+                                                           4);
 
     if (!bytes)
     {
@@ -220,7 +226,8 @@ d_ssh_read_uint64(
 
     *_value = 0;
 
-    const unsigned char* const bytes = d_ssh_internal_take(_reader, 8);
+    const unsigned char* const bytes = d_ssh_internal_take(_reader,
+                                                           8);
 
     if (!bytes)
     {
@@ -263,7 +270,8 @@ d_ssh_read_string(
 
     uint32_t length = 0;
 
-    if (!d_ssh_read_uint32(_reader, &length))
+    if (!d_ssh_read_uint32(_reader,
+                           &length))
     {
         return false;
     }
@@ -306,14 +314,18 @@ d_ssh_read_mpint(
          (!_size)   ||
          (!_negative) )
     {
-        return d_ssh_read_string(_reader, _bytes, _size) &&
+        return d_ssh_read_string(_reader,
+                                 _bytes,
+                                 _size) &&
                d_ssh_internal_reader_fail(_reader);
     }
 
     const unsigned char* bytes = NULL;
     size_t               size  = 0;
 
-    if (!d_ssh_read_string(_reader, &bytes, &size))
+    if (!d_ssh_read_string(_reader,
+                           &bytes,
+                           &size))
     {
         return false;
     }
@@ -369,12 +381,15 @@ d_ssh_read_name_list(
     const unsigned char* bytes = NULL;
     size_t               size  = 0;
 
-    if (!d_ssh_read_string(_reader, &bytes, &size))
+    if (!d_ssh_read_string(_reader,
+                           &bytes,
+                           &size))
     {
         return false;
     }
 
-    if (!d_ssh_internal_name_list_valid((const char*)bytes, size))
+    if (!d_ssh_internal_name_list_valid((const char*)bytes,
+                                        size))
     {
         return d_ssh_internal_reader_fail(_reader);
     }
@@ -474,7 +489,8 @@ d_ssh_internal_reserve(
         capacity = (capacity > (SIZE_MAX / 2)) ? needed : (capacity * 2);
     }
 
-    unsigned char* const data = realloc(_writer->data, capacity);
+    unsigned char* const data = realloc(_writer->data,
+                                        capacity);
 
     if (!data)
     {
@@ -498,7 +514,8 @@ d_ssh_internal_append(
     size_t               _size
 )
 {
-    if (!d_ssh_internal_reserve(_writer, _size))
+    if (!d_ssh_internal_reserve(_writer,
+                                _size))
     {
         return false;
     }
@@ -506,7 +523,9 @@ d_ssh_internal_append(
     // an empty append may carry a NULL pointer, which memcpy forbids
     if (_size > 0)
     {
-        memcpy(_writer->data + _writer->size, _data, _size);
+        memcpy(_writer->data + _writer->size,
+               _data,
+               _size);
         _writer->size += _size;
     }
 
@@ -568,7 +587,9 @@ d_ssh_write_byte(
 {
     const unsigned char byte = (unsigned char)_value;
 
-    return d_ssh_internal_append(_writer, &byte, 1);
+    return d_ssh_internal_append(_writer,
+                                 &byte,
+                                 1);
 }
 
 /*
@@ -581,7 +602,8 @@ d_ssh_write_boolean(
     bool                 _value
 )
 {
-    return d_ssh_write_byte(_writer, (uint8_t)((_value) ? 1 : 0));
+    return d_ssh_write_byte(_writer,
+                            (uint8_t)((_value) ? 1 : 0));
 }
 
 /*
@@ -594,11 +616,14 @@ d_ssh_write_uint32(
     uint32_t             _value
 )
 {
-    unsigned char bytes[4];
+    unsigned char bytes[4];  // filled before it is read
 
-    d_ssh_internal_store32(bytes, _value);
+    d_ssh_internal_store32(bytes,
+                           _value);
 
-    return d_ssh_internal_append(_writer, bytes, sizeof(bytes));
+    return d_ssh_internal_append(_writer,
+                                 bytes,
+                                 sizeof(bytes));
 }
 
 /*
@@ -611,11 +636,14 @@ d_ssh_write_uint64(
     uint64_t             _value
 )
 {
-    unsigned char bytes[8];
+    unsigned char bytes[8];  // filled before it is read
 
-    d_ssh_internal_store64(bytes, _value);
+    d_ssh_internal_store64(bytes,
+                           _value);
 
-    return d_ssh_internal_append(_writer, bytes, sizeof(bytes));
+    return d_ssh_internal_append(_writer,
+                                 bytes,
+                                 sizeof(bytes));
 }
 
 /*
@@ -634,17 +662,23 @@ d_ssh_write_string(
     if ( ( (!_data) &&
            (_size > 0) )                          ||
          (!d_ssh_internal_fits32(_size))          ||
-         (!d_ssh_internal_reserve(_writer, _size + 4)) )
+         (!d_ssh_internal_reserve(_writer,
+                                  _size + 4)) )
     {
         return d_ssh_internal_writer_fail(_writer);
     }
 
-    unsigned char length[4];
+    unsigned char length[4];  // filled before it is read
 
-    d_ssh_internal_store32(length, (uint32_t)_size);
+    d_ssh_internal_store32(length,
+                           (uint32_t)_size);
 
-    return ( (d_ssh_internal_append(_writer, length, sizeof(length))) &&
-             (d_ssh_internal_append(_writer, _data, _size)) );
+    return ( (d_ssh_internal_append(_writer,
+                                    length,
+                                    sizeof(length))) &&
+             (d_ssh_internal_append(_writer,
+                                    _data,
+                                    _size)) );
 }
 
 /*
@@ -662,7 +696,9 @@ d_ssh_write_cstring(
         return d_ssh_internal_writer_fail(_writer);
     }
 
-    return d_ssh_write_string(_writer, _text, strlen(_text));
+    return d_ssh_write_string(_writer,
+                              _text,
+                              strlen(_text));
 }
 
 /*
@@ -700,19 +736,27 @@ d_ssh_write_mpint(
 
     if ( (size > (SIZE_MAX - 5))                          ||
          (!d_ssh_internal_fits32(size + pad))             ||
-         (!d_ssh_internal_reserve(_writer, size + pad + 4)) )
+         (!d_ssh_internal_reserve(_writer,
+                                  size + pad + 4)) )
     {
         return d_ssh_internal_writer_fail(_writer);
     }
 
     const unsigned char zero = 0;
-    unsigned char       length[4];
+    unsigned char       length[4];  // filled before it is read
 
-    d_ssh_internal_store32(length, (uint32_t)(size + pad));
+    d_ssh_internal_store32(length,
+                           (uint32_t)(size + pad));
 
-    return ( (d_ssh_internal_append(_writer, length, sizeof(length))) &&
-             (d_ssh_internal_append(_writer, &zero, pad))             &&
-             (d_ssh_internal_append(_writer, bytes, size)) );
+    return ( (d_ssh_internal_append(_writer,
+                                    length,
+                                    sizeof(length))) &&
+             (d_ssh_internal_append(_writer,
+                                    &zero,
+                                    pad))            &&
+             (d_ssh_internal_append(_writer,
+                                    bytes,
+                                    size)) );
 }
 
 /*
@@ -727,12 +771,14 @@ d_ssh_write_name_list(
 )
 {
     if ( (!_list) ||
-         (!d_ssh_internal_name_list_valid(_list, strlen(_list))) )
+         (!d_ssh_internal_name_list_valid(_list,
+                                          strlen(_list))) )
     {
         return d_ssh_internal_writer_fail(_writer);
     }
 
-    return d_ssh_write_cstring(_writer, _list);
+    return d_ssh_write_cstring(_writer,
+                               _list);
 }
 
 /*
@@ -752,7 +798,9 @@ d_ssh_write_raw(
         return d_ssh_internal_writer_fail(_writer);
     }
 
-    return d_ssh_internal_append(_writer, _data, _size);
+    return d_ssh_internal_append(_writer,
+                                 _data,
+                                 _size);
 }
 
 /*
@@ -776,7 +824,8 @@ d_ssh_writer_patch_uint32(
         return false;
     }
 
-    d_ssh_internal_store32(_writer->data + _offset, _value);
+    d_ssh_internal_store32(_writer->data + _offset,
+                           _value);
 
     return true;
 }
@@ -821,7 +870,9 @@ d_ssh_name_list_contains(
         }
 
         if ( ((end - start) == name_length) &&
-             (memcmp(_list + start, _name, name_length) == 0) )
+             (memcmp(_list + start,
+                     _name,
+                     name_length) == 0) )
         {
             return true;
         }

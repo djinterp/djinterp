@@ -3,22 +3,27 @@
 *
 * Implementation of the shared SSL/TLS kernel declared in ssl.h.
 *   Pure computation over caller-owned memory -- names, ALPN lists, PEM,
-* SHA-256, configuration -- and the session pump, which moves ciphertext
-* between an engine and a d_ssl_transport. The only I/O is through the
-* transports the caller passes in, and the only TLS through the engine it
-* names.
+* fingerprints, configuration -- and the session pump, which moves ciphertext
+* between an engine and the net.h connection a session runs over. The only
+* I/O is through the connections the caller passes in, and the only TLS
+* through the engine it names. A session is a connection itself, its
+* operations the session calls in net.h's terms.
 *
 *
 * path:      /src/djinterp/net/ssl/ssl.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ssl/ssl.h"  // corresponding header
 // std
 #include <string.h>  // memchr, memcmp, memcpy, memmove, memset, strlen
 // djinterp
-#include "../../../../inc/djinterp/env/net/ssl/env_ssl.h"  // D_ENV_SSL_CA_FILES
+#include "../../../../inc/djinterp/env/net/ssl/env_ssl.h"     // D_ENV_SSL_CA_FILES
+#include "../../../../inc/djinterp/net/codec/codec_base64.h"  // d_net_base64_decode
+#include "../../../../inc/djinterp/net/codec/codec_digest.h"  // d_net_digest_*
+#include "../../../../inc/djinterp/net/codec/codec_hex.h"     // d_net_hex_*
+#include "../../../../inc/djinterp/net/net_common.h"          // connections
 
 
 //==============================================================================
@@ -85,154 +90,6 @@ d_internal_ssl_bytes_ok(
 }
 
 /*
-d_internal_ssl_lower
-  ASCII-only case folding. Host names, alert names, and version spellings are
-ASCII by definition, and tolower() would consult the locale, which a protocol
-module must not.
-*/
-static char
-d_internal_ssl_lower(
-    char _c
-)
-{
-    if ( (_c >= 'A') &&
-         (_c <= 'Z') )
-    {
-        return (char)(_c - 'A' + 'a');
-    }
-
-    return _c;
-}
-
-/*
-d_internal_ssl_is_digit
-  ASCII decimal digit test, locale-free.
-*/
-static bool
-d_internal_ssl_is_digit(
-    char _c
-)
-{
-    return ( (_c >= '0') &&
-             (_c <= '9') );
-}
-
-/*
-d_internal_ssl_is_blank
-  The whitespace PEM and hand-typed fingerprints may carry: space, tab, CR, LF.
-*/
-static bool
-d_internal_ssl_is_blank(
-    char _c
-)
-{
-    return ( (_c == ' ')  ||
-             (_c == '\t') ||
-             (_c == '\r') ||
-             (_c == '\n') );
-}
-
-/*
-d_internal_ssl_hex_value
-  The value of one hex digit of either case, or -1 for anything else.
-*/
-static int
-d_internal_ssl_hex_value(
-    char _c
-)
-{
-    if (d_internal_ssl_is_digit(_c))
-    {
-        return _c - '0';
-    }
-
-    if ( (_c >= 'a') &&
-         (_c <= 'f') )
-    {
-        return _c - 'a' + 10;
-    }
-
-    if ( (_c >= 'A') &&
-         (_c <= 'F') )
-    {
-        return _c - 'A' + 10;
-    }
-
-    return -1;
-}
-
-/*
-d_internal_ssl_ieq
-  ASCII case-insensitive span equality: host names compare this way.
-*/
-static bool
-d_internal_ssl_ieq(
-    struct d_pack_text _a,
-    struct d_pack_text _b
-)
-{
-    if (_a.length != _b.length)
-    {
-        return false;
-    }
-
-    for (size_t i = 0; i < _a.length; ++i)
-    {
-        if (d_internal_ssl_lower(_a.data[i]) !=
-            d_internal_ssl_lower(_b.data[i]))
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/*
-d_internal_ssl_has_prefix
-  Case-insensitive test that _text starts with the NUL-terminated _prefix.
-*/
-static bool
-d_internal_ssl_has_prefix(
-    struct d_pack_text _text,
-    const char*        _prefix
-)
-{
-    size_t length = strlen(_prefix);
-
-    return ( (_text.length >= length) &&
-             (d_internal_ssl_ieq(d_internal_ssl_text(_text.data, length),
-                                 d_internal_ssl_text(_prefix, length))) );
-}
-
-/*
-d_internal_ssl_trim
-  Drops blanks from both ends of a span.
-*/
-static struct d_pack_text
-d_internal_ssl_trim(
-    struct d_pack_text _text
-)
-{
-    size_t start = 0;
-    size_t end   = _text.length;
-
-    while ( (start < end) &&
-            (d_internal_ssl_is_blank(_text.data[start])) )
-    {
-        ++start;
-    }
-
-    while ( (end > start) &&
-            (d_internal_ssl_is_blank(_text.data[end - 1])) )
-    {
-        --end;
-    }
-
-    return d_internal_ssl_text(_text.data + start, end - start);
-}
-
-/*
 d_internal_ssl_strip_dot
   Drops one trailing dot: "example.com." and "example.com" name the same host.
 Only one, so "example.com.." stays malformed.
@@ -245,7 +102,8 @@ d_internal_ssl_strip_dot(
     if ( (_host.length > 0) &&
          (_host.data[_host.length - 1] == '.') )
     {
-        return d_internal_ssl_text(_host.data, _host.length - 1);
+        return d_internal_ssl_text(_host.data,
+                                   _host.length - 1);
     }
 
     return _host;
@@ -272,7 +130,9 @@ d_internal_ssl_find(
 
     for (size_t i = _from; i + length <= _text.length; ++i)
     {
-        if (memcmp(_text.data + i, _needle, length) == 0)
+        if (memcmp(_text.data + i,
+                   _needle,
+                   length) == 0)
         {
             return i;
         }
@@ -280,7 +140,6 @@ d_internal_ssl_find(
 
     return _text.length;
 }
-
 
 //==============================================================================
 // 2.  OUTPUT HELPERS
@@ -310,7 +169,7 @@ record it, then decide between measure, too-small, and produce. Every producer
 reaches its byte-writing step only through here, so none can write past a
 buffer. _reserve counts bytes needed beyond _size, such as a NUL.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_out_check(
     const void* _out,
     size_t      _capacity,
@@ -325,17 +184,17 @@ d_internal_ssl_out_check(
     if ( (_out == NULL) &&
          (_capacity == 0) )
     {
-        return D_SSL_STATUS_OK;
+        return D_SSL_OK;
     }
 
     // the requirement is already recorded, so a caller can grow and retry
     if ( (_capacity < _reserve) ||
          (_capacity - _reserve < _size) )
     {
-        return D_SSL_STATUS_BUFFER_TOO_SMALL;
+        return D_SSL_ERROR_BUFFER_TOO_SMALL;
     }
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -353,78 +212,122 @@ d_internal_ssl_put(
 {
     if (_length > 0)
     {
-        memcpy(_out + *_pos, _data, _length);
+        memcpy(_out + *_pos,
+               _data,
+               _length);
         *_pos += _length;
     }
 
     return;
 }
 
-
 //==============================================================================
 // 3.  STATUS
 //==============================================================================
 
 /*
-d_ssl_status_name
+d_ssl_error_name
   A switch rather than a table: the values are sparse across two ranges.
 */
 const char*
-d_ssl_status_name(
-    enum d_ssl_status _status
+d_ssl_error_name(
+    enum d_ssl_error _error
 )
 {
-    switch (_status)
+    switch (_error)
     {
-        case D_SSL_STATUS_OK:                return "OK";
-        case D_SSL_STATUS_INVALID_ARGUMENT:  return "INVALID_ARGUMENT";
-        case D_SSL_STATUS_MALFORMED:         return "MALFORMED";
-        case D_SSL_STATUS_NOT_FOUND:         return "NOT_FOUND";
-        case D_SSL_STATUS_UNSUPPORTED:       return "UNSUPPORTED";
-        case D_SSL_STATUS_INVALID_CONFIG:    return "INVALID_CONFIG";
-        case D_SSL_STATUS_WRONG_STATE:       return "WRONG_STATE";
-        case D_SSL_STATUS_NOT_TLS:           return "NOT_TLS";
-        case D_SSL_STATUS_HANDSHAKE_FAILED:  return "HANDSHAKE_FAILED";
-        case D_SSL_STATUS_VERIFY_FAILED:     return "VERIFY_FAILED";
-        case D_SSL_STATUS_PROTOCOL_ERROR:    return "PROTOCOL_ERROR";
-        case D_SSL_STATUS_UNEXPECTED_EOF:    return "UNEXPECTED_EOF";
-        case D_SSL_STATUS_BUFFER_TOO_SMALL:  return "BUFFER_TOO_SMALL";
-        case D_SSL_STATUS_WOULD_BLOCK:       return "WOULD_BLOCK";
-        case D_SSL_STATUS_TRANSPORT_ERROR:   return "TRANSPORT_ERROR";
-        case D_SSL_STATUS_CONNECTION_CLOSED: return "CONNECTION_CLOSED";
-        case D_SSL_STATUS_WANT_READ:         return "WANT_READ";
-        case D_SSL_STATUS_OUT_OF_MEMORY:     return "OUT_OF_MEMORY";
-        case D_SSL_STATUS_BACKEND_ERROR:     return "BACKEND_ERROR";
+        case D_SSL_OK:                     return "OK";
+        case D_SSL_ERROR_INVALID_ARGUMENT: return "INVALID_ARGUMENT";
+        case D_SSL_ERROR_MALFORMED:        return "MALFORMED";
+        case D_SSL_ERROR_NOT_FOUND:        return "NOT_FOUND";
+        case D_SSL_ERROR_UNSUPPORTED:      return "UNSUPPORTED";
+        case D_SSL_ERROR_CONFIG:           return "CONFIG";
+        case D_SSL_ERROR_STATE:            return "STATE";
+        case D_SSL_ERROR_NOT_TLS:          return "NOT_TLS";
+        case D_SSL_ERROR_HANDSHAKE:        return "HANDSHAKE";
+        case D_SSL_ERROR_VERIFY:           return "VERIFY";
+        case D_SSL_ERROR_PROTOCOL:         return "PROTOCOL";
+        case D_SSL_ERROR_TRUNCATED:        return "TRUNCATED";
+        case D_SSL_ERROR_BUFFER_TOO_SMALL: return "BUFFER_TOO_SMALL";
+        case D_SSL_ERROR_WOULD_BLOCK:      return "WOULD_BLOCK";
+        case D_SSL_ERROR_TRANSPORT:        return "TRANSPORT";
+        case D_SSL_ERROR_CLOSED:           return "CLOSED";
+        case D_SSL_ERROR_WANT_READ:        return "WANT_READ";
+        case D_SSL_ERROR_OUT_OF_MEMORY:    return "OUT_OF_MEMORY";
+        case D_SSL_ERROR_BACKEND:          return "BACKEND";
     }
 
     return NULL;
 }
 
 /*
-d_ssl_status_is_formal
+d_ssl_error_is_formal
   Everything above OK and below the mechanical floor.
 */
 bool
-d_ssl_status_is_formal(
-    enum d_ssl_status _status
+d_ssl_error_is_formal(
+    enum d_ssl_error _error
 )
 {
-    return ( ((int)_status > (int)D_SSL_STATUS_OK) &&
-             ((int)_status < D_SSL_STATUS_MECHANICAL_FLOOR) );
+    return ( ((int)_error > (int)D_SSL_OK) &&
+             ((int)_error < D_SSL_ERROR_MECHANICAL_FLOOR) );
 }
 
 /*
-d_ssl_status_is_mechanical
+d_ssl_error_is_mechanical
   Everything at or above the mechanical floor.
 */
 bool
-d_ssl_status_is_mechanical(
-    enum d_ssl_status _status
+d_ssl_error_is_mechanical(
+    enum d_ssl_error _error
 )
 {
-    return ((int)_status >= D_SSL_STATUS_MECHANICAL_FLOOR);
+    return ((int)_error >= D_SSL_ERROR_MECHANICAL_FLOOR);
 }
 
+/*
+d_ssl_error_to_net
+  One case per enumerator and no default, so the compiler reports a missing
+case; the groups follow net.h's rules. A value outside the enum is UNKNOWN.
+*/
+enum d_net_error
+d_ssl_error_to_net(
+    enum d_ssl_error _error
+)
+{
+    switch (_error)
+    {
+        case D_SSL_OK:
+            return D_NET_OK;
+        case D_SSL_ERROR_INVALID_ARGUMENT:
+        case D_SSL_ERROR_MALFORMED:
+        case D_SSL_ERROR_CONFIG:
+        case D_SSL_ERROR_STATE:
+        case D_SSL_ERROR_BUFFER_TOO_SMALL:
+            return D_NET_ERROR_INVALID_ARGUMENT;
+        case D_SSL_ERROR_NOT_TLS:
+        case D_SSL_ERROR_HANDSHAKE:
+        case D_SSL_ERROR_PROTOCOL:
+            return D_NET_ERROR_PROTOCOL;
+        case D_SSL_ERROR_TRUNCATED:
+        case D_SSL_ERROR_CLOSED:
+            return D_NET_ERROR_CLOSED;
+        case D_SSL_ERROR_WOULD_BLOCK:
+        case D_SSL_ERROR_WANT_READ:
+            return D_NET_ERROR_WOULD_BLOCK;
+        case D_SSL_ERROR_OUT_OF_MEMORY:
+            return D_NET_ERROR_OUT_OF_MEMORY;
+        case D_SSL_ERROR_VERIFY:
+            return D_NET_ERROR_ACCESS_DENIED;
+        case D_SSL_ERROR_NOT_FOUND:
+        case D_SSL_ERROR_UNSUPPORTED:
+        case D_SSL_ERROR_TRANSPORT:
+        case D_SSL_ERROR_BACKEND:
+            return D_NET_ERROR_UNKNOWN;
+    }
+
+    return D_NET_ERROR_UNKNOWN;
+}
 
 //==============================================================================
 // 4.  VOCABULARY
@@ -452,9 +355,9 @@ D_STATIC_ASSERT( (int)D_SSL_BACKEND_SECURETRANSPORT ==
 //   struct: one alert's RFC name and what it means for a session.
 struct d_internal_ssl_alert_entry
 {
-    int32_t           alert;
-    const char*       name;
-    enum d_ssl_status status;
+    int32_t          alert;
+    const char*      name;
+    enum d_ssl_error status;
 };
 
 // d_internal_ssl_alerts
@@ -462,75 +365,75 @@ struct d_internal_ssl_alert_entry
 static const struct d_internal_ssl_alert_entry d_internal_ssl_alerts[] =
 {
     { D_SSL_ALERT_CLOSE_NOTIFY,             "close_notify",
-      D_SSL_STATUS_CONNECTION_CLOSED },
+      D_SSL_ERROR_CLOSED },
     { D_SSL_ALERT_UNEXPECTED_MESSAGE,       "unexpected_message",
-      D_SSL_STATUS_PROTOCOL_ERROR },
+      D_SSL_ERROR_PROTOCOL },
     { D_SSL_ALERT_BAD_RECORD_MAC,           "bad_record_mac",
-      D_SSL_STATUS_PROTOCOL_ERROR },
+      D_SSL_ERROR_PROTOCOL },
     { D_SSL_ALERT_DECRYPTION_FAILED,        "decryption_failed",
-      D_SSL_STATUS_PROTOCOL_ERROR },
+      D_SSL_ERROR_PROTOCOL },
     { D_SSL_ALERT_RECORD_OVERFLOW,          "record_overflow",
-      D_SSL_STATUS_PROTOCOL_ERROR },
+      D_SSL_ERROR_PROTOCOL },
     { D_SSL_ALERT_DECOMPRESSION_FAILURE,    "decompression_failure",
-      D_SSL_STATUS_PROTOCOL_ERROR },
+      D_SSL_ERROR_PROTOCOL },
     { D_SSL_ALERT_HANDSHAKE_FAILURE,        "handshake_failure",
-      D_SSL_STATUS_HANDSHAKE_FAILED },
+      D_SSL_ERROR_HANDSHAKE },
     { D_SSL_ALERT_NO_CERTIFICATE,           "no_certificate",
-      D_SSL_STATUS_VERIFY_FAILED },
+      D_SSL_ERROR_VERIFY },
     { D_SSL_ALERT_BAD_CERTIFICATE,          "bad_certificate",
-      D_SSL_STATUS_VERIFY_FAILED },
+      D_SSL_ERROR_VERIFY },
     { D_SSL_ALERT_UNSUPPORTED_CERTIFICATE,  "unsupported_certificate",
-      D_SSL_STATUS_VERIFY_FAILED },
+      D_SSL_ERROR_VERIFY },
     { D_SSL_ALERT_CERTIFICATE_REVOKED,      "certificate_revoked",
-      D_SSL_STATUS_VERIFY_FAILED },
+      D_SSL_ERROR_VERIFY },
     { D_SSL_ALERT_CERTIFICATE_EXPIRED,      "certificate_expired",
-      D_SSL_STATUS_VERIFY_FAILED },
+      D_SSL_ERROR_VERIFY },
     { D_SSL_ALERT_CERTIFICATE_UNKNOWN,      "certificate_unknown",
-      D_SSL_STATUS_VERIFY_FAILED },
+      D_SSL_ERROR_VERIFY },
     { D_SSL_ALERT_ILLEGAL_PARAMETER,        "illegal_parameter",
-      D_SSL_STATUS_PROTOCOL_ERROR },
+      D_SSL_ERROR_PROTOCOL },
     { D_SSL_ALERT_UNKNOWN_CA,               "unknown_ca",
-      D_SSL_STATUS_VERIFY_FAILED },
+      D_SSL_ERROR_VERIFY },
     { D_SSL_ALERT_ACCESS_DENIED,            "access_denied",
-      D_SSL_STATUS_VERIFY_FAILED },
+      D_SSL_ERROR_VERIFY },
     { D_SSL_ALERT_DECODE_ERROR,             "decode_error",
-      D_SSL_STATUS_PROTOCOL_ERROR },
+      D_SSL_ERROR_PROTOCOL },
     { D_SSL_ALERT_DECRYPT_ERROR,            "decrypt_error",
-      D_SSL_STATUS_PROTOCOL_ERROR },
+      D_SSL_ERROR_PROTOCOL },
     { D_SSL_ALERT_EXPORT_RESTRICTION,       "export_restriction",
-      D_SSL_STATUS_HANDSHAKE_FAILED },
+      D_SSL_ERROR_HANDSHAKE },
     { D_SSL_ALERT_PROTOCOL_VERSION,         "protocol_version",
-      D_SSL_STATUS_HANDSHAKE_FAILED },
+      D_SSL_ERROR_HANDSHAKE },
     { D_SSL_ALERT_INSUFFICIENT_SECURITY,    "insufficient_security",
-      D_SSL_STATUS_HANDSHAKE_FAILED },
+      D_SSL_ERROR_HANDSHAKE },
     { D_SSL_ALERT_INTERNAL_ERROR,           "internal_error",
-      D_SSL_STATUS_BACKEND_ERROR },
+      D_SSL_ERROR_BACKEND },
     { D_SSL_ALERT_INAPPROPRIATE_FALLBACK,   "inappropriate_fallback",
-      D_SSL_STATUS_HANDSHAKE_FAILED },
+      D_SSL_ERROR_HANDSHAKE },
     { D_SSL_ALERT_USER_CANCELED,            "user_canceled",
-      D_SSL_STATUS_HANDSHAKE_FAILED },
+      D_SSL_ERROR_HANDSHAKE },
     { D_SSL_ALERT_NO_RENEGOTIATION,         "no_renegotiation",
-      D_SSL_STATUS_HANDSHAKE_FAILED },
+      D_SSL_ERROR_HANDSHAKE },
     { D_SSL_ALERT_MISSING_EXTENSION,        "missing_extension",
-      D_SSL_STATUS_HANDSHAKE_FAILED },
+      D_SSL_ERROR_HANDSHAKE },
     { D_SSL_ALERT_UNSUPPORTED_EXTENSION,    "unsupported_extension",
-      D_SSL_STATUS_HANDSHAKE_FAILED },
+      D_SSL_ERROR_HANDSHAKE },
     { D_SSL_ALERT_CERTIFICATE_UNOBTAINABLE, "certificate_unobtainable",
-      D_SSL_STATUS_VERIFY_FAILED },
+      D_SSL_ERROR_VERIFY },
     { D_SSL_ALERT_UNRECOGNIZED_NAME,        "unrecognized_name",
-      D_SSL_STATUS_HANDSHAKE_FAILED },
+      D_SSL_ERROR_HANDSHAKE },
     { D_SSL_ALERT_BAD_CERTIFICATE_STATUS_RESPONSE,
       "bad_certificate_status_response",
-      D_SSL_STATUS_VERIFY_FAILED },
+      D_SSL_ERROR_VERIFY },
     { D_SSL_ALERT_BAD_CERTIFICATE_HASH_VALUE,
       "bad_certificate_hash_value",
-      D_SSL_STATUS_VERIFY_FAILED },
+      D_SSL_ERROR_VERIFY },
     { D_SSL_ALERT_UNKNOWN_PSK_IDENTITY,     "unknown_psk_identity",
-      D_SSL_STATUS_HANDSHAKE_FAILED },
+      D_SSL_ERROR_HANDSHAKE },
     { D_SSL_ALERT_CERTIFICATE_REQUIRED,     "certificate_required",
-      D_SSL_STATUS_VERIFY_FAILED },
+      D_SSL_ERROR_VERIFY },
     { D_SSL_ALERT_NO_APPLICATION_PROTOCOL,  "no_application_protocol",
-      D_SSL_STATUS_HANDSHAKE_FAILED }
+      D_SSL_ERROR_HANDSHAKE }
 };
 
 /*
@@ -606,6 +509,47 @@ d_ssl_version_is_deprecated(
 }
 
 /*
+d_internal_ssl_version_digits
+  The digits that end a version name, from `_pos`: the major digit, then,
+optionally, a dot or an underscore and the minor digit, and nothing after.
+*/
+static bool
+d_internal_ssl_version_digits(
+    struct d_pack_text _name,
+    size_t             _pos,
+    int*               _major,
+    int*               _minor
+)
+{
+    size_t pos = _pos;
+
+    // the major digit
+    if ( (pos >= _name.length) ||
+         (!d_net_ascii_is_digit(_name.data[pos])) )
+    {
+        return false;
+    }
+
+    *_major = _name.data[pos++] - '0';
+
+    // an optional minor, the last character
+    if (pos < _name.length)
+    {
+        if ( ( (_name.data[pos] != '.') &&
+               (_name.data[pos] != '_') ) ||
+             (pos + 2 != _name.length) ||
+             (!d_net_ascii_is_digit(_name.data[pos + 1])) )
+        {
+            return false;
+        }
+
+        *_minor = _name.data[pos + 1] - '0';
+    }
+
+    return true;
+}
+
+/*
 d_ssl_version_from_name
   A family prefix ("tls" or "ssl", optional for TLS), at most one separator
 ('v', space, or underscore), then the version: "1" through "1.3" for TLS, "3"
@@ -628,14 +572,16 @@ d_ssl_version_from_name(
         return D_SSL_VERSION_NONE;
     }
 
-    name = d_internal_ssl_trim(_name);
+    name = d_net_ascii_trim_space(_name);
 
     // the family prefix
-    if (d_internal_ssl_has_prefix(name, "tls"))
+    if (d_net_ascii_istarts(name,
+                            "tls"))
     {
         pos = 3;
     }
-    else if (d_internal_ssl_has_prefix(name, "ssl"))
+    else if (d_net_ascii_istarts(name,
+                                 "ssl"))
     {
         ssl = true;
         pos = 3;
@@ -644,33 +590,20 @@ d_ssl_version_from_name(
     // one separator may follow a prefix
     if ( (pos > 0) &&
          (pos < name.length) &&
-         ( (d_internal_ssl_lower(name.data[pos]) == 'v') ||
-           (name.data[pos] == ' ') ||
+         ( (d_net_ascii_lower(name.data[pos]) == 'v') ||
+           (name.data[pos] == ' ')                    ||
            (name.data[pos] == '_') ) )
     {
         ++pos;
     }
 
     // the major digit, then an optional minor
-    if ( (pos >= name.length) ||
-         (!d_internal_ssl_is_digit(name.data[pos])) )
+    if (!d_internal_ssl_version_digits(name,
+                                       pos,
+                                       &major,
+                                       &minor))
     {
         return D_SSL_VERSION_NONE;
-    }
-
-    major = name.data[pos++] - '0';
-
-    if (pos < name.length)
-    {
-        if ( ( (name.data[pos] != '.') &&
-               (name.data[pos] != '_') ) ||
-             (pos + 2 != name.length) ||
-             (!d_internal_ssl_is_digit(name.data[pos + 1])) )
-        {
-            return D_SSL_VERSION_NONE;
-        }
-
-        minor = name.data[pos + 1] - '0';
     }
 
     if (ssl)
@@ -746,12 +679,12 @@ d_ssl_alert_name(
 }
 
 /*
-d_ssl_alert_status
+d_ssl_alert_error
   A table lookup; an unassigned alert is a protocol error, since a conforming
 peer does not send one.
 */
-enum d_ssl_status
-d_ssl_alert_status(
+enum d_ssl_error
+d_ssl_alert_error(
     int32_t _alert
 )
 {
@@ -759,14 +692,13 @@ d_ssl_alert_status(
 
     if (_alert == D_SSL_ALERT_NONE)
     {
-        return D_SSL_STATUS_OK;
+        return D_SSL_OK;
     }
 
     entry = d_internal_ssl_alert_find(_alert);
 
-    return (entry != NULL) ? entry->status : D_SSL_STATUS_PROTOCOL_ERROR;
+    return (entry != NULL) ? entry->status : D_SSL_ERROR_PROTOCOL;
 }
-
 
 //==============================================================================
 // 5.  VERIFICATION
@@ -863,44 +795,21 @@ d_ssl_verify_flag_name(
 }
 
 /*
-d_ssl_verify_describe
-  Unassigned bits fold into OTHER first, so a result never lists "other" twice.
-The measure and the write walk the same folded set, so they cannot disagree.
+d_internal_ssl_verify_measure
+  The length of the description of an already folded set: "ok" for none, else
+each phrase, with a separator before all but the first.
 */
-enum d_ssl_status
-d_ssl_verify_describe(
-    uint32_t _flags,
-    char*    _out,
-    size_t   _capacity,
-    size_t*  _out_size
+static size_t
+d_internal_ssl_verify_measure(
+    uint32_t _flags
 )
 {
-    uint32_t          known  = d_internal_ssl_flags_known();
-    uint32_t          flags  = _flags & known;
-    size_t            size   = 0;
-    size_t            pos    = 0;
-    enum d_ssl_status status = D_SSL_STATUS_OK;
+    size_t size = (_flags == 0) ? 2 : 0;
 
-    // parameter validation
-    if (!d_internal_ssl_out_args_ok(_out, _capacity, _out_size))
-    {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
-    }
-
-    if ((_flags & ~known) != 0)
-    {
-        flags |= D_SSL_VERIFY_FLAG_OTHER;
-    }
-
-    // measure: each phrase, and a separator before all but the first
-    if (flags == 0)
-    {
-        size = 2;
-    }
-
+    // each phrase, and a separator before all but the first
     for (size_t i = 0; i < D_INTERNAL_SSL_FLAG_COUNT; ++i)
     {
-        if ((flags & d_internal_ssl_flags[i].flag) != 0)
+        if ((_flags & d_internal_ssl_flags[i].flag) != 0)
         {
             if (size > 0)
             {
@@ -911,27 +820,41 @@ d_ssl_verify_describe(
         }
     }
 
-    status = d_internal_ssl_out_check(_out, _capacity, size, 1, _out_size);
+    return size;
+}
 
-    // a measure pass or a small buffer ends here
-    if ( (status != D_SSL_STATUS_OK) ||
-         (_out == NULL) )
+/*
+d_internal_ssl_verify_write
+  Writes the description d_internal_ssl_verify_measure measured, in the same
+order, and its terminator; the caller has checked that both fit.
+*/
+static void
+d_internal_ssl_verify_write(
+    uint32_t _flags,
+    char*    _out
+)
+{
+    size_t pos = 0;
+
+    if (_flags == 0)
     {
-        return status;
+        d_internal_ssl_put(_out,
+                           &pos,
+                           "ok",
+                           2);
     }
 
-    if (flags == 0)
-    {
-        d_internal_ssl_put(_out, &pos, "ok", 2);
-    }
-
+    // each phrase, and a separator before all but the first
     for (size_t i = 0; i < D_INTERNAL_SSL_FLAG_COUNT; ++i)
     {
-        if ((flags & d_internal_ssl_flags[i].flag) != 0)
+        if ((_flags & d_internal_ssl_flags[i].flag) != 0)
         {
             if (pos > 0)
             {
-                d_internal_ssl_put(_out, &pos, ", ", 2);
+                d_internal_ssl_put(_out,
+                                   &pos,
+                                   ", ",
+                                   2);
             }
 
             d_internal_ssl_put(_out,
@@ -943,7 +866,56 @@ d_ssl_verify_describe(
 
     _out[pos] = '\0';
 
-    return D_SSL_STATUS_OK;
+    return;
+}
+
+/*
+d_ssl_verify_describe
+  Unassigned bits fold into OTHER first, so a result never lists "other" twice.
+The measure and the write walk the same folded set, so they cannot disagree.
+*/
+enum d_ssl_error
+d_ssl_verify_describe(
+    uint32_t _flags,
+    char*    _out,
+    size_t   _capacity,
+    size_t*  _out_size
+)
+{
+    uint32_t         known  = d_internal_ssl_flags_known();
+    uint32_t         flags  = _flags & known;
+    enum d_ssl_error status = D_SSL_OK;
+
+    // parameter validation
+    if (!d_internal_ssl_out_args_ok(_out,
+                                    _capacity,
+                                    _out_size))
+    {
+        return D_SSL_ERROR_INVALID_ARGUMENT;
+    }
+
+    if ((_flags & ~known) != 0)
+    {
+        flags |= D_SSL_VERIFY_FLAG_OTHER;
+    }
+
+    status = d_internal_ssl_out_check(_out,
+                                      _capacity,
+                                      d_internal_ssl_verify_measure(flags),
+                                      1,
+                                      _out_size);
+
+    // a measure pass or a small buffer ends here
+    if ( (status != D_SSL_OK) ||
+         (_out == NULL) )
+    {
+        return status;
+    }
+
+    d_internal_ssl_verify_write(flags,
+                                _out);
+
+    return D_SSL_OK;
 }
 
 //==============================================================================
@@ -966,12 +938,8 @@ d_internal_ssl_is_label_char(
     char _c
 )
 {
-    return ( ( (_c >= 'a') &&
-               (_c <= 'z') )                ||
-             ( (_c >= 'A') &&
-               (_c <= 'Z') )                ||
-             (d_internal_ssl_is_digit(_c))  ||
-             (_c == '-')                    ||
+    return ( (d_net_ascii_is_alnum(_c)) ||
+             (_c == '-')                ||
              (_c == '_') );
 }
 
@@ -1036,7 +1004,7 @@ d_internal_ssl_ipv4_parse(
         // up to three digits; a fourth is caught by the separator test
         while ( (pos < _length)     &&
                 (pos - start < 3)   &&
-                (d_internal_ssl_is_digit(_text[pos])) )
+                (d_net_ascii_is_digit(_text[pos])) )
         {
             value = (value * 10u) + (unsigned)(_text[pos] - '0');
             ++pos;
@@ -1068,6 +1036,163 @@ d_internal_ssl_ipv4_parse(
     return (pos == _length);
 }
 
+// d_internal_ssl_ipv6_text
+//   struct: an IPv6 literal being read: the text and the cursor, the groups
+// collected so far, and where "::" stood among them.
+struct d_internal_ssl_ipv6_text
+{
+    const char* text;
+    size_t      length;
+    size_t      pos;
+    uint16_t    groups[8];
+    size_t      count;
+    size_t      gap;
+    bool        has_gap;
+};
+
+/*
+d_internal_ssl_ipv6_group
+  Reads the field at the cursor: one to four hex digits, or a dotted-quad
+tail, which counts as two groups and so needs room for both. Sets `_last`
+when the field ends the text, as a tail always does.
+*/
+static bool
+d_internal_ssl_ipv6_group(
+    struct d_internal_ssl_ipv6_text* _ip,
+    bool*                            _last
+)
+{
+    const size_t start = _ip->pos;
+    unsigned     value = 0;
+
+    // one to four hex digits
+    while ( (_ip->pos < _ip->length)                    &&
+            (_ip->pos - start < 4)                      &&
+            (d_net_hex_value(_ip->text[_ip->pos]) >= 0) )
+    {
+        value = (value << 4) |
+                (unsigned)d_net_hex_value(_ip->text[_ip->pos]);
+        ++_ip->pos;
+    }
+
+    // a dot makes this field a dotted-quad tail, which ends the text
+    if ( (_ip->pos < _ip->length) &&
+         (_ip->text[_ip->pos] == '.') )
+    {
+        uint8_t quad[4] = { 0 };
+
+        if ( (_ip->count > 6) ||
+             (!d_internal_ssl_ipv4_parse(_ip->text + start,
+                                         _ip->length - start,
+                                         quad)) )
+        {
+            return false;
+        }
+
+        _ip->groups[_ip->count++] = (uint16_t)((quad[0] << 8) | quad[1]);
+        _ip->groups[_ip->count++] = (uint16_t)((quad[2] << 8) | quad[3]);
+        *_last                    = true;
+
+        return true;
+    }
+
+    // an empty group, a fifth digit, or a ninth group
+    if ( (_ip->pos == start)                             ||
+         ( (_ip->pos < _ip->length) &&
+           (d_net_hex_value(_ip->text[_ip->pos]) >= 0) ) ||
+         (_ip->count == 8) )
+    {
+        return false;
+    }
+
+    _ip->groups[_ip->count++] = (uint16_t)value;
+    *_last                    = (_ip->pos == _ip->length);
+
+    return true;
+}
+
+/*
+d_internal_ssl_ipv6_separator
+  Reads what joins two groups: one colon, or, once, "::", whose place among
+the groups is remembered. A text may not end on a lone colon.
+*/
+static bool
+d_internal_ssl_ipv6_separator(
+    struct d_internal_ssl_ipv6_text* _ip
+)
+{
+    if (_ip->text[_ip->pos] != ':')
+    {
+        return false;
+    }
+
+    ++_ip->pos;
+
+    if (_ip->pos == _ip->length)
+    {
+        return false;
+    }
+
+    // a second colon is the gap, which may stand only once
+    if (_ip->text[_ip->pos] == ':')
+    {
+        if (_ip->has_gap)
+        {
+            return false;
+        }
+
+        _ip->has_gap = true;
+        _ip->gap     = _ip->count;
+        ++_ip->pos;
+    }
+
+    return true;
+}
+
+/*
+d_internal_ssl_ipv6_store
+  Without "::" all eight groups are spelled; with it, at most seven, as "::"
+stands for at least one. The groups after the gap move to the tail, the gap
+becomes zeros, and the groups are written out, high octet first.
+*/
+static bool
+d_internal_ssl_ipv6_store(
+    struct d_internal_ssl_ipv6_text* _ip,
+    uint8_t                          _out[16]
+)
+{
+    if ( ( (!_ip->has_gap) &&
+           (_ip->count != 8) ) ||
+         ( (_ip->has_gap) &&
+           (_ip->count > 7) ) )
+    {
+        return false;
+    }
+
+    // the groups after the gap move to the tail; the gap becomes zeros
+    if (_ip->has_gap)
+    {
+        const size_t tail = _ip->count - _ip->gap;
+
+        memmove(&_ip->groups[8 - tail],
+                &_ip->groups[_ip->gap],
+                tail * sizeof(_ip->groups[0]));
+
+        for (size_t i = _ip->gap; i < 8 - tail; ++i)
+        {
+            _ip->groups[i] = 0;
+        }
+    }
+
+    for (size_t i = 0; i < 8; ++i)
+    {
+        _out[2 * i]       = (uint8_t)(_ip->groups[i] >> 8);
+        _out[(2 * i) + 1] = (uint8_t)(_ip->groups[i] & 0xFFu);
+    }
+
+    return true;
+}
+
 /*
 d_internal_ssl_ipv6_parse
   RFC 4291 section 2.2 text forms. Groups are collected in order, remembering
@@ -1083,11 +1208,8 @@ d_internal_ssl_ipv6_parse(
     uint8_t     _out[16]
 )
 {
-    uint16_t groups[8] = { 0 };
-    size_t   count     = 0;
-    size_t   gap       = 0;
-    bool     has_gap   = false;
-    size_t   pos       = 0;
+    struct d_internal_ssl_ipv6_text ip = { .text   = _text,
+                                           .length = _length };
 
     // the shortest literal is "::", and only "::" may open with a colon
     if (_length < 2)
@@ -1102,116 +1224,34 @@ d_internal_ssl_ipv6_parse(
             return false;
         }
 
-        has_gap = true;
-        pos     = 2;
+        ip.has_gap = true;
+        ip.pos     = 2;
     }
 
-    while (pos < _length)
+    // a group, then a separator, until a group ends the text
+    while (ip.pos < _length)
     {
-        size_t   start = pos;
-        unsigned value = 0;
+        bool last = false;
 
-        // one to four hex digits
-        while ( (pos < _length)     &&
-                (pos - start < 4)   &&
-                (d_internal_ssl_hex_value(_text[pos]) >= 0) )
-        {
-            value = (value << 4) |
-                    (unsigned)d_internal_ssl_hex_value(_text[pos]);
-            ++pos;
-        }
-
-        // a dot makes this field a dotted-quad tail, which ends the text
-        if ( (pos < _length) &&
-             (_text[pos] == '.') )
-        {
-            uint8_t quad[4] = { 0 };
-
-            if ( (count > 6) ||
-                 (!d_internal_ssl_ipv4_parse(_text + start,
-                                             _length - start,
-                                             quad)) )
-            {
-                return false;
-            }
-
-            groups[count++] = (uint16_t)((quad[0] << 8) | quad[1]);
-            groups[count++] = (uint16_t)((quad[2] << 8) | quad[3]);
-
-            break;
-        }
-
-        // an empty group, a fifth digit, or a ninth group
-        if ( (pos == start)                                    ||
-             ( (pos < _length) &&
-               (d_internal_ssl_hex_value(_text[pos]) >= 0) )   ||
-             (count == 8) )
+        if (!d_internal_ssl_ipv6_group(&ip,
+                                       &last))
         {
             return false;
         }
 
-        groups[count++] = (uint16_t)value;
-
-        if (pos == _length)
+        if (last)
         {
             break;
         }
 
-        // groups are joined by one colon, or once by "::"
-        if (_text[pos] != ':')
+        if (!d_internal_ssl_ipv6_separator(&ip))
         {
             return false;
         }
-
-        ++pos;
-
-        if (pos == _length)
-        {
-            return false;
-        }
-
-        if (_text[pos] == ':')
-        {
-            if (has_gap)
-            {
-                return false;
-            }
-
-            has_gap = true;
-            gap     = count;
-            ++pos;
-        }
     }
 
-    // without "::" all eight groups are spelled; with it, at most seven
-    if ( ( (!has_gap) &&
-           (count != 8) ) ||
-         ( (has_gap) &&
-           (count > 7) ) )
-    {
-        return false;
-    }
-
-    // the groups after the gap move to the tail; the gap becomes zeros
-    if (has_gap)
-    {
-        size_t tail = count - gap;
-
-        memmove(&groups[8 - tail], &groups[gap], tail * sizeof(groups[0]));
-
-        for (size_t i = gap; i < 8 - tail; ++i)
-        {
-            groups[i] = 0;
-        }
-    }
-
-    for (size_t i = 0; i < 8; ++i)
-    {
-        _out[2 * i]       = (uint8_t)(groups[i] >> 8);
-        _out[(2 * i) + 1] = (uint8_t)(groups[i] & 0xFFu);
-    }
-
-    return true;
+    return d_internal_ssl_ipv6_store(&ip,
+                                     _out);
 }
 
 /*
@@ -1229,7 +1269,8 @@ d_internal_ssl_peer_name_matches(
     if (_host_is_ip)
     {
         return ( (_name->kind == D_SSL_NAME_IP) &&
-                 (d_ssl_ip_match(_name->value, _host)) );
+                 (d_ssl_ip_match(_name->value,
+                                 _host)) );
     }
 
     return ( (_name->kind == D_SSL_NAME_DNS)          &&
@@ -1307,7 +1348,9 @@ d_ssl_host_is_ip(
     uint8_t address[D_SSL_IP_MAX] = { 0 };
     size_t  length                = 0;
 
-    return (d_ssl_ip_parse(_host, address, &length) == D_SSL_STATUS_OK);
+    return (d_ssl_ip_parse(_host,
+                           address,
+                           &length) == D_SSL_OK);
 }
 
 /*
@@ -1315,7 +1358,7 @@ d_ssl_ip_parse
   A colon anywhere means IPv6; otherwise the text must be a dotted quad. The
 parse goes through scratch storage, so a failure leaves _out untouched.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_ip_parse(
     struct d_pack_text _text,
     uint8_t            _out[D_SSL_IP_MAX],
@@ -1331,16 +1374,18 @@ d_ssl_ip_parse(
          (_out == NULL)                   ||
          (_out_length == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     if ( (_text.length == 0) ||
          (_text.length > D_SSL_IP_TEXT_MAX) )
     {
-        return D_SSL_STATUS_MALFORMED;
+        return D_SSL_ERROR_MALFORMED;
     }
 
-    ipv6   = (memchr(_text.data, ':', _text.length) != NULL);
+    ipv6   = (memchr(_text.data,
+                     ':',
+                     _text.length) != NULL);
     parsed = ipv6 ? d_internal_ssl_ipv6_parse(_text.data,
                                               _text.length,
                                               address)
@@ -1350,13 +1395,15 @@ d_ssl_ip_parse(
 
     if (!parsed)
     {
-        return D_SSL_STATUS_MALFORMED;
+        return D_SSL_ERROR_MALFORMED;
     }
 
     *_out_length = ipv6 ? 16u : 4u;
-    memcpy(_out, address, *_out_length);
+    memcpy(_out,
+           address,
+           *_out_length);
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -1365,7 +1412,7 @@ d_ssl_sni_from_host
 address; the name test runs on the original, which may carry the one trailing
 dot the stripped form has lost.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_sni_from_host(
     struct d_pack_text  _host,
     struct d_pack_text* _out_sni
@@ -1377,7 +1424,7 @@ d_ssl_sni_from_host(
     if ( (!d_internal_ssl_text_ok(_host)) ||
          (_out_sni == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     host = d_internal_ssl_strip_dot(_host);
@@ -1385,17 +1432,17 @@ d_ssl_sni_from_host(
     // RFC 6066 section 3: address literals are not server names
     if (d_ssl_host_is_ip(host))
     {
-        return D_SSL_STATUS_NOT_FOUND;
+        return D_SSL_ERROR_NOT_FOUND;
     }
 
     if (!d_ssl_hostname_is_valid(_host))
     {
-        return D_SSL_STATUS_MALFORMED;
+        return D_SSL_ERROR_MALFORMED;
     }
 
     *_out_sni = host;
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -1454,13 +1501,14 @@ d_ssl_hostname_match(
         // the wildcard stands in for exactly the reference's first label
         skip = (size_t)(dot - host.data) + 1;
 
-        return d_internal_ssl_ieq(suffix,
-                                  d_internal_ssl_text(host.data + skip,
-                                                      host.length - skip));
+        return d_net_ascii_ieq(suffix,
+                               d_internal_ssl_text(host.data + skip,
+                                                   host.length - skip));
     }
 
     return ( (d_internal_ssl_name_ok(pattern)) &&
-             (d_internal_ssl_ieq(pattern, host)) );
+             (d_net_ascii_ieq(pattern,
+                              host)) );
 }
 
 /*
@@ -1479,13 +1527,17 @@ d_ssl_ip_match(
 
     // parameter validation
     if ( (!d_internal_ssl_bytes_ok(_presented)) ||
-         (d_ssl_ip_parse(_host, address, &length) != D_SSL_STATUS_OK) )
+         (d_ssl_ip_parse(_host,
+                         address,
+                         &length) != D_SSL_OK) )
     {
         return false;
     }
 
     return ( (_presented.size == length) &&
-             (memcmp(_presented.data, address, length) == 0) );
+             (memcmp(_presented.data,
+                     address,
+                     length) == 0) );
 }
 
 /*
@@ -1513,7 +1565,9 @@ d_ssl_identity_match(
 
     for (size_t i = 0; i < _count; ++i)
     {
-        if (d_internal_ssl_peer_name_matches(&_names[i], _host, is_ip))
+        if (d_internal_ssl_peer_name_matches(&_names[i],
+                                             _host,
+                                             is_ip))
         {
             return true;
         }
@@ -1521,7 +1575,6 @@ d_ssl_identity_match(
 
     return false;
 }
-
 
 //==============================================================================
 // 7.  ALPN
@@ -1584,10 +1637,14 @@ d_ssl_alpn_contains(
         return false;
     }
 
-    while (d_ssl_alpn_next(_list, &offset, &protocol) == D_SSL_STATUS_OK)
+    while (d_ssl_alpn_next(_list,
+                           &offset,
+                           &protocol) == D_SSL_OK)
     {
         if ( (protocol.length == _protocol.length) &&
-             (memcmp(protocol.data, _protocol.data, protocol.length) == 0) )
+             (memcmp(protocol.data,
+                     _protocol.data,
+                     protocol.length) == 0) )
         {
             return true;
         }
@@ -1602,7 +1659,7 @@ d_ssl_alpn_encode
 bounded during the measure, so an oversized list is refused before any byte
 is written.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_alpn_encode(
     const struct d_pack_text* _protocols,
     size_t                    _count,
@@ -1611,17 +1668,19 @@ d_ssl_alpn_encode(
     size_t*                   _out_size
 )
 {
-    unsigned char*    out    = (unsigned char*)_out;
-    size_t            size   = 0;
-    size_t            pos    = 0;
-    enum d_ssl_status status = D_SSL_STATUS_OK;
+    unsigned char*   out    = (unsigned char*)_out;
+    size_t           size   = 0;
+    size_t           pos    = 0;
+    enum d_ssl_error status = D_SSL_OK;
 
     // parameter validation
     if ( (_protocols == NULL) ||
          (_count == 0)        ||
-         (!d_internal_ssl_out_args_ok(_out, _capacity, _out_size)) )
+         (!d_internal_ssl_out_args_ok(_out,
+                                      _capacity,
+                                      _out_size)) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     // measure, refusing any name the wire format cannot carry
@@ -1629,27 +1688,31 @@ d_ssl_alpn_encode(
     {
         if (!d_internal_ssl_text_ok(_protocols[i]))
         {
-            return D_SSL_STATUS_INVALID_ARGUMENT;
+            return D_SSL_ERROR_INVALID_ARGUMENT;
         }
 
         if ( (_protocols[i].length == 0) ||
              (_protocols[i].length > D_SSL_ALPN_PROTOCOL_MAX) )
         {
-            return D_SSL_STATUS_MALFORMED;
+            return D_SSL_ERROR_MALFORMED;
         }
 
         size += 1 + _protocols[i].length;
 
         if (size > D_SSL_ALPN_LIST_MAX)
         {
-            return D_SSL_STATUS_MALFORMED;
+            return D_SSL_ERROR_MALFORMED;
         }
     }
 
-    status = d_internal_ssl_out_check(_out, _capacity, size, 0, _out_size);
+    status = d_internal_ssl_out_check(_out,
+                                      _capacity,
+                                      size,
+                                      0,
+                                      _out_size);
 
     // a measure pass or a small buffer ends here
-    if ( (status != D_SSL_STATUS_OK) ||
+    if ( (status != D_SSL_OK) ||
          (out == NULL) )
     {
         return status;
@@ -1658,11 +1721,13 @@ d_ssl_alpn_encode(
     for (size_t i = 0; i < _count; ++i)
     {
         out[pos++] = (unsigned char)_protocols[i].length;
-        memcpy(out + pos, _protocols[i].data, _protocols[i].length);
+        memcpy(out + pos,
+               _protocols[i].data,
+               _protocols[i].length);
         pos += _protocols[i].length;
     }
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -1670,7 +1735,7 @@ d_ssl_alpn_next
   One entry per call. The bounds test is written as a subtraction from the
 remaining length, so it cannot overflow however large the offset.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_alpn_next(
     struct d_pack_bytes _list,
     size_t*             _offset,
@@ -1686,12 +1751,12 @@ d_ssl_alpn_next(
          (_out_protocol == NULL)           ||
          (*_offset > _list.size) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     if (*_offset == _list.size)
     {
-        return D_SSL_STATUS_NOT_FOUND;
+        return D_SSL_ERROR_NOT_FOUND;
     }
 
     length = (unsigned char)data[*_offset];
@@ -1700,13 +1765,14 @@ d_ssl_alpn_next(
     if ( (length == 0) ||
          (length > _list.size - *_offset - 1) )
     {
-        return D_SSL_STATUS_MALFORMED;
+        return D_SSL_ERROR_MALFORMED;
     }
 
-    *_out_protocol = d_internal_ssl_text(data + *_offset + 1, length);
+    *_out_protocol = d_internal_ssl_text(data + *_offset + 1,
+                                         length);
     *_offset      += 1 + length;
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -1715,7 +1781,7 @@ d_ssl_alpn_select
 the check CVE-2024-5535's selection routine skipped. The server's order
 decides (RFC 7301 section 3.2), and the answer points into the client's list.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_alpn_select(
     struct d_pack_bytes _preferred,
     struct d_pack_bytes _offered,
@@ -1728,25 +1794,25 @@ d_ssl_alpn_select(
     // parameter validation
     if (_out_protocol == NULL)
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     if ( (!d_ssl_alpn_is_valid(_preferred)) ||
          (!d_ssl_alpn_is_valid(_offered)) )
     {
-        return D_SSL_STATUS_MALFORMED;
+        return D_SSL_ERROR_MALFORMED;
     }
 
     while (d_ssl_alpn_next(_preferred,
                            &preferred_offset,
-                           &preferred) == D_SSL_STATUS_OK)
+                           &preferred) == D_SSL_OK)
     {
         size_t             offered_offset = 0;
         struct d_pack_text offered        = { NULL, 0 };
 
         while (d_ssl_alpn_next(_offered,
                                &offered_offset,
-                               &offered) == D_SSL_STATUS_OK)
+                               &offered) == D_SSL_OK)
         {
             if ( (offered.length == preferred.length) &&
                  (memcmp(offered.data,
@@ -1755,14 +1821,13 @@ d_ssl_alpn_select(
             {
                 *_out_protocol = offered;
 
-                return D_SSL_STATUS_OK;
+                return D_SSL_OK;
             }
         }
     }
 
-    return D_SSL_STATUS_NOT_FOUND;
+    return D_SSL_ERROR_NOT_FOUND;
 }
-
 
 //==============================================================================
 // 8.  SNIFFING
@@ -1842,7 +1907,8 @@ d_ssl_sniff(
 
     if ((data[0] & 0x80u) != 0)
     {
-        return d_internal_ssl_sniff_ssl2(data, _prefix.size);
+        return d_internal_ssl_sniff_ssl2(data,
+                                         _prefix.size);
     }
 
     if ( (data[0] != D_SSL_CONTENT_HANDSHAKE) &&
@@ -1882,44 +1948,9 @@ d_ssl_sniff(
     return D_SSL_SNIFF_TLS;
 }
 
-
 //==============================================================================
-// 9.  PEM AND BASE64
+// 9.  PEM
 //==============================================================================
-
-/*
-d_internal_ssl_base64_value
-  The value of one character of the base64 alphabet, or -1.
-*/
-static int
-d_internal_ssl_base64_value(
-    char _c
-)
-{
-    if ( (_c >= 'A') &&
-         (_c <= 'Z') )
-    {
-        return _c - 'A';
-    }
-
-    if ( (_c >= 'a') &&
-         (_c <= 'z') )
-    {
-        return _c - 'a' + 26;
-    }
-
-    if (d_internal_ssl_is_digit(_c))
-    {
-        return _c - '0' + 52;
-    }
-
-    if (_c == '+')
-    {
-        return 62;
-    }
-
-    return (_c == '/') ? 63 : -1;
-}
 
 /*
 d_internal_ssl_pem_label_ok
@@ -1959,13 +1990,82 @@ d_internal_ssl_pem_label_ok(
 }
 
 /*
+d_internal_ssl_pem_body_start
+  Where a block's body starts: past any blanks after the dashes that close the
+BEGIN line, and past that line's ending, CRLF or LF.
+*/
+static size_t
+d_internal_ssl_pem_body_start(
+    struct d_pack_text _text,
+    size_t             _pos
+)
+{
+    while ( (_pos < _text.length) &&
+            (d_net_ascii_is_blank(_text.data[_pos])) )
+    {
+        ++_pos;
+    }
+
+    if ( (_pos < _text.length) &&
+         (_text.data[_pos] == '\r') )
+    {
+        ++_pos;
+    }
+
+    if ( (_pos < _text.length) &&
+         (_text.data[_pos] == '\n') )
+    {
+        ++_pos;
+    }
+
+    return _pos;
+}
+
+/*
+d_internal_ssl_pem_end
+  Where the END line of the block whose body starts at `_body_start` begins.
+The next boundary must be that line, with the block's label: a second BEGIN
+first, another label, or no END at all is malformed, and gives the text's
+length, which no END line can start at.
+*/
+static size_t
+d_internal_ssl_pem_end(
+    struct d_pack_text _text,
+    size_t             _body_start,
+    struct d_pack_text _label
+)
+{
+    const size_t end   = d_internal_ssl_find(_text,
+                                             _body_start,
+                                             "-----END ");
+    const size_t after = end + 9 + _label.length + 5;
+
+    if ( (end == _text.length)                      ||
+         (d_internal_ssl_find(_text,
+                              _body_start,
+                              "-----BEGIN ") < end) ||
+         (after > _text.length)                     ||
+         (memcmp(_text.data + end + 9,
+                 _label.data,
+                 _label.length) != 0)               ||
+         (memcmp(_text.data + end + 9 + _label.length,
+                 "-----",
+                 5) != 0) )
+    {
+        return _text.length;
+    }
+
+    return end;
+}
+
+/*
 d_ssl_pem_next
   Finds a BEGIN line, reads its label, and requires that the next boundary be
 the END line with the same label: a second BEGIN first, or a different label,
 is malformed. On MALFORMED the cursor moves to the end, so a loop over a
 damaged bundle terminates.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_pem_next(
     struct d_pack_text      _text,
     size_t*                 _offset,
@@ -1977,7 +2077,6 @@ d_ssl_pem_next(
     size_t             label_end   = 0;
     size_t             body_start  = 0;
     size_t             end         = 0;
-    size_t             after       = 0;
     struct d_pack_text label       = { NULL, 0 };
 
     // parameter validation
@@ -1986,21 +2085,25 @@ d_ssl_pem_next(
          (_out == NULL)                   ||
          (*_offset > _text.length) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
-    begin = d_internal_ssl_find(_text, *_offset, "-----BEGIN ");
+    begin = d_internal_ssl_find(_text,
+                                *_offset,
+                                "-----BEGIN ");
 
     if (begin == _text.length)
     {
         *_offset = _text.length;
 
-        return D_SSL_STATUS_NOT_FOUND;
+        return D_SSL_ERROR_NOT_FOUND;
     }
 
     // the label runs to the dashes that close the BEGIN line
     label_start = begin + 11;
-    label_end   = d_internal_ssl_find(_text, label_start, "-----");
+    label_end   = d_internal_ssl_find(_text,
+                                      label_start,
+                                      "-----");
     label       = d_internal_ssl_text(_text.data + label_start,
                                       label_end - label_start);
 
@@ -2009,61 +2112,39 @@ d_ssl_pem_next(
     {
         *_offset = _text.length;
 
-        return D_SSL_STATUS_MALFORMED;
+        return D_SSL_ERROR_MALFORMED;
     }
 
-    // the body starts on the line after BEGIN
-    body_start = label_end + 5;
+    // the body starts on the line after BEGIN, and runs to the matching END
+    body_start = d_internal_ssl_pem_body_start(_text,
+                                               label_end + 5);
+    end        = d_internal_ssl_pem_end(_text,
+                                        body_start,
+                                        label);
 
-    while ( (body_start < _text.length) &&
-            ( (_text.data[body_start] == ' ') ||
-              (_text.data[body_start] == '\t') ) )
-    {
-        ++body_start;
-    }
-
-    if ( (body_start < _text.length) &&
-         (_text.data[body_start] == '\r') )
-    {
-        ++body_start;
-    }
-
-    if ( (body_start < _text.length) &&
-         (_text.data[body_start] == '\n') )
-    {
-        ++body_start;
-    }
-
-    // the next boundary must be the matching END line
-    end   = d_internal_ssl_find(_text, body_start, "-----END ");
-    after = end + 9 + label.length + 5;
-
-    if ( (end == _text.length)                                           ||
-         (d_internal_ssl_find(_text, body_start, "-----BEGIN ") < end)   ||
-         (after > _text.length)                                          ||
-         (memcmp(_text.data + end + 9, label.data, label.length) != 0)   ||
-         (memcmp(_text.data + end + 9 + label.length, "-----", 5) != 0) )
+    if (end == _text.length)
     {
         *_offset = _text.length;
 
-        return D_SSL_STATUS_MALFORMED;
+        return D_SSL_ERROR_MALFORMED;
     }
 
     _out->label = label;
     _out->body  = d_internal_ssl_text(_text.data + body_start,
                                       end - body_start);
-    *_offset    = after;
+    *_offset    = end + 9 + label.length + 5;
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
 d_ssl_pem_decode
-  Two passes. The first counts alphabet characters and padding, refusing
-anything after the padding begins, and so fixes the exact size; the second
-decodes, stopping at that size so the bits padding stands for are dropped.
+  A PEM body is base64 broken into lines, so the codec decodes it with blanks
+allowed and padding required. The codec judges the whole body before writing,
+and reports the size even for a buffer too small; a malformed body leaves
+`*_out_size` as it was.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_pem_decode(
     struct d_pack_text _body,
     void*              _out,
@@ -2071,319 +2152,55 @@ d_ssl_pem_decode(
     size_t*            _out_size
 )
 {
-    unsigned char*    out     = (unsigned char*)_out;
-    size_t            digits  = 0;
-    size_t            padding = 0;
-    size_t            size    = 0;
-    size_t            pos     = 0;
-    uint32_t          bits    = 0;
-    unsigned          held    = 0;
-    enum d_ssl_status status  = D_SSL_STATUS_OK;
-
     // parameter validation
     if ( (!d_internal_ssl_text_ok(_body)) ||
-         (!d_internal_ssl_out_args_ok(_out, _capacity, _out_size)) )
+         (!d_internal_ssl_out_args_ok(_out,
+                                      _capacity,
+                                      _out_size)) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
-    // count the alphabet and the padding; only blanks may follow padding
-    for (size_t i = 0; i < _body.length; ++i)
+    size_t                       size   = 0;
+    const enum d_net_codec_error status =
+        d_net_base64_decode(_body,
+                            D_NET_BASE64_BLANKS,
+                            _out,
+                            _capacity,
+                            &size);
+
+    // a malformed body reports nothing; a decoded or measured one its size
+    switch (status)
     {
-        char c = _body.data[i];
+        case D_NET_CODEC_OK:
+            *_out_size = size;
 
-        if (d_internal_ssl_is_blank(c))
-        {
-            continue;
-        }
+            return D_SSL_OK;
 
-        if (c == '=')
-        {
-            ++padding;
+        case D_NET_CODEC_ERROR_BUFFER_TOO_SMALL:
+            *_out_size = size;
 
-            continue;
-        }
+            return D_SSL_ERROR_BUFFER_TOO_SMALL;
 
-        if ( (padding > 0) ||
-             (d_internal_ssl_base64_value(c) < 0) )
-        {
-            return D_SSL_STATUS_MALFORMED;
-        }
+        case D_NET_CODEC_ERROR_MALFORMED:
+            return D_SSL_ERROR_MALFORMED;
 
-        ++digits;
+        default:
+            return D_SSL_ERROR_INVALID_ARGUMENT;
     }
-
-    if ( (padding > 2) ||
-         ((digits + padding) % 4 != 0) )
-    {
-        return D_SSL_STATUS_MALFORMED;
-    }
-
-    size   = (((digits + padding) / 4) * 3) - padding;
-    status = d_internal_ssl_out_check(_out, _capacity, size, 0, _out_size);
-
-    // a measure pass or a small buffer ends here
-    if ( (status != D_SSL_STATUS_OK) ||
-         (out == NULL) )
-    {
-        return status;
-    }
-
-    // four characters carry three octets; each full octet is emitted
-    for (size_t i = 0; ( (i < _body.length) && (pos < size) ); ++i)
-    {
-        int value = d_internal_ssl_base64_value(_body.data[i]);
-
-        if (value < 0)
-        {
-            continue;
-        }
-
-        bits  = ((bits << 6) | (uint32_t)value) & 0xFFFFFFu;
-        held += 6;
-
-        if (held >= 8)
-        {
-            held      -= 8;
-            out[pos++] = (unsigned char)((bits >> held) & 0xFFu);
-        }
-    }
-
-    return D_SSL_STATUS_OK;
 }
-
 
 //==============================================================================
-// 10. FINGERPRINTS
+// 10.  FINGERPRINTS
 //==============================================================================
 
-// D_INTERNAL_SSL_SHA256_BLOCK
-//   constant: the SHA-256 block size in octets.
-#define D_INTERNAL_SSL_SHA256_BLOCK 64
-
-// d_internal_ssl_sha256
-//   struct: a running SHA-256 computation (FIPS 180-4): the chaining state,
-// the octets hashed so far, and a partial block.
-struct d_internal_ssl_sha256
-{
-    uint32_t state[8];
-    uint64_t length;
-    size_t   used;
-    uint8_t  block[D_INTERNAL_SSL_SHA256_BLOCK];
-};
-
-// d_internal_ssl_sha256_k
-//   table: the SHA-256 round constants (FIPS 180-4 section 4.2.2).
-static const uint32_t d_internal_ssl_sha256_k[64] =
-{
-    0x428a2f98u, 0x71374491u, 0xb5c0fbcfu, 0xe9b5dba5u,
-    0x3956c25bu, 0x59f111f1u, 0x923f82a4u, 0xab1c5ed5u,
-    0xd807aa98u, 0x12835b01u, 0x243185beu, 0x550c7dc3u,
-    0x72be5d74u, 0x80deb1feu, 0x9bdc06a7u, 0xc19bf174u,
-    0xe49b69c1u, 0xefbe4786u, 0x0fc19dc6u, 0x240ca1ccu,
-    0x2de92c6fu, 0x4a7484aau, 0x5cb0a9dcu, 0x76f988dau,
-    0x983e5152u, 0xa831c66du, 0xb00327c8u, 0xbf597fc7u,
-    0xc6e00bf3u, 0xd5a79147u, 0x06ca6351u, 0x14292967u,
-    0x27b70a85u, 0x2e1b2138u, 0x4d2c6dfcu, 0x53380d13u,
-    0x650a7354u, 0x766a0abbu, 0x81c2c92eu, 0x92722c85u,
-    0xa2bfe8a1u, 0xa81a664bu, 0xc24b8b70u, 0xc76c51a3u,
-    0xd192e819u, 0xd6990624u, 0xf40e3585u, 0x106aa070u,
-    0x19a4c116u, 0x1e376c08u, 0x2748774cu, 0x34b0bcb5u,
-    0x391c0cb3u, 0x4ed8aa4au, 0x5b9cca4fu, 0x682e6ff3u,
-    0x748f82eeu, 0x78a5636fu, 0x84c87814u, 0x8cc70208u,
-    0x90befffau, 0xa4506cebu, 0xbef9a3f7u, 0xc67178f2u
-};
-
-/*
-d_internal_ssl_rotr
-  32-bit rotate right; _n is always 1..31 here.
-*/
-static uint32_t
-d_internal_ssl_rotr(
-    uint32_t _x,
-    unsigned _n
-)
-{
-    return (_x >> _n) | (_x << (32u - _n));
-}
-
-/*
-d_internal_ssl_sha256_compress
-  One block through the compression function (FIPS 180-4 section 6.2.2):
-expand the message schedule, run 64 rounds, add into the state.
-*/
-static void
-d_internal_ssl_sha256_compress(
-    uint32_t      _state[8],
-    const uint8_t _block[D_INTERNAL_SSL_SHA256_BLOCK]
-)
-{
-    uint32_t w[64] = { 0 };
-    uint32_t v[8]  = { 0 };
-
-    for (size_t i = 0; i < 16; ++i)
-    {
-        w[i] = ((uint32_t)_block[4 * i] << 24)       |
-               ((uint32_t)_block[(4 * i) + 1] << 16) |
-               ((uint32_t)_block[(4 * i) + 2] << 8)  |
-               (uint32_t)_block[(4 * i) + 3];
-    }
-
-    for (size_t i = 16; i < 64; ++i)
-    {
-        uint32_t s0 = d_internal_ssl_rotr(w[i - 15], 7)  ^
-                      d_internal_ssl_rotr(w[i - 15], 18) ^
-                      (w[i - 15] >> 3);
-        uint32_t s1 = d_internal_ssl_rotr(w[i - 2], 17)  ^
-                      d_internal_ssl_rotr(w[i - 2], 19)  ^
-                      (w[i - 2] >> 10);
-
-        w[i] = w[i - 16] + s0 + w[i - 7] + s1;
-    }
-
-    memcpy(v, _state, sizeof(v));
-
-    // v[0..7] are the working variables a..h
-    for (size_t i = 0; i < 64; ++i)
-    {
-        uint32_t s1  = d_internal_ssl_rotr(v[4], 6)  ^
-                       d_internal_ssl_rotr(v[4], 11) ^
-                       d_internal_ssl_rotr(v[4], 25);
-        uint32_t ch  = (v[4] & v[5]) ^ (~v[4] & v[6]);
-        uint32_t t1  = v[7] + s1 + ch + d_internal_ssl_sha256_k[i] + w[i];
-        uint32_t s0  = d_internal_ssl_rotr(v[0], 2)  ^
-                       d_internal_ssl_rotr(v[0], 13) ^
-                       d_internal_ssl_rotr(v[0], 22);
-        uint32_t maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);
-
-        v[7] = v[6];
-        v[6] = v[5];
-        v[5] = v[4];
-        v[4] = v[3] + t1;
-        v[3] = v[2];
-        v[2] = v[1];
-        v[1] = v[0];
-        v[0] = t1 + s0 + maj;
-    }
-
-    for (size_t i = 0; i < 8; ++i)
-    {
-        _state[i] += v[i];
-    }
-
-    return;
-}
-
-/*
-d_internal_ssl_sha256_init
-  The initial hash value (FIPS 180-4 section 5.3.3).
-*/
-static void
-d_internal_ssl_sha256_init(
-    struct d_internal_ssl_sha256* _sha
-)
-{
-    static const uint32_t initial[8] =
-    {
-        0x6a09e667u, 0xbb67ae85u, 0x3c6ef372u, 0xa54ff53au,
-        0x510e527fu, 0x9b05688cu, 0x1f83d9abu, 0x5be0cd19u
-    };
-
-    memset(_sha, 0, sizeof(*_sha));
-    memcpy(_sha->state, initial, sizeof(initial));
-
-    return;
-}
-
-/*
-d_internal_ssl_sha256_update
-  Fills the partial block and compresses each one completed.
-*/
-static void
-d_internal_ssl_sha256_update(
-    struct d_internal_ssl_sha256* _sha,
-    const uint8_t*                _data,
-    size_t                        _size
-)
-{
-    size_t pos = 0;
-
-    _sha->length += (uint64_t)_size;
-
-    while (pos < _size)
-    {
-        size_t take = D_INTERNAL_SSL_SHA256_BLOCK - _sha->used;
-
-        if (take > _size - pos)
-        {
-            take = _size - pos;
-        }
-
-        memcpy(_sha->block + _sha->used, _data + pos, take);
-        _sha->used += take;
-        pos        += take;
-
-        if (_sha->used == D_INTERNAL_SSL_SHA256_BLOCK)
-        {
-            d_internal_ssl_sha256_compress(_sha->state, _sha->block);
-            _sha->used = 0;
-        }
-    }
-
-    return;
-}
-
-/*
-d_internal_ssl_sha256_final
-  Pads with a 1 bit and zeros to 56 octets mod 64, appends the bit length
-big-endian, and writes the state out big-endian.
-*/
-static void
-d_internal_ssl_sha256_final(
-    struct d_internal_ssl_sha256* _sha,
-    uint8_t                       _out[D_SSL_FINGERPRINT_LENGTH]
-)
-{
-    uint64_t bits = _sha->length * 8u;
-
-    _sha->block[_sha->used++] = 0x80u;
-
-    // no room for the length: pad this block out and start another
-    if (_sha->used > 56)
-    {
-        memset(_sha->block + _sha->used,
-               0,
-               D_INTERNAL_SSL_SHA256_BLOCK - _sha->used);
-        d_internal_ssl_sha256_compress(_sha->state, _sha->block);
-        _sha->used = 0;
-    }
-
-    memset(_sha->block + _sha->used, 0, 56 - _sha->used);
-
-    for (size_t i = 0; i < 8; ++i)
-    {
-        _sha->block[56 + i] = (uint8_t)(bits >> (56u - (8u * i)));
-    }
-
-    d_internal_ssl_sha256_compress(_sha->state, _sha->block);
-
-    for (size_t i = 0; i < 8; ++i)
-    {
-        _out[4 * i]       = (uint8_t)(_sha->state[i] >> 24);
-        _out[(4 * i) + 1] = (uint8_t)(_sha->state[i] >> 16);
-        _out[(4 * i) + 2] = (uint8_t)(_sha->state[i] >> 8);
-        _out[(4 * i) + 3] = (uint8_t)_sha->state[i];
-    }
-
-    memset(_sha, 0, sizeof(*_sha));
-
-    return;
-}
+D_STATIC_ASSERT(D_SSL_FINGERPRINT_LENGTH == D_NET_DIGEST_SHA256_SIZE,
+                "ssl: a certificate fingerprint is a SHA-256 digest");
 
 /*
 d_ssl_fingerprint_equal
-  Every octet is compared whatever the first difference, so the time taken
-says nothing about how much of a pin matched.
+  d_net_digest_equal reads every octet whatever the first difference, so the
+time taken says nothing about how much of a pin matched.
 */
 bool
 d_ssl_fingerprint_equal(
@@ -2391,71 +2208,57 @@ d_ssl_fingerprint_equal(
     const uint8_t _b[D_SSL_FINGERPRINT_LENGTH]
 )
 {
-    uint8_t difference = 0;
-
-    // parameter validation
-    if ( (_a == NULL) ||
-         (_b == NULL) )
-    {
-        return false;
-    }
-
-    for (size_t i = 0; i < D_SSL_FINGERPRINT_LENGTH; ++i)
-    {
-        difference = (uint8_t)(difference | (_a[i] ^ _b[i]));
-    }
-
-    return (difference == 0);
+    return d_net_digest_equal(_a,
+                              _b,
+                              D_SSL_FINGERPRINT_LENGTH);
 }
 
 /*
 d_ssl_fingerprint_compute
   SHA-256 over the DER, exactly as certificate tools compute it.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_fingerprint_compute(
     struct d_pack_bytes _der,
     uint8_t             _out[D_SSL_FINGERPRINT_LENGTH]
 )
 {
-    struct d_internal_ssl_sha256 sha = { { 0 }, 0, 0, { 0 } };
-
     // parameter validation
     if ( (!d_internal_ssl_bytes_ok(_der)) ||
          (_out == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
-    d_internal_ssl_sha256_init(&sha);
-    d_internal_ssl_sha256_update(&sha,
-                                 (const uint8_t*)_der.data,
-                                 _der.size);
-    d_internal_ssl_sha256_final(&sha, _out);
+    // the digest refuses only what the validation above already has
+    const bool computed = d_net_digest_compute(D_NET_DIGEST_SHA256,
+                                               _der,
+                                               _out);
 
-    return D_SSL_STATUS_OK;
+    return (computed) ? D_SSL_OK
+                      : D_SSL_ERROR_INVALID_ARGUMENT;
 }
 
 /*
 d_ssl_fingerprint_format
   Uppercase pairs with colons between them, and a NUL.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_fingerprint_format(
     const uint8_t _fingerprint[D_SSL_FINGERPRINT_LENGTH],
     char          _out[D_SSL_FINGERPRINT_TEXT_LENGTH + 1]
 )
 {
-    static const char hex[] = "0123456789ABCDEF";
-    size_t            pos   = 0;
+    size_t pos = 0;
 
     // parameter validation
     if ( (_fingerprint == NULL) ||
          (_out == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
+    // each octet as two digits, a colon before all but the first
     for (size_t i = 0; i < D_SSL_FINGERPRINT_LENGTH; ++i)
     {
         if (i > 0)
@@ -2463,13 +2266,15 @@ d_ssl_fingerprint_format(
             _out[pos++] = ':';
         }
 
-        _out[pos++] = hex[_fingerprint[i] >> 4];
-        _out[pos++] = hex[_fingerprint[i] & 0x0Fu];
+        _out[pos++] = d_net_hex_digit((unsigned int)(_fingerprint[i] >> 4),
+                                      D_NET_HEX_UPPER);
+        _out[pos++] = d_net_hex_digit((unsigned int)(_fingerprint[i] & 0x0fu),
+                                      D_NET_HEX_UPPER);
     }
 
     _out[pos] = '\0';
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -2478,7 +2283,7 @@ d_ssl_fingerprint_parse
 contiguous digits or 32 colon-joined pairs, so a truncated or padded paste is
 refused rather than half-read.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_fingerprint_parse(
     struct d_pack_text _text,
     uint8_t            _out[D_SSL_FINGERPRINT_LENGTH]
@@ -2492,18 +2297,19 @@ d_ssl_fingerprint_parse(
     if ( (!d_internal_ssl_text_ok(_text)) ||
          (_out == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
-    text = d_internal_ssl_trim(_text);
+    text = d_net_ascii_trim_space(_text);
 
     // "sha256 Fingerprint=AB:CD:..." keeps only what follows the '='
     for (size_t i = text.length; i > 0; --i)
     {
         if (text.data[i - 1] == '=')
         {
-            text = d_internal_ssl_trim(
-                       d_internal_ssl_text(text.data + i, text.length - i));
+            text = d_net_ascii_trim_space(
+                       d_internal_ssl_text(text.data + i,
+                                              text.length - i));
 
             break;
         }
@@ -2520,14 +2326,14 @@ d_ssl_fingerprint_parse(
     }
     else
     {
-        return D_SSL_STATUS_MALFORMED;
+        return D_SSL_ERROR_MALFORMED;
     }
 
     for (size_t i = 0; i < D_SSL_FINGERPRINT_LENGTH; ++i)
     {
         size_t at   = i * stride;
-        int    high = d_internal_ssl_hex_value(text.data[at]);
-        int    low  = d_internal_ssl_hex_value(text.data[at + 1]);
+        int    high = d_net_hex_value(text.data[at]);
+        int    low  = d_net_hex_value(text.data[at + 1]);
 
         if ( (high < 0)                                  ||
              (low < 0)                                   ||
@@ -2535,20 +2341,21 @@ d_ssl_fingerprint_parse(
                (i + 1 < D_SSL_FINGERPRINT_LENGTH)     &&
                (text.data[at + 2] != ':') ) )
         {
-            return D_SSL_STATUS_MALFORMED;
+            return D_SSL_ERROR_MALFORMED;
         }
 
         digest[i] = (uint8_t)((high << 4) | low);
     }
 
-    memcpy(_out, digest, sizeof(digest));
+    memcpy(_out,
+           digest,
+           sizeof(digest));
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
-
 //==============================================================================
-// 11. TRUST STORES
+// 11.  TRUST STORES
 //==============================================================================
 
 // d_internal_ssl_ca_files
@@ -2604,7 +2411,7 @@ d_ssl_ca_dir_candidates(
 }
 
 //==============================================================================
-// 12. CONFIGURATION
+// 12.  CONFIGURATION
 //==============================================================================
 
 /*
@@ -2657,9 +2464,9 @@ d_internal_ssl_cipher_ok(
 d_internal_ssl_versions_ok
   The version rules of d_ssl_config_validate. SSL 3.0 is UNSUPPORTED wherever
 it appears; so is a legacy minimum, unless the build allows one. A zero or
-unknown minimum, or a maximum below it, is INVALID_CONFIG.
+unknown minimum, or a maximum below it, is CONFIG.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_versions_ok(
     const struct d_ssl_config* _config
 )
@@ -2670,7 +2477,7 @@ d_internal_ssl_versions_ok(
     if ( (minimum == (int)D_SSL_VERSION_SSL3) ||
          (maximum == (int)D_SSL_VERSION_SSL3) )
     {
-        return D_SSL_STATUS_UNSUPPORTED;
+        return D_SSL_ERROR_UNSUPPORTED;
     }
 
     if ( (!d_ssl_version_is_known(_config->min_version)) ||
@@ -2678,17 +2485,17 @@ d_internal_ssl_versions_ok(
            ( (!d_ssl_version_is_known(_config->max_version)) ||
              (maximum < minimum) ) ) )
     {
-        return D_SSL_STATUS_INVALID_CONFIG;
+        return D_SSL_ERROR_CONFIG;
     }
 
     // RFC 8996's deprecation holds unless the build opted out of it
     if ( (!D_INTERNAL_SSL_ALLOW_LEGACY) &&
          (minimum < (int)D_SSL_VERSION_TLS1_2) )
     {
-        return D_SSL_STATUS_UNSUPPORTED;
+        return D_SSL_ERROR_UNSUPPORTED;
     }
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -2733,7 +2540,9 @@ d_ssl_config_init(
         return;
     }
 
-    memset(_config, 0, sizeof(*_config));
+    memset(_config,
+           0,
+           sizeof(*_config));
 
     _config->role             = _role;
     _config->min_version      = D_SSL_VERSION_FLOOR;
@@ -2750,7 +2559,7 @@ d_ssl_config_init(
 d_ssl_config_add_pin
   Appends; the pin table is fixed-size, so a full one is BUFFER_TOO_SMALL.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_config_add_pin(
     struct d_ssl_config* _config,
     const uint8_t        _fingerprint[D_SSL_FINGERPRINT_LENGTH]
@@ -2760,12 +2569,12 @@ d_ssl_config_add_pin(
     if ( (_config == NULL) ||
          (_fingerprint == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     if (_config->pin_count >= D_SSL_PINS_MAX)
     {
-        return D_SSL_STATUS_BUFFER_TOO_SMALL;
+        return D_SSL_ERROR_BUFFER_TOO_SMALL;
     }
 
     memcpy(_config->pins[_config->pin_count],
@@ -2773,46 +2582,25 @@ d_ssl_config_add_pin(
            D_SSL_FINGERPRINT_LENGTH);
     ++_config->pin_count;
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
-d_ssl_config_validate
-  The rules in the header, in its order. Spans that break their own contract
-are caller bugs and INVALID_ARGUMENT; everything else is INVALID_CONFIG,
-except what the build refuses outright, which is UNSUPPORTED.
+d_internal_ssl_verify_ok
+  The verification rules of d_ssl_config_validate: a known mode, OPTIONAL for
+a server alone, and, when the chain is verified rather than pins alone,
+something to anchor it.
 */
-enum d_ssl_status
-d_ssl_config_validate(
+static bool
+d_internal_ssl_verify_ok(
     const struct d_ssl_config* _config
 )
 {
-    enum d_ssl_status status      = D_SSL_STATUS_OK;
-    bool              verifies    = false;
-    bool              has_anchors = false;
-
-    // parameter validation
-    if ( (_config == NULL)                                  ||
-         (!d_internal_ssl_text_ok(_config->ca_pem))         ||
-         (!d_internal_ssl_text_ok(_config->certificate_pem)) ||
-         (!d_internal_ssl_text_ok(_config->private_key_pem)) ||
-         (!d_internal_ssl_bytes_ok(_config->alpn)) )
-    {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
-    }
-
-    if ( (_config->role != D_SSL_ROLE_CLIENT) &&
-         (_config->role != D_SSL_ROLE_SERVER) )
-    {
-        return D_SSL_STATUS_INVALID_CONFIG;
-    }
-
-    status = d_internal_ssl_versions_ok(_config);
-
-    if (status != D_SSL_STATUS_OK)
-    {
-        return status;
-    }
+    const bool verifies    = (_config->verify != D_SSL_VERIFY_NONE);
+    const bool has_anchors = ( (_config->use_system_trust)   ||
+                               (_config->ca_file != NULL)    ||
+                               (_config->ca_path != NULL)    ||
+                               (_config->ca_pem.length > 0) );
 
     // verification modes, and OPTIONAL being a server's alone
     if ( ( (_config->verify != D_SSL_VERIFY_NONE)     &&
@@ -2821,33 +2609,32 @@ d_ssl_config_validate(
          ( (_config->verify == D_SSL_VERIFY_OPTIONAL) &&
            (_config->role == D_SSL_ROLE_CLIENT) ) )
     {
-        return D_SSL_STATUS_INVALID_CONFIG;
+        return false;
     }
 
     // verifying against a chain needs something to anchor it
-    verifies    = (_config->verify != D_SSL_VERIFY_NONE);
-    has_anchors = ( (_config->use_system_trust)   ||
-                    (_config->ca_file != NULL)    ||
-                    (_config->ca_path != NULL)    ||
-                    (_config->ca_pem.length > 0) );
-
     if ( (verifies)            &&
          (!_config->pin_only)  &&
          (!has_anchors) )
     {
-        return D_SSL_STATUS_INVALID_CONFIG;
+        return false;
     }
 
-    if ( (!d_internal_ssl_identity_ok(_config))                     ||
-         (!d_internal_ssl_path_ok(_config->ca_file))                ||
-         (!d_internal_ssl_path_ok(_config->ca_path))                ||
-         (!d_internal_ssl_path_ok(_config->certificate_file))       ||
-         (!d_internal_ssl_path_ok(_config->private_key_file))       ||
-         (!d_internal_ssl_cipher_ok(_config->cipher_list))          ||
-         (!d_internal_ssl_cipher_ok(_config->cipher_suites)) )
-    {
-        return D_SSL_STATUS_INVALID_CONFIG;
-    }
+    return true;
+}
+
+/*
+d_internal_ssl_alpn_pins_ok
+  The ALPN and pinning rules of d_ssl_config_validate: a well-formed list,
+present when a protocol is required; and pins that fit, that pin_only has,
+and that are set only when the peer is verified.
+*/
+static bool
+d_internal_ssl_alpn_pins_ok(
+    const struct d_ssl_config* _config
+)
+{
+    const bool verifies = (_config->verify != D_SSL_VERIFY_NONE);
 
     // an ALPN list must be well-formed, and a requirement needs a list
     if ( ( (_config->alpn.size > 0) &&
@@ -2855,7 +2642,7 @@ d_ssl_config_validate(
          ( (_config->alpn_required) &&
            (_config->alpn.size == 0) ) )
     {
-        return D_SSL_STATUS_INVALID_CONFIG;
+        return false;
     }
 
     // pins fit, pin_only has some, and they only mean something when verifying
@@ -2865,17 +2652,70 @@ d_ssl_config_validate(
          ( (_config->pin_count > 0) &&
            (!verifies) ) )
     {
-        return D_SSL_STATUS_INVALID_CONFIG;
+        return false;
+    }
+
+    return true;
+}
+
+/*
+d_ssl_config_validate
+  The rules in the header, in its order. Spans that break their own contract
+are caller bugs and INVALID_ARGUMENT; everything else is CONFIG,
+except what the build refuses outright, which is UNSUPPORTED.
+*/
+enum d_ssl_error
+d_ssl_config_validate(
+    const struct d_ssl_config* _config
+)
+{
+    enum d_ssl_error status = D_SSL_OK;
+
+    // parameter validation
+    if ( (_config == NULL)                                  ||
+         (!d_internal_ssl_text_ok(_config->ca_pem))         ||
+         (!d_internal_ssl_text_ok(_config->certificate_pem)) ||
+         (!d_internal_ssl_text_ok(_config->private_key_pem)) ||
+         (!d_internal_ssl_bytes_ok(_config->alpn)) )
+    {
+        return D_SSL_ERROR_INVALID_ARGUMENT;
+    }
+
+    if ( (_config->role != D_SSL_ROLE_CLIENT) &&
+         (_config->role != D_SSL_ROLE_SERVER) )
+    {
+        return D_SSL_ERROR_CONFIG;
+    }
+
+    status = d_internal_ssl_versions_ok(_config);
+
+    if (status != D_SSL_OK)
+    {
+        return status;
+    }
+
+    // verification, identity, files and ciphers, then ALPN and pins
+    if ( (!d_internal_ssl_verify_ok(_config))                       ||
+         (!d_internal_ssl_identity_ok(_config))                     ||
+         (!d_internal_ssl_path_ok(_config->ca_file))                ||
+         (!d_internal_ssl_path_ok(_config->ca_path))                ||
+         (!d_internal_ssl_path_ok(_config->certificate_file))       ||
+         (!d_internal_ssl_path_ok(_config->private_key_file))       ||
+         (!d_internal_ssl_cipher_ok(_config->cipher_list))          ||
+         (!d_internal_ssl_cipher_ok(_config->cipher_suites))        ||
+         (!d_internal_ssl_alpn_pins_ok(_config)) )
+    {
+        return D_SSL_ERROR_CONFIG;
     }
 
     // a key log leaks session secrets, so a build must have asked for it
     if ( (_config->keylog != NULL) &&
          (!D_INTERNAL_SSL_KEYLOG) )
     {
-        return D_SSL_STATUS_UNSUPPORTED;
+        return D_SSL_ERROR_UNSUPPORTED;
     }
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -2883,7 +2723,7 @@ d_ssl_config_plan
   The whole of the configuration's meaning for a handshake, derived in one
 place so no engine derives it differently.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_config_plan(
     const struct d_ssl_config* _config,
     struct d_ssl_plan*         _out_plan
@@ -2892,7 +2732,7 @@ d_ssl_config_plan(
     struct d_ssl_plan plan     = { D_SSL_ROLE_CLIENT, D_SSL_VERSION_NONE,
                                    D_SSL_VERSION_NONE, false, false, false,
                                    false, false, false, false };
-    enum d_ssl_status status   = D_SSL_STATUS_OK;
+    enum d_ssl_error  status   = D_SSL_OK;
     bool              verifies = false;
     bool              server   = false;
 
@@ -2900,12 +2740,12 @@ d_ssl_config_plan(
     if ( (_config == NULL) ||
          (_out_plan == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     status = d_ssl_config_validate(_config);
 
-    if (status != D_SSL_STATUS_OK)
+    if (status != D_SSL_OK)
     {
         return status;
     }
@@ -2932,406 +2772,43 @@ d_ssl_config_plan(
 
     *_out_plan = plan;
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
-
 
 //==============================================================================
-// 13. TRANSPORT
-//==============================================================================
-
-/*
-d_internal_ssl_side_ok
-  A pipe has ends A and B and nothing else.
-*/
-static bool
-d_internal_ssl_side_ok(
-    enum d_ssl_pipe_side _side
-)
-{
-    return ( (_side == D_SSL_PIPE_A) ||
-             (_side == D_SSL_PIPE_B) );
-}
-
-/*
-d_internal_ssl_ring_take
-  Copies _count bytes, at most the ring's size, from its head, wrapping as
-needed.
-*/
-static void
-d_internal_ssl_ring_take(
-    struct d_ssl_ring* _ring,
-    unsigned char*     _out,
-    size_t             _count
-)
-{
-    size_t first = _ring->capacity - _ring->head;
-
-    if (first > _count)
-    {
-        first = _count;
-    }
-
-    memcpy(_out, _ring->data + _ring->head, first);
-    memcpy(_out + first, _ring->data, _count - first);
-
-    _ring->head  = (_ring->head + _count) % _ring->capacity;
-    _ring->size -= _count;
-
-    return;
-}
-
-/*
-d_internal_ssl_ring_put
-  Copies _count bytes, at most the ring's free space, to its tail, wrapping as
-needed.
-*/
-static void
-d_internal_ssl_ring_put(
-    struct d_ssl_ring*   _ring,
-    const unsigned char* _data,
-    size_t               _count
-)
-{
-    size_t tail  = (_ring->head + _ring->size) % _ring->capacity;
-    size_t first = _ring->capacity - tail;
-
-    if (first > _count)
-    {
-        first = _count;
-    }
-
-    memcpy(_ring->data + tail, _data, first);
-    memcpy(_ring->data, _data + first, _count - first);
-
-    _ring->size += _count;
-
-    return;
-}
-
-/*
-d_internal_ssl_pipe_read
-  A pipe end's read callback: whatever its inbound ring holds, up to the
-capacity and the end's chunk limit. An empty ring is the end of the stream
-once its writer has closed, and "not yet" until then.
-*/
-static enum d_ssl_status
-d_internal_ssl_pipe_read(
-    void*   _context,
-    void*   _buffer,
-    size_t  _capacity,
-    size_t* _out_read
-)
-{
-    struct d_ssl_pipe_end* end   = (struct d_ssl_pipe_end*)_context;
-    size_t                 count = 0;
-
-    // parameter validation
-    if ( (end == NULL)      ||
-         (_buffer == NULL)  ||
-         (_capacity == 0)   ||
-         (_out_read == NULL) )
-    {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
-    }
-
-    *_out_read = 0;
-
-    if (end->inbound->size == 0)
-    {
-        return (end->inbound->closed) ? D_SSL_STATUS_CONNECTION_CLOSED
-                                      : D_SSL_STATUS_WOULD_BLOCK;
-    }
-
-    count = (_capacity < end->inbound->size) ? _capacity
-                                             : end->inbound->size;
-
-    if ( (end->chunk > 0) &&
-         (count > end->chunk) )
-    {
-        count = end->chunk;
-    }
-
-    d_internal_ssl_ring_take(end->inbound, (unsigned char*)_buffer, count);
-    *_out_read = count;
-
-    return D_SSL_STATUS_OK;
-}
-
-/*
-d_internal_ssl_pipe_write
-  A pipe end's write callback: as much as its outbound ring has room for, up
-to the end's chunk limit. A full ring is "not yet"; a closed one refuses.
-*/
-static enum d_ssl_status
-d_internal_ssl_pipe_write(
-    void*       _context,
-    const void* _data,
-    size_t      _size,
-    size_t*     _out_written
-)
-{
-    struct d_ssl_pipe_end* end   = (struct d_ssl_pipe_end*)_context;
-    size_t                 space = 0;
-    size_t                 count = 0;
-
-    // parameter validation
-    if ( (end == NULL)    ||
-         (_data == NULL)  ||
-         (_size == 0)     ||
-         (_out_written == NULL) )
-    {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
-    }
-
-    *_out_written = 0;
-
-    if (end->outbound->closed)
-    {
-        return D_SSL_STATUS_TRANSPORT_ERROR;
-    }
-
-    space = end->outbound->capacity - end->outbound->size;
-
-    if (space == 0)
-    {
-        return D_SSL_STATUS_WOULD_BLOCK;
-    }
-
-    count = (_size < space) ? _size : space;
-
-    if ( (end->chunk > 0) &&
-         (count > end->chunk) )
-    {
-        count = end->chunk;
-    }
-
-    d_internal_ssl_ring_put(end->outbound,
-                            (const unsigned char*)_data,
-                            count);
-    *_out_written = count;
-
-    return D_SSL_STATUS_OK;
-}
-
-/*
-d_ssl_pipe_init
-  Ring 0 carries A to B and ring 1 carries B to A; each end reads one and
-writes the other.
-*/
-enum d_ssl_status
-d_ssl_pipe_init(
-    struct d_ssl_pipe* _pipe,
-    void*              _buffer_a,
-    size_t             _capacity_a,
-    void*              _buffer_b,
-    size_t             _capacity_b
-)
-{
-    // parameter validation
-    if ( (_pipe == NULL)       ||
-         (_buffer_a == NULL)   ||
-         (_capacity_a == 0)    ||
-         (_buffer_b == NULL)   ||
-         (_capacity_b == 0) )
-    {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
-    }
-
-    memset(_pipe, 0, sizeof(*_pipe));
-
-    _pipe->rings[0].data     = (unsigned char*)_buffer_a;
-    _pipe->rings[0].capacity = _capacity_a;
-    _pipe->rings[1].data     = (unsigned char*)_buffer_b;
-    _pipe->rings[1].capacity = _capacity_b;
-
-    _pipe->ends[D_SSL_PIPE_A].inbound  = &_pipe->rings[1];
-    _pipe->ends[D_SSL_PIPE_A].outbound = &_pipe->rings[0];
-    _pipe->ends[D_SSL_PIPE_B].inbound  = &_pipe->rings[0];
-    _pipe->ends[D_SSL_PIPE_B].outbound = &_pipe->rings[1];
-
-    return D_SSL_STATUS_OK;
-}
-
-/*
-d_ssl_pipe_transport
-  The end's callbacks, with the end itself as their context.
-*/
-struct d_ssl_transport
-d_ssl_pipe_transport(
-    struct d_ssl_pipe*   _pipe,
-    enum d_ssl_pipe_side _side
-)
-{
-    struct d_ssl_transport transport = { NULL, NULL, NULL };
-
-    if ( (_pipe == NULL) ||
-         (!d_internal_ssl_side_ok(_side)) )
-    {
-        return transport;
-    }
-
-    transport.read    = d_internal_ssl_pipe_read;
-    transport.write   = d_internal_ssl_pipe_write;
-    transport.context = &_pipe->ends[_side];
-
-    return transport;
-}
-
-/*
-d_ssl_pipe_set_chunk
-  Zero removes the limit.
-*/
-void
-d_ssl_pipe_set_chunk(
-    struct d_ssl_pipe*   _pipe,
-    enum d_ssl_pipe_side _side,
-    size_t               _chunk
-)
-{
-    if ( (_pipe != NULL) &&
-         (d_internal_ssl_side_ok(_side)) )
-    {
-        _pipe->ends[_side].chunk = _chunk;
-    }
-
-    return;
-}
-
-/*
-d_ssl_pipe_close
-  Half-closes: the end's outbound ring is marked, and the ring itself tells its
-reader once drained.
-*/
-void
-d_ssl_pipe_close(
-    struct d_ssl_pipe*   _pipe,
-    enum d_ssl_pipe_side _side
-)
-{
-    if ( (_pipe != NULL) &&
-         (d_internal_ssl_side_ok(_side)) &&
-         (_pipe->ends[_side].outbound != NULL) )
-    {
-        _pipe->ends[_side].outbound->closed = true;
-    }
-
-    return;
-}
-
-/*
-d_ssl_pipe_pending
-  The fill level of the ring the end reads.
-*/
-size_t
-d_ssl_pipe_pending(
-    const struct d_ssl_pipe* _pipe,
-    enum d_ssl_pipe_side     _side
-)
-{
-    if ( (_pipe == NULL)                    ||
-         (!d_internal_ssl_side_ok(_side))   ||
-         (_pipe->ends[_side].inbound == NULL) )
-    {
-        return 0;
-    }
-
-    return _pipe->ends[_side].inbound->size;
-}
-
-/*
-d_ssl_transport_write_all
-  Loops over short writes. A transport reporting no progress, or more than it
-was given, is broken rather than slow, and looping on it would never end.
-*/
-enum d_ssl_status
-d_ssl_transport_write_all(
-    struct d_ssl_transport _transport,
-    const void*            _data,
-    size_t                 _size,
-    size_t*                _out_written
-)
-{
-    const unsigned char* data   = (const unsigned char*)_data;
-    size_t               done   = 0;
-    enum d_ssl_status    status = D_SSL_STATUS_OK;
-
-    // parameter validation
-    if ( (_transport.write == NULL) ||
-         ( (_data == NULL) &&
-           (_size > 0) ) )
-    {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
-    }
-
-    while (done < _size)
-    {
-        size_t written = 0;
-
-        status = _transport.write(_transport.context,
-                                  data + done,
-                                  _size - done,
-                                  &written);
-
-        if (status != D_SSL_STATUS_OK)
-        {
-            break;
-        }
-
-        if ( (written == 0) ||
-             (written > _size - done) )
-        {
-            status = D_SSL_STATUS_TRANSPORT_ERROR;
-
-            break;
-        }
-
-        done += written;
-    }
-
-    if (_out_written != NULL)
-    {
-        *_out_written = done;
-    }
-
-    return status;
-}
-
-
-//==============================================================================
-// 14. CONTEXTS
+// 13.  CONTEXTS
 //==============================================================================
 
 /*
 d_internal_ssl_engine_status
   Holds an engine to its contract. OK, the known formal statuses,
-OUT_OF_MEMORY, and BACKEND_ERROR pass as they are; so do WANT_READ and
-CONNECTION_CLOSED where the operation may return them. Anything else --
-WOULD_BLOCK and TRANSPORT_ERROR above all, which only a transport may report
--- becomes BACKEND_ERROR, so a misbehaving engine can neither make the kernel
+OUT_OF_MEMORY, and BACKEND pass as they are; so do WANT_READ and
+CLOSED where the operation may return them. Anything else --
+WOULD_BLOCK and TRANSPORT above all, which only a transport may report
+-- becomes BACKEND, so a misbehaving engine can neither make the kernel
 retry forever nor pass itself off as the network.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_engine_status(
-    enum d_ssl_status _status,
-    bool              _may_want,
-    bool              _may_close
+    enum d_ssl_error _status,
+    bool             _may_want,
+    bool             _may_close
 )
 {
-    if ( (_status == D_SSL_STATUS_OK)                         ||
-         ( (d_ssl_status_is_formal(_status)) &&
-           (d_ssl_status_name(_status) != NULL) )             ||
-         (_status == D_SSL_STATUS_OUT_OF_MEMORY)              ||
-         (_status == D_SSL_STATUS_BACKEND_ERROR)              ||
+    if ( (_status == D_SSL_OK)                               ||
+         ( (d_ssl_error_is_formal(_status)) &&
+           (d_ssl_error_name(_status) != NULL) )             ||
+         (_status == D_SSL_ERROR_OUT_OF_MEMORY)              ||
+         (_status == D_SSL_ERROR_BACKEND)                    ||
          ( (_may_want) &&
-           (_status == D_SSL_STATUS_WANT_READ) )              ||
+           (_status == D_SSL_ERROR_WANT_READ) )              ||
          ( (_may_close) &&
-           (_status == D_SSL_STATUS_CONNECTION_CLOSED) ) )
+           (_status == D_SSL_ERROR_CLOSED) ) )
     {
         return _status;
     }
 
-    return D_SSL_STATUS_BACKEND_ERROR;
+    return D_SSL_ERROR_BACKEND;
 }
 
 /*
@@ -3365,7 +2842,7 @@ is a ceiling, so it drops to the engine's newest; a minimum is a requirement,
 so it does not. Everything else the configuration needs and the engine lacks
 is refused here, before a handshake could quietly do less than was asked.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_fit_engine(
     const struct d_ssl_config* _config,
     const struct d_ssl_engine* _engine,
@@ -3388,7 +2865,7 @@ d_internal_ssl_fit_engine(
            ((int)_plan->min_version < (int)D_SSL_VERSION_TLS1_2) ) ||
          ((int)_plan->min_version > (int)_plan->max_version) )
     {
-        return D_SSL_STATUS_UNSUPPORTED;
+        return D_SSL_ERROR_UNSUPPORTED;
     }
 
     // trust anchors: the platform store alone needs an engine that can read it
@@ -3406,7 +2883,7 @@ d_internal_ssl_fit_engine(
          ( (memory_pem) &&
            ((features & D_SSL_ENGINE_MEMORY_PEM) == 0) ) )
     {
-        return D_SSL_STATUS_UNSUPPORTED;
+        return D_SSL_ERROR_UNSUPPORTED;
     }
 
     // client certificates, presented or requested
@@ -3422,7 +2899,7 @@ d_internal_ssl_fit_engine(
          ( (_config->keylog != NULL) &&
            ((features & D_SSL_ENGINE_KEYLOG) == 0) ) )
     {
-        return D_SSL_STATUS_UNSUPPORTED;
+        return D_SSL_ERROR_UNSUPPORTED;
     }
 
     // names and pins are the kernel's to check, with the engine's help
@@ -3432,10 +2909,10 @@ d_internal_ssl_fit_engine(
          ( (_plan->check_pins) &&
            (_engine->peer_certificate == NULL) ) )
     {
-        return D_SSL_STATUS_UNSUPPORTED;
+        return D_SSL_ERROR_UNSUPPORTED;
     }
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -3443,7 +2920,7 @@ d_ssl_context_init
   Plan, fit, create. The context is filled only once the engine's context
 exists, so every failure leaves it empty.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_context_init(
     struct d_ssl_context*      _context,
     const struct d_ssl_engine* _engine,
@@ -3454,39 +2931,46 @@ d_ssl_context_init(
                                  D_SSL_VERSION_NONE, false, false, false,
                                  false, false, false, false };
     void*             handle = NULL;
-    enum d_ssl_status status = D_SSL_STATUS_OK;
+    enum d_ssl_error  status = D_SSL_OK;
 
     // parameter validation
     if (_context == NULL)
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
-    memset(_context, 0, sizeof(*_context));
+    memset(_context,
+           0,
+           sizeof(*_context));
 
     if ( (_engine == NULL) ||
          (_config == NULL) ||
          (!d_internal_ssl_engine_complete(_engine)) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
-    status = d_ssl_config_plan(_config, &plan);
+    status = d_ssl_config_plan(_config,
+                               &plan);
 
-    if (status == D_SSL_STATUS_OK)
+    if (status == D_SSL_OK)
     {
-        status = d_internal_ssl_fit_engine(_config, _engine, &plan);
+        status = d_internal_ssl_fit_engine(_config,
+                                           _engine,
+                                           &plan);
     }
 
-    if (status == D_SSL_STATUS_OK)
+    if (status == D_SSL_OK)
     {
         status = d_internal_ssl_engine_status(
-                     _engine->context_create(_config, &plan, &handle),
+                     _engine->context_create(_config,
+                                             &plan,
+                                             &handle),
                      false,
                      false);
     }
 
-    if (status != D_SSL_STATUS_OK)
+    if (status != D_SSL_OK)
     {
         return status;
     }
@@ -3495,9 +2979,11 @@ d_ssl_context_init(
     _context->handle    = handle;
     _context->plan      = plan;
     _context->pin_count = _config->pin_count;
-    memcpy(_context->pins, _config->pins, sizeof(_context->pins));
+    memcpy(_context->pins,
+           _config->pins,
+           sizeof(_context->pins));
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -3520,14 +3006,19 @@ d_ssl_context_destroy(
         _context->engine->context_destroy(_context->handle);
     }
 
-    memset(_context, 0, sizeof(*_context));
+    memset(_context,
+           0,
+           sizeof(*_context));
 
     return;
 }
 
 //==============================================================================
-// 15. SESSIONS
+// 14.  SESSIONS
 //==============================================================================
+
+// the table of a session's connection view, which section 15 defines
+static const struct d_net_connection_vtable* d_internal_ssl_view_table(void);
 
 /*
 d_internal_ssl_session_ok
@@ -3545,6 +3036,26 @@ d_internal_ssl_session_ok(
 }
 
 /*
+d_internal_ssl_session_clear
+  Empties a session record, stage included, and points its base back at the
+view's table, so a session cleared by a failed init or by destroy is still
+a connection -- a closed one.
+*/
+static void
+d_internal_ssl_session_clear(
+    struct d_ssl_session* _session
+)
+{
+    memset(_session,
+           0,
+           sizeof(*_session));
+    (void)d_net_connection_init(&_session->base,
+                                d_internal_ssl_view_table());
+
+    return;
+}
+
+/*
 d_internal_ssl_info_reset
   What is known before anything is negotiated: no version, no alerts, and a
 peer not yet authenticated.
@@ -3554,7 +3065,9 @@ d_internal_ssl_info_reset(
     struct d_ssl_info* _info
 )
 {
-    memset(_info, 0, sizeof(*_info));
+    memset(_info,
+           0,
+           sizeof(*_info));
 
     _info->version        = D_SSL_VERSION_NONE;
     _info->verify         = D_SSL_VERIFY_FLAG_NOT_PERFORMED;
@@ -3579,7 +3092,8 @@ d_internal_ssl_capture(
     struct d_ssl_info fresh = _session->info;
 
     d_internal_ssl_info_reset(&fresh);
-    _session->context->engine->describe(_session->handle, &fresh);
+    _session->context->engine->describe(_session->handle,
+                                        &fresh);
 
     fresh.cipher[D_SSL_CIPHER_NAME_MAX - 1] = '\0';
 
@@ -3608,10 +3122,10 @@ d_internal_ssl_capture(
 d_internal_ssl_fail
   Ends a session. The failure is recorded, and every later call repeats it.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_fail(
     struct d_ssl_session* _session,
-    enum d_ssl_status     _status
+    enum d_ssl_error      _status
 )
 {
     _session->state   = D_SSL_STATE_FAILED;
@@ -3622,22 +3136,40 @@ d_internal_ssl_fail(
 }
 
 /*
+d_internal_ssl_lost
+  What a transport's failed write means to a session: a peer that has gone
+-- the stream closed, reset, or aborted -- no longer reads, which is CLOSED;
+anything else is a broken transport.
+*/
+static enum d_ssl_error
+d_internal_ssl_lost(
+    enum d_net_error _error
+)
+{
+    return ( (_error == D_NET_ERROR_CLOSED)             ||
+             (_error == D_NET_ERROR_CONNECTION_RESET)   ||
+             (_error == D_NET_ERROR_CONNECTION_ABORTED) )
+           ? D_SSL_ERROR_CLOSED
+           : D_SSL_ERROR_TRANSPORT;
+}
+
+/*
 d_internal_ssl_flush
   Moves ciphertext from the engine to the transport through the stage, until
 the engine has nothing left or the transport stops taking bytes. The stage is
 refilled only once empty, so bytes leave in the order the engine produced
-them however the transport splits its writes. Returns the transport's
-WOULD_BLOCK (noting that the session waits to write) or CONNECTION_CLOSED
-as they are, for the caller to judge, and any other trouble as
-TRANSPORT_ERROR or BACKEND_ERROR.
+them however the transport splits its writes; what a write took counts
+before what it reported. Returns the transport's WOULD_BLOCK (noting that
+the session waits to write) or a departed peer's CLOSED, for the caller to
+judge, and any other trouble as TRANSPORT or BACKEND.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_flush(
     struct d_ssl_session* _session
 )
 {
     const struct d_ssl_engine* engine = _session->context->engine;
-    enum d_ssl_status          status = D_SSL_STATUS_OK;
+    enum d_ssl_error           status = D_SSL_OK;
 
     for (;;)
     {
@@ -3655,15 +3187,15 @@ d_internal_ssl_flush(
                                    sizeof(_session->stage),
                                    &moved);
 
-            if ( (status != D_SSL_STATUS_OK) ||
+            if ( (status != D_SSL_OK) ||
                  (moved > sizeof(_session->stage)) )
             {
-                return D_SSL_STATUS_BACKEND_ERROR;
+                return D_SSL_ERROR_BACKEND;
             }
 
             if (moved == 0)
             {
-                return D_SSL_STATUS_OK;
+                return D_SSL_OK;
             }
 
             _session->stage_end = moved;
@@ -3671,34 +3203,33 @@ d_internal_ssl_flush(
             moved               = 0;
         }
 
-        status = _session->transport.write(
-                     _session->transport.context,
-                     _session->stage + _session->stage_start,
-                     pending,
-                     &moved);
+        const struct d_net_io_result result =
+            d_net_connection_write(_session->transport,
+                                   _session->stage + _session->stage_start,
+                                   pending);
 
-        if (status == D_SSL_STATUS_WOULD_BLOCK)
+        _session->transport_error  = result.error;
+        _session->stage_start     += result.count;
+        _session->bytes_out       += result.count;
+
+        // the transport will take more later
+        if (result.error == D_NET_ERROR_WOULD_BLOCK)
         {
             _session->want = D_SSL_WANT_WRITE;
 
-            return status;
+            return D_SSL_ERROR_WOULD_BLOCK;
         }
 
-        if (status == D_SSL_STATUS_CONNECTION_CLOSED)
+        // a failed write, or one that took nothing and said nothing
+        if (result.error != D_NET_OK)
         {
-            return status;
+            return d_internal_ssl_lost(result.error);
         }
 
-        // any other answer, or a count outside the contract, is breakage
-        if ( (status != D_SSL_STATUS_OK) ||
-             (moved == 0)                ||
-             (moved > pending) )
+        if (result.count == 0)
         {
-            return D_SSL_STATUS_TRANSPORT_ERROR;
+            return D_SSL_ERROR_TRANSPORT;
         }
-
-        _session->stage_start += moved;
-        _session->bytes_out   += moved;
     }
 }
 
@@ -3708,7 +3239,7 @@ d_internal_ssl_sniff_input
 them. Once they are judged TLS the session stops looking; NOT_TLS ends it
 before the engine has parsed a byte of whatever the peer is speaking.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_sniff_input(
     struct d_ssl_session* _session,
     const unsigned char*  _data,
@@ -3722,7 +3253,9 @@ d_internal_ssl_sniff_input(
         take = _size;
     }
 
-    memcpy(_session->sniff + _session->sniff_length, _data, take);
+    memcpy(_session->sniff + _session->sniff_length,
+           _data,
+           take);
     _session->sniff_length += take;
 
     switch (d_ssl_sniff(d_internal_ssl_bytes(_session->sniff,
@@ -3730,7 +3263,7 @@ d_internal_ssl_sniff_input(
                         NULL))
     {
         case D_SSL_SNIFF_NOT_TLS:
-            return D_SSL_STATUS_NOT_TLS;
+            return D_SSL_ERROR_NOT_TLS;
 
         case D_SSL_SNIFF_TLS:
         case D_SSL_SNIFF_SSL2:
@@ -3741,57 +3274,58 @@ d_internal_ssl_sniff_input(
             break;
     }
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
 d_internal_ssl_pull
   One transport read, sniffed if the session is still judging its peer, then
-fed to the engine whole. Returns the transport's WOULD_BLOCK (noting that the
-session waits to read) or CONNECTION_CLOSED as they are, for the caller to
-judge.
+fed to the engine whole. Bytes that arrived are taken whatever the read
+reported with them: a transport that failed after them says so again on the
+next read. With no bytes, returns the transport's WOULD_BLOCK (noting that
+the session waits to read), the end of its stream as CLOSED, for the caller
+to judge, or a failure as TRANSPORT.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_pull(
     struct d_ssl_session* _session
 )
 {
-    unsigned char     chunk[D_SSL_IO_CAPACITY] = { 0 };
-    size_t            count                    = 0;
-    enum d_ssl_status status                   = D_SSL_STATUS_OK;
+    unsigned char    chunk[D_SSL_IO_CAPACITY] = { 0 };
+    enum d_ssl_error status                   = D_SSL_OK;
 
-    status = _session->transport.read(_session->transport.context,
-                                      chunk,
-                                      sizeof(chunk),
-                                      &count);
+    const struct d_net_io_result result =
+        d_net_connection_read(_session->transport,
+                              chunk,
+                              sizeof(chunk));
+    const size_t                 count  = result.count;
 
-    if (status == D_SSL_STATUS_WOULD_BLOCK)
+    _session->transport_error = result.error;
+
+    // nothing arrived: a stall, the end of the stream, or a failure
+    if (count == 0)
     {
-        _session->want = D_SSL_WANT_READ;
+        // the transport will have more later
+        if (result.error == D_NET_ERROR_WOULD_BLOCK)
+        {
+            _session->want = D_SSL_WANT_READ;
 
-        return status;
-    }
+            return D_SSL_ERROR_WOULD_BLOCK;
+        }
 
-    if (status == D_SSL_STATUS_CONNECTION_CLOSED)
-    {
-        return status;
-    }
-
-    // any other answer, or a count outside the contract, is breakage
-    if ( (status != D_SSL_STATUS_OK) ||
-         (count == 0)                ||
-         (count > sizeof(chunk)) )
-    {
-        return D_SSL_STATUS_TRANSPORT_ERROR;
+        return (result.error == D_NET_OK) ? D_SSL_ERROR_CLOSED
+                                          : D_SSL_ERROR_TRANSPORT;
     }
 
     _session->bytes_in += count;
 
     if (!_session->sniffed)
     {
-        status = d_internal_ssl_sniff_input(_session, chunk, count);
+        status = d_internal_ssl_sniff_input(_session,
+                                            chunk,
+                                            count);
 
-        if (status != D_SSL_STATUS_OK)
+        if (status != D_SSL_OK)
         {
             return status;
         }
@@ -3811,14 +3345,14 @@ d_internal_ssl_await
 -- the peer may be waiting on exactly that -- and only then is the transport
 read. OK means the step may be retried.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_await(
     struct d_ssl_session* _session
 )
 {
-    enum d_ssl_status status = d_internal_ssl_flush(_session);
+    enum d_ssl_error status = d_internal_ssl_flush(_session);
 
-    if (status != D_SSL_STATUS_OK)
+    if (status != D_SSL_OK)
     {
         return status;
     }
@@ -3830,27 +3364,29 @@ d_internal_ssl_await(
 d_internal_ssl_io_failure
   Judges what flush, pull, or await returned. WOULD_BLOCK is not a failure:
 the caller retries later. A transport that ends, in either direction, before
-the TLS stream has is UNEXPECTED_EOF -- never CONNECTION_CLOSED, which is
+the TLS stream has is TRUNCATED -- never CLOSED, which is
 reserved for close_notify, so truncation cannot pass for a clean end.
 Everything else fails the session as it is.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_io_failure(
     struct d_ssl_session* _session,
-    enum d_ssl_status     _status
+    enum d_ssl_error      _status
 )
 {
-    if (_status == D_SSL_STATUS_WOULD_BLOCK)
+    if (_status == D_SSL_ERROR_WOULD_BLOCK)
     {
         return _status;
     }
 
-    if (_status == D_SSL_STATUS_CONNECTION_CLOSED)
+    if (_status == D_SSL_ERROR_CLOSED)
     {
-        return d_internal_ssl_fail(_session, D_SSL_STATUS_UNEXPECTED_EOF);
+        return d_internal_ssl_fail(_session,
+                                   D_SSL_ERROR_TRUNCATED);
     }
 
-    return d_internal_ssl_fail(_session, _status);
+    return d_internal_ssl_fail(_session,
+                               _status);
 }
 
 /*
@@ -3858,10 +3394,10 @@ d_internal_ssl_fail_engine
   An engine step failed. Its info is captured for the caller, the alert it
 queued is sent if the transport takes it at once, and the session fails.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_fail_engine(
     struct d_ssl_session* _session,
-    enum d_ssl_status     _status
+    enum d_ssl_error      _status
 )
 {
     d_internal_ssl_capture(_session);
@@ -3869,7 +3405,8 @@ d_internal_ssl_fail_engine(
     // best effort: a blocked or broken transport just loses the alert
     (void)d_internal_ssl_flush(_session);
 
-    return d_internal_ssl_fail(_session, _status);
+    return d_internal_ssl_fail(_session,
+                               _status);
 }
 
 /*
@@ -3890,7 +3427,9 @@ d_internal_ssl_names_match(
 
     for (size_t i = 0; i < D_INTERNAL_SSL_PEER_NAMES_MAX; ++i)
     {
-        if (!engine->peer_name(_session->handle, i, &name))
+        if (!engine->peer_name(_session->handle,
+                               i,
+                               &name))
         {
             break;
         }
@@ -3930,93 +3469,67 @@ d_internal_ssl_pins_match(
 }
 
 /*
-d_internal_ssl_check_peer
-  The kernel's checks on a finished engine handshake, run while its last
-flight is still inside the engine. The engine enforced the plan within the
-handshake; these confirm the outcome, and add the checks the kernel makes for
-every engine alike. The verification result is settled here, and a failure
-is VERIFY_FAILED with the flags saying why.
+d_internal_ssl_peer_present
+  Whether the peer presented a certificate. An engine that can hand the
+certificate over has it fingerprinted here, whichever engine it is; one that
+cannot has said so in its verification flags.
 */
-static enum d_ssl_status
-d_internal_ssl_check_peer(
+static bool
+d_internal_ssl_peer_present(
+    struct d_ssl_session* _session
+)
+{
+    const struct d_ssl_engine* engine  = _session->context->engine;
+    struct d_ssl_info*         info    = &_session->info;
+    struct d_pack_bytes        der     = { NULL, 0 };
+    bool                       present = false;
+
+    if (engine->peer_certificate == NULL)
+    {
+        return ((info->verify & D_SSL_VERIFY_FLAG_NO_CERTIFICATE) == 0);
+    }
+
+    present = ( (engine->peer_certificate(_session->handle,
+                                          &der)) &&
+                (der.data != NULL)               &&
+                (der.size > 0) );
+
+    if ( (present) &&
+         (d_ssl_fingerprint_compute(der,
+                                    info->fingerprint) ==
+          D_SSL_OK) )
+    {
+        info->has_peer_certificate = true;
+    }
+
+    return present;
+}
+
+/*
+d_internal_ssl_peer_verdict
+  The verification flags for a peer that presented a certificate: the
+engine's chain verdict, unless pins alone establish trust; a pin mismatch;
+and a name mismatch, checked here for an engine that reports the names.
+*/
+static uint32_t
+d_internal_ssl_peer_verdict(
     struct d_ssl_session* _session
 )
 {
     const struct d_ssl_context* context = _session->context;
     const struct d_ssl_plan*    plan    = &context->plan;
     const struct d_ssl_engine*  engine  = context->engine;
-    struct d_ssl_info*          info    = &_session->info;
-    struct d_pack_bytes         der     = { NULL, 0 };
-    bool                        present = false;
     uint32_t                    verify  = D_SSL_VERIFY_FLAG_NONE;
-
-    d_internal_ssl_capture(_session);
-
-    // the version window, which a correct engine never breaches
-    if ( (!d_ssl_version_is_known(info->version))              ||
-         ((int)info->version < (int)plan->min_version)         ||
-         ((int)info->version > (int)plan->max_version) )
-    {
-        return D_SSL_STATUS_HANDSHAKE_FAILED;
-    }
-
-    if ( (plan->require_alpn) &&
-         (info->alpn_length == 0) )
-    {
-        return D_SSL_STATUS_HANDSHAKE_FAILED;
-    }
-
-    // the peer certificate, fingerprinted here whichever engine produced it
-    if (engine->peer_certificate != NULL)
-    {
-        present = ( (engine->peer_certificate(_session->handle, &der)) &&
-                    (der.data != NULL)                                 &&
-                    (der.size > 0) );
-
-        if ( (present) &&
-             (d_ssl_fingerprint_compute(der, info->fingerprint) ==
-              D_SSL_STATUS_OK) )
-        {
-            info->has_peer_certificate = true;
-        }
-    }
-    else
-    {
-        present = ((info->verify & D_SSL_VERIFY_FLAG_NO_CERTIFICATE) == 0);
-    }
-
-    // a peer no one asked to authenticate is recorded as such
-    if ( (!plan->verify_chain) &&
-         (!plan->check_pins) )
-    {
-        info->verify = D_SSL_VERIFY_FLAG_NOT_PERFORMED;
-
-        return D_SSL_STATUS_OK;
-    }
-
-    // without a certificate: fatal if required, else an unauthenticated peer
-    if (!present)
-    {
-        info->verify = D_SSL_VERIFY_FLAG_NO_CERTIFICATE;
-
-        if (plan->require_certificate)
-        {
-            return D_SSL_STATUS_VERIFY_FAILED;
-        }
-
-        info->verify |= D_SSL_VERIFY_FLAG_NOT_PERFORMED;
-
-        return D_SSL_STATUS_OK;
-    }
 
     // the engine's chain verdict, unless pins alone establish trust
     if (plan->verify_chain)
     {
-        verify |= info->verify;
+        verify |= _session->info.verify;
     }
 
     if ( (plan->check_pins) &&
-         (!d_internal_ssl_pins_match(context, info->fingerprint)) )
+         (!d_internal_ssl_pins_match(context,
+                                     _session->info.fingerprint)) )
     {
         verify |= D_SSL_VERIFY_FLAG_PIN_MISMATCH;
     }
@@ -4030,39 +3543,102 @@ d_internal_ssl_check_peer(
         verify |= D_SSL_VERIFY_FLAG_HOSTNAME_MISMATCH;
     }
 
-    info->verify = verify;
-
-    return (verify == D_SSL_VERIFY_FLAG_NONE) ? D_SSL_STATUS_OK
-                                              : D_SSL_STATUS_VERIFY_FAILED;
+    return verify;
 }
 
 /*
-d_internal_ssl_handshake
-  Drives the engine's handshake. Each round flushes what the engine queued,
-steps it, and, when it waits on the peer, flushes again and reads. When the
-engine reports completion the kernel's checks run while the last flight is
-still inside the engine, so a peer that fails them never receives it. The
-session is ESTABLISHED only once that flight is on the wire; engine_done and
-checked let a WOULD_BLOCK anywhere resume at the right step.
+d_internal_ssl_check_peer
+  The kernel's checks on a finished engine handshake, run while its last
+flight is still inside the engine. The engine enforced the plan within the
+handshake; these confirm the outcome, and add the checks the kernel makes for
+every engine alike. The verification result is settled here, and a failure
+is VERIFY with the flags saying why.
 */
-static enum d_ssl_status
-d_internal_ssl_handshake(
+static enum d_ssl_error
+d_internal_ssl_check_peer(
+    struct d_ssl_session* _session
+)
+{
+    const struct d_ssl_plan* plan    = &_session->context->plan;
+    struct d_ssl_info*       info    = &_session->info;
+    bool                     present = false;
+
+    d_internal_ssl_capture(_session);
+
+    // the version window, which a correct engine never breaches
+    if ( (!d_ssl_version_is_known(info->version))              ||
+         ((int)info->version < (int)plan->min_version)         ||
+         ((int)info->version > (int)plan->max_version) )
+    {
+        return D_SSL_ERROR_HANDSHAKE;
+    }
+
+    if ( (plan->require_alpn) &&
+         (info->alpn_length == 0) )
+    {
+        return D_SSL_ERROR_HANDSHAKE;
+    }
+
+    // the peer certificate, fingerprinted here whichever engine produced it
+    present = d_internal_ssl_peer_present(_session);
+
+    // a peer no one asked to authenticate is recorded as such
+    if ( (!plan->verify_chain) &&
+         (!plan->check_pins) )
+    {
+        info->verify = D_SSL_VERIFY_FLAG_NOT_PERFORMED;
+
+        return D_SSL_OK;
+    }
+
+    // without a certificate: fatal if required, else an unauthenticated peer
+    if (!present)
+    {
+        info->verify = D_SSL_VERIFY_FLAG_NO_CERTIFICATE;
+
+        if (plan->require_certificate)
+        {
+            return D_SSL_ERROR_VERIFY;
+        }
+
+        info->verify |= D_SSL_VERIFY_FLAG_NOT_PERFORMED;
+
+        return D_SSL_OK;
+    }
+
+    const uint32_t verify = d_internal_ssl_peer_verdict(_session);
+
+    info->verify = verify;
+
+    return (verify == D_SSL_VERIFY_FLAG_NONE) ? D_SSL_OK
+                                              : D_SSL_ERROR_VERIFY;
+}
+
+/*
+d_internal_ssl_handshake_rounds
+  The engine's part of a handshake. Each round flushes what the engine queued,
+steps it, and, when it waits on the peer, flushes again and reads. Returns OK
+once the engine reports completion, which engine_done records; otherwise the
+transport's WOULD_BLOCK, for the caller to resume, or the failure that ended
+the session.
+*/
+static enum d_ssl_error
+d_internal_ssl_handshake_rounds(
     struct d_ssl_session* _session
 )
 {
     const struct d_ssl_engine* engine = _session->context->engine;
-    enum d_ssl_status          status = D_SSL_STATUS_OK;
-
-    _session->state = D_SSL_STATE_HANDSHAKING;
+    enum d_ssl_error           status = D_SSL_OK;
 
     while (!_session->engine_done)
     {
         // what the engine queued goes out before it is asked for more
         status = d_internal_ssl_flush(_session);
 
-        if (status != D_SSL_STATUS_OK)
+        if (status != D_SSL_OK)
         {
-            return d_internal_ssl_io_failure(_session, status);
+            return d_internal_ssl_io_failure(_session,
+                                             status);
         }
 
         status = d_internal_ssl_engine_status(
@@ -4071,29 +3647,59 @@ d_internal_ssl_handshake(
                      true);
 
         // a close_notify before the handshake finished is a refusal
-        if (status == D_SSL_STATUS_CONNECTION_CLOSED)
+        if (status == D_SSL_ERROR_CLOSED)
         {
-            status = D_SSL_STATUS_HANDSHAKE_FAILED;
+            status = D_SSL_ERROR_HANDSHAKE;
         }
 
-        if (status == D_SSL_STATUS_OK)
+        if (status == D_SSL_OK)
         {
             _session->engine_done = true;
 
             break;
         }
 
-        if (status != D_SSL_STATUS_WANT_READ)
+        if (status != D_SSL_ERROR_WANT_READ)
         {
-            return d_internal_ssl_fail_engine(_session, status);
+            return d_internal_ssl_fail_engine(_session,
+                                              status);
         }
 
         status = d_internal_ssl_await(_session);
 
-        if (status != D_SSL_STATUS_OK)
+        if (status != D_SSL_OK)
         {
-            return d_internal_ssl_io_failure(_session, status);
+            return d_internal_ssl_io_failure(_session,
+                                             status);
         }
+    }
+
+    return D_SSL_OK;
+}
+
+/*
+d_internal_ssl_handshake
+  Drives a handshake: the engine's rounds, then the kernel's checks, which run
+while the engine's last flight is still inside it, so a peer that fails them
+never receives it. The session is ESTABLISHED only once that flight is on the
+wire; engine_done and checked let a WOULD_BLOCK anywhere resume at the right
+step.
+*/
+static enum d_ssl_error
+d_internal_ssl_handshake(
+    struct d_ssl_session* _session
+)
+{
+    enum d_ssl_error status = D_SSL_OK;
+
+    _session->state = D_SSL_STATE_HANDSHAKING;
+
+    // the engine's rounds, until it reports completion
+    status = d_internal_ssl_handshake_rounds(_session);
+
+    if (status != D_SSL_OK)
+    {
+        return status;
     }
 
     // the checks see the finished handshake before its last flight leaves
@@ -4101,9 +3707,10 @@ d_internal_ssl_handshake(
     {
         status = d_internal_ssl_check_peer(_session);
 
-        if (status != D_SSL_STATUS_OK)
+        if (status != D_SSL_OK)
         {
-            return d_internal_ssl_fail(_session, status);
+            return d_internal_ssl_fail(_session,
+                                       status);
         }
 
         _session->checked = true;
@@ -4111,15 +3718,16 @@ d_internal_ssl_handshake(
 
     status = d_internal_ssl_flush(_session);
 
-    if (status != D_SSL_STATUS_OK)
+    if (status != D_SSL_OK)
     {
-        return d_internal_ssl_io_failure(_session, status);
+        return d_internal_ssl_io_failure(_session,
+                                         status);
     }
 
     _session->state = D_SSL_STATE_ESTABLISHED;
     _session->want  = D_SSL_WANT_NOTHING;
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -4128,7 +3736,7 @@ d_internal_ssl_read
 the engine absorbed without yielding data -- session tickets, key updates --
 so the loop runs until data, the peer's close_notify, or a failure.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_read(
     struct d_ssl_session* _session,
     void*                 _buffer,
@@ -4137,7 +3745,7 @@ d_internal_ssl_read(
 )
 {
     const struct d_ssl_engine* engine = _session->context->engine;
-    enum d_ssl_status          status = D_SSL_STATUS_OK;
+    enum d_ssl_error           status = D_SSL_OK;
 
     for (;;)
     {
@@ -4151,13 +3759,13 @@ d_internal_ssl_read(
                      true,
                      true);
 
-        if (status == D_SSL_STATUS_OK)
+        if (status == D_SSL_OK)
         {
             if ( (count == 0) ||
                  (count > _capacity) )
             {
                 return d_internal_ssl_fail(_session,
-                                           D_SSL_STATUS_BACKEND_ERROR);
+                                           D_SSL_ERROR_BACKEND);
             }
 
             *_out_read = count;
@@ -4165,14 +3773,14 @@ d_internal_ssl_read(
             // replies the read provoked go out now if the transport allows;
             // a failure here resurfaces on the next call, not this one
             status         = d_internal_ssl_flush(_session);
-            _session->want = (status == D_SSL_STATUS_WOULD_BLOCK)
+            _session->want = (status == D_SSL_ERROR_WOULD_BLOCK)
                                  ? D_SSL_WANT_WRITE
                                  : D_SSL_WANT_NOTHING;
 
-            return D_SSL_STATUS_OK;
+            return D_SSL_OK;
         }
 
-        if (status == D_SSL_STATUS_CONNECTION_CLOSED)
+        if (status == D_SSL_ERROR_CLOSED)
         {
             d_internal_ssl_capture(_session);
 
@@ -4187,16 +3795,18 @@ d_internal_ssl_read(
             return status;
         }
 
-        if (status != D_SSL_STATUS_WANT_READ)
+        if (status != D_SSL_ERROR_WANT_READ)
         {
-            return d_internal_ssl_fail_engine(_session, status);
+            return d_internal_ssl_fail_engine(_session,
+                                              status);
         }
 
         status = d_internal_ssl_await(_session);
 
-        if (status != D_SSL_STATUS_OK)
+        if (status != D_SSL_OK)
         {
-            return d_internal_ssl_io_failure(_session, status);
+            return d_internal_ssl_io_failure(_session,
+                                             status);
         }
     }
 }
@@ -4207,7 +3817,7 @@ d_internal_ssl_write
 engine has taken data it is committed; a transport that then blocks delays
 its ciphertext but does not undo it.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_write(
     struct d_ssl_session* _session,
     const void*           _data,
@@ -4216,98 +3826,79 @@ d_internal_ssl_write(
 )
 {
     const struct d_ssl_engine* engine = _session->context->engine;
-    enum d_ssl_status          status = D_SSL_STATUS_OK;
+    enum d_ssl_error           status = D_SSL_OK;
 
     for (;;)
     {
         size_t taken = 0;
 
         status = d_internal_ssl_engine_status(
-                     engine->write(_session->handle, _data, _size, &taken),
+                     engine->write(_session->handle,
+                                   _data,
+                                   _size,
+                                   &taken),
                      true,
                      false);
 
-        if (status == D_SSL_STATUS_OK)
+        if (status == D_SSL_OK)
         {
             if ( (taken == 0) ||
                  (taken > _size) )
             {
                 return d_internal_ssl_fail(_session,
-                                           D_SSL_STATUS_BACKEND_ERROR);
+                                           D_SSL_ERROR_BACKEND);
             }
 
             *_out_written = taken;
             status        = d_internal_ssl_flush(_session);
 
             // committed data waits in the session; wants() says WRITE
-            if (status == D_SSL_STATUS_WOULD_BLOCK)
+            if (status == D_SSL_ERROR_WOULD_BLOCK)
             {
-                return D_SSL_STATUS_OK;
+                return D_SSL_OK;
             }
 
-            if (status != D_SSL_STATUS_OK)
+            if (status != D_SSL_OK)
             {
-                return d_internal_ssl_io_failure(_session, status);
+                return d_internal_ssl_io_failure(_session,
+                                                 status);
             }
 
             _session->want = D_SSL_WANT_NOTHING;
 
-            return D_SSL_STATUS_OK;
+            return D_SSL_OK;
         }
 
-        if (status != D_SSL_STATUS_WANT_READ)
+        if (status != D_SSL_ERROR_WANT_READ)
         {
-            return d_internal_ssl_fail_engine(_session, status);
+            return d_internal_ssl_fail_engine(_session,
+                                              status);
         }
 
         status = d_internal_ssl_await(_session);
 
-        if (status != D_SSL_STATUS_OK)
+        if (status != D_SSL_OK)
         {
-            return d_internal_ssl_io_failure(_session, status);
+            return d_internal_ssl_io_failure(_session,
+                                             status);
         }
     }
 }
 
 /*
-d_ssl_session_init
-  The record is cleared first, so every early return leaves it empty. The host
-is validated and copied without its trailing dot; the engine receives it as
-the reference identity only when the plan checks names, and as SNI only when
-it is a name rather than an address.
+d_internal_ssl_session_host
+  Validates the host for a session and copies it in without its trailing dot.
+A server names no host, and a client that checks names must name one; a host
+is an address literal or a valid name.
 */
-enum d_ssl_status
-d_ssl_session_init(
+static enum d_ssl_error
+d_internal_ssl_session_host(
     struct d_ssl_session*       _session,
     const struct d_ssl_context* _context,
-    struct d_ssl_transport      _transport,
     struct d_pack_text          _host
 )
 {
-    struct d_pack_text host   = { NULL, 0 };
-    const char*        name   = NULL;
-    const char*        sni    = NULL;
-    void*              handle = NULL;
-    enum d_ssl_status  status = D_SSL_STATUS_OK;
-
-    // parameter validation
-    if (_session == NULL)
-    {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
-    }
-
-    memset(_session, 0, sizeof(*_session));
-
-    if ( (_context == NULL)                 ||
-         (_context->engine == NULL)         ||
-         (_transport.read == NULL)          ||
-         (_transport.write == NULL)         ||
-         (!d_internal_ssl_text_ok(_host)) )
-    {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
-    }
-
-    host = d_internal_ssl_strip_dot(_host);
+    const struct d_pack_text host = d_internal_ssl_strip_dot(_host);
 
     // a server names no host; a client that checks names must name one
     if ( ( (_context->plan.role == D_SSL_ROLE_SERVER) &&
@@ -4315,7 +3906,7 @@ d_ssl_session_init(
          ( (_context->plan.verify_hostname) &&
            (host.length == 0) ) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     // a host is an address literal or a valid name
@@ -4328,11 +3919,62 @@ d_ssl_session_init(
         {
             _session->host_is_ip = false;
 
-            return D_SSL_STATUS_MALFORMED;
+            return D_SSL_ERROR_MALFORMED;
         }
 
-        memcpy(_session->host, host.data, host.length);
+        memcpy(_session->host,
+               host.data,
+               host.length);
         _session->host[host.length] = '\0';
+    }
+
+    return D_SSL_OK;
+}
+
+/*
+d_ssl_session_init
+  The record is cleared first, so every early return leaves it empty, its
+base a closed connection. The host is validated and copied without its
+trailing dot; the engine receives it as the reference identity only when
+the plan checks names, and as SNI only when it is a name rather than an
+address.
+*/
+enum d_ssl_error
+d_ssl_session_init(
+    struct d_ssl_session*       _session,
+    const struct d_ssl_context* _context,
+    struct d_net_connection*    _transport,
+    struct d_pack_text          _host
+)
+{
+    const char*      name   = NULL;
+    const char*      sni    = NULL;
+    void*            handle = NULL;
+    enum d_ssl_error status = D_SSL_OK;
+
+    // parameter validation
+    if (_session == NULL)
+    {
+        return D_SSL_ERROR_INVALID_ARGUMENT;
+    }
+
+    d_internal_ssl_session_clear(_session);
+
+    if ( (_context == NULL)                          ||
+         (_context->engine == NULL)                  ||
+         (!d_net_connection_is_complete(_transport)) ||
+         (!d_internal_ssl_text_ok(_host)) )
+    {
+        return D_SSL_ERROR_INVALID_ARGUMENT;
+    }
+
+    status = d_internal_ssl_session_host(_session,
+                                         _context,
+                                         _host);
+
+    if (status != D_SSL_OK)
+    {
+        return status;
     }
 
     name = (_context->plan.verify_hostname) ? _session->host : NULL;
@@ -4347,27 +3989,66 @@ d_ssl_session_init(
                  false,
                  false);
 
-    if (status != D_SSL_STATUS_OK)
+    if (status != D_SSL_OK)
     {
-        memset(_session, 0, sizeof(*_session));
+        d_internal_ssl_session_clear(_session);
 
         return status;
     }
 
-    _session->context   = _context;
-    _session->handle    = handle;
-    _session->transport = _transport;
-    _session->state     = D_SSL_STATE_IDLE;
-    _session->failure   = D_SSL_STATUS_OK;
-    _session->want      = D_SSL_WANT_NOTHING;
+    _session->context         = _context;
+    _session->handle          = handle;
+    _session->transport       = _transport;
+    _session->transport_error = D_NET_OK;
+    _session->state           = D_SSL_STATE_IDLE;
+    _session->failure         = D_SSL_OK;
+    _session->want            = D_SSL_WANT_NOTHING;
+    _session->owns_transport  = false;
+    _session->view_closed     = false;
     d_internal_ssl_info_reset(&_session->info);
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
+}
+
+/*
+d_ssl_session_resume
+  Every check is the kernel's, so an engine's hook sees only a client
+session that has not begun and an established one of its own context; the
+offer itself is the engine's, and a refusal by the server is not a failure
+here -- the handshake reports it.
+*/
+enum d_ssl_error
+d_ssl_session_resume(
+    struct d_ssl_session*       _session,
+    const struct d_ssl_session* _from
+)
+{
+    // parameter validation
+    if ( (_session == NULL)                                  ||
+         (_from == NULL)                                     ||
+         (_session->context == NULL)                         ||
+         (_session->context != _from->context)               ||
+         (_session->context->plan.role == D_SSL_ROLE_SERVER) ||
+         (_session->state != D_SSL_STATE_IDLE)               ||
+         (_from->state != D_SSL_STATE_ESTABLISHED) )
+    {
+        return D_SSL_ERROR_INVALID_ARGUMENT;
+    }
+
+    // an engine without the hook offers nothing
+    if (_session->context->engine->session_resume == NULL)
+    {
+        return D_SSL_OK;
+    }
+
+    return _session->context->engine->session_resume(_session->handle,
+                                                     _from->handle);
 }
 
 /*
 d_ssl_session_destroy
-  Hands the engine's session back and clears the record, stage included.
+  Hands the engine's session back and clears the record, stage included; the
+transport is the caller's, and destroying is not closing.
 */
 void
 d_ssl_session_destroy(
@@ -4384,7 +4065,7 @@ d_ssl_session_destroy(
         _session->context->engine->session_destroy(_session->handle);
     }
 
-    memset(_session, 0, sizeof(*_session));
+    d_internal_ssl_session_clear(_session);
 
     return;
 }
@@ -4393,17 +4074,17 @@ d_ssl_session_destroy(
 d_ssl_session_handshake
   Dispatches on the state; the work is d_internal_ssl_handshake's.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_session_handshake(
     struct d_ssl_session* _session
 )
 {
-    enum d_ssl_status status = D_SSL_STATUS_OK;
+    enum d_ssl_error status = D_SSL_OK;
 
     // parameter validation
     if (!d_internal_ssl_session_ok(_session))
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     switch (_session->state)
@@ -4412,19 +4093,20 @@ d_ssl_session_handshake(
             return _session->failure;
 
         case D_SSL_STATE_CLOSED:
-            return D_SSL_STATUS_WRONG_STATE;
+            return D_SSL_ERROR_STATE;
 
         case D_SSL_STATE_ESTABLISHED:
             status = d_internal_ssl_flush(_session);
 
-            if (status != D_SSL_STATUS_OK)
+            if (status != D_SSL_OK)
             {
-                return d_internal_ssl_io_failure(_session, status);
+                return d_internal_ssl_io_failure(_session,
+                                                 status);
             }
 
             _session->want = D_SSL_WANT_NOTHING;
 
-            return D_SSL_STATUS_OK;
+            return D_SSL_OK;
 
         case D_SSL_STATE_IDLE:
         case D_SSL_STATE_HANDSHAKING:
@@ -4439,7 +4121,7 @@ d_ssl_session_read
   The peer's close_notify is checked before the state, so it keeps reading as
 the end of the stream even once this end has closed too.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_session_read(
     struct d_ssl_session* _session,
     void*                 _buffer,
@@ -4447,7 +4129,7 @@ d_ssl_session_read(
     size_t*               _out_read
 )
 {
-    enum d_ssl_status status = D_SSL_STATUS_OK;
+    enum d_ssl_error status = D_SSL_OK;
 
     // parameter validation
     if ( (!d_internal_ssl_session_ok(_session)) ||
@@ -4455,7 +4137,7 @@ d_ssl_session_read(
          (_capacity == 0)                       ||
          (_out_read == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     *_out_read = 0;
@@ -4467,12 +4149,12 @@ d_ssl_session_read(
 
     if (_session->received_close)
     {
-        return D_SSL_STATUS_CONNECTION_CLOSED;
+        return D_SSL_ERROR_CLOSED;
     }
 
     if (_session->state == D_SSL_STATE_CLOSED)
     {
-        return D_SSL_STATUS_WRONG_STATE;
+        return D_SSL_ERROR_STATE;
     }
 
     // a read handshakes first, as a transport's user expects
@@ -4480,13 +4162,16 @@ d_ssl_session_read(
     {
         status = d_internal_ssl_handshake(_session);
 
-        if (status != D_SSL_STATUS_OK)
+        if (status != D_SSL_OK)
         {
             return status;
         }
     }
 
-    return d_internal_ssl_read(_session, _buffer, _capacity, _out_read);
+    return d_internal_ssl_read(_session,
+                               _buffer,
+                               _capacity,
+                               _out_read);
 }
 
 /*
@@ -4494,7 +4179,7 @@ d_ssl_session_write
   Earlier ciphertext goes first, and new data is taken only once it has gone:
 a session never holds more than one write's worth unsent.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_session_write(
     struct d_ssl_session* _session,
     const void*           _data,
@@ -4502,7 +4187,7 @@ d_ssl_session_write(
     size_t*               _out_written
 )
 {
-    enum d_ssl_status status = D_SSL_STATUS_OK;
+    enum d_ssl_error status = D_SSL_OK;
 
     // parameter validation
     if ( (!d_internal_ssl_session_ok(_session)) ||
@@ -4510,7 +4195,7 @@ d_ssl_session_write(
          (_size == 0)                           ||
          (_out_written == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     *_out_written = 0;
@@ -4524,14 +4209,14 @@ d_ssl_session_write(
     if ( (_session->state == D_SSL_STATE_CLOSED) ||
          (_session->sent_close) )
     {
-        return D_SSL_STATUS_WRONG_STATE;
+        return D_SSL_ERROR_STATE;
     }
 
     if (_session->state != D_SSL_STATE_ESTABLISHED)
     {
         status = d_internal_ssl_handshake(_session);
 
-        if (status != D_SSL_STATUS_OK)
+        if (status != D_SSL_OK)
         {
             return status;
         }
@@ -4539,12 +4224,16 @@ d_ssl_session_write(
 
     status = d_internal_ssl_flush(_session);
 
-    if (status != D_SSL_STATUS_OK)
+    if (status != D_SSL_OK)
     {
-        return d_internal_ssl_io_failure(_session, status);
+        return d_internal_ssl_io_failure(_session,
+                                         status);
     }
 
-    return d_internal_ssl_write(_session, _data, _size, _out_written);
+    return d_internal_ssl_write(_session,
+                                _data,
+                                _size,
+                                _out_written);
 }
 
 /*
@@ -4553,7 +4242,7 @@ d_ssl_session_write_all
 that blocked after taking data returns OK with the rest pending, so the loop
 meets the blockage on its next write and reports it there.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_session_write_all(
     struct d_ssl_session* _session,
     const void*           _data,
@@ -4563,14 +4252,14 @@ d_ssl_session_write_all(
 {
     const unsigned char* data   = (const unsigned char*)_data;
     size_t               done   = 0;
-    enum d_ssl_status    status = D_SSL_STATUS_OK;
+    enum d_ssl_error     status = D_SSL_OK;
 
     // parameter validation
     if ( (!d_internal_ssl_session_ok(_session)) ||
          ( (_data == NULL) &&
            (_size > 0) ) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     while (done < _size)
@@ -4583,7 +4272,7 @@ d_ssl_session_write_all(
                                      &taken);
         done  += taken;
 
-        if (status != D_SSL_STATUS_OK)
+        if (status != D_SSL_OK)
         {
             break;
         }
@@ -4594,7 +4283,7 @@ d_ssl_session_write_all(
         *_out_written = done;
     }
 
-    if (status != D_SSL_STATUS_OK)
+    if (status != D_SSL_OK)
     {
         return status;
     }
@@ -4606,17 +4295,17 @@ d_ssl_session_write_all(
 d_ssl_session_flush
   Valid in any state but FAILED; an idle session simply has nothing to send.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_session_flush(
     struct d_ssl_session* _session
 )
 {
-    enum d_ssl_status status = D_SSL_STATUS_OK;
+    enum d_ssl_error status = D_SSL_OK;
 
     // parameter validation
     if (!d_internal_ssl_session_ok(_session))
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     if (_session->state == D_SSL_STATE_FAILED)
@@ -4626,14 +4315,15 @@ d_ssl_session_flush(
 
     status = d_internal_ssl_flush(_session);
 
-    if (status != D_SSL_STATUS_OK)
+    if (status != D_SSL_OK)
     {
-        return d_internal_ssl_io_failure(_session, status);
+        return d_internal_ssl_io_failure(_session,
+                                         status);
     }
 
     _session->want = D_SSL_WANT_NOTHING;
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -4643,17 +4333,17 @@ A peer that closed first may already have gone; nothing further is owed to
 it, so its departure is not an error here, and what could not be sent is
 dropped.
 */
-enum d_ssl_status
+enum d_ssl_error
 d_ssl_session_shutdown(
     struct d_ssl_session* _session
 )
 {
-    enum d_ssl_status status = D_SSL_STATUS_OK;
+    enum d_ssl_error status = D_SSL_OK;
 
     // parameter validation
     if (!d_internal_ssl_session_ok(_session))
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     switch (_session->state)
@@ -4662,7 +4352,7 @@ d_ssl_session_shutdown(
             return _session->failure;
 
         case D_SSL_STATE_CLOSED:
-            return D_SSL_STATUS_OK;
+            return D_SSL_OK;
 
         // nothing established means nothing to close: just stop
         case D_SSL_STATE_IDLE:
@@ -4670,7 +4360,7 @@ d_ssl_session_shutdown(
             _session->state = D_SSL_STATE_CLOSED;
             _session->want  = D_SSL_WANT_NOTHING;
 
-            return D_SSL_STATUS_OK;
+            return D_SSL_OK;
 
         case D_SSL_STATE_ESTABLISHED:
             break;
@@ -4683,9 +4373,10 @@ d_ssl_session_shutdown(
                      false,
                      false);
 
-        if (status != D_SSL_STATUS_OK)
+        if (status != D_SSL_OK)
         {
-            return d_internal_ssl_fail_engine(_session, status);
+            return d_internal_ssl_fail_engine(_session,
+                                              status);
         }
 
         _session->sent_close = true;
@@ -4693,17 +4384,18 @@ d_ssl_session_shutdown(
 
     status = d_internal_ssl_flush(_session);
 
-    if ( (status == D_SSL_STATUS_CONNECTION_CLOSED) &&
+    if ( (status == D_SSL_ERROR_CLOSED) &&
          (_session->received_close) )
     {
         _session->stage_start = 0;
         _session->stage_end   = 0;
-        status                = D_SSL_STATUS_OK;
+        status                = D_SSL_OK;
     }
 
-    if (status != D_SSL_STATUS_OK)
+    if (status != D_SSL_OK)
     {
-        return d_internal_ssl_io_failure(_session, status);
+        return d_internal_ssl_io_failure(_session,
+                                         status);
     }
 
     if (_session->received_close)
@@ -4713,7 +4405,7 @@ d_ssl_session_shutdown(
 
     _session->want = D_SSL_WANT_NOTHING;
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -4764,61 +4456,307 @@ d_ssl_session_info(
 }
 
 /*
-d_internal_ssl_session_read_fn
-  d_ssl_session_read in the shape of a transport read callback.
+d_ssl_session_own_transport
+  Only the connection view's close reads the flag.
 */
-static enum d_ssl_status
-d_internal_ssl_session_read_fn(
-    void*   _context,
-    void*   _buffer,
-    size_t  _capacity,
-    size_t* _out_read
+void
+d_ssl_session_own_transport(
+    struct d_ssl_session* _session,
+    bool                  _owns
 )
 {
-    return d_ssl_session_read((struct d_ssl_session*)_context,
-                              _buffer,
-                              _capacity,
-                              _out_read);
-}
-
-/*
-d_internal_ssl_session_write_fn
-  d_ssl_session_write in the shape of a transport write callback.
-*/
-static enum d_ssl_status
-d_internal_ssl_session_write_fn(
-    void*       _context,
-    const void* _data,
-    size_t      _size,
-    size_t*     _out_written
-)
-{
-    return d_ssl_session_write((struct d_ssl_session*)_context,
-                               _data,
-                               _size,
-                               _out_written);
-}
-
-/*
-d_ssl_session_transport
-  The session's plaintext as a transport: its reads and writes, with the
-session as their context.
-*/
-struct d_ssl_transport
-d_ssl_session_transport(
-    struct d_ssl_session* _session
-)
-{
-    struct d_ssl_transport transport = { NULL, NULL, NULL };
-
-    if (_session == NULL)
+    // NULL is ignored
+    if (_session != NULL)
     {
-        return transport;
+        _session->owns_transport = _owns;
     }
 
-    transport.read    = d_internal_ssl_session_read_fn;
-    transport.write   = d_internal_ssl_session_write_fn;
-    transport.context = _session;
+    return;
+}
 
-    return transport;
+/*
+d_ssl_session_failure
+  The sticky failure, which a FAILED session holds and every other reports
+as none.
+*/
+enum d_ssl_error
+d_ssl_session_failure(
+    const struct d_ssl_session* _session
+)
+{
+    return ( (d_internal_ssl_session_ok(_session)) &&
+             (_session->state == D_SSL_STATE_FAILED) ) ? _session->failure
+                                                       : D_SSL_OK;
+}
+
+/*
+d_ssl_session_transport_error
+  Set by the pump on every transport call, so it is the last call's outcome.
+*/
+enum d_net_error
+d_ssl_session_transport_error(
+    const struct d_ssl_session* _session
+)
+{
+    return d_internal_ssl_session_ok(_session) ? _session->transport_error
+                                               : D_NET_OK;
+}
+
+//==============================================================================
+// 15.  SESSIONS AS CONNECTIONS
+//==============================================================================
+
+/*
+d_internal_ssl_view_error
+  A session's failure in net.h's terms. Behind TRANSPORT stands the
+transport's own error, which the session kept; truncation is a stream that
+ended too soon; a closed session reads and writes as a closed connection;
+the rest map as d_ssl_error_to_net maps them.
+*/
+static enum d_net_error
+d_internal_ssl_view_error(
+    const struct d_ssl_session* _session,
+    enum d_ssl_error            _status
+)
+{
+    switch (_status)
+    {
+        case D_SSL_ERROR_TRANSPORT:
+            return (_session->transport_error != D_NET_OK)
+                       ? _session->transport_error
+                       : d_ssl_error_to_net(_status);
+
+        case D_SSL_ERROR_TRUNCATED:
+        case D_SSL_ERROR_STATE:
+            return D_NET_ERROR_CLOSED;
+
+        default:
+            return d_ssl_error_to_net(_status);
+    }
+}
+
+/*
+d_internal_ssl_view_read
+  The peer's close_notify is the end of the stream, a count of 0 with no
+error, and d_ssl_session_read repeats it on every read after.
+*/
+static struct d_net_io_result
+d_internal_ssl_view_read(
+    struct d_net_connection* _connection,
+    void*                    _buffer,
+    size_t                   _size
+)
+{
+    struct d_ssl_session* const session = (struct d_ssl_session*)_connection;
+    size_t                      count   = 0;
+
+    // a destroyed session, or a closed view, is a closed connection
+    if ( (!d_internal_ssl_session_ok(session)) ||
+         (session->view_closed) )
+    {
+        return d_net_io_result_make(0u,
+                                    D_NET_ERROR_CLOSED);
+    }
+
+    const enum d_ssl_error status = d_ssl_session_read(session,
+                                                       _buffer,
+                                                       _size,
+                                                       &count);
+
+    // data, or the orderly end
+    if ( (status == D_SSL_OK) ||
+         (status == D_SSL_ERROR_CLOSED) )
+    {
+        return d_net_io_result_make(count,
+                                    D_NET_OK);
+    }
+
+    return d_net_io_result_make(0u,
+                                d_internal_ssl_view_error(session,
+                                                          status));
+}
+
+/*
+d_internal_ssl_view_write
+  One d_ssl_session_write: at most a record's worth, which net.h's
+write_all loops over.
+*/
+static struct d_net_io_result
+d_internal_ssl_view_write(
+    struct d_net_connection* _connection,
+    const void*              _data,
+    size_t                   _size
+)
+{
+    struct d_ssl_session* const session = (struct d_ssl_session*)_connection;
+    size_t                      count   = 0;
+
+    // a destroyed session, or a closed view, is a closed connection
+    if ( (!d_internal_ssl_session_ok(session)) ||
+         (session->view_closed) )
+    {
+        return d_net_io_result_make(0u,
+                                    D_NET_ERROR_CLOSED);
+    }
+
+    const enum d_ssl_error status = d_ssl_session_write(session,
+                                                        _data,
+                                                        _size,
+                                                        &count);
+
+    return (status == D_SSL_OK)
+               ? d_net_io_result_make(count,
+                                      D_NET_OK)
+               : d_net_io_result_make(0u,
+                                      d_internal_ssl_view_error(session,
+                                                                status));
+}
+
+/*
+d_internal_ssl_view_is_open
+  Open until it fails, ends both ways, or its view closes.
+*/
+static bool
+d_internal_ssl_view_is_open(
+    const struct d_net_connection* _connection
+)
+{
+    const struct d_ssl_session* const session =
+        (const struct d_ssl_session*)_connection;
+
+    return ( (d_internal_ssl_session_ok(session))            &&
+             (!session->view_closed)                         &&
+             (session->state != D_SSL_STATE_FAILED)          &&
+             (session->state != D_SSL_STATE_CLOSED) );
+}
+
+/*
+d_internal_ssl_view_close
+  close_notify once, on an established session, as far as the transport
+takes it at once; then the view is closed, whatever the peer has said, and
+the transport with it when the session owns that. Closing again does
+nothing. The session's own state is left as it stands, for a caller that
+asks it why.
+*/
+static void
+d_internal_ssl_view_close(
+    struct d_net_connection* _connection
+)
+{
+    struct d_ssl_session* const session = (struct d_ssl_session*)_connection;
+
+    // a destroyed session, or a closed view, has nothing more to close
+    if ( (!d_internal_ssl_session_ok(session)) ||
+         (session->view_closed) )
+    {
+        return;
+    }
+
+    // an orderly end, when there is one to give
+    if (session->state == D_SSL_STATE_ESTABLISHED)
+    {
+        (void)d_ssl_session_shutdown(session);
+    }
+
+    session->view_closed = true;
+
+    // an owned transport goes with it
+    if (session->owns_transport)
+    {
+        d_net_connection_close(session->transport);
+    }
+
+    return;
+}
+
+/*
+d_internal_ssl_view_shutdown
+  WRITE and BOTH end the session's sending with close_notify; then the
+transport shuts the same direction down. The mode arrives validated.
+*/
+static enum d_net_error
+d_internal_ssl_view_shutdown(
+    struct d_net_connection* _connection,
+    enum d_net_shutdown      _mode
+)
+{
+    struct d_ssl_session* const session = (struct d_ssl_session*)_connection;
+
+    // a destroyed session, or a closed view, has nothing to shut down
+    if ( (!d_internal_ssl_session_ok(session)) ||
+         (session->view_closed) )
+    {
+        return D_NET_ERROR_CLOSED;
+    }
+
+    // sending ends with close_notify
+    if (_mode != D_NET_SHUTDOWN_READ)
+    {
+        const enum d_ssl_error status = d_ssl_session_shutdown(session);
+
+        // a close_notify that could not go out is the answer
+        if (status != D_SSL_OK)
+        {
+            return d_internal_ssl_view_error(session,
+                                             status);
+        }
+    }
+
+    return d_net_connection_shutdown(session->transport,
+                                     _mode);
+}
+
+/*
+d_internal_ssl_view_remote
+  The transport's peer.
+*/
+static bool
+d_internal_ssl_view_remote(
+    const struct d_net_connection* _connection,
+    struct d_net_endpoint*         _out
+)
+{
+    return d_net_connection_remote_endpoint(
+               ((const struct d_ssl_session*)_connection)->transport,
+               _out);
+}
+
+/*
+d_internal_ssl_view_local
+  The transport's own end.
+*/
+static bool
+d_internal_ssl_view_local(
+    const struct d_net_connection* _connection,
+    struct d_net_endpoint*         _out
+)
+{
+    return d_net_connection_local_endpoint(
+               ((const struct d_ssl_session*)_connection)->transport,
+               _out);
+}
+
+/*
+d_internal_ssl_view_table
+  The table every session's base points at. No destroy, the storage being
+the caller's, and no available: plaintext waiting inside an engine is not
+counted through its interface.
+*/
+static const struct d_net_connection_vtable*
+d_internal_ssl_view_table(void)
+{
+    static const struct d_net_connection_vtable SESSION_OPERATIONS =
+    {
+        d_internal_ssl_view_read,
+        d_internal_ssl_view_write,
+        d_internal_ssl_view_is_open,
+        d_internal_ssl_view_close,
+        d_internal_ssl_view_shutdown,
+        d_internal_ssl_view_remote,
+        d_internal_ssl_view_local,
+        NULL,
+        NULL
+    };
+
+    return &SESSION_OPERATIONS;
 }

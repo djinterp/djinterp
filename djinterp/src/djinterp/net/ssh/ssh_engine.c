@@ -8,12 +8,12 @@
 * path:      /src/djinterp/net/ssh/ssh_engine.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ssh/ssh_engine.h"  // corresponding header
 // djinterp
 #include "../../../../inc/djinterp/c/djinterp.h"  // framework root
-#include "../../../../inc/djinterp/net/ssh/ssh_common.h"  // d_ssh_status
+#include "../../../../inc/djinterp/net/ssh/ssh_common.h"  // d_ssh_error
 #include "../../../../inc/djinterp/net/ssh/ssh_libssh2.h"  // d_ssh_engine_libssh2
 #include "../../../../inc/djinterp/net/ssh/ssh_internal.h"  // d_ssh_internal_*
 
@@ -22,7 +22,7 @@
 d_ssh_library_init
   Starts every compiled engine; with none compiled, there is nothing to do.
 */
-enum d_ssh_status
+enum d_ssh_error
 d_ssh_library_init(void)
 {
     return d_ssh_internal_libssh2_startup();

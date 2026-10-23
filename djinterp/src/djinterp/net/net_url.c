@@ -14,13 +14,15 @@
 * path:      /src/djinterp/net/net_url.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../inc/djinterp/net/net_url.h"  // corresponding header
 // std
 #include <string.h>  // memcmp, memset, strchr
 // djinterp
-#include "./net_url_internal.h"  // shared helpers
+#include "../../../inc/djinterp/net/net_common.h"  // d_net_ascii_is_*
+#include "../../../inc/djinterp/net/codec/codec_hex.h"    // d_net_hex_is_digit
+#include "./net_url_internal.h"                           // shared helpers
 
 
 /*
@@ -83,9 +85,9 @@ d_net_url_scan(
         if (c == '%')
         {
             // the digits are missing or wrong
-            if ( (i + 2u >= _part.length)              ||
-                 (!d_net_url_is_hex(_part.data[i + 1u])) ||
-                 (!d_net_url_is_hex(_part.data[i + 2u])) )
+            if ( (i + 2u >= _part.length)                  ||
+                 (!d_net_hex_is_digit(_part.data[i + 1u])) ||
+                 (!d_net_hex_is_digit(_part.data[i + 2u])) )
             {
                 *_error_at = _offset + i;
 
@@ -115,7 +117,7 @@ d_net_url_take_octet(
     // at most three digits
     while ( (*_pos < _text.length)              &&
             (*_pos - start < 3u)                &&
-            (d_net_url_is_digit(_text.data[*_pos])) )
+            (d_net_ascii_is_digit(_text.data[*_pos])) )
     {
         value = (value * 10u) + (unsigned int)(_text.data[*_pos] - '0');
         *_pos += 1u;
@@ -255,7 +257,7 @@ d_net_url_is_ipv6(
         // one to four hex digits
         while ( (pos < _text.length)            &&
                 (pos - start < 4u)              &&
-                (d_net_url_is_hex(_text.data[pos])) )
+                (d_net_hex_is_digit(_text.data[pos])) )
         {
             pos += 1u;
         }
@@ -302,7 +304,7 @@ d_net_url_is_future(
 
     // the version: one or more hex digits
     while ( (pos < _inner.length) &&
-            (d_net_url_is_hex(_inner.data[pos])) )
+            (d_net_hex_is_digit(_inner.data[pos])) )
     {
         pos += 1u;
     }
@@ -407,11 +409,11 @@ d_net_url_take_scheme(
 
         // a letter first, then letters, digits, '+', '-', '.'
         if ( ( (i == 0u) &&
-               (!d_net_url_is_alpha(c)) ) ||
-             ( (!d_net_url_is_alpha(c)) &&
-               (!d_net_url_is_digit(c)) &&
-               (c != '+')               &&
-               (c != '-')               &&
+               (!d_net_ascii_is_alpha(c)) ) ||
+             ( (!d_net_ascii_is_alpha(c)) &&
+               (!d_net_ascii_is_digit(c)) &&
+               (c != '+')                 &&
+               (c != '-')                 &&
                (c != '.') ) )
         {
             *_error_at = i;
@@ -454,7 +456,7 @@ d_net_url_take_port(
     for (size_t i = _colon + 1u; i < _end; ++i)
     {
         // a port is digits only
-        if (!d_net_url_is_digit(_text.data[i]))
+        if (!d_net_ascii_is_digit(_text.data[i]))
         {
             *_error_at = i;
 
@@ -766,7 +768,7 @@ d_net_url_parse(
          ( (!_text.data) &&
            (_text.length != 0u) ) )
     {
-        return D_NET_URL_ERROR_ARGUMENT;
+        return D_NET_URL_ERROR_INVALID_ARGUMENT;
     }
 
     size_t                   ignored = 0u;
@@ -834,7 +836,7 @@ d_net_url_parse_authority(
          ( (!_text.data) &&
            (_text.length != 0u) ) )
     {
-        return D_NET_URL_ERROR_ARGUMENT;
+        return D_NET_URL_ERROR_INVALID_ARGUMENT;
     }
 
     size_t                   ignored = 0u;
@@ -900,7 +902,7 @@ d_net_url_format(
          ( (!_buffer) &&
            (_capacity != 0u) ) )
     {
-        return D_NET_URL_ERROR_ARGUMENT;
+        return D_NET_URL_ERROR_INVALID_ARGUMENT;
     }
 
     struct d_net_url_writer out = { _buffer,

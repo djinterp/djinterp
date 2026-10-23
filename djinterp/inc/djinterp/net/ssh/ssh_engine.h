@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/net/ssh/ssh_engine.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -46,7 +46,7 @@ TABLE OF CONTENTS
 #include <stddef.h>   // size_t
 // djinterp
 #include "../../c/djinterp.h"  // framework root
-#include "./ssh_common.h"      // d_ssh_status, d_ssh_socket
+#include "./ssh_common.h"      // d_ssh_error, d_ssh_socket
 
 
 D_EXTERN_C_BEGIN
@@ -92,7 +92,7 @@ typedef bool (*fn_ssh_prompt)(void*       _context,
 // the library's. Before the handshake, `host_keys` is reordered so that the
 // key types known_hosts records for the host come first, as OpenSSH does.
 // Names the library does not implement are dropped; a list left with none
-// fails the connection with D_SSH_ERR_UNSUPPORTED.
+// fails the connection with D_SSH_ERROR_UNSUPPORTED.
 struct d_ssh_algorithms
 {
     const char* kex;        // key exchange
@@ -108,10 +108,10 @@ struct d_ssh_algorithms
 // the host key is trusted, which methods are tried, and when a session has
 // failed are decided here, the same for every engine. `_handle` is one engine
 // session and `_channel` one engine channel. Each operation returns
-// D_SSH_ERR_AUTH_DENIED for a refused credential, D_SSH_ERR_KEY for a key file
-// it cannot load, D_SSH_ERR_CHANNEL for a refused channel or request,
-// D_SSH_ERR_CLOSED from channel_read at the end of a stream, and
-// D_SSH_ERR_UNSUPPORTED for a missing capability, such as auth_agent with no
+// D_SSH_ERROR_AUTH for a refused credential, D_SSH_ERROR_KEY for a key file
+// it cannot load, D_SSH_ERROR_CHANNEL for a refused channel or request,
+// D_SSH_ERROR_CLOSED from channel_read at the end of a stream, and
+// D_SSH_ERROR_UNSUPPORTED for a missing capability, such as auth_agent with no
 // agent running. `channel_pty` and `detail` may be NULL; the rest are
 // required.
 struct d_ssh_engine_vtable
@@ -121,92 +121,92 @@ struct d_ssh_engine_vtable
 
     // makes a session that applies `_algorithms` -- a NULL member keeps the
     // library's default -- and the deadline (0 for none) to every operation
-    enum d_ssh_status (*create)(const struct d_ssh_algorithms* _algorithms,
-                                unsigned int                   _timeout_ms,
-                                void**                         _handle);
+    enum d_ssh_error (*create)(const struct d_ssh_algorithms* _algorithms,
+                               unsigned int                   _timeout_ms,
+                               void**                         _handle);
 
     // exchanges identification strings and keys over the socket
-    enum d_ssh_status (*handshake)(void*        _handle,
-                                   d_ssh_socket _socket);
+    enum d_ssh_error (*handshake)(void*        _handle,
+                                  d_ssh_socket _socket);
 
     // exposes the server's host-key blob, valid until destroy
-    enum d_ssh_status (*host_key)(void*                 _handle,
-                                  const unsigned char** _key,
-                                  size_t*               _size);
+    enum d_ssh_error (*host_key)(void*                 _handle,
+                                 const unsigned char** _key,
+                                 size_t*               _size);
 
     // the methods the server accepts for `_user`, as a name-list valid until
     // the next call, or NULL when "none" authentication has already succeeded
-    enum d_ssh_status (*auth_methods)(void*        _handle,
-                                      const char*  _user,
-                                      const char** _methods);
+    enum d_ssh_error (*auth_methods)(void*        _handle,
+                                     const char*  _user,
+                                     const char** _methods);
 
     // password authentication
-    enum d_ssh_status (*auth_password)(void*       _handle,
-                                       const char* _user,
-                                       const char* _password);
+    enum d_ssh_error (*auth_password)(void*       _handle,
+                                      const char* _user,
+                                      const char* _password);
 
     // public-key authentication from files; `_public_key` and `_passphrase`
     // may be NULL
-    enum d_ssh_status (*auth_key_file)(void*       _handle,
-                                       const char* _user,
-                                       const char* _public_key,
-                                       const char* _private_key,
-                                       const char* _passphrase);
+    enum d_ssh_error (*auth_key_file)(void*       _handle,
+                                      const char* _user,
+                                      const char* _public_key,
+                                      const char* _private_key,
+                                      const char* _passphrase);
 
     // public-key authentication with each key the agent holds
-    enum d_ssh_status (*auth_agent)(void*       _handle,
-                                    const char* _user);
+    enum d_ssh_error (*auth_agent)(void*       _handle,
+                                   const char* _user);
 
     // keyboard-interactive authentication, answering through `_prompt`
-    enum d_ssh_status (*auth_interactive)(void*         _handle,
-                                          const char*   _user,
-                                          fn_ssh_prompt _prompt,
-                                          void*         _context);
+    enum d_ssh_error (*auth_interactive)(void*         _handle,
+                                         const char*   _user,
+                                         fn_ssh_prompt _prompt,
+                                         void*         _context);
 
     // a session channel when `_host` is NULL; otherwise a direct-tcpip
     // channel to `_host` and `_port`
-    enum d_ssh_status (*channel_open)(void*        _handle,
-                                      const char*  _host,
-                                      unsigned int _port,
-                                      void**       _channel);
+    enum d_ssh_error (*channel_open)(void*        _handle,
+                                     const char*  _host,
+                                     unsigned int _port,
+                                     void**       _channel);
 
     // "exec" with a command, "subsystem" with a name, or "shell" with NULL
-    enum d_ssh_status (*channel_request)(void*       _channel,
-                                         const char* _type,
-                                         const char* _value);
+    enum d_ssh_error (*channel_request)(void*       _channel,
+                                        const char* _type,
+                                        const char* _value);
 
     // a pseudo-terminal of `_columns` by `_rows` characters
-    enum d_ssh_status (*channel_pty)(void*        _channel,
-                                     const char*  _term,
-                                     unsigned int _columns,
-                                     unsigned int _rows);
+    enum d_ssh_error (*channel_pty)(void*        _channel,
+                                    const char*  _term,
+                                    unsigned int _columns,
+                                    unsigned int _rows);
 
-    // at least one byte of `_stream`, or D_SSH_ERR_CLOSED at its end
-    enum d_ssh_status (*channel_read)(void*             _channel,
-                                      enum d_ssh_stream _stream,
-                                      void*             _buffer,
-                                      size_t            _capacity,
-                                      size_t*           _received);
+    // at least one byte of `_stream`, or D_SSH_ERROR_CLOSED at its end
+    enum d_ssh_error (*channel_read)(void*             _channel,
+                                     enum d_ssh_stream _stream,
+                                     void*             _buffer,
+                                     size_t            _capacity,
+                                     size_t*           _received);
 
     // at least one byte of `_data`
-    enum d_ssh_status (*channel_write)(void*       _channel,
-                                       const void* _data,
-                                       size_t      _size,
-                                       size_t*     _sent);
+    enum d_ssh_error (*channel_write)(void*       _channel,
+                                      const void* _data,
+                                      size_t      _size,
+                                      size_t*     _sent);
 
     // tells the server no more data follows
-    enum d_ssh_status (*channel_send_eof)(void* _channel);
+    enum d_ssh_error (*channel_send_eof)(void* _channel);
 
     // closes, waits for the server's close, and reports the exit status
-    enum d_ssh_status (*channel_close)(void* _channel,
-                                       int*  _exit_status);
+    enum d_ssh_error (*channel_close)(void* _channel,
+                                      int*  _exit_status);
 
     // releases a channel, closed or not
     void (*channel_free)(void* _channel);
 
     // sends SSH_MSG_DISCONNECT with `_reason`
-    enum d_ssh_status (*disconnect)(void*       _handle,
-                                    const char* _reason);
+    enum d_ssh_error (*disconnect)(void*       _handle,
+                                   const char* _reason);
 
     // a description of the last failure, valid until destroy, or NULL
     const char* (*detail)(void* _handle);
@@ -265,10 +265,10 @@ struct d_ssh_engine_vtable
  *       calls this once first.
  *
  * @return `D_SSH_OK`, including when no engine is compiled; or
- *         `D_SSH_ERR_UNSUPPORTED` if a library failed to initialize its
+ *         `D_SSH_ERROR_UNSUPPORTED` if a library failed to initialize its
  *         cryptography.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_library_init(void);
 /**
  * @brief Releases what d_ssh_library_init acquired.

@@ -7,17 +7,21 @@
 * path:      /src/djinterp/net/ftp/ftp_feature.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_feature.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // uint32_t
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"          // framework root
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_span
-#include "./ftp_internal.h"                               // shared helpers
+#include "../../../../inc/djinterp/c/djinterp.h"             // framework root
+#include "../../../../inc/djinterp/c/util/sink_common.h"     // d_pack_text
+#include "../../../../inc/djinterp/net/net_common.h"  // d_net_ascii_*
+#include "../../../../inc/djinterp/net/codec/codec_line.h"   // d_net_line_next
+#include "../../../../inc/djinterp/net/ftp/ftp_common.h"     // d_ftp_error
+#include "./ftp_internal.h"                                  // shared helpers
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t
 
 
 //==============================================================================
@@ -65,8 +69,8 @@ covering "TLS;SSL", "TLS SSL", and "TLS-C, TLS-P" alike.
 */
 D_STATIC bool
 d_ftp_internal_has_token(
-    struct d_ftp_span _list,
-    const char*       _word
+    struct d_pack_text _list,
+    const char*        _word
 )
 {
     size_t position = 0;
@@ -77,17 +81,18 @@ d_ftp_internal_has_token(
         size_t end = position;
 
         // the token runs to the next separator
-        while ( (end < _list.length)                         &&
-                (_list.data[end] != ';')                     &&
-                (_list.data[end] != ',')                     &&
-                (!d_ftp_internal_is_blank(_list.data[end])) )
+        while ( (end < _list.length)                     &&
+                (_list.data[end] != ';')                 &&
+                (_list.data[end] != ',')                 &&
+                (!d_net_ascii_is_blank(_list.data[end])) )
         {
             end++;
         }
 
-        const bool match = d_ftp_internal_starts_nocase(_list.data + position,
-                                                        end - position,
-                                                        _word);
+        const struct d_pack_text token = { _list.data + position,
+                                           end - position };
+        const bool               match = d_net_ascii_istarts(token,
+                                                             _word);
 
         // an empty token matches nothing
         if ( (end > position) &&
@@ -110,15 +115,14 @@ and "MODE Z". Reports whether `_name` was one of them.
 */
 D_STATIC bool
 d_ftp_internal_feature_tokens(
-    struct d_ftp_span      _name,
-    struct d_ftp_span      _parameters,
+    struct d_pack_text     _name,
+    struct d_pack_text     _parameters,
     struct d_ftp_features* _features
 )
 {
     // AUTH lists mechanisms
-    if (d_ftp_internal_equals_nocase(_name.data,
-                                     _name.length,
-                                     "AUTH"))
+    if (d_net_ascii_ieq_cstr(_name,
+                             "AUTH"))
     {
         _features->flags |= (d_ftp_internal_has_token(_parameters,
                                                       "TLS"))
@@ -131,9 +135,8 @@ d_ftp_internal_feature_tokens(
     }
 
     // "REST STREAM": restarts in stream mode
-    if (d_ftp_internal_equals_nocase(_name.data,
-                                     _name.length,
-                                     "REST"))
+    if (d_net_ascii_ieq_cstr(_name,
+                             "REST"))
     {
         _features->flags |= (d_ftp_internal_has_token(_parameters,
                                                       "STREAM"))
@@ -143,9 +146,8 @@ d_ftp_internal_feature_tokens(
     }
 
     // "MODE Z": deflate transfers
-    if (d_ftp_internal_equals_nocase(_name.data,
-                                     _name.length,
-                                     "MODE"))
+    if (d_net_ascii_ieq_cstr(_name,
+                             "MODE"))
     {
         _features->flags |= (d_ftp_internal_has_token(_parameters,
                                                       "Z"))
@@ -164,22 +166,20 @@ caller: MLST's facts and LANG's languages.
 */
 D_STATIC void
 d_ftp_internal_feature_lists(
-    struct d_ftp_span      _name,
-    struct d_ftp_span      _parameters,
+    struct d_pack_text     _name,
+    struct d_pack_text     _parameters,
     struct d_ftp_features* _features
 )
 {
     // MLST lists the facts the server can report
-    if (d_ftp_internal_equals_nocase(_name.data,
-                                     _name.length,
-                                     "MLST"))
+    if (d_net_ascii_ieq_cstr(_name,
+                             "MLST"))
     {
         _features->flags      |= D_FTP_FEATURE_MLST;
         _features->mlst_facts  = _parameters;
     }
-    else if (d_ftp_internal_equals_nocase(_name.data,
-                                          _name.length,
-                                          "LANG"))
+    else if (d_net_ascii_ieq_cstr(_name,
+                                  "LANG"))
     {
         _features->flags     |= D_FTP_FEATURE_LANG;
         _features->languages  = _parameters;
@@ -195,8 +195,8 @@ table; the five that carry parameters are read by the helpers above.
 */
 D_STATIC void
 d_ftp_internal_feature(
-    struct d_ftp_span      _name,
-    struct d_ftp_span      _parameters,
+    struct d_pack_text     _name,
+    struct d_pack_text     _parameters,
     struct d_ftp_features* _features
 )
 {
@@ -205,9 +205,8 @@ d_ftp_internal_feature(
     // names whose presence is the capability
     for (size_t index = 0u; index < count; index++)
     {
-        if (d_ftp_internal_equals_nocase(_name.data,
-                                         _name.length,
-                                         FEATURES[index].name))
+        if (d_net_ascii_ieq_cstr(_name,
+                                 FEATURES[index].name))
         {
             _features->flags |= FEATURES[index].flag;
 
@@ -253,28 +252,28 @@ d_ftp_features_parse(
         { NULL, 0u },
         { NULL, 0u }
     };
-    struct d_ftp_span     cursor   = { _text, _length };
-    struct d_ftp_span     line     = { NULL, 0u };
+    struct d_pack_text    cursor   = { _text, _length };
+    struct d_pack_text    line     = { NULL, 0u };
 
     // one feature per line
-    while (d_ftp_span_next_line(&cursor,
-                                &line))
+    while (d_net_line_next(&cursor,
+                           &line))
     {
-        const struct d_ftp_span entry = d_ftp_internal_trim(line.data,
-                                                            line.length);
-        size_t                  name_length = 0;
+        const struct d_pack_text entry = d_ftp_internal_trim(line.data,
+                                                             line.length);
+        size_t                   name_length = 0;
 
         // the name runs to the first blank
         while ( (name_length < entry.length) &&
-                (!d_ftp_internal_is_blank(entry.data[name_length])) )
+                (!d_net_ascii_is_blank(entry.data[name_length])) )
         {
             name_length++;
         }
 
-        const struct d_ftp_span name       = { entry.data, name_length };
-        const struct d_ftp_span parameters = d_ftp_internal_trim(
-                                                 entry.data + name_length,
-                                                 entry.length - name_length);
+        const struct d_pack_text name       = { entry.data, name_length };
+        const struct d_pack_text parameters = d_ftp_internal_trim(
+                                                  entry.data + name_length,
+                                                  entry.length - name_length);
 
         d_ftp_internal_feature(name,
                                parameters,
