@@ -14,11 +14,15 @@
 * read; builders append to a writer. sftp_client.h runs the protocol over an
 * SSH channel.
 *
+*   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
+* compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
+* (decision 101 of the register).
+*
 *
 * path:      /inc/djinterp/net/sftp/sftp_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -79,12 +83,22 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>  // size_t
-#include <stdint.h>  // uint8_t, uint32_t, uint64_t
 // djinterp
 #include "../../c/djinterp.h"                // framework root
 #include "../../c/util/sink_common.h"        // d_pack_text, d_pack_bytes
 #include "../../config/net/sftp/cfg_sftp.h"  // D_INTERNAL_SFTP_*
 #include "../ssh/ssh_wire.h"                 // d_ssh_reader, d_ssh_writer
+#include "../net_common.h"                   // d_net_error
+#include "../../config/net/cfg_net.h"        // D_INTERNAL_NET_REQUIRE_BACKENDS
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // uint8_t, uint32_t, uint64_t
+
+// 64-bit floor: this header needs a 64-bit integer type, and compiles to
+// nothing where the build has none -- ISO strict C++98 on a 32-bit target
+// (the owner's ruling of 2026.10.03 on round 3's question 1, (a)). The
+// answer is net_common.h's, taken once per translation unit, so that net's
+// gated headers agree.
+#if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++
@@ -280,12 +294,12 @@ enum d_sftp_error
     D_SFTP_ERROR_CONNECTION_LOST   = 7,      // the connection ended
     D_SFTP_ERROR_UNSUPPORTED       = 8,      // the server or client cannot
     D_SFTP_ERROR_INVALID_ARGUMENT  = 0x100,  // an argument is unusable
-    D_SFTP_ERROR_MEMORY            = 0x101,  // an allocation failed
+    D_SFTP_ERROR_OUT_OF_MEMORY     = 0x101,  // an allocation failed
     D_SFTP_ERROR_PROTOCOL          = 0x102,  // a malformed or stray packet
     D_SFTP_ERROR_VERSION           = 0x103,  // the server is older than 3
-    D_SFTP_ERROR_TRANSPORT         = 0x104,  // the SSH channel failed
-    D_SFTP_ERROR_BAD_SEQUENCE      = 0x105,  // not open, or already open
-    D_SFTP_ERROR_TOO_LARGE         = 0x106   // beyond a packet or buffer
+    D_SFTP_ERROR_TRANSPORT         = 0x104,  // the stream failed
+    D_SFTP_ERROR_STATE             = 0x105,  // not open, or already open
+    D_SFTP_ERROR_MESSAGE_TOO_LARGE = 0x106   // beyond a packet or buffer
 };
 
 
@@ -377,8 +391,16 @@ struct d_sftp_packet
 // never NULL. d_sftp_error_from_status() maps a status code onto its error:
 // D_SFTP_OK for OK, the same number for codes 1 to 8, and
 // D_SFTP_ERROR_FAILURE for any code a later draft added.
+// d_sftp_error_to_net() gives the d_net_error an error maps to, by the
+// rules net.h gives with it; an unknown value is D_NET_ERROR_UNKNOWN.
+// d_sftp_error_from_net() is what a connection's failure means to SFTP: one
+// closed, reset or aborted is D_SFTP_ERROR_CONNECTION_LOST, a want of memory
+// is D_SFTP_ERROR_OUT_OF_MEMORY, and any other failure, an unknown value
+// among them, is D_SFTP_ERROR_TRANSPORT; D_NET_OK is D_SFTP_OK.
 const char*       d_sftp_error_string(enum d_sftp_error _error);
 enum d_sftp_error d_sftp_error_from_status(uint32_t _code);
+enum d_net_error  d_sftp_error_to_net(enum d_sftp_error _error);
+enum d_sftp_error d_sftp_error_from_net(enum d_net_error _error);
 
 
 //==============================================================================
@@ -543,5 +565,9 @@ enum d_sftp_error d_sftp_read_limits(struct d_ssh_reader*  _reader,
 
 D_EXTERN_C_END
 
+
+#elif (D_INTERNAL_NET_REQUIRE_BACKENDS == 1)
+    #error "sftp_common.h: no 64-bit integer type (D_INTERNAL_NET_HAS_INT64)"
+#endif  // D_INTERNAL_NET_HAS_INT64
 
 #endif  // DJINTERP_NET_SFTP_SFTP_COMMON_H

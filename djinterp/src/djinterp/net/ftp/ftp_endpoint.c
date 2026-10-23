@@ -10,18 +10,23 @@
 * path:      /src/djinterp/net/ftp/ftp_endpoint.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_endpoint.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // uint8_t, uint16_t, uint64_t
 #include <string.h>   // memchr, memcpy
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"          // framework root
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_span
-#include "./ftp_internal.h"                               // shared helpers
+#include "../../../../inc/djinterp/c/djinterp.h"             // framework root
+#include "../../../../inc/djinterp/c/util/sink_common.h"     // d_pack_text
+#include "../../../../inc/djinterp/net/net_common.h"  // d_net_ascii_is_digit
+#include "../../../../inc/djinterp/net/codec/codec_hex.h"    // d_net_hex_value
+#include "../../../../inc/djinterp/net/ftp/ftp_common.h"     // d_ftp_buffer, d_ftp_error, D_FTP_PORT_*
+#include "./ftp_internal.h"                                  // shared helpers
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t, uint16_t,
+                                                     // uint64_t
 
 
 //==============================================================================
@@ -49,7 +54,7 @@ d_ftp_internal_parse_ipv4(
 
         // the field is the run of digits here
         while ( ((position + digits) < _length) &&
-                (d_ftp_internal_is_digit(_text[position + digits])) )
+                (d_net_ascii_is_digit(_text[position + digits])) )
         {
             digits++;
         }
@@ -122,7 +127,7 @@ d_ftp_internal_is_ipv6_text(
         }
 
         if ( (c != '.') &&
-             (d_ftp_internal_hex_value(c) < 0) )
+             (d_net_hex_value(c) < 0) )
         {
             return false;
         }
@@ -279,7 +284,7 @@ d_ftp_internal_parse_tuple(
 
         // the field is the run of digits here
         while ( ((position + digits) < _length) &&
-                (d_ftp_internal_is_digit(_text[position + digits])) )
+                (d_net_ascii_is_digit(_text[position + digits])) )
         {
             digits++;
         }
@@ -341,9 +346,9 @@ d_ftp_internal_is_delimiter(
     char _c
 )
 {
-    return ( (_c >= '!')                    &&
-             (_c <= '~')                    &&
-             (!d_ftp_internal_is_digit(_c)) );
+    return ( (_c >= '!')                 &&
+             (_c <= '~')                 &&
+             (!d_net_ascii_is_digit(_c)) );
 }
 
 /*
@@ -369,9 +374,9 @@ d_ftp_parse_pasv(
     for (size_t start = 0; start < _length; start++)
     {
         // only the first digit of a run starts a candidate
-        if ( (!d_ftp_internal_is_digit(_text[start])) ||
+        if ( (!d_net_ascii_is_digit(_text[start])) ||
              ( (start > 0u) &&
-               (d_ftp_internal_is_digit(_text[start - 1u])) ) )
+               (d_net_ascii_is_digit(_text[start - 1u])) ) )
         {
             continue;
         }
@@ -436,7 +441,7 @@ d_ftp_parse_epsv(
 
         // the port runs to the next non-digit
         while ( (digits_end < _length) &&
-                (d_ftp_internal_is_digit(_text[digits_end])) )
+                (d_net_ascii_is_digit(_text[digits_end])) )
         {
             digits_end++;
         }
@@ -483,14 +488,14 @@ d_ftp_parse_port(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const struct d_ftp_span text      = d_ftp_internal_trim(_text,
-                                                            _length);
-    uint8_t                 values[6] = { 0 };
-    size_t                  end       = 0;
-    const bool              parsed    = d_ftp_internal_parse_tuple(text.data,
-                                                                   text.length,
-                                                                   values,
-                                                                   &end);
+    const struct d_pack_text text      = d_ftp_internal_trim(_text,
+                                                             _length);
+    uint8_t                  values[6] = { 0 };
+    size_t                   end       = 0;
+    const bool               parsed    = d_ftp_internal_parse_tuple(text.data,
+                                                                    text.length,
+                                                                    values,
+                                                                    &end);
 
     // exactly one tuple, with a usable port
     if ( (!parsed)                                  ||
@@ -514,8 +519,8 @@ three fields: protocol, address, and port.
 */
 D_STATIC bool
 d_ftp_internal_eprt_fields(
-    struct d_ftp_span  _text,
-    struct d_ftp_span* _fields
+    struct d_pack_text  _text,
+    struct d_pack_text* _fields
 )
 {
     size_t count = 0u;
@@ -552,9 +557,9 @@ and its port of 1 to 65535, then stores them.
 */
 D_STATIC enum d_ftp_error
 d_ftp_internal_eprt_store(
-    const struct d_ftp_span* _fields,
-    uint64_t                 _protocol,
-    struct d_ftp_endpoint*   _out
+    const struct d_pack_text* _fields,
+    uint64_t                  _protocol,
+    struct d_ftp_endpoint*    _out
 )
 {
     uint8_t    octets[4]  = { 0 };
@@ -607,10 +612,10 @@ d_ftp_parse_eprt(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const struct d_ftp_span text      = d_ftp_internal_trim(_text,
-                                                            _length);
-    struct d_ftp_span       fields[3] = { { NULL, 0u } };
-    uint64_t                protocol  = 0u;
+    const struct d_pack_text text      = d_ftp_internal_trim(_text,
+                                                             _length);
+    struct d_pack_text       fields[3] = { { NULL, 0u } };
+    uint64_t                 protocol  = 0u;
 
     // one delimiter, no digit, around three fields, the first a number
     if ( (text.length < 2u)                                   ||

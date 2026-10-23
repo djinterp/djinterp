@@ -2,10 +2,10 @@
 * djinterp [net]                                                      claude.hpp
 *
 *   Vendor integration for automating Anthropic's Claude via the Messages API.
-* It layers a typed request/response surface and a client over the neutral web
-* vocabulary (web.hpp) and the libcurl transport (curl/curl.hpp).
+* It layers a typed request/response surface and a client over net's neutral
+* HTTP vocabulary (http.hpp) and the libcurl transport (curl/curl.hpp).
 *
-* CONTENTS (all in namespace djinterp::web::vendor::claude):
+* CONTENTS (all in namespace djinterp::net::vendor::claude):
 *   0.  endpoint / header / model constants
 *   I.   minimal JSON writer + string reader (internal; we own the request
 *        JSON entirely, and read only the few response fields we expose)
@@ -23,25 +23,34 @@
 * curl.hpp verifies by default). Keep keys out of source; prefer supplying them
 * from the environment or a secret store at construction time.
 *
-*   Requires:  web/curl/curl.hpp (and therefore libcurl) and web.hpp.
+*   Requires:  curl/curl.hpp (and therefore libcurl) and http.hpp, whose
+*              header helpers link http/http.c and the codec's sources;
+*              C++98 and later. The SSE callback is a re_std::function, the
+*              JSON writer's integers are long, and role_type is scoped in a
+*              struct (decision 3.4): role_type::value.
 *
 *
 * path:      /inc/djinterp/net/api/claude.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.16
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 #ifndef DJINTERP_NET_API_CLAUDE_HPP
 #define DJINTERP_NET_API_CLAUDE_HPP 1
 
 // std
-#include <cstddef>
-#include <functional>
-#include <string>
-#include <vector>
-// djinterp -- libcurl transport (pulls web.hpp: neutral vocabulary + types)
-#include "../curl/curl.hpp"
+#include <cstddef>  // std::size_t
+#include <cstdio>   // std::sprintf
+#include <string>   // std::string
+#include <vector>   // std::vector
+// djinterp -- libcurl transport (pulls http.hpp: neutral vocabulary and types)
+#include "../net_common.h"  // d_net_ascii_is_space
+#include "../codec/codec_hex.h"    // d_net_hex_digit, d_net_hex_value
+#include "../codec/codec_line.h"   // d_net_line_find
+#include "../curl/curl.hpp"        // curl::perform, perform_stream, body_sink
+// re_std
+#include "../../../re_std/functional/function.hpp"  // re_std::function
 
 
 // D_KEYWORD_VENDOR
@@ -49,17 +58,17 @@
 // integrations. Guarded for forward compatibility with the core.
 #ifndef D_KEYWORD_VENDOR
     #define D_KEYWORD_VENDOR            vendor
-#endif
+#endif  // D_KEYWORD_VENDOR
 
 // D_KEYWORD_CLAUDE
 //   keyword: resolves to `claude`. Namespace tag for the Anthropic integration.
 #ifndef D_KEYWORD_CLAUDE
     #define D_KEYWORD_CLAUDE            claude
-#endif
+#endif  // D_KEYWORD_CLAUDE
 
 
 NS_DJINTERP
-NS_WEB
+NS_NET
 D_NAMESPACE(D_KEYWORD_VENDOR)
 D_NAMESPACE(D_KEYWORD_CLAUDE)
 
@@ -113,7 +122,8 @@ NS_INTERNAL
     // append_json_escaped
     //   function: appends `_in` to `_out`, escaping it for inclusion inside a
     // JSON string literal (control characters below 0x20 become \u00XX; the
-    // standard short escapes are used where defined). Reuses web::hex_digit.
+    // standard short escapes are used where defined). Hex digits are net's
+    // codec's.
     inline void
     append_json_escaped(
         std::string&       _out,
@@ -138,8 +148,10 @@ NS_INTERNAL
                     if (c < 0x20)
                     {
                         _out += "\\u00";
-                        _out.push_back(hex_digit((c >> 4) & 0x0F));
-                        _out.push_back(hex_digit(c & 0x0F));
+                        _out.push_back(::d_net_hex_digit((c >> 4) & 0x0Fu,
+                                                         D_NET_HEX_UPPER));
+                        _out.push_back(::d_net_hex_digit(c & 0x0Fu,
+                                                         D_NET_HEX_UPPER));
                     }
                     else
                     {
@@ -215,7 +227,8 @@ NS_INTERNAL
         {
             separate();
             m_out.push_back('"');
-            append_json_escaped(m_out, _name);
+            append_json_escaped(m_out,
+                                _name);
             m_out.push_back('"');
             m_out.push_back(':');
             m_need_comma = false;
@@ -231,7 +244,8 @@ NS_INTERNAL
         {
             separate();
             m_out.push_back('"');
-            append_json_escaped(m_out, _string);
+            append_json_escaped(m_out,
+                                _string);
             m_out.push_back('"');
             m_need_comma = true;
 
@@ -239,23 +253,40 @@ NS_INTERNAL
         }
 
         // value_int
+        //   function: an integer, in decimal (std::to_string is C++11's).
+        // long, which every level has, holds what the API counts --
+        // max_tokens, top_k -- so the writer needs no 64-bit type, which
+        // ISO strict C++98 on a 32-bit target lacks.
         void
         value_int(
-            long long _n
+            long _n
         )
         {
-            value_raw(std::to_string(_n));
+            char      digits[32];
+            const int length = std::sprintf(digits,
+                                            "%ld",
+                                            _n);
+
+            value_raw(std::string(digits,
+                                  static_cast<std::size_t>(length)));
 
             return;
         }
 
         // value_double
+        //   function: a real, as std::to_string wrote it ("%f").
         void
         value_double(
             double _d
         )
         {
-            value_raw(std::to_string(_d));
+            char      digits[512];
+            const int length = std::sprintf(digits,
+                                            "%f",
+                                            _d);
+
+            value_raw(std::string(digits,
+                                  static_cast<std::size_t>(length)));
 
             return;
         }
@@ -313,6 +344,113 @@ NS_INTERNAL
         bool        m_need_comma;
     };
 
+    // append_utf8
+    //   function: appends the UTF-8 encoding of a code point of the Basic
+    // Multilingual Plane (below 0x10000): one, two or three octets.
+    inline void
+    append_utf8(
+        std::string& _out,
+        int          _code
+    )
+    {
+        // the encoding's length follows the code point's size
+        if (_code < 0x80)
+        {
+            _out.push_back(static_cast<char>(_code));
+        }
+        else if (_code < 0x800)
+        {
+            _out.push_back(static_cast<char>(0xC0 | (_code >> 6)));
+            _out.push_back(static_cast<char>(0x80 | (_code & 0x3F)));
+        }
+        else
+        {
+            _out.push_back(static_cast<char>(0xE0 | (_code >> 12)));
+            _out.push_back(static_cast<char>(0x80 | ((_code >> 6) & 0x3F)));
+            _out.push_back(static_cast<char>(0x80 | (_code & 0x3F)));
+        }
+
+        return;
+    }
+
+    // read_unicode_escape
+    //   function: for a \u escape whose four hex digits start at `_i`,
+    // appends the code point as UTF-8 and moves `_i` past the digits. Without
+    // four hex digits the escape stands for a plain 'u', and `_i` stays.
+    inline void
+    read_unicode_escape(
+        const std::string& _s,
+        std::size_t&       _i,
+        std::string&       _value
+    )
+    {
+        int code = 0;
+
+        // four characters must remain
+        if ((_i + 4) > _s.size())
+        {
+            _value.push_back('u');
+
+            return;
+        }
+
+        // each of them a hex digit
+        for (std::size_t k = 0; k < 4u; ++k)
+        {
+            const int d = ::d_net_hex_value(_s[_i + k]);
+
+            if (d < 0)
+            {
+                _value.push_back('u');
+
+                return;
+            }
+
+            code = (code << 4) | d;
+        }
+
+        _i += 4;
+        append_utf8(_value,
+                    code);
+
+        return;
+    }
+
+    // read_escape
+    //   function: decodes the escape whose letter is at `_i`, moving `_i`
+    // past it; a letter JSON does not define stands for itself.
+    inline void
+    read_escape(
+        const std::string& _s,
+        std::size_t&       _i,
+        std::string&       _value
+    )
+    {
+        const char e = _s[_i++];
+
+        switch (e)
+        {
+            case '"':  _value.push_back('"');  break;
+            case '\\': _value.push_back('\\'); break;
+            case '/':  _value.push_back('/');  break;
+            case 'b':  _value.push_back('\b'); break;
+            case 'f':  _value.push_back('\f'); break;
+            case 'n':  _value.push_back('\n'); break;
+            case 'r':  _value.push_back('\r'); break;
+            case 't':  _value.push_back('\t'); break;
+            case 'u':
+                read_unicode_escape(_s,
+                                    _i,
+                                    _value);
+                break;
+            default:
+                _value.push_back(e);
+                break;
+        }
+
+        return;
+    }
+
     // read_json_string
     //   function: reads a JSON string literal from `_s` beginning at `_pos`
     // (which must index the opening quote), decoding escapes into `_out` and
@@ -352,84 +490,13 @@ NS_INTERNAL
                 return true;
             }
 
+            // an escape, unless the backslash is the last character
             if ( (c == '\\') &&
                  (i < _s.size()) )
             {
-                const char e = _s[i++];
-
-                switch (e)
-                {
-                    case '"':  value.push_back('"');  break;
-                    case '\\': value.push_back('\\'); break;
-                    case '/':  value.push_back('/');  break;
-                    case 'b':  value.push_back('\b'); break;
-                    case 'f':  value.push_back('\f'); break;
-                    case 'n':  value.push_back('\n'); break;
-                    case 'r':  value.push_back('\r'); break;
-                    case 't':  value.push_back('\t'); break;
-                    case 'u':
-                    {
-                        // decode four hex digits into a BMP code point
-                        if ((i + 4) <= _s.size())
-                        {
-                            int  code = 0;
-                            bool ok   = true;
-
-                            for (int k = 0; k < 4; ++k)
-                            {
-                                const int d = hex_value(_s[i + k]);
-
-                                if (d < 0)
-                                {
-                                    ok = false;
-
-                                    break;
-                                }
-
-                                code = (code << 4) | d;
-                            }
-
-                            if (ok)
-                            {
-                                i += 4;
-
-                                // UTF-8 encode the BMP code point
-                                if (code < 0x80)
-                                {
-                                    value.push_back(static_cast<char>(code));
-                                }
-                                else if (code < 0x800)
-                                {
-                                    value.push_back(
-                                        static_cast<char>(0xC0 | (code >> 6)));
-                                    value.push_back(
-                                        static_cast<char>(0x80 | (code & 0x3F)));
-                                }
-                                else
-                                {
-                                    value.push_back(
-                                        static_cast<char>(0xE0 | (code >> 12)));
-                                    value.push_back(
-                                        static_cast<char>(0x80 | ((code >> 6) & 0x3F)));
-                                    value.push_back(
-                                        static_cast<char>(0x80 | (code & 0x3F)));
-                                }
-                            }
-                            else
-                            {
-                                value.push_back('u');
-                            }
-                        }
-                        else
-                        {
-                            value.push_back('u');
-                        }
-                        break;
-                    }
-                    default:
-                        value.push_back(e);
-                        break;
-                }
+                read_escape(_s,
+                            i,
+                            value);
             }
             else
             {
@@ -455,7 +522,8 @@ NS_INTERNAL
     )
     {
         const std::string needle = "\"" + _key + "\"";
-        std::size_t       pos    = _s.find(needle, _from);
+        std::size_t       pos    = _s.find(needle,
+                                           _from);
 
         // scan each candidate key occurrence
         while (pos != std::string::npos)
@@ -464,8 +532,7 @@ NS_INTERNAL
 
             // skip insignificant whitespace before the ':'
             while ( (i < _s.size()) &&
-                    ( (_s[i] == ' ')  || (_s[i] == '\t') ||
-                      (_s[i] == '\n') || (_s[i] == '\r') ) )
+                    (::d_net_ascii_is_space(_s[i])) )
             {
                 ++i;
             }
@@ -478,8 +545,7 @@ NS_INTERNAL
 
                 // skip whitespace before the value
                 while ( (i < _s.size()) &&
-                        ( (_s[i] == ' ')  || (_s[i] == '\t') ||
-                          (_s[i] == '\n') || (_s[i] == '\r') ) )
+                        (::d_net_ascii_is_space(_s[i])) )
                 {
                     ++i;
                 }
@@ -489,14 +555,18 @@ NS_INTERNAL
                 {
                     std::size_t end = 0;
 
-                    if (read_json_string(_s, i, _out, end))
+                    if (read_json_string(_s,
+                                         i,
+                                         _out,
+                                         end))
                     {
                         return true;
                     }
                 }
             }
 
-            pos = _s.find(needle, pos + needle.size());
+            pos = _s.find(needle,
+                          pos + needle.size());
         }
 
         return false;
@@ -512,7 +582,10 @@ NS_INTERNAL
     {
         std::string out;
 
-        return string_value_at_key(_s, _key, 0, out) ? out : std::string();
+        return string_value_at_key(_s,
+                                   _key,
+                                   0,
+                                   out) ? out : std::string();
     }
 
     // json_string_after
@@ -536,7 +609,10 @@ NS_INTERNAL
 
         std::string out;
 
-        return string_value_at_key(_s, _key, pos, out) ? out : std::string();
+        return string_value_at_key(_s,
+                                   _key,
+                                   pos,
+                                   out) ? out : std::string();
     }
 
     // concat_string_values
@@ -556,7 +632,8 @@ NS_INTERNAL
         // walk every key occurrence, appending each string value
         for (;;)
         {
-            std::size_t pos = _s.find(needle, from);
+            std::size_t pos = _s.find(needle,
+                                      from);
 
             if (pos == std::string::npos)
             {
@@ -567,8 +644,7 @@ NS_INTERNAL
 
             // skip whitespace before ':'
             while ( (i < _s.size()) &&
-                    ( (_s[i] == ' ')  || (_s[i] == '\t') ||
-                      (_s[i] == '\n') || (_s[i] == '\r') ) )
+                    (::d_net_ascii_is_space(_s[i])) )
             {
                 ++i;
             }
@@ -579,8 +655,7 @@ NS_INTERNAL
                 ++i;
 
                 while ( (i < _s.size()) &&
-                        ( (_s[i] == ' ')  || (_s[i] == '\t') ||
-                          (_s[i] == '\n') || (_s[i] == '\r') ) )
+                        (::d_net_ascii_is_space(_s[i])) )
                 {
                     ++i;
                 }
@@ -591,7 +666,10 @@ NS_INTERNAL
                     std::string piece;
                     std::size_t end = 0;
 
-                    if (read_json_string(_s, i, piece, end))
+                    if (read_json_string(_s,
+                                         i,
+                                         piece,
+                                         end))
                     {
                         result += piece;
                         from    = end;
@@ -618,17 +696,20 @@ NS_END  // internal
 //   enum: the author of a message in a conversation. (The type is named
 // role_type so that message may carry a natural `role` member without the name
 // colliding with the type inside class scope.)
-enum class role_type : unsigned char
+struct role_type
 {
-    user,
-    assistant
+    enum value
+    {
+        user,
+        assistant
+    };
 };
 
 // to_string(role_type)
 //   function: the API token for a role ("user" / "assistant").
 D_NODISCARD inline const char*
 to_string(
-    role_type _role
+    role_type::value _role
 )
 {
     switch (_role)
@@ -645,8 +726,8 @@ to_string(
 // serialized as a JSON string (the API's shorthand for a single text block).
 struct message
 {
-    role_type   role;
-    std::string content;
+    role_type::value role;
+    std::string      content;
 
     message()
         : role(role_type::user),
@@ -655,7 +736,7 @@ struct message
     }
 
     message(
-        role_type          _role,
+        role_type::value   _role,
         const std::string& _content
     )
         : role(_role),
@@ -671,7 +752,8 @@ user_message(
     const std::string& _content
 )
 {
-    return message(role_type::user, _content);
+    return message(role_type::user,
+                   _content);
 }
 
 // assistant_message
@@ -681,7 +763,8 @@ assistant_message(
     const std::string& _content
 )
 {
-    return message(role_type::assistant, _content);
+    return message(role_type::assistant,
+                   _content);
 }
 
 // message_request
@@ -718,11 +801,12 @@ struct message_request
     //   function: appends a message; returns *this for chaining.
     message_request&
     add_message(
-        role_type          _role,
+        role_type::value   _role,
         const std::string& _content
     )
     {
-        messages.push_back(message(_role, _content));
+        messages.push_back(message(_role,
+                                   _content));
 
         return *this;
     }
@@ -734,7 +818,8 @@ struct message_request
         const std::string& _content
     )
     {
-        return add_message(role_type::user, _content);
+        return add_message(role_type::user,
+                           _content);
     }
 
     message_request&
@@ -742,7 +827,8 @@ struct message_request
         const std::string& _content
     )
     {
-        return add_message(role_type::assistant, _content);
+        return add_message(role_type::assistant,
+                           _content);
     }
 
     // to_json
@@ -768,54 +854,9 @@ struct message_request
             w.value(system);
         }
 
-        // the conversation
-        w.key("messages");
-        w.begin_array();
-
-        for (std::size_t i = 0; i < messages.size(); ++i)
-        {
-            w.begin_object();
-            w.key("role");
-            w.value(to_string(messages[i].role));
-            w.key("content");
-            w.value(messages[i].content);
-            w.end_object();
-        }
-
-        w.end_array();
-
-        // optional sampling controls
-        if (temperature >= 0.0)
-        {
-            w.key("temperature");
-            w.value_double(temperature);
-        }
-
-        if (top_p >= 0.0)
-        {
-            w.key("top_p");
-            w.value_double(top_p);
-        }
-
-        if (top_k >= 0)
-        {
-            w.key("top_k");
-            w.value_int(top_k);
-        }
-
-        // optional stop sequences
-        if (!stop_sequences.empty())
-        {
-            w.key("stop_sequences");
-            w.begin_array();
-
-            for (std::size_t i = 0; i < stop_sequences.size(); ++i)
-            {
-                w.value(stop_sequences[i]);
-            }
-
-            w.end_array();
-        }
+        // the conversation, then the sampling controls that are set
+        write_messages(w);
+        write_sampling(w);
 
         // streaming toggle (only emitted when enabled)
         if (stream)
@@ -827,6 +868,77 @@ struct message_request
         w.end_object();
 
         return w.str();
+    }
+
+private:
+    // write_messages
+    //   function: the conversation, as to_json's "messages" array.
+    void
+    write_messages(
+        internal::json_writer& _writer
+    ) const
+    {
+        _writer.key("messages");
+        _writer.begin_array();
+
+        // each turn as its role and content
+        for (std::size_t i = 0; i < messages.size(); ++i)
+        {
+            _writer.begin_object();
+            _writer.key("role");
+            _writer.value(to_string(messages[i].role));
+            _writer.key("content");
+            _writer.value(messages[i].content);
+            _writer.end_object();
+        }
+
+        _writer.end_array();
+
+        return;
+    }
+
+    // write_sampling
+    //   function: the optional sampling controls and stop sequences, each
+    // only when it is set.
+    void
+    write_sampling(
+        internal::json_writer& _writer
+    ) const
+    {
+        // optional sampling controls
+        if (temperature >= 0.0)
+        {
+            _writer.key("temperature");
+            _writer.value_double(temperature);
+        }
+
+        if (top_p >= 0.0)
+        {
+            _writer.key("top_p");
+            _writer.value_double(top_p);
+        }
+
+        if (top_k >= 0)
+        {
+            _writer.key("top_k");
+            _writer.value_int(top_k);
+        }
+
+        // optional stop sequences
+        if (!stop_sequences.empty())
+        {
+            _writer.key("stop_sequences");
+            _writer.begin_array();
+
+            for (std::size_t i = 0; i < stop_sequences.size(); ++i)
+            {
+                _writer.value(stop_sequences[i]);
+            }
+
+            _writer.end_array();
+        }
+
+        return;
     }
 };
 
@@ -859,7 +971,7 @@ struct message_response
 
     // transport
     //   function: the library-neutral transport error (none on success).
-    D_NODISCARD transport_error
+    D_NODISCARD transport_error::value
     transport() const
     {
         return http.error;
@@ -880,7 +992,8 @@ struct message_response
     D_NODISCARD std::string
     text() const
     {
-        return internal::concat_string_values(http.body, "text");
+        return internal::concat_string_values(http.body,
+                                              "text");
     }
 
     // id / model / stop_reason
@@ -888,19 +1001,22 @@ struct message_response
     D_NODISCARD std::string
     id() const
     {
-        return internal::json_string(http.body, "id");
+        return internal::json_string(http.body,
+                                     "id");
     }
 
     D_NODISCARD std::string
     model() const
     {
-        return internal::json_string(http.body, "model");
+        return internal::json_string(http.body,
+                                     "model");
     }
 
     D_NODISCARD std::string
     stop_reason() const
     {
-        return internal::json_string(http.body, "stop_reason");
+        return internal::json_string(http.body,
+                                     "stop_reason");
     }
 
     // is_error
@@ -918,7 +1034,9 @@ struct message_response
     D_NODISCARD std::string
     error_type() const
     {
-        return internal::json_string_after(http.body, "error", "type");
+        return internal::json_string_after(http.body,
+                                           "error",
+                                           "type");
     }
 
     // error_message
@@ -926,7 +1044,9 @@ struct message_response
     D_NODISCARD std::string
     error_message() const
     {
-        return internal::json_string_after(http.body, "error", "message");
+        return internal::json_string_after(http.body,
+                                           "error",
+                                           "message");
     }
 };
 
@@ -946,8 +1066,8 @@ class sse_parser
 public:
     // event_fn
     //   type: the per-event callback -- (event_name, data) -> keep_going.
-    using event_fn = std::function<bool(const std::string&,
-                                        const std::string&)>;
+    typedef re_std::function<bool(const std::string&,
+                                  const std::string&)> event_fn;
 
     explicit sse_parser(
         event_fn _on_event
@@ -976,27 +1096,29 @@ public:
             return false;
         }
 
-        m_buffer.append(_data, _length);
+        m_buffer.append(_data,
+                        _length);
 
-        // process every complete line currently buffered
+        // process every complete line currently buffered, CRLF or LF
         for (;;)
         {
-            const std::size_t nl = m_buffer.find('\n');
+            const ::d_pack_text held  = { m_buffer.data(),
+                                          m_buffer.size() };
+            ::d_net_line        found = { { D_NULLPTR, 0u }, 0u, false };
 
-            if (nl == std::string::npos)
+            // the rest waits for its LF
+            if (!::d_net_line_find(held,
+                                   0u,
+                                   &found))
             {
                 break;
             }
 
-            std::string line = m_buffer.substr(0, nl);
-            m_buffer.erase(0, nl + 1);
+            const std::string line(found.text.data,
+                                   found.text.length);
 
-            // tolerate CRLF line endings
-            if ( (!line.empty()) &&
-                 (line.back() == '\r') )
-            {
-                line.pop_back();
-            }
+            m_buffer.erase(0,
+                           found.size);
 
             // a blank line terminates the current event
             if (line.empty())
@@ -1065,7 +1187,8 @@ private:
         }
         else
         {
-            field = _line.substr(0, colon);
+            field = _line.substr(0,
+                                 colon);
 
             std::size_t vstart = colon + 1;
 
@@ -1117,7 +1240,10 @@ private:
         ev.swap(m_event);
         da.swap(m_data);
 
-        return m_on_event ? m_on_event(ev, da) : true;
+        // no callback keeps the stream going
+        return (!m_on_event.empty()) ? m_on_event(ev,
+                                                  da)
+                                     : true;
     }
 
     event_fn    m_on_event;
@@ -1176,7 +1302,9 @@ public:
         const std::string& _value
     )
     {
-        set_header(m_extra_headers, _name, _value);
+        set_header(m_extra_headers,
+                   _name,
+                   _value);
 
         return *this;
     }
@@ -1199,7 +1327,7 @@ public:
     }
 
     // build_request
-    //   function: assembles the neutral web::request (URL, auth/version/content
+    //   function: assembles the neutral net::request (URL, auth/version/content
     // headers, any defaults, and the serialized body) for a message_request.
     D_NODISCARD request
     build_request(
@@ -1208,17 +1336,21 @@ public:
     {
         request req;
 
-        req.method = http_method::post;
+        req.method = net::http_method::post;
         req.url    = m_base_url + messages_path;
 
-        req.set_header(header_api_key, m_api_key);
-        req.set_header(header_version, m_version);
-        req.set_header(header_name::content_type, content_type::json);
+        req.set_header(header_api_key,
+                       m_api_key);
+        req.set_header(header_version,
+                       m_version);
+        req.set_header(http_field::content_type,
+                       http_media::json);
 
         // optional beta opt-in header
         if (!m_beta.empty())
         {
-            req.set_header(header_beta, m_beta);
+            req.set_header(header_beta,
+                           m_beta);
         }
 
         // caller-supplied default headers
@@ -1245,7 +1377,8 @@ public:
         message_response out;
 
         const request req = build_request(_request);
-        out.http = curl::perform(req, m_options);
+        out.http = curl::perform(req,
+                                 m_options);
 
         return out;
     }
@@ -1257,7 +1390,7 @@ public:
     // callback rather than buffered. Returns the neutral transport error.
     // Note: `stream` is forced on in the sent request regardless of the flag on
     // `_request`.
-    D_NODISCARD transport_error
+    D_NODISCARD transport_error::value
     stream(
         const message_request&    _request,
         const sse_parser::event_fn& _on_event,
@@ -1272,14 +1405,13 @@ public:
         sse_parser parser(_on_event);
 
         // bridge libcurl body chunks into the SSE parser
-        curl::body_sink sink =
-            [&parser](const char* _data, std::size_t _length) -> bool
-            {
-                return parser.feed(_data, _length);
-            };
+        const curl::body_sink sink = sse_feeder(&parser);
 
-        const transport_error err =
-            curl::perform_stream(req, sink, _meta.http, m_options);
+        const transport_error::value err =
+            curl::perform_stream(req,
+                                 sink,
+                                 _meta.http,
+                                 m_options);
 
         parser.finish();
 
@@ -1287,6 +1419,29 @@ public:
     }
 
 private:
+    // sse_feeder
+    //   struct: stream()'s sink: hands each body chunk to the SSE parser.
+    struct sse_feeder
+    {
+        explicit sse_feeder(
+            sse_parser* _parser
+        )
+            : parser(_parser)
+        {}
+
+        bool
+        operator()(
+            const char* _data,
+            std::size_t _length
+        ) const
+        {
+            return parser->feed(_data,
+                                _length);
+        }
+
+        sse_parser* parser;
+    };
+
     std::string     m_api_key;
     std::string     m_base_url;
     std::string     m_version;
@@ -1319,7 +1474,7 @@ quick_message(
 
 NS_END  // claude
 NS_END  // vendor
-NS_END  // web
+NS_END  // net
 NS_END  // djinterp
 
 

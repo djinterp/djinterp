@@ -2,19 +2,17 @@
 * djinterp [net]                                                    ftp_common.c
 *
 * Implementation of the shared vocabulary declared in ftp_common.h.
-*   Buffer preparation, line splitting, and error descriptions.
+*   Buffer preparation and error descriptions.
 *
 *
 * path:      /src/djinterp/net/ftp/ftp_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // corresponding header
 // std
-#include <stdbool.h>  // bool
-#include <stddef.h>   // size_t
-#include <string.h>   // memchr
+#include <stddef.h>  // size_t
 
 
 //==============================================================================
@@ -35,8 +33,8 @@ static const char* const ERROR_MESSAGES[] =
     "out of memory",                   // D_FTP_ERROR_OUT_OF_MEMORY
     "host name did not resolve",       // D_FTP_ERROR_RESOLVE
     "connection failed",               // D_FTP_ERROR_CONNECT
-    "timed out",                       // D_FTP_ERROR_TIMEOUT
-    "connection closed by peer",       // D_FTP_ERROR_CONNECTION_CLOSED
+    "timed out",                       // D_FTP_ERROR_TIMED_OUT
+    "connection closed by peer",       // D_FTP_ERROR_CLOSED
     "TLS failure",                     // D_FTP_ERROR_TLS
     "service not available",           // D_FTP_ERROR_SERVICE_UNAVAILABLE
     "cannot open data connection",     // D_FTP_ERROR_DATA_CONNECTION
@@ -99,50 +97,6 @@ d_ftp_buffer_init(
 }
 
 /*
-d_ftp_span_next_line
-  One memchr() finds the LF; a CR before it is trimmed from the line rather
-than searched for, so CR LF and bare-LF text split identically.
-*/
-bool
-d_ftp_span_next_line(
-    struct d_ftp_span* _cursor,
-    struct d_ftp_span* _out_line
-)
-{
-    // parameter validation; an exhausted cursor has no lines left
-    if ( (!_cursor)               ||
-         (!_out_line)             ||
-         (!_cursor->data)         ||
-         (_cursor->length == 0u) )
-    {
-        return false;
-    }
-
-    const char* const newline  = memchr(_cursor->data,
-                                        '\n',
-                                        _cursor->length);
-    const size_t      length   = (newline)
-                                 ? (size_t)(newline - _cursor->data)
-                                 : _cursor->length;
-    const size_t      consumed = (newline) ? (length + 1u) : length;
-
-    _out_line->data   = _cursor->data;
-    _out_line->length = length;
-
-    // a CR before the LF belongs to the terminator
-    if ( (length > 0u) &&
-         (_out_line->data[length - 1u] == '\r') )
-    {
-        _out_line->length--;
-    }
-
-    _cursor->data   += consumed;
-    _cursor->length -= consumed;
-
-    return true;
-}
-
-/*
 d_ftp_error_string
   A lookup in ERROR_MESSAGES, whose assertion keeps it complete as a switch
 over every enumerator would under -Wswitch; values out of range fall back
@@ -162,4 +116,110 @@ d_ftp_error_string(
     }
 
     return ERROR_MESSAGES[index];
+}
+
+/*
+d_ftp_error_to_net
+  One case per enumerator and no default, so the compiler reports a missing
+case; the groups follow net.h's rules. A value outside the enum is UNKNOWN.
+*/
+enum d_net_error
+d_ftp_error_to_net(
+    enum d_ftp_error _error
+)
+{
+    switch (_error)
+    {
+        case D_FTP_OK:
+            return D_NET_OK;
+        case D_FTP_ERROR_INVALID_ARGUMENT:
+        case D_FTP_ERROR_BUFFER_TOO_SMALL:
+            return D_NET_ERROR_INVALID_ARGUMENT;
+        case D_FTP_ERROR_MALFORMED:
+        case D_FTP_ERROR_TLS:
+        case D_FTP_ERROR_COMMAND_UNRECOGNIZED:
+        case D_FTP_ERROR_SYNTAX:
+        case D_FTP_ERROR_BAD_SEQUENCE:
+        case D_FTP_ERROR_UNEXPECTED_REPLY:
+            return D_NET_ERROR_PROTOCOL;
+        case D_FTP_ERROR_RESOLVE:
+            return D_NET_ERROR_HOST_UNREACHABLE;
+        case D_FTP_ERROR_CONNECT:
+        case D_FTP_ERROR_DATA_CONNECTION:
+            return D_NET_ERROR_CONNECTION_REFUSED;
+        case D_FTP_ERROR_CLOSED:
+        case D_FTP_ERROR_SERVICE_UNAVAILABLE:
+        case D_FTP_ERROR_TRANSFER_ABORTED:
+            return D_NET_ERROR_CLOSED;
+        case D_FTP_ERROR_TIMED_OUT:
+            return D_NET_ERROR_TIMED_OUT;
+        case D_FTP_ERROR_OUT_OF_MEMORY:
+            return D_NET_ERROR_OUT_OF_MEMORY;
+        case D_FTP_ERROR_LOGIN_DENIED:
+        case D_FTP_ERROR_ACCOUNT_REQUIRED:
+        case D_FTP_ERROR_SECURITY:
+            return D_NET_ERROR_ACCESS_DENIED;
+        case D_FTP_ERROR_UNSUPPORTED:
+        case D_FTP_ERROR_FILE_UNAVAILABLE:
+        case D_FTP_ERROR_LOCAL_ERROR:
+        case D_FTP_ERROR_INSUFFICIENT_STORAGE:
+        case D_FTP_ERROR_NOT_IMPLEMENTED:
+        case D_FTP_ERROR_PROTOCOL_UNSUPPORTED:
+        case D_FTP_ERROR_PAGE_TYPE_UNKNOWN:
+        case D_FTP_ERROR_NAME_NOT_ALLOWED:
+        case D_FTP_ERROR_REJECTED:
+        case D_FTP_ERROR_UNKNOWN:
+            return D_NET_ERROR_UNKNOWN;
+    }
+
+    return D_NET_ERROR_UNKNOWN;
+}
+
+/*
+d_ftp_error_from_net
+  A switch over the errors net.h names, each group as its contract lists
+it; the default catches the rest, and any value outside the enum, as
+UNKNOWN.
+*/
+enum d_ftp_error
+d_ftp_error_from_net(
+    enum d_net_error _error
+)
+{
+    switch (_error)
+    {
+        case D_NET_OK:
+            return D_FTP_OK;
+
+        case D_NET_ERROR_INVALID_ARGUMENT:
+            return D_FTP_ERROR_INVALID_ARGUMENT;
+
+        case D_NET_ERROR_OUT_OF_MEMORY:
+            return D_FTP_ERROR_OUT_OF_MEMORY;
+
+        case D_NET_ERROR_TIMED_OUT:
+            return D_FTP_ERROR_TIMED_OUT;
+
+        case D_NET_ERROR_CLOSED:
+        case D_NET_ERROR_CONNECTION_RESET:
+        case D_NET_ERROR_CONNECTION_ABORTED:
+            return D_FTP_ERROR_CLOSED;
+
+        case D_NET_ERROR_ADDRESS_INVALID:
+        case D_NET_ERROR_HOST_UNREACHABLE:
+            return D_FTP_ERROR_RESOLVE;
+
+        case D_NET_ERROR_CONNECTION_REFUSED:
+        case D_NET_ERROR_NETWORK_DOWN:
+        case D_NET_ERROR_ACCESS_DENIED:
+            return D_FTP_ERROR_CONNECT;
+
+        case D_NET_ERROR_PROTOCOL:
+            return D_FTP_ERROR_MALFORMED;
+
+        default:
+            break;
+    }
+
+    return D_FTP_ERROR_UNKNOWN;
 }

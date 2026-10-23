@@ -5,11 +5,15 @@
 *   The YYYYMMDDHHMMSS[.sss] timestamps of MDTM, MFMT, and MLSx, with calendar
 * validation and Unix-time conversion, and the decimal sizes SIZE reports.
 *
+*   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
+* compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
+* (decision 101 of the register).
+*
 *
 * path:      /inc/djinterp/net/ftp/ftp_fact.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -34,10 +38,21 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>  // size_t
-#include <stdint.h>  // int64_t, uint8_t, uint16_t, uint64_t
 // djinterp
 #include "../../c/djinterp.h"  // framework root
 #include "./ftp_common.h"      // d_ftp_error, d_ftp_buffer
+#include "../net_common.h"      // D_INTERNAL_NET_HAS_INT64
+#include "../../config/net/cfg_net.h"  // D_INTERNAL_NET_REQUIRE_BACKENDS
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // int64_t, uint8_t, uint16_t,
+                                              // uint64_t
+
+// 64-bit floor: this header needs a 64-bit integer type, and compiles to
+// nothing where the build has none -- ISO strict C++98 on a 32-bit target
+// (the owner's ruling of 2026.10.03 on round 3's question 1, (a)). The
+// answer is net_common.h's, taken once per translation unit, so that net's
+// gated headers agree.
+#if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++
@@ -163,5 +178,9 @@ enum d_ftp_error d_ftp_parse_size(const char* _text,
 
 D_EXTERN_C_END
 
+
+#elif (D_INTERNAL_NET_REQUIRE_BACKENDS == 1)
+    #error "ftp_fact.h: no 64-bit integer type (D_INTERNAL_NET_HAS_INT64)"
+#endif  // D_INTERNAL_NET_HAS_INT64
 
 #endif  // DJINTERP_NET_FTP_FTP_FACT_H

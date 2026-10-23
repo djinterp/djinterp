@@ -4,13 +4,14 @@
 * FTP URLs (RFC 1738, RFC 3986): ftp://, ftps://, and ftpes://.
 *   Splits a URL into scheme, credentials, host, port, path, and ;type= code
 * without decoding it, and percent-decodes and -encodes its parts, refusing
-* bytes that would truncate a name or inject a command.
+* bytes that would truncate a name or inject a command. Hosts, ports, and
+* percent-encoding are net_url.h's; the rest is FTP's own.
 *
 *
 * path:      /inc/djinterp/net/ftp/ftp_url.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -33,11 +34,13 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>  // size_t
-#include <stdint.h>  // uint16_t
 // djinterp
-#include "../../c/djinterp.h"  // framework root
-#include "./ftp_common.h"      // d_ftp_span, d_ftp_error, d_ftp_buffer
-#include "./ftp_security.h"    // d_ftp_security
+#include "../../c/djinterp.h"          // framework root
+#include "../../c/util/sink_common.h"  // d_pack_text
+#include "./ftp_common.h"              // d_ftp_error, d_ftp_buffer
+#include "./ftp_security.h"            // d_ftp_security
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // uint16_t
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++
@@ -69,17 +72,17 @@ enum d_ftp_scheme
 // is still percent-encoded; decode it with d_ftp_percent_decode() before use.
 struct d_ftp_url
 {
-    enum d_ftp_scheme scheme;        // the scheme
-    struct d_ftp_span user;          // user name, if has_user
-    struct d_ftp_span password;      // password, if has_password
-    struct d_ftp_span host;          // host; an IPv6 literal's brackets go
-    struct d_ftp_span path;          // path after the authority's '/'
-    uint16_t          port;          // explicit port, if has_port
-    char              type_code;     // ';type=' code: 'a', 'i', 'd', or 0
-    bool              has_user;      // a user name was given, maybe empty
-    bool              has_password;  // a ':' followed the user name
-    bool              has_port;      // an explicit port was given
-    bool              ipv6_literal;  // the host was written in brackets
+    enum d_ftp_scheme  scheme;        // the scheme
+    struct d_pack_text user;          // user name, if has_user
+    struct d_pack_text password;      // password, if has_password
+    struct d_pack_text host;          // host; an IPv6 literal's brackets go
+    struct d_pack_text path;          // path after the authority's '/'
+    uint16_t           port;          // explicit port, if has_port
+    char               type_code;     // ';type=' code: 'a', 'i', 'd', or 0
+    bool               has_user;      // a user name was given, maybe empty
+    bool               has_password;  // a ':' followed the user name
+    bool               has_port;      // an explicit port was given
+    bool               ipv6_literal;  // the host was written in brackets
 };
 
 
@@ -101,9 +104,11 @@ enum d_ftp_security d_ftp_scheme_security(enum d_ftp_scheme _scheme);
  * @brief Parses an ftp://, ftps://, or ftpes:// URL (RFC 1738 3.2).
  *
  * The form is scheme://[user[:password]@]host[:port][/path][;type=X], where
- * X is a, i, or d. The credentials end at the authority's last '@'. Control
- * characters and spaces are refused anywhere, since they must be
- * percent-encoded.
+ * X is a, i, or d. The credentials end at the authority's last '@'; the host
+ * and port are read by net_url.h's RFC 3986 authority parser, so a host is a
+ * registered name, an IPv4 address, or a bracketed IPv6 literal (a zone
+ * written "%25", as RFC 6874 has it). Control characters and spaces are
+ * refused anywhere, since they must be percent-encoded.
  *
  * @param[in]  _text   the URL.
  * @param[in]  _length its length in bytes.
@@ -125,23 +130,28 @@ uint16_t            d_ftp_url_port(const struct d_ftp_url* _url);
 // 2.3    Percent-encoding
 //------------------------------------------------------------------------------
 /**
- * @brief Appends the percent-decoded form of a URL part.
+ * @brief Appends the percent-decoded form of a URL part, as net_url.h's
+ *        d_net_url_decode() decodes it.
  *
- * Decoded NUL, CR, and LF bytes are refused: in a path they would truncate
- * the name or inject a command into the control connection.
+ * A NUL, CR, or LF in the decoded text is refused, escaped or not: in a path
+ * it would truncate the name or inject a command into the control
+ * connection. A malformed escape is reported as such even where the text
+ * would not have fit.
  *
  * @param[in]     _text   the encoded text.
  * @param[in]     _length its length in bytes.
- * @param[in,out] _out    the buffer to append to.
+ * @param[in,out] _out    the buffer to append to; unchanged unless the call
+ *                        succeeds.
  * @return D_FTP_OK, D_FTP_ERROR_INVALID_ARGUMENT, D_FTP_ERROR_MALFORMED for
- *         a bad or forbidden escape, or D_FTP_ERROR_BUFFER_TOO_SMALL.
+ *         a bad escape or a forbidden byte, or D_FTP_ERROR_BUFFER_TOO_SMALL.
  */
 enum d_ftp_error    d_ftp_percent_decode(const char*          _text,
                                          size_t               _length,
                                          struct d_ftp_buffer* _out);
 /**
  * @brief Appends the percent-encoded form of a URL part, escaping all but
- *        RFC 3986's unreserved characters.
+ *        RFC 3986's unreserved characters, as net_url.h's d_net_url_encode()
+ *        does for D_NET_URL_PART_COMPONENT.
  *
  * @param[in]     _text         the raw text.
  * @param[in]     _length       its length in bytes.

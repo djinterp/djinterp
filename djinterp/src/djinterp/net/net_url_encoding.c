@@ -10,11 +10,12 @@
 * path:      /src/djinterp/net/net_url_encoding.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../inc/djinterp/net/net_url.h"  // corresponding header
 // djinterp
-#include "./net_url_internal.h"  // shared helpers
+#include "../../../inc/djinterp/net/codec/codec_hex.h"  // d_net_hex_*
+#include "./net_url_internal.h"                         // shared helpers
 
 
 /*
@@ -70,7 +71,7 @@ d_net_url_encode(
          ( (!_buffer) &&
            (_capacity != 0u) ) )
     {
-        return D_NET_URL_ERROR_ARGUMENT;
+        return D_NET_URL_ERROR_INVALID_ARGUMENT;
     }
 
     struct d_net_url_writer out = { _buffer,
@@ -119,7 +120,7 @@ d_net_url_decode(
          ( (!_buffer) &&
            (_capacity != 0u) ) )
     {
-        return D_NET_URL_ERROR_ARGUMENT;
+        return D_NET_URL_ERROR_INVALID_ARGUMENT;
     }
 
     struct d_net_url_writer out = { _buffer,
@@ -135,17 +136,17 @@ d_net_url_decode(
         if (c == '%')
         {
             // missing or wrong digits refuse the text
-            if ( (i + 2u >= _text.length)              ||
-                 (!d_net_url_is_hex(_text.data[i + 1u])) ||
-                 (!d_net_url_is_hex(_text.data[i + 2u])) )
+            if ( (i + 2u >= _text.length)                  ||
+                 (!d_net_hex_is_digit(_text.data[i + 1u])) ||
+                 (!d_net_hex_is_digit(_text.data[i + 2u])) )
             {
                 *_length = 0u;
 
                 return D_NET_URL_ERROR_PERCENT;
             }
 
-            c  = (char)( (d_net_url_hex_value(_text.data[i + 1u]) * 16) +
-                         d_net_url_hex_value(_text.data[i + 2u]) );
+            c  = (char)( (d_net_hex_value(_text.data[i + 1u]) * 16) +
+                         d_net_hex_value(_text.data[i + 2u]) );
             i += 2u;
         }
 

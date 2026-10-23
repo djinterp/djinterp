@@ -9,7 +9,7 @@
 * path:      /src/djinterp/net/ftp/ftp_command.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_command.h"  // corresponding header
 // std
@@ -17,9 +17,12 @@
 #include <stddef.h>   // size_t, NULL
 #include <string.h>   // strlen
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"          // framework root
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_span
-#include "./ftp_internal.h"                               // shared helpers
+#include "../../../../inc/djinterp/c/djinterp.h"             // framework root
+#include "../../../../inc/djinterp/c/util/sink_common.h"     // d_pack_text
+#include "../../../../inc/djinterp/net/net_common.h"  // d_net_ascii_*
+#include "../../../../inc/djinterp/net/codec/codec_line.h"   // d_net_line_*
+#include "../../../../inc/djinterp/net/ftp/ftp_common.h"     // d_ftp_buffer, d_ftp_error, D_FTP_EOL
+#include "./ftp_internal.h"                                  // shared helpers
 
 
 //==============================================================================
@@ -119,9 +122,9 @@ d_ftp_internal_is_verb(
 )
 {
     // one to D_FTP_VERB_MAX characters, the first a letter
-    if ( (_length == 0u)                      ||
-         (_length > D_FTP_VERB_MAX)           ||
-         (!d_ftp_internal_is_alpha(_text[0])) )
+    if ( (_length == 0u)                   ||
+         (_length > D_FTP_VERB_MAX)        ||
+         (!d_net_ascii_is_alpha(_text[0])) )
     {
         return false;
     }
@@ -129,8 +132,8 @@ d_ftp_internal_is_verb(
     // the rest letters or digits
     for (size_t index = 1u; index < _length; index++)
     {
-        if ( (!d_ftp_internal_is_alpha(_text[index])) &&
-             (!d_ftp_internal_is_digit(_text[index])) )
+        if ( (!d_net_ascii_is_alpha(_text[index])) &&
+             (!d_net_ascii_is_digit(_text[index])) )
         {
             return false;
         }
@@ -188,12 +191,14 @@ d_ftp_command_lookup(
         return D_FTP_COMMAND_UNKNOWN;
     }
 
+    const struct d_pack_text verb = { _verb,
+                                      _length };
+
     // every named row, compared without regard to case
     for (size_t index = 1u; index < (size_t)D_FTP_COMMAND_COUNT; index++)
     {
-        const bool match = d_ftp_internal_equals_nocase(_verb,
-                                                        _length,
-                                                        COMMANDS[index].name);
+        const bool match = d_net_ascii_ieq_cstr(verb,
+                                                COMMANDS[index].name);
 
         // the first match is the only one
         if (match)
@@ -273,13 +278,15 @@ d_ftp_command_format_raw(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const size_t verb_length     = strlen(_verb);
-    const size_t argument_length = (_argument) ? strlen(_argument) : 0u;
-    const bool   verb_ok         = d_ftp_internal_is_verb(_verb,
-                                                          verb_length);
-    const bool   breaks          = d_ftp_internal_has_line_break(
-                                       _argument,
-                                       argument_length);
+    const size_t             verb_length     = strlen(_verb);
+    const size_t             argument_length = (_argument) ? strlen(_argument)
+                                                           : 0u;
+    const struct d_pack_text argument        = { _argument,
+                                                 argument_length };
+    const bool               verb_ok         = d_ftp_internal_is_verb(
+                                                   _verb,
+                                                   verb_length);
+    const bool               breaks          = d_net_line_has_break(argument);
 
     // a well-formed verb, and no line break to smuggle in a second command
     if ( (!verb_ok) ||
@@ -337,9 +344,10 @@ d_ftp_command_parse(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const struct d_ftp_span line  = d_ftp_internal_trim_eol(_line,
-                                                            _length);
-    size_t                  start = 0;
+    const struct d_pack_text whole = { _line,
+                                       _length };
+    const struct d_pack_text line  = d_net_line_chomp(whole);
+    size_t                   start = 0;
 
     // stray leading spaces are tolerated
     while ( (start < line.length) &&

@@ -10,7 +10,7 @@
 * path:      /src/djinterp/net/ftp/ftp_listing.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_listing.h"  // corresponding header
 // std
@@ -18,11 +18,13 @@
 #include <stddef.h>   // size_t, NULL
 #include <string.h>   // memset
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"          // framework root
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_span
-#include "../../../../inc/djinterp/net/ftp/ftp_fact.h"    // d_ftp_time
-#include "./ftp_internal.h"                               // text helpers
-#include "./ftp_listing_internal.h"                       // listing helpers
+#include "../../../../inc/djinterp/c/djinterp.h"             // framework root
+#include "../../../../inc/djinterp/c/util/sink_common.h"     // d_pack_text
+#include "../../../../inc/djinterp/net/net_common.h"  // d_net_ascii_*
+#include "../../../../inc/djinterp/net/codec/codec_line.h"   // d_net_line_chomp
+#include "../../../../inc/djinterp/net/ftp/ftp_fact.h"       // d_ftp_time
+#include "./ftp_internal.h"                                  // text helpers
+#include "./ftp_listing_internal.h"                          // listing helpers
 
 
 //==============================================================================
@@ -35,15 +37,15 @@ d_ftp_internal_skip_blanks
 */
 size_t
 d_ftp_internal_skip_blanks(
-    struct d_ftp_span _line,
-    size_t            _position
+    struct d_pack_text _line,
+    size_t             _position
 )
 {
     size_t position = _position;
 
     // past the run of blanks
     while ( (position < _line.length) &&
-            (d_ftp_internal_is_blank(_line.data[position])) )
+            (d_net_ascii_is_blank(_line.data[position])) )
     {
         position++;
     }
@@ -57,15 +59,15 @@ d_ftp_internal_token_end
 */
 size_t
 d_ftp_internal_token_end(
-    struct d_ftp_span _line,
-    size_t            _position
+    struct d_pack_text _line,
+    size_t             _position
 )
 {
     size_t position = _position;
 
     // past the run of non-blanks
     while ( (position < _line.length) &&
-            (!d_ftp_internal_is_blank(_line.data[position])) )
+            (!d_net_ascii_is_blank(_line.data[position])) )
     {
         position++;
     }
@@ -77,14 +79,14 @@ d_ftp_internal_token_end(
 d_ftp_internal_span_at
   The span from `_start` to `_end` within a line.
 */
-struct d_ftp_span
+struct d_pack_text
 d_ftp_internal_span_at(
-    struct d_ftp_span _line,
-    size_t            _start,
-    size_t            _end
+    struct d_pack_text _line,
+    size_t             _start,
+    size_t             _end
 )
 {
-    const struct d_ftp_span result = { _line.data + _start, _end - _start };
+    const struct d_pack_text result = { _line.data + _start, _end - _start };
 
     return result;
 }
@@ -96,7 +98,7 @@ failure.
 */
 bool
 d_ftp_internal_read_clock(
-    struct d_ftp_span  _token,
+    struct d_pack_text _token,
     struct d_ftp_time* _time
 )
 {
@@ -107,9 +109,9 @@ d_ftp_internal_read_clock(
         return false;
     }
 
-    const size_t            colon   = _token.length - 3u;
-    const struct d_ftp_span hours   = { _token.data, colon };
-    const struct d_ftp_span minutes = { _token.data + colon + 1u, 2u };
+    const size_t             colon   = _token.length - 3u;
+    const struct d_pack_text hours   = { _token.data, colon };
+    const struct d_pack_text minutes = { _token.data + colon + 1u, 2u };
 
     // digits on either side of the colon
     if ( (_token.data[colon] != ':')           ||
@@ -153,22 +155,22 @@ d_ftp_listing_detect(
         return D_FTP_LISTING_AUTO;
     }
 
-    const struct d_ftp_span line  = d_ftp_internal_trim_eol(_line,
-                                                            _length);
-    const struct d_ftp_span first = d_ftp_internal_span_at(
-                                        line,
-                                        0u,
-                                        d_ftp_internal_token_end(line,
-                                                                 0u));
-    enum d_ftp_entry_type   type  = D_FTP_ENTRY_UNKNOWN;
-    uint32_t                mode  = 0;
-    struct d_ftp_span       facts = { NULL, 0u };
-    struct d_ftp_span       name  = { NULL, 0u };
+    const struct d_pack_text whole = { _line,
+                                       _length };
+    const struct d_pack_text line  = d_net_line_chomp(whole);
+    const struct d_pack_text first = d_ftp_internal_span_at(
+                                         line,
+                                         0u,
+                                         d_ftp_internal_token_end(line,
+                                                                  0u));
+    enum d_ftp_entry_type    type  = D_FTP_ENTRY_UNKNOWN;
+    uint32_t                 mode  = 0;
+    struct d_pack_text       facts = { NULL, 0u };
+    struct d_pack_text       name  = { NULL, 0u };
 
     // "total N" heads a Unix listing
-    if (d_ftp_internal_starts_nocase(line.data,
-                                     line.length,
-                                     "total "))
+    if (d_net_ascii_istarts(line,
+                            "total "))
     {
         return D_FTP_LISTING_UNIX;
     }
@@ -223,8 +225,9 @@ d_ftp_listing_parse(
            0,
            sizeof(*_out));
 
-    const struct d_ftp_span line = d_ftp_internal_trim_eol(_line,
-                                                           _length);
+    const struct d_pack_text whole = { _line,
+                                       _length };
+    const struct d_pack_text line  = d_net_line_chomp(whole);
 
     // a blank line names nothing
     if (line.length == 0u)

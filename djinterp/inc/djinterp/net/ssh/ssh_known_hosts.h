@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/net/ssh/ssh_known_hosts.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -36,7 +36,7 @@ TABLE OF CONTENTS
 #include <stddef.h>   // size_t
 // djinterp
 #include "../../c/djinterp.h"  // framework root
-#include "./ssh_common.h"      // d_ssh_status
+#include "./ssh_common.h"      // d_ssh_error
 
 
 D_EXTERN_C_BEGIN
@@ -94,12 +94,12 @@ enum d_ssh_host_match
  * @param[out] _match     receives the verdict: REVOKED if any matching line
  *                        revokes the key, else KNOWN if one records it, else
  *                        CHANGED if one records another key, else UNKNOWN.
- * @return `D_SSH_OK`; `D_SSH_ERR_KNOWN_HOSTS` if the file cannot be read;
- *         `D_SSH_ERR_FORMAT` if `_host` holds whitespace or a character
- *         known_hosts reserves (`,*?![]|#`); `D_SSH_ERR_MEMORY`; or
- *         `D_SSH_ERR_ARGUMENT`.
+ * @return `D_SSH_OK`; `D_SSH_ERROR_KNOWN_HOSTS` if the file cannot be read;
+ *         `D_SSH_ERROR_MALFORMED` if `_host` holds whitespace or a character
+ *         known_hosts reserves (`,*?![]|#`); `D_SSH_ERROR_OUT_OF_MEMORY`; or
+ *         `D_SSH_ERROR_INVALID_ARGUMENT`.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_known_hosts_check(const char*            _path,
                         const char*            _host,
                         unsigned int           _port,
@@ -120,13 +120,13 @@ d_ssh_known_hosts_check(const char*            _path,
  * @param[in] _key_size  its length.
  * @param[in] _hashed    `true` to record the name as a salted HMAC-SHA1
  *                       (`|1|salt|hash`), `false` to record it in clear.
- * @return `D_SSH_OK`; `D_SSH_ERR_KNOWN_HOSTS` if the file cannot be written;
- *         `D_SSH_ERR_FORMAT` if `_host` or the blob is unusable;
- *         `D_SSH_ERR_UNSUPPORTED` or `D_SSH_ERR_IO` if `_hashed` is `true`
- *         and the random source is missing or failed; `D_SSH_ERR_MEMORY`; or
- *         `D_SSH_ERR_ARGUMENT`.
+ * @return `D_SSH_OK`; `D_SSH_ERROR_KNOWN_HOSTS` if the file cannot be written;
+ *         `D_SSH_ERROR_MALFORMED` if `_host` or the blob is unusable;
+ *         `D_SSH_ERROR_UNSUPPORTED` or `D_SSH_ERROR_TRANSPORT` if `_hashed` is
+ *         `true` and the random source is missing or failed;
+ *         `D_SSH_ERROR_OUT_OF_MEMORY`; or `D_SSH_ERROR_INVALID_ARGUMENT`.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_known_hosts_add(const char*          _path,
                       const char*          _host,
                       unsigned int         _port,

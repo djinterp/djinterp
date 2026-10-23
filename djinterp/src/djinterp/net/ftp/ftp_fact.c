@@ -9,17 +9,21 @@
 * path:      /src/djinterp/net/ftp/ftp_fact.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_fact.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
-#include <stdint.h>   // int64_t, uint8_t, uint16_t, uint64_t, UINT64_MAX
 // djinterp
 #include "../../../../inc/djinterp/c/djinterp.h"          // framework root
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_span
+#include "../../../../inc/djinterp/c/util/sink_common.h"  // d_pack_text
+#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_buffer, d_ftp_error
 #include "./ftp_internal.h"                               // shared helpers
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // int64_t, uint8_t,
+                                                     // uint16_t, uint64_t,
+                                                     // UINT64_MAX
 
 
 //==============================================================================
@@ -137,7 +141,7 @@ milliseconds and ".123456" is 123.
 */
 D_STATIC bool
 d_ftp_internal_time_fraction(
-    struct d_ftp_span  _text,
+    struct d_pack_text _text,
     struct d_ftp_time* _time
 )
 {
@@ -147,8 +151,8 @@ d_ftp_internal_time_fraction(
         return true;
     }
 
-    const struct d_ftp_span fraction = { _text.data + 15u,
-                                         _text.length - 15u };
+    const struct d_pack_text fraction = { _text.data + 15u,
+                                          _text.length - 15u };
 
     // a dot and at least one digit
     if ( (_text.data[14] != '.') ||
@@ -191,10 +195,10 @@ d_ftp_time_parse(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const struct d_ftp_span text  = d_ftp_internal_trim(_text,
-                                                        _length);
-    const struct d_ftp_span stamp = { text.data, 14u };
-    struct d_ftp_time       time  = { 0u, 0u, 0u, 0u, 0u, 0u, 0u };
+    const struct d_pack_text text  = d_ftp_internal_trim(_text,
+                                                         _length);
+    const struct d_pack_text stamp = { text.data, 14u };
+    struct d_ftp_time        time  = { 0u, 0u, 0u, 0u, 0u, 0u, 0u };
 
     // fourteen characters at least, all digits
     if ( (text.length < 14u) ||
@@ -375,13 +379,13 @@ d_ftp_parse_size(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const struct d_ftp_span text   = d_ftp_internal_trim(_text,
-                                                         _length);
-    uint64_t                value  = 0;
-    const bool              parsed = d_ftp_internal_parse_uint(text.data,
-                                                               text.length,
-                                                               UINT64_MAX,
-                                                               &value);
+    const struct d_pack_text text   = d_ftp_internal_trim(_text,
+                                                          _length);
+    uint64_t                 value  = 0;
+    const bool               parsed = d_ftp_internal_parse_uint(text.data,
+                                                                text.length,
+                                                                UINT64_MAX,
+                                                                &value);
 
     // digits only, and in range
     if (!parsed)

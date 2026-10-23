@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/net/net_url.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -61,7 +61,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../c/djinterp.h"          // framework root
 #include "../c/util/sink_common.h"  // d_pack_text
-#include "./net.h"                  // d_net_port, d_net_endpoint, d_net_error
+#include "./net_common.h"           // d_net_port, d_net_endpoint, d_net_error
 
 
 D_EXTERN_C_BEGIN
@@ -81,20 +81,20 @@ D_EXTERN_C_BEGIN
 //   enum: why a URL was refused, or why an output did not fit.
 enum d_net_url_error
 {
-    D_NET_URL_OK = 0,            // no error
-    D_NET_URL_ERROR_ARGUMENT,    // a NULL argument
-    D_NET_URL_ERROR_SCHEME,      // a malformed scheme, or a colon in a
-                                 // relative reference's first segment
-    D_NET_URL_ERROR_USERINFO,    // a character userinfo may not hold
-    D_NET_URL_ERROR_HOST,        // a character a registered name may not hold
-    D_NET_URL_ERROR_IP_LITERAL,  // a malformed bracketed address or zone
-    D_NET_URL_ERROR_PORT,        // a port not all digits, or above 65535
-    D_NET_URL_ERROR_PATH,        // a character a path may not hold
-    D_NET_URL_ERROR_QUERY,       // a character a query may not hold
-    D_NET_URL_ERROR_FRAGMENT,    // a character a fragment may not hold
-    D_NET_URL_ERROR_PERCENT,     // a '%' not followed by two hex digits
-    D_NET_URL_ERROR_BASE,        // resolving against a relative base
-    D_NET_URL_ERROR_BUFFER       // the output did not fit
+    D_NET_URL_OK = 0,                  // no error
+    D_NET_URL_ERROR_INVALID_ARGUMENT,  // a NULL argument
+    D_NET_URL_ERROR_SCHEME,            // a malformed scheme, or a colon in a
+                                       // relative reference's first segment
+    D_NET_URL_ERROR_USERINFO,          // a character userinfo may not hold
+    D_NET_URL_ERROR_HOST,              // a character a host name may not hold
+    D_NET_URL_ERROR_IP_LITERAL,        // a malformed bracketed address or zone
+    D_NET_URL_ERROR_PORT,              // a port not all digits, or above 65535
+    D_NET_URL_ERROR_PATH,              // a character a path may not hold
+    D_NET_URL_ERROR_QUERY,             // a character a query may not hold
+    D_NET_URL_ERROR_FRAGMENT,          // a character a fragment may not hold
+    D_NET_URL_ERROR_PERCENT,           // a '%' not followed by two hex digits
+    D_NET_URL_ERROR_BASE,              // resolving against a relative base
+    D_NET_URL_ERROR_BUFFER_TOO_SMALL   // the output did not fit
 };
 
 // 1.1.2
@@ -168,7 +168,7 @@ struct d_net_url
  * @param[out] _out       receives the components; zeroed on failure.
  * @param[out] _error_at  receives the offset of the first character no
  *                        grammar allows; may be NULL.
- * @return D_NET_URL_OK, D_NET_URL_ERROR_ARGUMENT, or the error of the
+ * @return D_NET_URL_OK, D_NET_URL_ERROR_INVALID_ARGUMENT, or the error of the
  *         component holding the refused character.
  */
 enum d_net_url_error d_net_url_parse(struct d_pack_text _text,
@@ -184,8 +184,8 @@ enum d_net_url_error d_net_url_parse(struct d_pack_text _text,
  *                        has_authority set; zeroed on failure.
  * @param[out] _error_at  receives the offset of the first character
  *                        refused; may be NULL.
- * @return D_NET_URL_OK, D_NET_URL_ERROR_ARGUMENT, or the error of the part
- *         holding the refused character.
+ * @return D_NET_URL_OK, D_NET_URL_ERROR_INVALID_ARGUMENT, or the error of the
+ *         part holding the refused character.
  */
 enum d_net_url_error d_net_url_parse_authority(struct d_pack_text _text,
                                                struct d_net_url*  _out,
@@ -204,8 +204,8 @@ bool                 d_net_url_is_absolute(const struct d_net_url* _url);
  * @param[in]  _capacity  its size, the terminator included.
  * @param[out] _length    receives the text's length, the terminator
  *                        excluded, whether or not it fit.
- * @return D_NET_URL_OK, D_NET_URL_ERROR_ARGUMENT, or
- *         D_NET_URL_ERROR_BUFFER.
+ * @return D_NET_URL_OK, D_NET_URL_ERROR_INVALID_ARGUMENT, or
+ *         D_NET_URL_ERROR_BUFFER_TOO_SMALL.
  */
 enum d_net_url_error d_net_url_format(const struct d_net_url* _url,
                                       char*                   _buffer,
@@ -231,9 +231,10 @@ enum d_net_url_error d_net_url_format(const struct d_net_url* _url,
  * @param[out] _buffer     receives the target's text, NUL-terminated.
  * @param[in]  _capacity   its size, the terminator included.
  * @param[out] _length     receives the target's length; on
- *                         D_NET_URL_ERROR_BUFFER, a length that suffices.
- * @return D_NET_URL_OK, D_NET_URL_ERROR_ARGUMENT, D_NET_URL_ERROR_BASE for
- *         a relative base, or D_NET_URL_ERROR_BUFFER.
+ *                         D_NET_URL_ERROR_BUFFER_TOO_SMALL, a length that
+ *                         suffices.
+ * @return D_NET_URL_OK, D_NET_URL_ERROR_INVALID_ARGUMENT, D_NET_URL_ERROR_BASE
+ *         for a relative base, or D_NET_URL_ERROR_BUFFER_TOO_SMALL.
  */
 enum d_net_url_error d_net_url_resolve(const struct d_net_url* _base,
                                        const struct d_net_url* _reference,
@@ -256,9 +257,10 @@ enum d_net_url_error d_net_url_resolve(const struct d_net_url* _base,
  * @param[out] _buffer    receives the normalized text, NUL-terminated.
  * @param[in]  _capacity  its size, the terminator included.
  * @param[out] _length    receives the text's length; on
- *                        D_NET_URL_ERROR_BUFFER, a length that suffices.
- * @return D_NET_URL_OK, D_NET_URL_ERROR_ARGUMENT, or
- *         D_NET_URL_ERROR_BUFFER.
+ *                        D_NET_URL_ERROR_BUFFER_TOO_SMALL, a length that
+ *                        suffices.
+ * @return D_NET_URL_OK, D_NET_URL_ERROR_INVALID_ARGUMENT, or
+ *         D_NET_URL_ERROR_BUFFER_TOO_SMALL.
  */
 enum d_net_url_error d_net_url_normalize(const struct d_net_url* _url,
                                          char*                   _buffer,
@@ -284,8 +286,8 @@ enum d_net_url_error d_net_url_normalize(const struct d_net_url* _url,
  * @param[in]  _capacity  its size, the terminator included.
  * @param[out] _length    receives the encoding's length, whether or not it
  *                        fit.
- * @return D_NET_URL_OK, D_NET_URL_ERROR_ARGUMENT, or
- *         D_NET_URL_ERROR_BUFFER.
+ * @return D_NET_URL_OK, D_NET_URL_ERROR_INVALID_ARGUMENT, or
+ *         D_NET_URL_ERROR_BUFFER_TOO_SMALL.
  */
 enum d_net_url_error d_net_url_encode(struct d_pack_text  _text,
                                       enum d_net_url_part _part,
@@ -302,8 +304,8 @@ enum d_net_url_error d_net_url_encode(struct d_pack_text  _text,
  * @param[in]  _capacity  its size, the terminator included.
  * @param[out] _length    receives the decoded length, whether or not it
  *                        fit.
- * @return D_NET_URL_OK, D_NET_URL_ERROR_ARGUMENT,
- *         D_NET_URL_ERROR_PERCENT, or D_NET_URL_ERROR_BUFFER.
+ * @return D_NET_URL_OK, D_NET_URL_ERROR_INVALID_ARGUMENT,
+ *         D_NET_URL_ERROR_PERCENT, or D_NET_URL_ERROR_BUFFER_TOO_SMALL.
  */
 enum d_net_url_error d_net_url_decode(struct d_pack_text _text,
                                       char*              _buffer,
@@ -321,10 +323,12 @@ enum d_net_url_error d_net_url_decode(struct d_pack_text _text,
 //------------------------------------------------------------------------------
 // schemes -- case-insensitive; the port a registered scheme implies, 0 for
 // others, and whether it runs over TLS from its first byte (https, wss,
-// ftps, smtps, imaps, pop3s, ldaps); and each error's name
+// ftps, smtps, imaps, pop3s, ldaps); each error's name; and the d_net_error
+// an error maps to, by the rules net.h gives with it
 d_net_port           d_net_url_default_port(struct d_pack_text _scheme);
 bool                 d_net_url_scheme_is_tls(struct d_pack_text _scheme);
 const char*          d_net_url_error_name(enum d_net_url_error _error);
+enum d_net_error     d_net_url_error_to_net(enum d_net_url_error _error);
 
 // 5.2    Endpoints
 //------------------------------------------------------------------------------
@@ -336,7 +340,7 @@ const char*          d_net_url_error_name(enum d_net_url_error _error);
  *                   "%eth0"), and a registered name's escapes must decode
  *                   to ASCII.
  * @param[out] _out  receives the endpoint.
- * @return D_NET_ERROR_NONE; D_NET_ERROR_INVALID_ARGUMENT for NULL;
+ * @return D_NET_OK; D_NET_ERROR_INVALID_ARGUMENT for NULL;
  *         D_NET_ERROR_ADDRESS_INVALID without an authority or a host, for
  *         an IPvFuture address, a non-ASCII name, a host over
  *         D_NET_HOST_MAX, or no port at all.

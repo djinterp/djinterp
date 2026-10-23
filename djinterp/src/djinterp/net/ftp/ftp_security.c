@@ -7,13 +7,13 @@
 * path:      /src/djinterp/net/ftp/ftp_security.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_security.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 // djinterp
-#include "./ftp_internal.h"  // shared helpers
+#include "../../../../inc/djinterp/net/net_common.h"  // d_net_ascii_lower
 
 
 //==============================================================================
@@ -36,7 +36,7 @@ d_ftp_protection_from_code(
         return false;
     }
 
-    switch (d_ftp_internal_to_lower(_code))
+    switch (d_net_ascii_lower(_code))
     {
         case 'c':
             *_out = D_FTP_PROTECTION_CLEAR;

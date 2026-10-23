@@ -10,13 +10,13 @@
 * section 4.5.2.
 *   Nothing here performs I/O or allocates. Every function works on
 * caller-owned memory, which is what lets one implementation serve the client,
-* the server, and the C++ facade in net/smtp.hpp.
+* the server, and the C++ facade in net/smtp/smtp.hpp.
 *
 *
 * path:      /inc/djinterp/net/smtp/smtp_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -72,6 +72,8 @@ TABLE OF CONTENTS
 #include <stddef.h>   // size_t
 // djinterp
 #include "../../c/djinterp.h"  // framework root
+#include "../net_common.h"     // d_net_error
+#include "../ssl/ssl.h"        // d_ssl_error
 
 
 D_EXTERN_C_BEGIN
@@ -133,7 +135,7 @@ D_EXTERN_C_BEGIN
 //   constant: the longest line the kernel reads intact, NUL included. It is
 // deliberately above the RFC minima: AUTH exchanges may reach 12288 bytes
 // under RFC 4954, and lenient peers exceed the 512-byte reply limit. Longer
-// lines are reported as D_SMTP_ERROR_TOO_LONG without losing stream sync.
+// lines are reported as D_SMTP_ERROR_LINE_TOO_LONG without losing stream sync.
 #define D_SMTP_LINE_MAX             4096u
 
 
@@ -155,25 +157,93 @@ D_EXTERN_C_BEGIN
 enum d_smtp_error
 {
     D_SMTP_OK = 0,
-    D_SMTP_ERROR_INVALID,      // an argument is missing or malformed
-    D_SMTP_ERROR_STATE,        // the call is out of order for the session
-    D_SMTP_ERROR_NO_MEMORY,    // an allocation failed
-    D_SMTP_ERROR_RESOLVE,      // the host name did not resolve
-    D_SMTP_ERROR_CONNECT,      // no address accepted the connection
-    D_SMTP_ERROR_TIMEOUT,      // an I/O deadline passed
-    D_SMTP_ERROR_IO,           // the transport failed
-    D_SMTP_ERROR_CLOSED,       // the peer closed the connection
-    D_SMTP_ERROR_TLS,          // the handshake or certificate check failed
-    D_SMTP_ERROR_PROTOCOL,     // the peer broke the protocol
-    D_SMTP_ERROR_TOO_LONG,     // a line, reply or message exceeded its limit
-    D_SMTP_ERROR_REJECTED,     // the peer answered with a negative reply
-    D_SMTP_ERROR_UNSUPPORTED,  // not offered by the peer, or not built in
-    D_SMTP_ERROR_AUTH,         // the peer refused the credentials
-    D_SMTP_ERROR_INSECURE      // credentials would have crossed in the clear
+    D_SMTP_ERROR_INVALID_ARGUMENT,  // an argument is missing or malformed
+    D_SMTP_ERROR_STATE,             // the call is out of order for the session
+    D_SMTP_ERROR_OUT_OF_MEMORY,     // an allocation failed
+    D_SMTP_ERROR_RESOLVE,           // the host could not be found
+    D_SMTP_ERROR_CONNECT,           // no address accepted the connection
+    D_SMTP_ERROR_TIMED_OUT,         // an I/O deadline passed
+    D_SMTP_ERROR_TRANSPORT,         // the transport failed
+    D_SMTP_ERROR_CLOSED,            // the peer closed the connection
+    D_SMTP_ERROR_TLS,               // the handshake or certificate check failed
+    D_SMTP_ERROR_PROTOCOL,          // the peer broke the protocol
+    D_SMTP_ERROR_LINE_TOO_LONG,     // a line, reply or message passed its limit
+    D_SMTP_ERROR_REJECTED,          // the peer answered with a negative reply
+    D_SMTP_ERROR_UNSUPPORTED,       // not offered by the peer, or not built in
+    D_SMTP_ERROR_AUTH,              // the peer refused the credentials
+    D_SMTP_ERROR_INSECURE           // credentials would cross in the clear
 };
 
-// d_smtp_error_string -- a short label for an error; O(1), never NULL
+// d_smtp_error_string -- a short label for an error; O(1), never NULL.
+// d_smtp_error_to_net -- the d_net_error an error maps to, by the rules
+// net.h gives with it; D_NET_ERROR_UNKNOWN for a value outside the enum
 const char*       d_smtp_error_string(enum d_smtp_error _error);
+enum d_net_error  d_smtp_error_to_net(enum d_smtp_error _error);
+
+/**
+ * @brief Gives the error a connection's d_net_error is here, by the rules
+ *        net.h gives the other way.
+ *
+ * @note D_NET_OK is D_SMTP_OK; INVALID_ARGUMENT, OUT_OF_MEMORY, TIMED_OUT,
+ *       and PROTOCOL are their namesakes; a stream that ended or a
+ *       connection lost -- CLOSED, CONNECTION_RESET, CONNECTION_ABORTED --
+ *       is CLOSED; anything else is TRANSPORT. It is how what a session
+ *       reads and writes is judged; opening a connection is judged apart,
+ *       by d_smtp_client_connect.
+ *
+ * @param[in] _error  the connection's error.
+ * @return the SMTP error; D_SMTP_ERROR_TRANSPORT for a value outside the
+ *         enumeration.
+ */
+enum d_smtp_error d_smtp_error_from_net(enum d_net_error _error);
+
+// the SSL kernel's own types: the two judgments below exist where the
+// kernel does, which needs a 64-bit integer type, and are absent where the
+// build has none -- ISO strict C++98 on a 32-bit target (the owner's ruling
+// of 2026.10.03 on round 3's question 1, (a)) -- as ssl.h is
+#if (D_INTERNAL_NET_HAS_INT64 == 1)
+
+/**
+ * @brief Gives the error a failed TLS session of the SSL kernel is here.
+ *
+ * @note A connection that failed beneath TLS by its own error -- a
+ *       timeout, a reset -- is that error, by d_smtp_error_from_net; a
+ *       peer that hung up, with close_notify or without, is CLOSED; a lack
+ *       of memory is OUT_OF_MEMORY; and anything else -- a certificate
+ *       refused, a negotiation failed, a peer not speaking TLS, an engine
+ *       that failed -- is TLS.
+ *
+ * @param[in] _status  the session's status.
+ * @param[in] _cause   what its connection last reported, as
+ *                     d_ssl_session_transport_error gives it.
+ * @return the SMTP error; D_SMTP_OK for D_SSL_OK.
+ */
+enum d_smtp_error d_smtp_error_from_ssl(enum d_ssl_error _status,
+                                        enum d_net_error _cause);
+
+/**
+ * @brief Gives the error a failed read or write is when a TLS session of
+ *        the SSL kernel carries the stream: the session's own failure, by
+ *        d_smtp_error_from_ssl, once it has failed -- so a TLS failure after
+ *        the handshake is TLS, as one during it is -- and otherwise
+ *        `_result`, the stream's own judgment.
+ *
+ * @param[in]     _tls     the TLS session beneath the stream, or NULL.
+ * @param[in]     _result  what the stream's failure was judged to be.
+ * @param[out]    _status  receives the session's failure when there is
+ *                         one, and is left alone otherwise; may be NULL.
+ * @param[in,out] _cause   receives what the session's connection reported
+ *                         when that failed it, and is left alone
+ *                         otherwise; may be NULL.
+ * @return the SMTP error; `_result` when it is D_SMTP_OK, or `_tls` is
+ *         NULL or has not failed.
+ */
+enum d_smtp_error d_smtp_error_from_tls(const struct d_ssl_session* _tls,
+                                        enum d_smtp_error           _result,
+                                        enum d_ssl_error*           _status,
+                                        enum d_net_error*           _cause);
+
+#endif  // D_INTERNAL_NET_HAS_INT64
 
 // 2.2    Buffers
 //------------------------------------------------------------------------------
@@ -201,9 +271,9 @@ void              d_smtp_buffer_init(struct d_smtp_buffer* _buffer,
  * @param[in,out] _buffer  the buffer to append to.
  * @param[in]     _data    the bytes; may be NULL when `_length` is 0.
  * @param[in]     _length  number of bytes to append.
- * @return D_SMTP_OK; D_SMTP_ERROR_INVALID for a NULL buffer or data; or
- *         D_SMTP_ERROR_TOO_LONG when the bytes do not fit, in which case the
- *         buffer is unchanged.
+ * @return D_SMTP_OK; D_SMTP_ERROR_INVALID_ARGUMENT for a NULL buffer or data;
+ *         or D_SMTP_ERROR_LINE_TOO_LONG when the bytes do not fit, in which
+ *         case the buffer is unchanged.
  */
 enum d_smtp_error d_smtp_buffer_append(struct d_smtp_buffer* _buffer,
                                        const void*           _data,
@@ -280,9 +350,9 @@ void              d_smtp_reply_clear(struct d_smtp_reply* _reply);
  * @param[in]     _length  length of `_line`.
  * @post On success, `_reply->complete` records whether this was the final
  *       line. Text beyond D_SMTP_REPLY_TEXT_MAX is dropped and flagged.
- * @return D_SMTP_OK; D_SMTP_ERROR_INVALID for a NULL argument or a complete
- *         reply; D_SMTP_ERROR_PROTOCOL when the line is not a reply line, or
- *         carries a different code from the reply's first line.
+ * @return D_SMTP_OK; D_SMTP_ERROR_INVALID_ARGUMENT for a NULL argument or a
+ *         complete reply; D_SMTP_ERROR_PROTOCOL when the line is not a reply
+ *         line, or carries a different code from the reply's first line.
  */
 enum d_smtp_error d_smtp_reply_feed(struct d_smtp_reply* _reply,
                                     const char*          _line,
@@ -312,9 +382,9 @@ bool              d_smtp_code_is_permanent(unsigned int _code);
  * @param[in]     _status  enhanced status for every line, or NULL for none.
  * @param[in]     _text    the text; each '\n' starts another reply line, and
  *                         every line but the last is sent with a hyphen.
- * @return D_SMTP_OK; D_SMTP_ERROR_INVALID for a NULL argument, a code out of
- *         range, or text containing CR; D_SMTP_ERROR_TOO_LONG when the buffer
- *         is too small, in which case it is unchanged.
+ * @return D_SMTP_OK; D_SMTP_ERROR_INVALID_ARGUMENT for a NULL argument, a code
+ *         out of range, or text containing CR; D_SMTP_ERROR_LINE_TOO_LONG when
+ *         the buffer is too small, in which case it is unchanged.
  */
 enum d_smtp_error d_smtp_reply_format(struct d_smtp_buffer*       _buffer,
                                       unsigned int                _code,
@@ -356,7 +426,7 @@ enum d_smtp_auth
     D_SMTP_AUTH_NONE     = 0x00u,
     D_SMTP_AUTH_PLAIN    = 0x01u,  // RFC 4616
     D_SMTP_AUTH_LOGIN    = 0x02u,  // draft-murchison-sasl-login
-    D_SMTP_AUTH_CRAM_MD5 = 0x04u,  // RFC 2195; see D_ENV_SMTP_HAS_CRAM_MD5
+    D_SMTP_AUTH_CRAM_MD5 = 0x04u,  // RFC 2195
     D_SMTP_AUTH_XOAUTH2  = 0x08u   // OAuth 2.0 bearer token
 };
 
@@ -382,8 +452,8 @@ void              d_smtp_capabilities_clear(
  *
  * @param[out] _capabilities  receives the capabilities; cleared first.
  * @param[in]  _reply         a complete 250 reply to EHLO.
- * @return D_SMTP_OK, or D_SMTP_ERROR_INVALID for a NULL argument or a reply
- *         that is not a complete 250.
+ * @return D_SMTP_OK, or D_SMTP_ERROR_INVALID_ARGUMENT for a NULL argument or a
+ *         reply that is not a complete 250.
  */
 enum d_smtp_error d_smtp_capabilities_parse(
                       struct d_smtp_capabilities* _capabilities,
@@ -410,16 +480,15 @@ enum d_smtp_auth  d_smtp_auth_from_name(const char* _name,
 //   address  a Mailbox (RFC 5321 section 4.1.2): dot-string or quoted
 //            local-part, "@", and a domain or address literal
 //   domain   a domain name or address literal, as EHLO takes
-//   text     free text holds no CR, LF or NUL and may join a command line
 // `_allow_utf8` admits UTF-8 in local-parts and domain labels (RFC 6531).
+// Whether free text may join a command line -- no CR, LF or NUL -- is
+// codec_line.h's d_net_line_is_clean.
 bool              d_smtp_address_is_valid(const char* _address,
                                           size_t      _length,
                                           bool        _allow_utf8);
 bool              d_smtp_domain_is_valid(const char* _domain,
                                          size_t      _length,
                                          bool        _allow_utf8);
-bool              d_smtp_text_is_safe(const char* _text,
-                                      size_t      _length);
 
 // 5.2    Command types
 //------------------------------------------------------------------------------
@@ -488,7 +557,7 @@ struct d_smtp_parameter
  * @param[in]  _length   length of `_line`.
  * @param[out] _command  receives the verb (D_SMTP_VERB_UNKNOWN when it is not
  *                       recognized) and the trimmed argument.
- * @return D_SMTP_OK, or D_SMTP_ERROR_INVALID for a NULL argument.
+ * @return D_SMTP_OK, or D_SMTP_ERROR_INVALID_ARGUMENT for a NULL argument.
  */
 enum d_smtp_error d_smtp_command_parse(const char*            _line,
                                        size_t                 _length,
@@ -504,19 +573,13 @@ enum d_smtp_error d_smtp_command_parse(const char*            _line,
  * @param[in]  _length    length of `_argument`.
  * @param[in]  _keyword   "FROM:" or "TO:", matched without regard to case.
  * @param[out] _path      receives the address and parameters.
- * @return D_SMTP_OK; D_SMTP_ERROR_INVALID for a NULL argument; or
+ * @return D_SMTP_OK; D_SMTP_ERROR_INVALID_ARGUMENT for a NULL argument; or
  *         D_SMTP_ERROR_PROTOCOL when the argument is malformed.
  */
 enum d_smtp_error d_smtp_path_parse(const char*         _argument,
                                     size_t              _length,
                                     const char*         _keyword,
                                     struct d_smtp_path* _path);
-
-// d_smtp_keyword_is -- whether a counted span equals a keyword under ASCII
-// case folding; never fails, and a NULL argument is simply unequal
-bool              d_smtp_keyword_is(const char* _text,
-                                    size_t      _length,
-                                    const char* _keyword);
 
 // d_smtp_parameter_next -- reads the parameter at *_cursor and advances past
 // it; false once [*_cursor, _end) holds no further parameter. Never fails.
@@ -535,21 +598,21 @@ bool              d_smtp_parameter_next(const char**             _cursor,
 
 // 6.1    Base64
 //------------------------------------------------------------------------------
-// d_smtp_base64_size -- encoded length of `_length` bytes, padding included
-size_t            d_smtp_base64_size(size_t _length);
-
+// SASL's base64, into a buffer: the encoding itself is net's
+// (net/codec/codec_base64.h), padded and strict as RFC 4648 section 4 has it.
 /**
  * @brief Appends the base64 encoding of a byte range.
  *
+ * @param[in,out] _buffer  receives the encoding.
  * @param[in]     _data    the bytes; may be NULL when `_length` is 0.
  * @param[in]     _length  number of bytes.
- * @param[in,out] _buffer  receives the encoding.
- * @return D_SMTP_OK; D_SMTP_ERROR_INVALID for a NULL argument; or
- *         D_SMTP_ERROR_TOO_LONG when the encoding does not fit.
+ * @return D_SMTP_OK; D_SMTP_ERROR_INVALID_ARGUMENT for a NULL argument; or
+ *         D_SMTP_ERROR_LINE_TOO_LONG when the encoding does not fit, in which
+ *         case the buffer is unchanged.
  */
-enum d_smtp_error d_smtp_base64_encode(const void*           _data,
-                                       size_t                _length,
-                                       struct d_smtp_buffer* _buffer);
+enum d_smtp_error d_smtp_buffer_append_base64(struct d_smtp_buffer* _buffer,
+                                              const void*           _data,
+                                              size_t                _length);
 
 /**
  * @brief Appends the bytes a base64 text decodes to.
@@ -557,16 +620,18 @@ enum d_smtp_error d_smtp_base64_encode(const void*           _data,
  * @note Decoding is strict: no whitespace, and padding exactly as RFC 4648
  *       section 4 specifies.
  *
+ * @param[in,out] _buffer  receives the decoded bytes, NUL-terminated.
  * @param[in]     _text    the base64 text.
  * @param[in]     _length  length of `_text`.
- * @param[in,out] _buffer  receives the decoded bytes, NUL-terminated.
- * @return D_SMTP_OK; D_SMTP_ERROR_INVALID for a NULL argument;
- *         D_SMTP_ERROR_PROTOCOL for malformed text; or D_SMTP_ERROR_TOO_LONG
- *         when the result does not fit.
+ * @return D_SMTP_OK; D_SMTP_ERROR_INVALID_ARGUMENT for a NULL argument;
+ *         D_SMTP_ERROR_PROTOCOL for malformed text; or
+ *         D_SMTP_ERROR_LINE_TOO_LONG when the result does not fit. The buffer
+ *         is unchanged unless the call succeeds.
  */
-enum d_smtp_error d_smtp_base64_decode(const char*           _text,
-                                       size_t                _length,
-                                       struct d_smtp_buffer* _buffer);
+enum d_smtp_error d_smtp_buffer_append_from_base64(
+                      struct d_smtp_buffer* _buffer,
+                      const char*           _text,
+                      size_t                _length);
 
 // 6.2    Message data
 //------------------------------------------------------------------------------
@@ -597,8 +662,8 @@ size_t            d_smtp_data_encode(struct d_smtp_data_encoder* _encoder,
  *
  * @param[in,out] _encoder  the encoder; reset on success.
  * @param[in,out] _buffer   receives at most five bytes.
- * @return D_SMTP_OK; D_SMTP_ERROR_INVALID for a NULL argument; or
- *         D_SMTP_ERROR_TOO_LONG when the marker does not fit.
+ * @return D_SMTP_OK; D_SMTP_ERROR_INVALID_ARGUMENT for a NULL argument; or
+ *         D_SMTP_ERROR_LINE_TOO_LONG when the marker does not fit.
  */
 enum d_smtp_error d_smtp_data_finish(struct d_smtp_data_encoder* _encoder,
                                      struct d_smtp_buffer*       _buffer);

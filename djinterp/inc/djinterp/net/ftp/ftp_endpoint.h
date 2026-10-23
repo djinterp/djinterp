@@ -9,7 +9,7 @@
 * path:      /inc/djinterp/net/ftp/ftp_endpoint.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -38,10 +38,11 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>  // size_t
-#include <stdint.h>  // uint16_t
 // djinterp
 #include "../../c/djinterp.h"  // framework root
 #include "./ftp_common.h"      // d_ftp_error, d_ftp_buffer
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // uint16_t
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++

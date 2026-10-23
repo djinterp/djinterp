@@ -9,7 +9,7 @@
 * path:      /src/djinterp/net/ssh/ssh_auth.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ssh/ssh_auth.h"  // corresponding header
 // std
@@ -65,7 +65,9 @@ d_ssh_internal_answer_password(
         return false;
     }
 
-    memcpy(_answer, context->password, length + 1);
+    memcpy(_answer,
+           context->password,
+           length + 1);
 
     return true;
 }
@@ -77,7 +79,7 @@ broke the session.
 */
 D_STATIC bool
 d_ssh_internal_final(
-    enum d_ssh_status _status
+    enum d_ssh_error _status
 )
 {
     return ( (_status == D_SSH_OK) ||
@@ -90,24 +92,24 @@ d_ssh_internal_auth_outcome
 could not run here offered nothing; a key file that failed to load counts
 only until the server has refused something.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_auth_outcome(
-    enum d_ssh_status _outcome,
-    enum d_ssh_status _attempt
+    enum d_ssh_error _outcome,
+    enum d_ssh_error _attempt
 )
 {
-    if (_attempt == D_SSH_ERR_UNSUPPORTED)
+    if (_attempt == D_SSH_ERROR_UNSUPPORTED)
     {
         return _outcome;
     }
 
-    if (_attempt == D_SSH_ERR_KEY)
+    if (_attempt == D_SSH_ERROR_KEY)
     {
-        return (_outcome == D_SSH_ERR_NO_AUTH_METHOD) ? D_SSH_ERR_KEY
+        return (_outcome == D_SSH_ERROR_NO_AUTH_METHOD) ? D_SSH_ERROR_KEY
                                                       : _outcome;
     }
 
-    return D_SSH_ERR_AUTH_DENIED;
+    return D_SSH_ERROR_AUTH;
 }
 
 /*
@@ -115,26 +117,28 @@ d_ssh_internal_try_publickey
   File-local: the agent's keys, then the key file. Returns a final status, or
 the outcome so far.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_try_publickey(
     struct d_ssh_session*           _session,
     const struct d_ssh_credentials* _credentials,
-    enum d_ssh_status*              _outcome
+    enum d_ssh_error*               _outcome
 )
 {
     const struct d_ssh_engine_vtable* const engine = _session->engine;
-    enum d_ssh_status                       status = D_SSH_OK;
+    enum d_ssh_error                        status = D_SSH_OK;
 
     if (_credentials->use_agent)
     {
-        status = engine->auth_agent(_session->handle, _credentials->user);
+        status = engine->auth_agent(_session->handle,
+                                    _credentials->user);
 
         if (d_ssh_internal_final(status))
         {
             return status;
         }
 
-        *_outcome = d_ssh_internal_auth_outcome(*_outcome, status);
+        *_outcome = d_ssh_internal_auth_outcome(*_outcome,
+                                                status);
     }
 
     if (_credentials->private_key)
@@ -150,10 +154,38 @@ d_ssh_internal_try_publickey(
             return status;
         }
 
-        *_outcome = d_ssh_internal_auth_outcome(*_outcome, status);
+        *_outcome = d_ssh_internal_auth_outcome(*_outcome,
+                                                status);
     }
 
     return *_outcome;
+}
+
+/*
+d_ssh_internal_try_interactive
+  File-local: keyboard-interactive, answered by the caller's prompt, or else
+with the password for every hidden prompt.
+*/
+D_STATIC enum d_ssh_error
+d_ssh_internal_try_interactive(
+    struct d_ssh_session*           _session,
+    const struct d_ssh_credentials* _credentials
+)
+{
+    const struct d_ssh_engine_vtable* const engine   = _session->engine;
+    struct d_ssh_internal_password          password =
+        { _credentials->password };
+
+    // the caller's prompt, or else the password for hidden prompts
+    return (_credentials->prompt)
+           ? engine->auth_interactive(_session->handle,
+                                      _credentials->user,
+                                      _credentials->prompt,
+                                      _credentials->prompt_context)
+           : engine->auth_interactive(_session->handle,
+                                      _credentials->user,
+                                      d_ssh_internal_answer_password,
+                                      &password);
 }
 
 /*
@@ -162,25 +194,26 @@ d_ssh_internal_try_methods
 where the server offers the method: publickey, keyboard-interactive, then
 password.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_try_methods(
     struct d_ssh_session*           _session,
     const struct d_ssh_credentials* _credentials,
     const char*                     _methods
 )
 {
-    const struct d_ssh_engine_vtable* const engine   = _session->engine;
-    const size_t                            length   = strlen(_methods);
-    const char* const                       user     = _credentials->user;
-    struct d_ssh_internal_password          password =
-        { _credentials->password };
-    enum d_ssh_status                       outcome  =
-        D_SSH_ERR_NO_AUTH_METHOD;
-    enum d_ssh_status                       status   = D_SSH_OK;
+    const struct d_ssh_engine_vtable* const engine = _session->engine;
+    const size_t                            length = strlen(_methods);
 
-    if (d_ssh_name_list_contains(_methods, length, "publickey"))
+    enum d_ssh_error outcome = D_SSH_ERROR_NO_AUTH_METHOD;
+    enum d_ssh_error status  = D_SSH_OK;
+
+    if (d_ssh_name_list_contains(_methods,
+                                 length,
+                                 "publickey"))
     {
-        status = d_ssh_internal_try_publickey(_session, _credentials, &outcome);
+        status = d_ssh_internal_try_publickey(_session,
+                                              _credentials,
+                                              &outcome);
 
         if (d_ssh_internal_final(status))
         {
@@ -188,34 +221,32 @@ d_ssh_internal_try_methods(
         }
     }
 
-    // the caller's prompt, or else the password for hidden prompts
-    if ( (d_ssh_name_list_contains(_methods, length, "keyboard-interactive")) &&
+    // keyboard-interactive, when offered and something can answer it
+    if ( (d_ssh_name_list_contains(_methods,
+                                   length,
+                                   "keyboard-interactive")) &&
          ( (_credentials->prompt) ||
            (_credentials->password) ) )
     {
-        status = (_credentials->prompt)
-                     ? engine->auth_interactive(_session->handle,
-                                                user,
-                                                _credentials->prompt,
-                                                _credentials->prompt_context)
-                     : engine->auth_interactive(_session->handle,
-                                                user,
-                                                d_ssh_internal_answer_password,
-                                                &password);
+        status = d_ssh_internal_try_interactive(_session,
+                                                _credentials);
 
         if (d_ssh_internal_final(status))
         {
             return status;
         }
 
-        outcome = d_ssh_internal_auth_outcome(outcome, status);
+        outcome = d_ssh_internal_auth_outcome(outcome,
+                                              status);
     }
 
-    if ( (d_ssh_name_list_contains(_methods, length, "password")) &&
+    if ( (d_ssh_name_list_contains(_methods,
+                                   length,
+                                   "password")) &&
          (_credentials->password) )
     {
         status = engine->auth_password(_session->handle,
-                                       user,
+                                       _credentials->user,
                                        _credentials->password);
 
         if (d_ssh_internal_final(status))
@@ -223,7 +254,8 @@ d_ssh_internal_try_methods(
             return status;
         }
 
-        outcome = d_ssh_internal_auth_outcome(outcome, status);
+        outcome = d_ssh_internal_auth_outcome(outcome,
+                                              status);
     }
 
     return outcome;
@@ -256,7 +288,7 @@ d_ssh_authenticate
   The engine's method list lives only until its next call, so it is copied
 before any attempt is made.
 */
-enum d_ssh_status
+enum d_ssh_error
 d_ssh_authenticate(
     struct d_ssh_session*           _session,
     const struct d_ssh_credentials* _credentials
@@ -267,23 +299,24 @@ d_ssh_authenticate(
          (!_credentials->user)  ||
          (_credentials->user[0] == '\0') )
     {
-        return D_SSH_ERR_ARGUMENT;
+        return D_SSH_ERROR_INVALID_ARGUMENT;
     }
 
     if (_session->state != D_SSH_STATE_VERIFIED)
     {
-        return D_SSH_ERR_STATE;
+        return D_SSH_ERROR_STATE;
     }
 
-    const char*       offered = NULL;
-    enum d_ssh_status status  =
+    const char*      offered = NULL;
+    enum d_ssh_error status  =
         _session->engine->auth_methods(_session->handle,
                                        _credentials->user,
                                        &offered);
 
     if (status != D_SSH_OK)
     {
-        return d_ssh_internal_settle(_session, status);
+        return d_ssh_internal_settle(_session,
+                                     status);
     }
 
     // "none" already let the user in
@@ -299,11 +332,16 @@ d_ssh_authenticate(
 
     if (!methods)
     {
-        return d_ssh_internal_settle(_session, D_SSH_ERR_MEMORY);
+        return d_ssh_internal_settle(_session,
+                                     D_SSH_ERROR_OUT_OF_MEMORY);
     }
 
-    memcpy(methods, offered, length + 1);
-    status = d_ssh_internal_try_methods(_session, _credentials, methods);
+    memcpy(methods,
+           offered,
+           length + 1);
+    status = d_ssh_internal_try_methods(_session,
+                                        _credentials,
+                                        methods);
     free(methods);
 
     if (status == D_SSH_OK)
@@ -311,12 +349,13 @@ d_ssh_authenticate(
         _session->state = D_SSH_STATE_AUTHENTICATED;
     }
 
-    if (status == D_SSH_ERR_NO_AUTH_METHOD)
+    if (status == D_SSH_ERROR_NO_AUTH_METHOD)
     {
         _session->detail = "no credential fits a method the server offers";
 
         return status;
     }
 
-    return d_ssh_internal_settle(_session, status);
+    return d_ssh_internal_settle(_session,
+                                 status);
 }

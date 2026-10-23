@@ -11,17 +11,18 @@
 * path:      /src/djinterp/net/sftp/sftp_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/sftp/sftp_common.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // uint8_t, uint32_t, uint64_t
 #include <string.h>   // memcmp, memcpy, strlen
 // djinterp
 #include "../../../../inc/djinterp/c/util/sink_common.h"  // d_pack_text
 #include "../../../../inc/djinterp/net/ssh/ssh_wire.h"    // d_ssh_reader
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t, uint32_t
 
 
 //==============================================================================
@@ -109,7 +110,7 @@ d_sftp_error_string(
             return "operation not supported";
         case D_SFTP_ERROR_INVALID_ARGUMENT:
             return "invalid argument";
-        case D_SFTP_ERROR_MEMORY:
+        case D_SFTP_ERROR_OUT_OF_MEMORY:
             return "out of memory";
         case D_SFTP_ERROR_PROTOCOL:
             return "protocol error";
@@ -117,9 +118,9 @@ d_sftp_error_string(
             return "unsupported protocol version";
         case D_SFTP_ERROR_TRANSPORT:
             return "SSH channel failure";
-        case D_SFTP_ERROR_BAD_SEQUENCE:
+        case D_SFTP_ERROR_STATE:
             return "bad sequence of operations";
-        case D_SFTP_ERROR_TOO_LARGE:
+        case D_SFTP_ERROR_MESSAGE_TOO_LARGE:
             return "too large";
     }
 
@@ -142,6 +143,90 @@ d_sftp_error_from_status(
     }
 
     return D_SFTP_ERROR_FAILURE;
+}
+
+/*
+d_sftp_error_to_net
+  One case per enumerator and no default, so the compiler reports a missing
+case; the groups follow net.h's rules. A value outside the enum is UNKNOWN.
+*/
+enum d_net_error
+d_sftp_error_to_net(
+    enum d_sftp_error _error
+)
+{
+    switch (_error)
+    {
+        case D_SFTP_OK:
+            return D_NET_OK;
+        case D_SFTP_ERROR_INVALID_ARGUMENT:
+        case D_SFTP_ERROR_STATE:
+            return D_NET_ERROR_INVALID_ARGUMENT;
+        case D_SFTP_ERROR_BAD_MESSAGE:
+        case D_SFTP_ERROR_PROTOCOL:
+        case D_SFTP_ERROR_VERSION:
+            return D_NET_ERROR_PROTOCOL;
+        case D_SFTP_ERROR_MESSAGE_TOO_LARGE:
+            return D_NET_ERROR_MESSAGE_TOO_LARGE;
+        case D_SFTP_ERROR_CONNECTION_LOST:
+            return D_NET_ERROR_CONNECTION_RESET;
+        case D_SFTP_ERROR_EOF:
+        case D_SFTP_ERROR_NO_CONNECTION:
+            return D_NET_ERROR_CLOSED;
+        case D_SFTP_ERROR_OUT_OF_MEMORY:
+            return D_NET_ERROR_OUT_OF_MEMORY;
+        case D_SFTP_ERROR_PERMISSION_DENIED:
+            return D_NET_ERROR_ACCESS_DENIED;
+        case D_SFTP_ERROR_NO_SUCH_FILE:
+        case D_SFTP_ERROR_FAILURE:
+        case D_SFTP_ERROR_UNSUPPORTED:
+        case D_SFTP_ERROR_TRANSPORT:
+            return D_NET_ERROR_UNKNOWN;
+    }
+
+    return D_NET_ERROR_UNKNOWN;
+}
+
+/*
+d_sftp_error_from_net
+  One case per enumerator and no default, so the compiler reports a missing
+case. Only a connection that ended is lost; whatever else failed beneath
+SFTP is the stream's failure, which the caller's net_error explains. A
+value outside the enum is TRANSPORT.
+*/
+enum d_sftp_error
+d_sftp_error_from_net(
+    enum d_net_error _error
+)
+{
+    switch (_error)
+    {
+        case D_NET_OK:
+            return D_SFTP_OK;
+        case D_NET_ERROR_CLOSED:
+        case D_NET_ERROR_CONNECTION_RESET:
+        case D_NET_ERROR_CONNECTION_ABORTED:
+            return D_SFTP_ERROR_CONNECTION_LOST;
+        case D_NET_ERROR_OUT_OF_MEMORY:
+            return D_SFTP_ERROR_OUT_OF_MEMORY;
+        case D_NET_ERROR_INVALID_ARGUMENT:
+        case D_NET_ERROR_TIMED_OUT:
+        case D_NET_ERROR_WOULD_BLOCK:
+        case D_NET_ERROR_INTERRUPTED:
+        case D_NET_ERROR_CONNECTION_REFUSED:
+        case D_NET_ERROR_ADDRESS_IN_USE:
+        case D_NET_ERROR_ADDRESS_INVALID:
+        case D_NET_ERROR_HOST_UNREACHABLE:
+        case D_NET_ERROR_NETWORK_DOWN:
+        case D_NET_ERROR_ACCESS_DENIED:
+        case D_NET_ERROR_MESSAGE_TOO_LARGE:
+        case D_NET_ERROR_TOO_MANY_OPEN_FILES:
+        case D_NET_ERROR_PROTOCOL:
+        case D_NET_ERROR_UNKNOWN:
+            return D_SFTP_ERROR_TRANSPORT;
+    }
+
+    return D_SFTP_ERROR_TRANSPORT;
 }
 
 //==============================================================================

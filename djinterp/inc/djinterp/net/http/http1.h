@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/net/http/http1.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -182,7 +182,7 @@ void                 d_http1_parser_reset(struct d_http1_parser* _parser);
  *                           ending it included; bytes after it are the body
  *                           or the next message.
  * @return D_HTTP_OK; D_HTTP_ERROR_INCOMPLETE for more bytes;
- *         D_HTTP_ERROR_ARGUMENT; or the error of the first fault found:
+ *         D_HTTP_ERROR_INVALID_ARGUMENT; or the error of the first fault found:
  *         a start line malformed, too long, or of a bad method, target, or
  *         version; a head too large; a bare CR or LF; a folded line; a
  *         field name or value refused; too many fields; or, in HTTP/1.1, not
@@ -206,8 +206,8 @@ enum d_http_error    d_http1_parse_request(struct d_http1_parser*  _parser,
  * @param[out]    _consumed  receives the head's length, the empty line
  *                           ending it included.
  * @return D_HTTP_OK; D_HTTP_ERROR_INCOMPLETE for more bytes;
- *         D_HTTP_ERROR_ARGUMENT; or the error of the first fault found, as
- *         for requests, with a status code refused in place of a method or
+ *         D_HTTP_ERROR_INVALID_ARGUMENT; or the error of the first fault found,
+ *         as for requests, with a status code refused in place of a method or
  *         target, and no Host rule.
  */
 enum d_http_error    d_http1_parse_response(struct d_http1_parser*   _parser,

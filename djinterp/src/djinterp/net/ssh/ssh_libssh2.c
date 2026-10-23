@@ -14,22 +14,24 @@
 * path:      /src/djinterp/net/ssh/ssh_libssh2.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ssh/ssh_libssh2.h"  // corresponding header
 // std
 #include <limits.h>   // INT_MAX, UINT_MAX
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // uint64_t
 #include <stdlib.h>   // malloc, calloc, free
 #include <string.h>   // memcpy, strlen
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"  // framework root
+#include "../../../../inc/djinterp/c/djinterp.h"              // framework root
 #include "../../../../inc/djinterp/config/net/ssh/cfg_ssh.h"  // D_INTERNAL_SSH_LIBSSH2
-#include "../../../../inc/djinterp/net/ssh/ssh_engine.h"  // d_ssh_engine_vtable
-#include "../../../../inc/djinterp/net/ssh/ssh_wire.h"  // d_ssh_name_list_contains
-#include "../../../../inc/djinterp/net/ssh/ssh_internal.h"  // d_ssh_internal_*
+#include "../../../../inc/djinterp/net/codec/codec_digest.h"  // d_net_wipe
+#include "../../../../inc/djinterp/net/ssh/ssh_engine.h"      // d_ssh_engine_vtable
+#include "../../../../inc/djinterp/net/ssh/ssh_wire.h"        // d_ssh_name_list_contains
+#include "../../../../inc/djinterp/net/ssh/ssh_internal.h"    // d_ssh_internal_*
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint64_t
 
 #if (D_INTERNAL_SSH_LIBSSH2 == 1)
     #include <libssh2.h>  // libssh2_*, LIBSSH2_*
@@ -43,28 +45,6 @@ enum
 {
     D_SSH_INTERNAL_ANSWER_MAX = 1024  // longest prompt answer
 };
-
-/*
-d_ssh_internal_wipe
-  File-local: zeroes memory that held a secret. The writes go through a
-volatile pointer, so the compiler cannot drop them as dead stores.
-*/
-D_STATIC void
-d_ssh_internal_wipe(
-    void*  _data,
-    size_t _size
-)
-{
-    volatile unsigned char* const bytes = (volatile unsigned char*)_data;
-
-    // one byte at a time, each store observable
-    for (size_t i = 0; i < _size; i++)
-    {
-        bytes[i] = 0;
-    }
-
-    return;
-}
 
 // d_ssh_internal_libssh2
 //   one libssh2 engine session. It tracks its channel wrappers, because
@@ -131,14 +111,14 @@ d_ssh_internal_libssh2_map
 later libssh2 releases may add, read as protocol failures: fatal, and so on
 the safe side. Every named code exists in libssh2 1.9.0.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_map(
     int _code
 )
 {
     if (d_ssh_internal_libssh2_is_key_error(_code))
     {
-        return D_SSH_ERR_KEY;
+        return D_SSH_ERROR_KEY;
     }
 
     switch (_code)
@@ -152,11 +132,11 @@ d_ssh_internal_libssh2_map(
         case LIBSSH2_ERROR_SOCKET_DISCONNECT:
         case LIBSSH2_ERROR_BAD_SOCKET:
         case LIBSSH2_ERROR_EAGAIN:
-            return D_SSH_ERR_IO;
+            return D_SSH_ERROR_TRANSPORT;
 
         case LIBSSH2_ERROR_TIMEOUT:
         case LIBSSH2_ERROR_SOCKET_TIMEOUT:
-            return D_SSH_ERR_TIMEOUT;
+            return D_SSH_ERROR_TIMED_OUT;
 
         case LIBSSH2_ERROR_BANNER_RECV:
         case LIBSSH2_ERROR_BANNER_SEND:
@@ -165,38 +145,38 @@ d_ssh_internal_libssh2_map(
         case LIBSSH2_ERROR_HOSTKEY_INIT:
         case LIBSSH2_ERROR_HOSTKEY_SIGN:
         case LIBSSH2_ERROR_METHOD_NONE:
-            return D_SSH_ERR_HANDSHAKE;
+            return D_SSH_ERROR_HANDSHAKE;
 
         case LIBSSH2_ERROR_ALLOC:
-            return D_SSH_ERR_MEMORY;
+            return D_SSH_ERROR_OUT_OF_MEMORY;
 
         case LIBSSH2_ERROR_AUTHENTICATION_FAILED:
         case LIBSSH2_ERROR_PUBLICKEY_UNVERIFIED:
         case LIBSSH2_ERROR_PASSWORD_EXPIRED:
-            return D_SSH_ERR_AUTH_DENIED;
+            return D_SSH_ERROR_AUTH;
 
         case LIBSSH2_ERROR_AGENT_PROTOCOL:
         case LIBSSH2_ERROR_METHOD_NOT_SUPPORTED:
-            return D_SSH_ERR_UNSUPPORTED;
+            return D_SSH_ERROR_UNSUPPORTED;
 
         case LIBSSH2_ERROR_CHANNEL_OUTOFORDER:
         case LIBSSH2_ERROR_CHANNEL_FAILURE:
         case LIBSSH2_ERROR_CHANNEL_REQUEST_DENIED:
         case LIBSSH2_ERROR_CHANNEL_UNKNOWN:
         case LIBSSH2_ERROR_REQUEST_DENIED:
-            return D_SSH_ERR_CHANNEL;
+            return D_SSH_ERROR_CHANNEL;
 
         case LIBSSH2_ERROR_CHANNEL_CLOSED:
         case LIBSSH2_ERROR_CHANNEL_EOF_SENT:
-            return D_SSH_ERR_STATE;
+            return D_SSH_ERROR_STATE;
 
         case LIBSSH2_ERROR_INVAL:
         case LIBSSH2_ERROR_BAD_USE:
         case LIBSSH2_ERROR_BUFFER_TOO_SMALL:
-            return D_SSH_ERR_ARGUMENT;
+            return D_SSH_ERROR_INVALID_ARGUMENT;
 
         default:
-            return D_SSH_ERR_PROTOCOL;
+            return D_SSH_ERROR_PROTOCOL;
     }
 }
 
@@ -205,7 +185,7 @@ d_ssh_internal_libssh2_fail
   File-local: keeps libssh2's description of a failure -- which it frees at
 its next error -- and translates the code.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_fail(
     struct d_ssh_internal_libssh2* _engine,
     int                            _code
@@ -214,7 +194,10 @@ d_ssh_internal_libssh2_fail(
     char* message = NULL;
     int   length  = 0;
 
-    (void)libssh2_session_last_error(_engine->session, &message, &length, 0);
+    (void)libssh2_session_last_error(_engine->session,
+                                     &message,
+                                     &length,
+                                     0);
 
     if ( (message) &&
          (length > 0) )
@@ -223,7 +206,9 @@ d_ssh_internal_libssh2_fail(
         const size_t size  = ((size_t)length < limit) ? (size_t)length
                                                       : limit;
 
-        memcpy(_engine->message, message, size);
+        memcpy(_engine->message,
+               message,
+               size);
         _engine->message[size] = '\0';
         _engine->detail        = _engine->message;
     }
@@ -265,7 +250,7 @@ d_ssh_internal_libssh2_prefer
   File-local: sets one method preference when a list was given. libssh2 copies
 the list and drops the names it does not implement.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_prefer(
     struct d_ssh_internal_libssh2* _engine,
     int                            _method,
@@ -282,7 +267,8 @@ d_ssh_internal_libssh2_prefer(
                                                  _list);
 
     return (code == 0) ? D_SSH_OK
-                       : d_ssh_internal_libssh2_fail(_engine, code);
+                       : d_ssh_internal_libssh2_fail(_engine,
+                                                     code);
 }
 
 // d_ssh_internal_libssh2_markers
@@ -307,14 +293,16 @@ extension negotiation, RSA user keys fall back to SHA-1 signatures that
 current servers refuse. The list alone is set first, so that one naming no
 algorithm libssh2 knows is still refused as unsupported.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_prefer_kex(
     struct d_ssh_internal_libssh2* _engine,
     const char*                    _list
 )
 {
-    enum d_ssh_status status =
-        d_ssh_internal_libssh2_prefer(_engine, LIBSSH2_METHOD_KEX, _list);
+    enum d_ssh_error status =
+        d_ssh_internal_libssh2_prefer(_engine,
+                                      LIBSSH2_METHOD_KEX,
+                                      _list);
 
     if ( (status != D_SSH_OK) ||
          (!_list) )
@@ -330,7 +318,9 @@ d_ssh_internal_libssh2_prefer_kex(
     {
         const char* const marker = d_ssh_internal_libssh2_markers[i];
 
-        if (!d_ssh_name_list_contains(_list, length, marker))
+        if (!d_ssh_name_list_contains(_list,
+                                      length,
+                                      marker))
         {
             extra += strlen(marker) + 1;
         }
@@ -340,27 +330,35 @@ d_ssh_internal_libssh2_prefer_kex(
 
     if (!list)
     {
-        return D_SSH_ERR_MEMORY;
+        return D_SSH_ERROR_OUT_OF_MEMORY;
     }
 
     size_t used = length;
 
-    memcpy(list, _list, length + 1);
+    memcpy(list,
+           _list,
+           length + 1);
 
     for (size_t i = 0; i < 2; i++)
     {
         const char* const marker = d_ssh_internal_libssh2_markers[i];
         const size_t      size   = strlen(marker);
 
-        if (!d_ssh_name_list_contains(_list, length, marker))
+        if (!d_ssh_name_list_contains(_list,
+                                      length,
+                                      marker))
         {
             list[used] = ',';
-            memcpy(list + used + 1, marker, size + 1);
+            memcpy(list + used + 1,
+                   marker,
+                   size + 1);
             used += size + 1;
         }
     }
 
-    status = d_ssh_internal_libssh2_prefer(_engine, LIBSSH2_METHOD_KEX, list);
+    status = d_ssh_internal_libssh2_prefer(_engine,
+                                           LIBSSH2_METHOD_KEX,
+                                           list);
     free(list);
 
     return status;
@@ -371,7 +369,7 @@ d_ssh_internal_libssh2_prefer_all
   File-local: applies every preference, the KEX list first; ciphers and MACs
 apply in both directions. The first refusal stops it.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_prefer_all(
     struct d_ssh_internal_libssh2* _engine,
     const struct d_ssh_algorithms* _algorithms
@@ -387,13 +385,16 @@ d_ssh_internal_libssh2_prefer_all(
                                      _algorithms->ciphers,
                                      _algorithms->macs,
                                      _algorithms->macs };
-    enum d_ssh_status status     =
-        d_ssh_internal_libssh2_prefer_kex(_engine, _algorithms->kex);
+    enum d_ssh_error  status     =
+        d_ssh_internal_libssh2_prefer_kex(_engine,
+                                          _algorithms->kex);
 
     // one preference at a time, until one is refused
     for (size_t i = 0; ( (i < 5) && (status == D_SSH_OK) ); i++)
     {
-        status = d_ssh_internal_libssh2_prefer(_engine, methods[i], lists[i]);
+        status = d_ssh_internal_libssh2_prefer(_engine,
+                                               methods[i],
+                                               lists[i]);
     }
 
     return status;
@@ -405,7 +406,7 @@ d_ssh_internal_libssh2_create
 keyboard-interactive callback finds the prompt. Blocking mode, with the
 deadline as libssh2's timeout, gives every operation the same bound.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_create(
     const struct d_ssh_algorithms* _algorithms,
     unsigned int                   _timeout_ms,
@@ -414,27 +415,34 @@ d_ssh_internal_libssh2_create(
 {
     *_handle = NULL;
 
-    struct d_ssh_internal_libssh2* const engine = calloc(1, sizeof(*engine));
+    struct d_ssh_internal_libssh2* const engine = calloc(1,
+                                                         sizeof(*engine));
 
     if (!engine)
     {
-        return D_SSH_ERR_MEMORY;
+        return D_SSH_ERROR_OUT_OF_MEMORY;
     }
 
-    engine->session = libssh2_session_init_ex(NULL, NULL, NULL, engine);
+    engine->session = libssh2_session_init_ex(NULL,
+                                              NULL,
+                                              NULL,
+                                              engine);
 
     if (!engine->session)
     {
         free(engine);
 
-        return D_SSH_ERR_MEMORY;
+        return D_SSH_ERROR_OUT_OF_MEMORY;
     }
 
-    libssh2_session_set_blocking(engine->session, 1);
-    libssh2_session_set_timeout(engine->session, (long)_timeout_ms);
+    libssh2_session_set_blocking(engine->session,
+                                 1);
+    libssh2_session_set_timeout(engine->session,
+                                (long)_timeout_ms);
 
-    const enum d_ssh_status status =
-        d_ssh_internal_libssh2_prefer_all(engine, _algorithms);
+    const enum d_ssh_error status =
+        d_ssh_internal_libssh2_prefer_all(engine,
+                                          _algorithms);
 
     if (status != D_SSH_OK)
     {
@@ -454,7 +462,7 @@ d_ssh_internal_libssh2_handshake
   Whatever the transport did not cause is a failed key exchange, however
 libssh2 classifies it.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_handshake(
     void*        _handle,
     d_ssh_socket _socket
@@ -462,31 +470,33 @@ d_ssh_internal_libssh2_handshake(
 {
     struct d_ssh_internal_libssh2* const engine = _handle;
     const int                            code   =
-        libssh2_session_handshake(engine->session, (libssh2_socket_t)_socket);
+        libssh2_session_handshake(engine->session,
+                                  (libssh2_socket_t)_socket);
 
     if (code == 0)
     {
         return D_SSH_OK;
     }
 
-    const enum d_ssh_status status =
-        d_ssh_internal_libssh2_fail(engine, code);
+    const enum d_ssh_error status =
+        d_ssh_internal_libssh2_fail(engine,
+                                    code);
 
-    if ( (status == D_SSH_ERR_IO)      ||
-         (status == D_SSH_ERR_TIMEOUT) ||
-         (status == D_SSH_ERR_MEMORY) )
+    if ( (status == D_SSH_ERROR_TRANSPORT) ||
+         (status == D_SSH_ERROR_TIMED_OUT) ||
+         (status == D_SSH_ERROR_OUT_OF_MEMORY) )
     {
         return status;
     }
 
-    return D_SSH_ERR_HANDSHAKE;
+    return D_SSH_ERROR_HANDSHAKE;
 }
 
 /*
 d_ssh_internal_libssh2_host_key
   libssh2 keeps the blob for the session's lifetime.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_host_key(
     void*                 _handle,
     const unsigned char** _key,
@@ -497,14 +507,16 @@ d_ssh_internal_libssh2_host_key(
     size_t                               length = 0;
     int                                  type   = 0;
     const char* const                    key    =
-        libssh2_session_hostkey(engine->session, &length, &type);
+        libssh2_session_hostkey(engine->session,
+                                &length,
+                                &type);
 
     if ( (!key) ||
          (length == 0) )
     {
         engine->detail = "the server presented no host key";
 
-        return D_SSH_ERR_PROTOCOL;
+        return D_SSH_ERROR_PROTOCOL;
     }
 
     *_key  = (const unsigned char*)key;
@@ -520,7 +532,7 @@ authenticates the user here, which libssh2 reports as a NULL list. The list
 is asked for once and cached: a server fixes it for the session's user, and
 OpenSSH refuses a change of user mid-authentication anyway.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_auth_methods(
     void*        _handle,
     const char*  _user,
@@ -537,9 +549,10 @@ d_ssh_internal_libssh2_auth_methods(
         return D_SSH_OK;
     }
 
-    if (!d_ssh_internal_libssh2_length(_user, &length))
+    if (!d_ssh_internal_libssh2_length(_user,
+                                       &length))
     {
-        return D_SSH_ERR_ARGUMENT;
+        return D_SSH_ERROR_INVALID_ARGUMENT;
     }
 
     const char* const list = libssh2_userauth_list(engine->session,
@@ -553,10 +566,12 @@ d_ssh_internal_libssh2_auth_methods(
 
         if (!copy)
         {
-            return D_SSH_ERR_MEMORY;
+            return D_SSH_ERROR_OUT_OF_MEMORY;
         }
 
-        memcpy(copy, list, size);
+        memcpy(copy,
+               list,
+               size);
         engine->methods = copy;
         *_methods       = copy;
 
@@ -577,7 +592,7 @@ d_ssh_internal_libssh2_auth_methods(
 d_ssh_internal_libssh2_auth_password
   No password-change callback: an expired password is a refusal.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_auth_password(
     void*       _handle,
     const char* _user,
@@ -588,10 +603,12 @@ d_ssh_internal_libssh2_auth_password(
     unsigned int                         user_length     = 0;
     unsigned int                         password_length = 0;
 
-    if ( (!d_ssh_internal_libssh2_length(_user, &user_length)) ||
-         (!d_ssh_internal_libssh2_length(_password, &password_length)) )
+    if ( (!d_ssh_internal_libssh2_length(_user,
+                                         &user_length)) ||
+         (!d_ssh_internal_libssh2_length(_password,
+                                         &password_length)) )
     {
-        return D_SSH_ERR_ARGUMENT;
+        return D_SSH_ERROR_INVALID_ARGUMENT;
     }
 
     const int code = libssh2_userauth_password_ex(engine->session,
@@ -602,7 +619,8 @@ d_ssh_internal_libssh2_auth_password(
                                                   NULL);
 
     return (code == 0) ? D_SSH_OK
-                       : d_ssh_internal_libssh2_fail(engine, code);
+                       : d_ssh_internal_libssh2_fail(engine,
+                                                     code);
 }
 
 /*
@@ -610,7 +628,7 @@ d_ssh_internal_libssh2_auth_key_file
   A missing passphrase is passed as the empty one: libssh2 must never fall
 back to a crypto library's terminal prompt.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_auth_key_file(
     void*       _handle,
     const char* _user,
@@ -622,9 +640,10 @@ d_ssh_internal_libssh2_auth_key_file(
     struct d_ssh_internal_libssh2* const engine = _handle;
     unsigned int                         length = 0;
 
-    if (!d_ssh_internal_libssh2_length(_user, &length))
+    if (!d_ssh_internal_libssh2_length(_user,
+                                       &length))
     {
-        return D_SSH_ERR_ARGUMENT;
+        return D_SSH_ERROR_INVALID_ARGUMENT;
     }
 
     const int code =
@@ -637,15 +656,16 @@ d_ssh_internal_libssh2_auth_key_file(
                                                              : "");
 
     return (code == 0) ? D_SSH_OK
-                       : d_ssh_internal_libssh2_fail(engine, code);
+                       : d_ssh_internal_libssh2_fail(engine,
+                                                     code);
 }
 
 /*
 d_ssh_internal_libssh2_try_identities
   File-local: offers each identity the agent lists until one is accepted.
-Reports D_SSH_ERR_UNSUPPORTED if it held none, since nothing was offered.
+Reports D_SSH_ERROR_UNSUPPORTED if it held none, since nothing was offered.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_try_identities(
     struct d_ssh_internal_libssh2* _engine,
     LIBSSH2_AGENT*                 _agent,
@@ -654,7 +674,7 @@ d_ssh_internal_libssh2_try_identities(
 {
     struct libssh2_agent_publickey* previous = NULL;
     struct libssh2_agent_publickey* identity = NULL;
-    enum d_ssh_status               status   = D_SSH_ERR_UNSUPPORTED;
+    enum d_ssh_error                status   = D_SSH_ERROR_UNSUPPORTED;
 
     // until the list ends, one is accepted, or the session breaks
     for (;;)
@@ -670,27 +690,31 @@ d_ssh_internal_libssh2_try_identities(
 
         if (next < 0)
         {
-            const enum d_ssh_status error =
-                d_ssh_internal_libssh2_fail(_engine, next);
+            const enum d_ssh_error error =
+                d_ssh_internal_libssh2_fail(_engine,
+                                            next);
 
             return (d_ssh_internal_is_fatal(error)) ? error : status;
         }
 
-        const int code = libssh2_agent_userauth(_agent, _user, identity);
+        const int code = libssh2_agent_userauth(_agent,
+                                                _user,
+                                                identity);
 
         if (code == 0)
         {
             return D_SSH_OK;
         }
 
-        status = d_ssh_internal_libssh2_fail(_engine, code);
+        status = d_ssh_internal_libssh2_fail(_engine,
+                                             code);
 
         if (d_ssh_internal_is_fatal(status))
         {
             return status;
         }
 
-        status   = D_SSH_ERR_AUTH_DENIED;
+        status   = D_SSH_ERROR_AUTH;
         previous = identity;
     }
 
@@ -702,7 +726,7 @@ d_ssh_internal_libssh2_auth_agent
   An agent that cannot be reached is a missing capability, not a refusal:
 the session goes on to other methods.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_auth_agent(
     void*       _handle,
     const char* _user
@@ -714,15 +738,18 @@ d_ssh_internal_libssh2_auth_agent(
 
     if (!agent)
     {
-        return d_ssh_internal_libssh2_fail(engine, LIBSSH2_ERROR_ALLOC);
+        return d_ssh_internal_libssh2_fail(engine,
+                                           LIBSSH2_ERROR_ALLOC);
     }
 
-    enum d_ssh_status status = D_SSH_ERR_UNSUPPORTED;
+    enum d_ssh_error status = D_SSH_ERROR_UNSUPPORTED;
 
     if ( (libssh2_agent_connect(agent) == 0) &&
          (libssh2_agent_list_identities(agent) == 0) )
     {
-        status = d_ssh_internal_libssh2_try_identities(engine, agent, _user);
+        status = d_ssh_internal_libssh2_try_identities(engine,
+                                                       agent,
+                                                       _user);
         (void)libssh2_agent_disconnect(agent);
     }
     else
@@ -761,7 +788,9 @@ d_ssh_internal_libssh2_answer(
     // an empty prompt may come with no text at all
     if (length > 0)
     {
-        memcpy(prompt, _prompt->text, length);
+        memcpy(prompt,
+               _prompt->text,
+               length);
     }
 
     prompt[length] = '\0';
@@ -782,12 +811,15 @@ d_ssh_internal_libssh2_answer(
 
     if (copy)
     {
-        memcpy(copy, answer, answer_length + 1);
+        memcpy(copy,
+               answer,
+               answer_length + 1);
         _response->text   = copy;
         _response->length = (unsigned int)answer_length;
     }
 
-    d_ssh_internal_wipe(answer, sizeof(answer));
+    d_net_wipe(answer,
+               sizeof(answer));
 
     return (copy != NULL);
 }
@@ -851,7 +883,7 @@ d_ssh_internal_libssh2_respond(
 d_ssh_internal_libssh2_auth_interactive
   The prompt is installed only for the duration of the call.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_auth_interactive(
     void*         _handle,
     const char*   _user,
@@ -862,9 +894,10 @@ d_ssh_internal_libssh2_auth_interactive(
     struct d_ssh_internal_libssh2* const engine = _handle;
     unsigned int                         length = 0;
 
-    if (!d_ssh_internal_libssh2_length(_user, &length))
+    if (!d_ssh_internal_libssh2_length(_user,
+                                       &length))
     {
-        return D_SSH_ERR_ARGUMENT;
+        return D_SSH_ERROR_INVALID_ARGUMENT;
     }
 
     engine->prompt         = _prompt;
@@ -881,7 +914,8 @@ d_ssh_internal_libssh2_auth_interactive(
     engine->prompt_context = NULL;
 
     return (code == 0) ? D_SSH_OK
-                       : d_ssh_internal_libssh2_fail(engine, code);
+                       : d_ssh_internal_libssh2_fail(engine,
+                                                     code);
 }
 
 /*
@@ -889,7 +923,7 @@ d_ssh_internal_libssh2_channel_open
   A direct-tcpip channel names 127.0.0.1:22 as its originator, as libssh2's
 own convenience call does; the server only logs it.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_channel_open(
     void*        _handle,
     const char*  _host,
@@ -920,7 +954,7 @@ d_ssh_internal_libssh2_channel_open(
     {
         (void)libssh2_channel_free(channel);
 
-        return D_SSH_ERR_MEMORY;
+        return D_SSH_ERROR_OUT_OF_MEMORY;
     }
 
     wrapper->channel  = channel;
@@ -945,7 +979,7 @@ d_ssh_internal_libssh2_channel_request
   exec, subsystem, and shell are all one channel request in SSH, with or
 without a value.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_channel_request(
     void*       _channel,
     const char* _type,
@@ -956,10 +990,12 @@ d_ssh_internal_libssh2_channel_request(
     unsigned int                                 type_length  = 0;
     unsigned int                                 value_length = 0;
 
-    if ( (!d_ssh_internal_libssh2_length(_type, &type_length)) ||
-         (!d_ssh_internal_libssh2_length(_value, &value_length)) )
+    if ( (!d_ssh_internal_libssh2_length(_type,
+                                         &type_length)) ||
+         (!d_ssh_internal_libssh2_length(_value,
+                                         &value_length)) )
     {
-        return D_SSH_ERR_ARGUMENT;
+        return D_SSH_ERROR_INVALID_ARGUMENT;
     }
 
     const int code = libssh2_channel_process_startup(wrapper->channel,
@@ -969,14 +1005,15 @@ d_ssh_internal_libssh2_channel_request(
                                                      value_length);
 
     return (code == 0) ? D_SSH_OK
-                       : d_ssh_internal_libssh2_fail(wrapper->engine, code);
+                       : d_ssh_internal_libssh2_fail(wrapper->engine,
+                                                     code);
 }
 
 /*
 d_ssh_internal_libssh2_channel_pty
   No terminal modes are sent; the server's defaults apply.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_channel_pty(
     void*        _channel,
     const char*  _term,
@@ -987,11 +1024,12 @@ d_ssh_internal_libssh2_channel_pty(
     struct d_ssh_internal_libssh2_channel* const wrapper = _channel;
     unsigned int                                 length  = 0;
 
-    if ( (!d_ssh_internal_libssh2_length(_term, &length)) ||
-         (_columns > (unsigned int)INT_MAX)                ||
+    if ( (!d_ssh_internal_libssh2_length(_term,
+                                         &length)) ||
+         (_columns > (unsigned int)INT_MAX)        ||
          (_rows > (unsigned int)INT_MAX) )
     {
-        return D_SSH_ERR_ARGUMENT;
+        return D_SSH_ERROR_INVALID_ARGUMENT;
     }
 
     const int code = libssh2_channel_request_pty_ex(wrapper->channel,
@@ -1005,14 +1043,15 @@ d_ssh_internal_libssh2_channel_pty(
                                                     0);
 
     return (code == 0) ? D_SSH_OK
-                       : d_ssh_internal_libssh2_fail(wrapper->engine, code);
+                       : d_ssh_internal_libssh2_fail(wrapper->engine,
+                                                     code);
 }
 
 /*
 d_ssh_internal_libssh2_channel_read
   In blocking mode, libssh2 returns 0 only once the stream has ended.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_channel_read(
     void*             _channel,
     enum d_ssh_stream _stream,
@@ -1041,10 +1080,11 @@ d_ssh_internal_libssh2_channel_read(
 
     if (got == 0)
     {
-        return D_SSH_ERR_CLOSED;
+        return D_SSH_ERROR_CLOSED;
     }
 
-    return d_ssh_internal_libssh2_fail(wrapper->engine, (int)got);
+    return d_ssh_internal_libssh2_fail(wrapper->engine,
+                                       (int)got);
 }
 
 /*
@@ -1052,7 +1092,7 @@ d_ssh_internal_libssh2_channel_write
   In blocking mode, libssh2 waits for window space and writes at least one
 byte; a zero return would mean the transport stalled.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_channel_write(
     void*       _channel,
     const void* _data,
@@ -1078,17 +1118,18 @@ d_ssh_internal_libssh2_channel_write(
 
     if (put == 0)
     {
-        return D_SSH_ERR_IO;
+        return D_SSH_ERROR_TRANSPORT;
     }
 
-    return d_ssh_internal_libssh2_fail(wrapper->engine, (int)put);
+    return d_ssh_internal_libssh2_fail(wrapper->engine,
+                                       (int)put);
 }
 
 /*
 d_ssh_internal_libssh2_channel_send_eof
   One message; the channel stays readable.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_channel_send_eof(
     void* _channel
 )
@@ -1098,7 +1139,8 @@ d_ssh_internal_libssh2_channel_send_eof(
         libssh2_channel_send_eof(wrapper->channel);
 
     return (code == 0) ? D_SSH_OK
-                       : d_ssh_internal_libssh2_fail(wrapper->engine, code);
+                       : d_ssh_internal_libssh2_fail(wrapper->engine,
+                                                     code);
 }
 
 /*
@@ -1107,7 +1149,7 @@ d_ssh_internal_libssh2_channel_close
 so it is called only once one has; the exit status reads 0 when the server
 sent none.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_channel_close(
     void* _channel,
     int*  _exit_status
@@ -1126,7 +1168,8 @@ d_ssh_internal_libssh2_channel_close(
     *_exit_status = libssh2_channel_get_exit_status(wrapper->channel);
 
     return (code == 0) ? D_SSH_OK
-                       : d_ssh_internal_libssh2_fail(wrapper->engine, code);
+                       : d_ssh_internal_libssh2_fail(wrapper->engine,
+                                                     code);
 }
 
 /*
@@ -1165,7 +1208,7 @@ d_ssh_internal_libssh2_channel_free(
 d_ssh_internal_libssh2_disconnect
   SSH_DISCONNECT_BY_APPLICATION, with no language tag.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_libssh2_disconnect(
     void*       _handle,
     const char* _reason
@@ -1179,7 +1222,8 @@ d_ssh_internal_libssh2_disconnect(
                                       "");
 
     return (code == 0) ? D_SSH_OK
-                       : d_ssh_internal_libssh2_fail(engine, code);
+                       : d_ssh_internal_libssh2_fail(engine,
+                                                     code);
 }
 
 /*
@@ -1257,10 +1301,10 @@ d_ssh_internal_libssh2_startup
   libssh2_init sets up its crypto backend. It is the call that is not
 thread-safe; every later one only counts.
 */
-enum d_ssh_status
+enum d_ssh_error
 d_ssh_internal_libssh2_startup(void)
 {
-    return (libssh2_init(0) == 0) ? D_SSH_OK : D_SSH_ERR_UNSUPPORTED;
+    return (libssh2_init(0) == 0) ? D_SSH_OK : D_SSH_ERROR_UNSUPPORTED;
 }
 
 /*
@@ -1291,7 +1335,7 @@ d_ssh_engine_libssh2(void)
 d_ssh_internal_libssh2_startup
   Not compiled, so there is nothing to start.
 */
-enum d_ssh_status
+enum d_ssh_error
 d_ssh_internal_libssh2_startup(void)
 {
     return D_SSH_OK;

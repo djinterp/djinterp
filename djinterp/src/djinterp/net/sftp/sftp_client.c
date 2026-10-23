@@ -12,13 +12,12 @@
 * path:      /src/djinterp/net/sftp/sftp_client.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/sftp/sftp_client.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // uint32_t, uint64_t, UINT32_MAX
 #include <stdlib.h>   // malloc, free
 #include <string.h>   // memcpy, memmove, memset
 // djinterp
@@ -26,11 +25,14 @@
 #include "../../../../inc/djinterp/c/util/sink_common.h"    // d_pack_bytes
 #include "../../../../inc/djinterp/net/sftp/sftp_common.h"  // codec
 #include "../../../../inc/djinterp/net/ssh/ssh_channel.h"   // d_ssh_channel
-#include "../../../../inc/djinterp/net/ssh/ssh_common.h"    // d_ssh_status
+#include "../../../../inc/djinterp/net/ssh/ssh_common.h"    // d_ssh_error
 #include "../../../../inc/djinterp/net/ssh/ssh_engine.h"    // d_ssh_stream
 #include "../../../../inc/djinterp/net/ssh/ssh_session.h"   // d_ssh_session
 #include "../../../../inc/djinterp/net/ssh/ssh_wire.h"      // d_ssh_writer
 #include "./sftp_client_internal.h"                         // shared helpers
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t, uint32_t,
+                                                     // uint64_t, UINT32_MAX
 
 
 //==============================================================================
@@ -48,57 +50,34 @@ static const uint64_t PACKET_ROOM = 1024u;
 //==============================================================================
 
 /*
-d_sftp_internal_channel_read
-  File-local: the channel transport's read. SFTP's replies arrive on the
-channel's standard output; its standard error carries only a server's
-diagnostics.
-*/
-D_STATIC enum d_ssh_status
-d_sftp_internal_channel_read(
-    void*   _context,
-    void*   _buffer,
-    size_t  _capacity,
-    size_t* _out_received
-)
-{
-    return d_ssh_channel_read((struct d_ssh_channel*)_context,
-                              D_SSH_STREAM_STDOUT,
-                              _buffer,
-                              _capacity,
-                              _out_received);
-}
-
-/*
-d_sftp_internal_channel_write
-  File-local: the channel transport's write.
-*/
-D_STATIC enum d_ssh_status
-d_sftp_internal_channel_write(
-    void*       _context,
-    const void* _data,
-    size_t      _size
-)
-{
-    return d_ssh_channel_write((struct d_ssh_channel*)_context,
-                               _data,
-                               _size);
-}
-
-/*
-d_sftp_internal_client_lost
-  File-local: records a stream failure and returns its error: a stream that
-ended is a lost connection; anything else, the transport's failure.
+d_sftp_internal_client_failed
+  File-local: records a stream failure -- the connection's error and, over
+the client's own channel, the SSH status beneath it -- and returns its
+error. A read of nothing with no error is the stream's end, before the
+reply's: D_NET_ERROR_CLOSED, the stream ended too soon, as
+d_net_read_exactly would say, and the channel's output ended beneath it.
 */
 D_STATIC enum d_sftp_error
-d_sftp_internal_client_lost(
+d_sftp_internal_client_failed(
     struct d_sftp_client* _client,
-    enum d_ssh_status     _status
+    enum d_net_error      _error
 )
 {
-    _client->ssh_status = _status;
+    // the stream ended too soon
+    if (_error == D_NET_OK)
+    {
+        _client->net_error  = D_NET_ERROR_CLOSED;
+        _client->ssh_status = (_client->owns_channel) ? D_SSH_ERROR_CLOSED
+                                                      : D_SSH_OK;
 
-    return (_status == D_SSH_ERR_CLOSED) ? D_SFTP_ERROR_CONNECTION_LOST
-                                         : D_SFTP_ERROR_TRANSPORT;
+        return D_SFTP_ERROR_CONNECTION_LOST;
+    }
+
+    _client->net_error  = _error;
+    _client->ssh_status = (_client->owns_channel) ? _client->channel.failure
+                                                  : D_SSH_OK;
+
+    return d_sftp_error_from_net(_error);
 }
 
 /*
@@ -153,24 +132,20 @@ d_sftp_internal_client_receive(
             _client->buffer_end   = size;
         }
 
-        size_t                  received = 0u;
-        const enum d_ssh_status status   =
-            _client->transport.read(_client->transport.context,
-                                    _client->buffer + _client->buffer_end,
-                                    D_SFTP_CLIENT_BUFFER_SIZE -
-                                    _client->buffer_end,
-                                    &received);
+        const struct d_net_io_result result =
+            d_net_connection_read(_client->connection,
+                                  _client->buffer + _client->buffer_end,
+                                  D_SFTP_CLIENT_BUFFER_SIZE -
+                                  _client->buffer_end);
 
-        // a failed stream, or one that broke its promise of a byte
-        if ( (status != D_SSH_OK) ||
-             (received == 0u) )
+        // nothing arrived: the stream's end, or its failure
+        if (result.count == 0u)
         {
-            return d_sftp_internal_client_lost(
-                       _client,
-                       (status != D_SSH_OK) ? status : D_SSH_ERR_IO);
+            return d_sftp_internal_client_failed(_client,
+                                                 result.error);
         }
 
-        _client->buffer_end += received;
+        _client->buffer_end += result.count;
     }
 }
 
@@ -220,18 +195,18 @@ d_sftp_internal_client_send(
                              _mark)) )
     {
         return ((_client->writer.size - _mark) > D_SFTP_PACKET_MAX)
-               ? D_SFTP_ERROR_TOO_LARGE
-               : D_SFTP_ERROR_MEMORY;
+               ? D_SFTP_ERROR_MESSAGE_TOO_LARGE
+               : D_SFTP_ERROR_OUT_OF_MEMORY;
     }
 
-    const enum d_ssh_status status =
-        _client->transport.write(_client->transport.context,
-                                 _client->writer.data,
-                                 _client->writer.size);
+    const enum d_net_error written = d_net_write_all(_client->connection,
+                                                     _client->writer.data,
+                                                     _client->writer.size,
+                                                     NULL);
 
-    return (status == D_SSH_OK) ? D_SFTP_OK
-                                : d_sftp_internal_client_lost(_client,
-                                                              status);
+    return (written == D_NET_OK) ? D_SFTP_OK
+                                 : d_sftp_internal_client_failed(_client,
+                                                                 written);
 }
 
 /*
@@ -569,7 +544,7 @@ d_sftp_internal_client_single_name(
 )
 {
     struct d_sftp_packet packet = { 0u, 0u, { NULL, 0u, 0u, false } };
-    struct d_sftp_name   name;
+    struct d_sftp_name   name = { 0 };
     uint32_t             count  = 0u;
     enum d_sftp_error    error  = d_sftp_internal_client_answer(
                                       _client,
@@ -597,7 +572,7 @@ d_sftp_internal_client_single_name(
     if ( (error == D_SFTP_OK) &&
          (name.filename.length >= _capacity) )
     {
-        error = D_SFTP_ERROR_TOO_LARGE;
+        error = D_SFTP_ERROR_MESSAGE_TOO_LARGE;
     }
 
     if (error != D_SFTP_OK)
@@ -638,7 +613,7 @@ d_sftp_internal_client_ready(
         return D_SFTP_ERROR_INVALID_ARGUMENT;
     }
 
-    return (_client->open) ? D_SFTP_OK : D_SFTP_ERROR_BAD_SEQUENCE;
+    return (_client->open) ? D_SFTP_OK : D_SFTP_ERROR_STATE;
 }
 
 /*
@@ -858,6 +833,7 @@ d_sftp_client_init(
     _client->next_id    = 1u;
     _client->read_size  = D_SFTP_CHUNK_SIZE;
     _client->write_size = D_SFTP_CHUNK_SIZE;
+    _client->net_error  = D_NET_OK;
     _client->ssh_status = D_SSH_OK;
 
     return;
@@ -865,8 +841,10 @@ d_sftp_client_init(
 
 /*
 d_sftp_client_close
-  The server's sftp-server exits at EOF, and the channel closes after it.
-The diagnostics survive, for a caller inspecting why an open failed.
+  The server's sftp-server exits at EOF, and the channel closes after it:
+closing the channel's view says both. A caller's connection is the
+caller's. The diagnostics survive, for a caller inspecting why an open
+failed.
 */
 void
 d_sftp_client_close(
@@ -882,13 +860,7 @@ d_sftp_client_close(
     // a channel this client opened is this client's to close
     if (_client->owns_channel)
     {
-        const enum d_ssh_status eof    =
-            d_ssh_channel_send_eof(&_client->channel);
-        const enum d_ssh_status closed =
-            d_ssh_channel_close(&_client->channel);
-
-        (void)eof;
-        (void)closed;
+        d_net_connection_close(&_client->channel.base);
         d_ssh_channel_free(&_client->channel);
         _client->owns_channel = false;
     }
@@ -897,34 +869,31 @@ d_sftp_client_close(
     d_ssh_writer_free(&_client->writer);
     d_ssh_writer_init(&_client->writer);
 
-    _client->buffer            = NULL;
-    _client->buffer_start      = 0u;
-    _client->buffer_end        = 0u;
-    _client->transport.read    = NULL;
-    _client->transport.write   = NULL;
-    _client->transport.context = NULL;
-    _client->open              = false;
-    _client->version           = 0u;
-    _client->extensions        = 0u;
+    _client->buffer       = NULL;
+    _client->buffer_start = 0u;
+    _client->buffer_end   = 0u;
+    _client->connection   = NULL;
+    _client->open         = false;
+    _client->version      = 0u;
+    _client->extensions   = 0u;
 
     return;
 }
 
 /*
-d_sftp_client_open_transport
+d_sftp_client_open_connection
   The buffer is allocated before the first byte is sent, so a client that
 cannot hold a reply never asks for one.
 */
 enum d_sftp_error
-d_sftp_client_open_transport(
-    struct d_sftp_client*   _client,
-    struct d_sftp_transport _transport
+d_sftp_client_open_connection(
+    struct d_sftp_client*    _client,
+    struct d_net_connection* _connection
 )
 {
     // parameter validation
-    if ( (!_client)          ||
-         (!_transport.read)  ||
-         (!_transport.write) )
+    if ( (!_client) ||
+         (!d_net_connection_is_complete(_connection)) )
     {
         return D_SFTP_ERROR_INVALID_ARGUMENT;
     }
@@ -933,7 +902,7 @@ d_sftp_client_open_transport(
     if ( (_client->open) ||
          (_client->buffer) )
     {
-        return D_SFTP_ERROR_BAD_SEQUENCE;
+        return D_SFTP_ERROR_STATE;
     }
 
     _client->buffer = malloc(D_SFTP_CLIENT_BUFFER_SIZE);
@@ -941,10 +910,10 @@ d_sftp_client_open_transport(
     // no room for replies, no requests
     if (!_client->buffer)
     {
-        return D_SFTP_ERROR_MEMORY;
+        return D_SFTP_ERROR_OUT_OF_MEMORY;
     }
 
-    _client->transport         = _transport;
+    _client->connection        = _connection;
     _client->buffer_start      = 0u;
     _client->buffer_end        = 0u;
     _client->next_id           = 1u;
@@ -953,6 +922,7 @@ d_sftp_client_open_transport(
     _client->extensions        = 0u;
     _client->status_code       = 0u;
     _client->status_message[0] = '\0';
+    _client->net_error         = D_NET_OK;
     _client->ssh_status        = D_SSH_OK;
 
     const enum d_sftp_error error = d_sftp_internal_client_handshake(_client);
@@ -963,9 +933,8 @@ d_sftp_client_open_transport(
     {
         free(_client->buffer);
 
-        _client->buffer          = NULL;
-        _client->transport.read  = NULL;
-        _client->transport.write = NULL;
+        _client->buffer     = NULL;
+        _client->connection = NULL;
 
         return error;
     }
@@ -978,6 +947,7 @@ d_sftp_client_open_transport(
 /*
 d_sftp_client_open
   The channel is released on any failure, so a failed open owns nothing.
+Once the subsystem runs, the client speaks over the channel's view.
 */
 enum d_sftp_error
 d_sftp_client_open(
@@ -996,11 +966,14 @@ d_sftp_client_open(
     if ( (_client->open) ||
          (_client->owns_channel) )
     {
-        return D_SFTP_ERROR_BAD_SEQUENCE;
+        return D_SFTP_ERROR_STATE;
     }
 
-    enum d_ssh_status status = d_ssh_channel_open(_session,
-                                                  &_client->channel);
+    _client->net_error  = D_NET_OK;
+    _client->ssh_status = D_SSH_OK;
+
+    enum d_ssh_error status = d_ssh_channel_open(_session,
+                                                 &_client->channel);
 
     // the channel, then the subsystem on it
     if (status == D_SSH_OK)
@@ -1016,19 +989,13 @@ d_sftp_client_open(
         _client->ssh_status = status;
         d_sftp_client_close(_client);
 
-        return (status == D_SSH_ERR_CHANNEL) ? D_SFTP_ERROR_UNSUPPORTED
+        return (status == D_SSH_ERROR_CHANNEL) ? D_SFTP_ERROR_UNSUPPORTED
                                              : D_SFTP_ERROR_TRANSPORT;
     }
 
-    const struct d_sftp_transport transport =
-    {
-        d_sftp_internal_channel_read,
-        d_sftp_internal_channel_write,
-        &_client->channel
-    };
-    const enum d_sftp_error       error     =
-        d_sftp_client_open_transport(_client,
-                                     transport);
+    const enum d_sftp_error error =
+        d_sftp_client_open_connection(_client,
+                                      &_client->channel.base);
 
     // a failed exchange releases the channel too
     if (error != D_SFTP_OK)
@@ -1445,7 +1412,7 @@ d_sftp_internal_client_entries(
     // each entry in turn, until the callback declines
     for (uint32_t index = 0u; (error == D_SFTP_OK) && (index < count); index++)
     {
-        struct d_sftp_name entry;
+        struct d_sftp_name entry = { 0 };
 
         memset(&entry,
                0,
@@ -1484,7 +1451,7 @@ d_sftp_client_list(
     void*                 _context
 )
 {
-    struct d_sftp_handle handle;
+    struct d_sftp_handle handle = { 0 };
     uint32_t             id    = 0u;
     enum d_sftp_error    error = d_sftp_internal_client_ready(_client,
                                                               _path,

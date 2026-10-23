@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/net/ssh/ssh_auth.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -34,7 +34,7 @@ TABLE OF CONTENTS
 #include <stdbool.h>  // bool
 // djinterp
 #include "../../c/djinterp.h"  // framework root
-#include "./ssh_common.h"      // d_ssh_status
+#include "./ssh_common.h"      // d_ssh_error
 #include "./ssh_engine.h"      // fn_ssh_prompt
 #include "./ssh_session.h"     // d_ssh_session
 
@@ -98,12 +98,13 @@ d_ssh_credentials_default(void);
  * @param[in,out] _session      a D_SSH_STATE_VERIFIED session.
  * @param[in]     _credentials  the credentials; `user` is required.
  * @return `D_SSH_OK`, leaving the session D_SSH_STATE_AUTHENTICATED;
- *         `D_SSH_ERR_AUTH_DENIED` if the server refused what was offered;
- *         `D_SSH_ERR_KEY` if the only failure was a key file that could not
- *         be loaded; `D_SSH_ERR_NO_AUTH_METHOD` if nothing could be offered;
- *         a FATAL status; or `D_SSH_ERR_STATE` or `D_SSH_ERR_ARGUMENT`.
+ *         `D_SSH_ERROR_AUTH` if the server refused what was offered;
+ *         `D_SSH_ERROR_KEY` if the only failure was a key file that could not
+ *         be loaded; `D_SSH_ERROR_NO_AUTH_METHOD` if nothing could be offered;
+ *         a FATAL status; or `D_SSH_ERROR_STATE` or
+ *         `D_SSH_ERROR_INVALID_ARGUMENT`.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_authenticate(struct d_ssh_session*           _session,
                    const struct d_ssh_credentials* _credentials);
 

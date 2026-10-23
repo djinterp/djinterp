@@ -6,33 +6,36 @@
 *   Four mechanisms carry it. A write callback is always installed, because
 * libcurl without one writes the body to stdout; a sink without a body
 * callback discards instead. The header callback parses each field as the
-* C++ web layer always has -- split at the first colon, the value's blanks
+* C++ layer always has -- split at the first colon, the value's blanks
 * trimmed -- and skips status lines by their "HTTP/" prefix, which no field
 * name can begin with. Request header fields are checked for colons and line
 * breaks before libcurl sees them, so no field can smuggle in another. And
 * CURLOPT_NOSIGNAL is always set, so libcurl never installs a SIGALRM
 * handler for its timeouts, which a multi-threaded program cannot survive.
 *   Everything that needs libcurl is selected per function: a build without
-* it gets stubs reporting D_CURL_STATUS_UNSUPPORTED, after the same argument
+* it gets stubs reporting D_CURL_ERROR_UNSUPPORTED, after the same argument
 * checks, so the two builds agree on every call that libcurl never sees.
 *
 *
 * path:      /src/djinterp/net/curl/curl.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/curl/curl.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // uint32_t
 #include <stdlib.h>   // malloc, free
 #include <string.h>   // memchr, memcpy, strcmp, strncmp
 // djinterp
 #include "../../../../inc/djinterp/c/djinterp.h"                // framework root
 #include "../../../../inc/djinterp/c/util/sink_common.h"        // d_pack_text
 #include "../../../../inc/djinterp/config/net/curl/cfg_curl.h"  // D_INTERNAL_CURL
+#include "../../../../inc/djinterp/net/net_common.h"     // d_net_ascii_trim
+#include "../../../../inc/djinterp/net/codec/codec_line.h"      // d_net_line_chomp
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t, SIZE_MAX
 
 #if (D_INTERNAL_CURL == 1)
     // libcurl
@@ -41,62 +44,102 @@
 
 
 /*
-d_curl_status_name
+d_curl_error_string
   A switch over every status; the default catches values the enum does not
 list.
 */
 const char*
-d_curl_status_name(
-    enum d_curl_status _status
+d_curl_error_string(
+    enum d_curl_error _error
 )
 {
-    switch (_status)
+    switch (_error)
     {
-        case D_CURL_STATUS_OK:
+        case D_CURL_OK:
             return "ok";
 
-        case D_CURL_STATUS_INVALID_ARGUMENT:
+        case D_CURL_ERROR_INVALID_ARGUMENT:
             return "invalid argument";
 
-        case D_CURL_STATUS_UNSUPPORTED:
+        case D_CURL_ERROR_UNSUPPORTED:
             return "unsupported";
 
-        case D_CURL_STATUS_UNSUPPORTED_PROTOCOL:
+        case D_CURL_ERROR_UNSUPPORTED_PROTOCOL:
             return "unsupported protocol";
 
-        case D_CURL_STATUS_COULD_NOT_RESOLVE_HOST:
+        case D_CURL_ERROR_RESOLVE:
             return "could not resolve host";
 
-        case D_CURL_STATUS_COULD_NOT_CONNECT:
+        case D_CURL_ERROR_CONNECT:
             return "could not connect";
 
-        case D_CURL_STATUS_TIMED_OUT:
+        case D_CURL_ERROR_TIMED_OUT:
             return "timed out";
 
-        case D_CURL_STATUS_TLS_ERROR:
+        case D_CURL_ERROR_TLS:
             return "TLS error";
 
-        case D_CURL_STATUS_TOO_MANY_REDIRECTS:
+        case D_CURL_ERROR_TOO_MANY_REDIRECTS:
             return "too many redirects";
 
-        case D_CURL_STATUS_WRITE_ERROR:
+        case D_CURL_ERROR_SINK:
             return "write error";
 
-        case D_CURL_STATUS_READ_ERROR:
+        case D_CURL_ERROR_SOURCE:
             return "read error";
 
-        case D_CURL_STATUS_CANCELED:
+        case D_CURL_ERROR_CANCELED:
             return "canceled";
 
-        case D_CURL_STATUS_OUT_OF_MEMORY:
+        case D_CURL_ERROR_OUT_OF_MEMORY:
             return "out of memory";
 
-        case D_CURL_STATUS_UNKNOWN:
+        case D_CURL_ERROR_UNKNOWN:
             return "unknown";
 
         default:
             return "invalid status";
     }
+}
+
+/*
+d_curl_error_to_net
+  One case per enumerator and no default, so the compiler reports a missing
+case; the groups follow net.h's rules. A value outside the enum is UNKNOWN.
+*/
+enum d_net_error
+d_curl_error_to_net(
+    enum d_curl_error _error
+)
+{
+    switch (_error)
+    {
+        case D_CURL_OK:
+            return D_NET_OK;
+        case D_CURL_ERROR_INVALID_ARGUMENT:
+            return D_NET_ERROR_INVALID_ARGUMENT;
+        case D_CURL_ERROR_TLS:
+            return D_NET_ERROR_PROTOCOL;
+        case D_CURL_ERROR_UNSUPPORTED_PROTOCOL:
+            return D_NET_ERROR_ADDRESS_INVALID;
+        case D_CURL_ERROR_RESOLVE:
+            return D_NET_ERROR_HOST_UNREACHABLE;
+        case D_CURL_ERROR_CONNECT:
+            return D_NET_ERROR_CONNECTION_REFUSED;
+        case D_CURL_ERROR_TIMED_OUT:
+            return D_NET_ERROR_TIMED_OUT;
+        case D_CURL_ERROR_OUT_OF_MEMORY:
+            return D_NET_ERROR_OUT_OF_MEMORY;
+        case D_CURL_ERROR_UNSUPPORTED:
+        case D_CURL_ERROR_TOO_MANY_REDIRECTS:
+        case D_CURL_ERROR_SINK:
+        case D_CURL_ERROR_SOURCE:
+        case D_CURL_ERROR_CANCELED:
+        case D_CURL_ERROR_UNKNOWN:
+            return D_NET_ERROR_UNKNOWN;
+    }
+
+    return D_NET_ERROR_UNKNOWN;
 }
 
 /*
@@ -238,7 +281,7 @@ d_internal_curl_request_ok(
 d_internal_curl_report
   Stores a result where the caller asked for one, and returns its status.
 */
-static enum d_curl_status
+static enum d_curl_error
 d_internal_curl_report(
     struct d_curl_result*       _out,
     const struct d_curl_result* _result
@@ -288,11 +331,11 @@ d_internal_curl_report(
 
 /*
 d_internal_curl_status
-  Maps libcurl's codes to the binding's categories exactly as the C++ web
+  Maps libcurl's codes to the binding's categories exactly as the C++
 layer's to_transport_error does, so a failure reads the same through
 either.
 */
-static enum d_curl_status
+static enum d_curl_error
 d_internal_curl_status(
     CURLcode _code
 )
@@ -300,46 +343,46 @@ d_internal_curl_status(
     switch (_code)
     {
         case CURLE_OK:
-            return D_CURL_STATUS_OK;
+            return D_CURL_OK;
 
         case CURLE_UNSUPPORTED_PROTOCOL:
         case CURLE_URL_MALFORMAT:
-            return D_CURL_STATUS_UNSUPPORTED_PROTOCOL;
+            return D_CURL_ERROR_UNSUPPORTED_PROTOCOL;
 
         case CURLE_COULDNT_RESOLVE_HOST:
         case CURLE_COULDNT_RESOLVE_PROXY:
-            return D_CURL_STATUS_COULD_NOT_RESOLVE_HOST;
+            return D_CURL_ERROR_RESOLVE;
 
         case CURLE_COULDNT_CONNECT:
-            return D_CURL_STATUS_COULD_NOT_CONNECT;
+            return D_CURL_ERROR_CONNECT;
 
         case CURLE_OPERATION_TIMEDOUT:
-            return D_CURL_STATUS_TIMED_OUT;
+            return D_CURL_ERROR_TIMED_OUT;
 
         case CURLE_SSL_CONNECT_ERROR:
         case CURLE_PEER_FAILED_VERIFICATION:
         case CURLE_SSL_CERTPROBLEM:
         case CURLE_SSL_CIPHER:
         case CURLE_USE_SSL_FAILED:
-            return D_CURL_STATUS_TLS_ERROR;
+            return D_CURL_ERROR_TLS;
 
         case CURLE_TOO_MANY_REDIRECTS:
-            return D_CURL_STATUS_TOO_MANY_REDIRECTS;
+            return D_CURL_ERROR_TOO_MANY_REDIRECTS;
 
         case CURLE_WRITE_ERROR:
-            return D_CURL_STATUS_WRITE_ERROR;
+            return D_CURL_ERROR_SINK;
 
         case CURLE_READ_ERROR:
-            return D_CURL_STATUS_READ_ERROR;
+            return D_CURL_ERROR_SOURCE;
 
         case CURLE_ABORTED_BY_CALLBACK:
-            return D_CURL_STATUS_CANCELED;
+            return D_CURL_ERROR_CANCELED;
 
         case CURLE_OUT_OF_MEMORY:
-            return D_CURL_STATUS_OUT_OF_MEMORY;
+            return D_CURL_ERROR_OUT_OF_MEMORY;
 
         default:
-            return D_CURL_STATUS_UNKNOWN;
+            return D_CURL_ERROR_UNKNOWN;
     }
 }
 
@@ -388,23 +431,16 @@ d_internal_curl_split(
     struct d_pack_text* _value
 )
 {
-    size_t end = _length;
-
-    // the line's own CR and LF
-    while ( (end > 0) &&
-            ( (_line[end - 1] == '\r') ||
-              (_line[end - 1] == '\n') ) )
-    {
-        end--;
-    }
-
-    const char* const colon = memchr(_line,
-                                     ':',
-                                     end);
+    const struct d_pack_text whole = { _line,
+                                       _length };
+    const struct d_pack_text line  = d_net_line_chomp(whole);
+    const char* const        colon = memchr(line.data,
+                                            ':',
+                                            line.length);
 
     // a status line, or no field at all
     if ( (colon == NULL) ||
-         ( (end >= 5) &&
+         ( (line.length >= 5) &&
            (strncmp(_line,
                     "HTTP/",
                     5) == 0) ) )
@@ -412,28 +448,14 @@ d_internal_curl_split(
         return false;
     }
 
-    size_t first = (size_t)(colon - _line) + 1;
-    size_t last  = end;
+    const size_t             name  = (size_t)(colon - _line);
+    const struct d_pack_text value = { colon + 1,
+                                       line.length - name - 1 };
 
-    // blanks around the value
-    while ( (first < last) &&
-            ( (_line[first] == ' ') ||
-              (_line[first] == '\t') ) )
-    {
-        first++;
-    }
-
-    while ( (last > first) &&
-            ( (_line[last - 1] == ' ') ||
-              (_line[last - 1] == '\t') ) )
-    {
-        last--;
-    }
-
-    _name->data    = _line;
-    _name->length  = (size_t)(colon - _line);
-    _value->data   = _line + first;
-    _value->length = last - first;
+    // the value without the blanks around it
+    _name->data   = _line;
+    _name->length = name;
+    *_value       = d_net_ascii_trim(value);
 
     return true;
 }
@@ -536,12 +558,12 @@ apart.
 static struct curl_slist*
 d_internal_curl_fields(
     const struct d_curl_request* _request,
-    enum d_curl_status*          _out_status
+    enum d_curl_error*           _out_status
 )
 {
     struct curl_slist* list = NULL;
 
-    *_out_status = D_CURL_STATUS_OK;
+    *_out_status = D_CURL_OK;
 
     // each field in order
     for (size_t i = 0; i < _request->header_count; i++)
@@ -554,7 +576,7 @@ d_internal_curl_fields(
         if (next == NULL)
         {
             curl_slist_free_all(list);
-            *_out_status = D_CURL_STATUS_OUT_OF_MEMORY;
+            *_out_status = D_CURL_ERROR_OUT_OF_MEMORY;
 
             return NULL;
         }
@@ -803,12 +825,12 @@ d_internal_curl_transfer(
     // libcurl could not allocate a handle
     if (easy == NULL)
     {
-        _result->status = D_CURL_STATUS_OUT_OF_MEMORY;
+        _result->status = D_CURL_ERROR_OUT_OF_MEMORY;
 
         return;
     }
 
-    enum d_curl_status       status = D_CURL_STATUS_OK;
+    enum d_curl_error        status = D_CURL_OK;
     struct curl_slist* const fields = d_internal_curl_fields(_request,
                                                              &status);
     CURLcode                 code   =
@@ -828,7 +850,7 @@ d_internal_curl_transfer(
 
     // a transfer only when every setting took and the fields were built
     if ( (code == CURLE_OK) &&
-         (status == D_CURL_STATUS_OK) )
+         (status == D_CURL_OK) )
     {
         code = curl_easy_perform(easy);
     }
@@ -838,7 +860,7 @@ d_internal_curl_transfer(
     (void)curl_easy_getinfo(easy,
                             CURLINFO_RESPONSE_CODE,
                             &http_status);
-    _result->status      = (status != D_CURL_STATUS_OK)
+    _result->status      = (status != D_CURL_OK)
                                ? status
                                : d_internal_curl_status(code);
     _result->code        = (int)code;
@@ -956,7 +978,7 @@ d_curl_supports(
 d_curl_global_init
   libcurl counts its own initializations, so each call is simply passed on.
 */
-enum d_curl_status
+enum d_curl_error
 d_curl_global_init(void)
 {
     return d_internal_curl_status(curl_global_init(CURL_GLOBAL_ALL));
@@ -979,7 +1001,7 @@ d_curl_perform
   Validates, fills in the default options where none are given, and runs the
 transfer.
 */
-enum d_curl_status
+enum d_curl_error
 d_curl_perform(
     const struct d_curl_request* _request,
     const struct d_curl_options* _options,
@@ -992,7 +1014,7 @@ d_curl_perform(
     {
         const struct d_curl_result refused =
         {
-            D_CURL_STATUS_INVALID_ARGUMENT,
+            D_CURL_ERROR_INVALID_ARGUMENT,
             0,
             0
         };
@@ -1002,7 +1024,7 @@ d_curl_perform(
     }
 
     struct d_curl_options defaults = { .timeout_ms = 0 };
-    struct d_curl_result  result   = { D_CURL_STATUS_OK, 0, 0 };
+    struct d_curl_result  result   = { D_CURL_OK, 0, 0 };
 
     d_curl_options_init(&defaults);
     d_internal_curl_transfer(_request,
@@ -1068,10 +1090,10 @@ d_curl_supports(
 d_curl_global_init
   Without libcurl there is nothing to initialize.
 */
-enum d_curl_status
+enum d_curl_error
 d_curl_global_init(void)
 {
-    return D_CURL_STATUS_UNSUPPORTED;
+    return D_CURL_ERROR_UNSUPPORTED;
 }
 
 /*
@@ -1088,7 +1110,7 @@ d_curl_global_cleanup(void)
 d_curl_perform
   Checks the arguments as the libcurl build does, then reports UNSUPPORTED.
 */
-enum d_curl_status
+enum d_curl_error
 d_curl_perform(
     const struct d_curl_request* _request,
     const struct d_curl_options* _options,
@@ -1099,8 +1121,8 @@ d_curl_perform(
     const struct d_curl_result result =
     {
         (d_internal_curl_request_ok(_request))
-            ? D_CURL_STATUS_UNSUPPORTED
-            : D_CURL_STATUS_INVALID_ARGUMENT,
+            ? D_CURL_ERROR_UNSUPPORTED
+            : D_CURL_ERROR_INVALID_ARGUMENT,
         0,
         0
     };

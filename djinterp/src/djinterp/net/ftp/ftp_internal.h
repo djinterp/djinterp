@@ -2,15 +2,16 @@
 * djinterp [net]                                                  ftp_internal.h
 *
 * Private helpers shared by the net/ftp/ sources.
-*   Locale-independent ASCII classification, bounded number parsing, span
-* trimming, all-or-nothing buffer appends, the Telnet byte filter, and civil
-* calendar arithmetic. Not installed, and not part of the public interface.
+*   Bounded number parsing, span trimming, all-or-nothing buffer appends, the
+* Telnet byte filter, and civil calendar arithmetic. ASCII classes and
+* case-insensitive comparison are net's codec's (codec_ascii.h). Not
+* installed, and not part of the public interface.
 *
 *
 * path:      /src/djinterp/net/ftp/ftp_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -23,13 +24,11 @@ TABLE OF CONTENTS
          2.  d_ftp_internal_telnet_state
 2.  HELPERS
     -------
-    1.  Characters
-    2.  Comparison
-    3.  Spans
-    4.  Numbers
-    5.  Buffers
-    6.  Telnet
-    7.  Calendar
+    1.  Spans
+    2.  Numbers
+    3.  Buffers
+    4.  Telnet
+    5.  Calendar
 */
 
 #ifndef DJINTERP_NET_FTP_FTP_INTERNAL_H
@@ -38,10 +37,12 @@ TABLE OF CONTENTS
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
-#include <stdint.h>   // int64_t, uint64_t
 // djinterp
 #include "../../../../inc/djinterp/c/djinterp.h"          // framework root
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_span
+#include "../../../../inc/djinterp/c/util/sink_common.h"  // d_pack_text
+#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_buffer, d_ftp_error
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // int64_t, uint64_t
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++
@@ -84,48 +85,20 @@ enum d_ftp_internal_telnet_state
 //==============================================================================
 
 
-// 2.1    Characters
+// 2.1    Spans
 //------------------------------------------------------------------------------
-// ASCII classification and case folding, independent of the locale and
-// defined for every `char`. d_ftp_internal_hex_value() returns the value of
-// a hexadecimal digit of either case, or -1 for any other byte.
-bool d_ftp_internal_is_digit(char _c);
-bool d_ftp_internal_is_alpha(char _c);
-bool d_ftp_internal_is_blank(char _c);
-char d_ftp_internal_to_lower(char _c);
-int  d_ftp_internal_hex_value(char _c);
+// d_ftp_internal_trim() drops leading blanks and trailing blanks, CR, and LF.
+// What drops only a line's ending, and what finds a line break, is net's
+// codec_line.h.
+struct d_pack_text d_ftp_internal_trim(const char* _text,
+                                       size_t      _length);
 
-// 2.2    Comparison
-//------------------------------------------------------------------------------
-// `_text` spans `_length` bytes and need not be terminated; `_word` is
-// NUL-terminated. Both fold ASCII case; equality also requires equal length.
-bool d_ftp_internal_equals_nocase(const char* _text,
-                                  size_t      _length,
-                                  const char* _word);
-bool d_ftp_internal_starts_nocase(const char* _text,
-                                  size_t      _length,
-                                  const char* _word);
-
-// 2.3    Spans
-//------------------------------------------------------------------------------
-// d_ftp_internal_trim() drops leading blanks and trailing blanks, CR, and LF;
-// d_ftp_internal_trim_eol() drops only trailing CR and LF, since blanks may
-// belong to a listed name. d_ftp_internal_has_line_break() reports whether
-// any byte is CR or LF, the bytes that would end a command or reply line
-// early; NULL text has none.
-struct d_ftp_span d_ftp_internal_trim(const char* _text,
-                                      size_t      _length);
-struct d_ftp_span d_ftp_internal_trim_eol(const char* _text,
-                                          size_t      _length);
-bool              d_ftp_internal_has_line_break(const char* _text,
-                                                size_t      _length);
-
-// 2.4    Numbers
+// 2.2    Numbers
 //------------------------------------------------------------------------------
 // d_ftp_internal_is_number() reports whether a span is one or more decimal
 // digits; d_ftp_internal_digits_value() reads digits the caller has already
 // checked, four at most, so the value cannot overflow.
-bool     d_ftp_internal_is_number(struct d_ftp_span _span);
+bool     d_ftp_internal_is_number(struct d_pack_text _span);
 unsigned d_ftp_internal_digits_value(const char* _text,
                                      size_t      _count);
 /**
@@ -143,7 +116,7 @@ bool     d_ftp_internal_parse_uint(const char* _text,
                                    uint64_t    _max,
                                    uint64_t*   _out_value);
 
-// 2.5    Buffers
+// 2.3    Buffers
 //------------------------------------------------------------------------------
 // Every writer requires a buffer d_ftp_internal_buffer_ok() accepts: storage
 // present, and the length inside it with room left for the terminator, which
@@ -206,7 +179,7 @@ bool             d_ftp_internal_append_uint(struct d_ftp_buffer* _out,
 enum d_ftp_error d_ftp_internal_commit(struct d_ftp_buffer*       _out,
                                        const struct d_ftp_buffer* _local);
 
-// 2.6    Telnet
+// 2.4    Telnet
 //------------------------------------------------------------------------------
 /**
  * @brief Advances the Telnet filter by one byte.
@@ -222,7 +195,7 @@ enum d_ftp_error d_ftp_internal_commit(struct d_ftp_buffer*       _out,
 bool d_ftp_internal_telnet_accept(unsigned char* _state,
                                   unsigned char  _byte);
 
-// 2.7    Calendar
+// 2.5    Calendar
 //------------------------------------------------------------------------------
 // Days from 1970-01-01 to a proleptic Gregorian date, negative before it, and
 // back again; `_month` is 1 through 12 and `_day` 1 through 31.

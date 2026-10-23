@@ -8,37 +8,18 @@
 * path:      /src/djinterp/net/ssh/ssh_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ssh/ssh_common.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
-#include <stdint.h>   // uint32_t, uint64_t
 // djinterp
 #include "../../../../inc/djinterp/c/djinterp.h"            // framework root
 #include "../../../../inc/djinterp/net/ssh/ssh_internal.h"  // d_ssh_internal_*
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t, uint64_t
 
-
-/*
-d_ssh_internal_lower
-  Internal: ASCII lowercase, independent of the locale, as host matching
-must be.
-*/
-char
-d_ssh_internal_lower(
-    char _c
-)
-{
-    // only the 26 ASCII capitals change
-    if ( (_c >= 'A') &&
-         (_c <= 'Z') )
-    {
-        return (char)(_c - 'A' + 'a');
-    }
-
-    return _c;
-}
 
 /*
 d_ssh_internal_load32
@@ -83,8 +64,10 @@ d_ssh_internal_store64(
     uint64_t       _value
 )
 {
-    d_ssh_internal_store32(_bytes, (uint32_t)(_value >> 32));
-    d_ssh_internal_store32(_bytes + 4, (uint32_t)(_value & 0xFFFFFFFFu));
+    d_ssh_internal_store32(_bytes,
+                           (uint32_t)(_value >> 32));
+    d_ssh_internal_store32(_bytes + 4,
+                           (uint32_t)(_value & 0xFFFFFFFFu));
 
     return;
 }
@@ -137,20 +120,20 @@ change a session's state to D_SSH_STATE_FAILED.
 */
 bool
 d_ssh_internal_is_fatal(
-    enum d_ssh_status _status
+    enum d_ssh_error _status
 )
 {
     switch (_status)
     {
-        case D_SSH_ERR_MEMORY:
-        case D_SSH_ERR_IO:
-        case D_SSH_ERR_TIMEOUT:
-        case D_SSH_ERR_PROTOCOL:
-        case D_SSH_ERR_HANDSHAKE:
-        case D_SSH_ERR_HOST_UNKNOWN:
-        case D_SSH_ERR_HOST_CHANGED:
-        case D_SSH_ERR_HOST_REVOKED:
-        case D_SSH_ERR_KNOWN_HOSTS:
+        case D_SSH_ERROR_OUT_OF_MEMORY:
+        case D_SSH_ERROR_TRANSPORT:
+        case D_SSH_ERROR_TIMED_OUT:
+        case D_SSH_ERROR_PROTOCOL:
+        case D_SSH_ERROR_HANDSHAKE:
+        case D_SSH_ERROR_HOST_UNKNOWN:
+        case D_SSH_ERROR_HOST_CHANGED:
+        case D_SSH_ERROR_HOST_REVOKED:
+        case D_SSH_ERROR_KNOWN_HOSTS:
             return true;
 
         default:
@@ -159,57 +142,102 @@ d_ssh_internal_is_fatal(
 }
 
 /*
-d_ssh_status_string
+d_ssh_error_string
   One name per status.
 */
 const char*
-d_ssh_status_string(
-    enum d_ssh_status _status
+d_ssh_error_string(
+    enum d_ssh_error _error
 )
 {
-    switch (_status)
+    switch (_error)
     {
         case D_SSH_OK:
             return "ok";
-        case D_SSH_ERR_ARGUMENT:
+        case D_SSH_ERROR_INVALID_ARGUMENT:
             return "invalid argument";
-        case D_SSH_ERR_STATE:
+        case D_SSH_ERROR_STATE:
             return "invalid state";
-        case D_SSH_ERR_MEMORY:
+        case D_SSH_ERROR_OUT_OF_MEMORY:
             return "out of memory";
-        case D_SSH_ERR_IO:
+        case D_SSH_ERROR_TRANSPORT:
             return "I/O error";
-        case D_SSH_ERR_CLOSED:
+        case D_SSH_ERROR_CLOSED:
             return "stream ended";
-        case D_SSH_ERR_TIMEOUT:
+        case D_SSH_ERROR_TIMED_OUT:
             return "timed out";
-        case D_SSH_ERR_PROTOCOL:
+        case D_SSH_ERROR_PROTOCOL:
             return "protocol violation";
-        case D_SSH_ERR_FORMAT:
+        case D_SSH_ERROR_MALFORMED:
             return "malformed data";
-        case D_SSH_ERR_NO_BACKEND:
+        case D_SSH_ERROR_NO_BACKEND:
             return "no SSH engine";
-        case D_SSH_ERR_UNSUPPORTED:
+        case D_SSH_ERROR_UNSUPPORTED:
             return "unsupported";
-        case D_SSH_ERR_HANDSHAKE:
+        case D_SSH_ERROR_HANDSHAKE:
             return "handshake failed";
-        case D_SSH_ERR_HOST_UNKNOWN:
+        case D_SSH_ERROR_HOST_UNKNOWN:
             return "unknown host key";
-        case D_SSH_ERR_HOST_CHANGED:
+        case D_SSH_ERROR_HOST_CHANGED:
             return "host key changed";
-        case D_SSH_ERR_HOST_REVOKED:
+        case D_SSH_ERROR_HOST_REVOKED:
             return "host key revoked";
-        case D_SSH_ERR_KNOWN_HOSTS:
+        case D_SSH_ERROR_KNOWN_HOSTS:
             return "known_hosts failure";
-        case D_SSH_ERR_AUTH_DENIED:
+        case D_SSH_ERROR_AUTH:
             return "authentication denied";
-        case D_SSH_ERR_NO_AUTH_METHOD:
+        case D_SSH_ERROR_NO_AUTH_METHOD:
             return "no usable authentication method";
-        case D_SSH_ERR_KEY:
+        case D_SSH_ERROR_KEY:
             return "unusable private key";
-        case D_SSH_ERR_CHANNEL:
+        case D_SSH_ERROR_CHANNEL:
             return "channel request refused";
     }
 
     return "unknown";
+}
+
+/*
+d_ssh_error_to_net
+  One case per enumerator and no default, so the compiler reports a missing
+case; the groups follow net.h's rules. A value outside the enum is UNKNOWN.
+*/
+enum d_net_error
+d_ssh_error_to_net(
+    enum d_ssh_error _error
+)
+{
+    switch (_error)
+    {
+        case D_SSH_OK:
+            return D_NET_OK;
+        case D_SSH_ERROR_INVALID_ARGUMENT:
+        case D_SSH_ERROR_STATE:
+        case D_SSH_ERROR_MALFORMED:
+        case D_SSH_ERROR_KNOWN_HOSTS:
+        case D_SSH_ERROR_KEY:
+            return D_NET_ERROR_INVALID_ARGUMENT;
+        case D_SSH_ERROR_PROTOCOL:
+        case D_SSH_ERROR_HANDSHAKE:
+            return D_NET_ERROR_PROTOCOL;
+        case D_SSH_ERROR_CLOSED:
+            return D_NET_ERROR_CLOSED;
+        case D_SSH_ERROR_TIMED_OUT:
+            return D_NET_ERROR_TIMED_OUT;
+        case D_SSH_ERROR_OUT_OF_MEMORY:
+            return D_NET_ERROR_OUT_OF_MEMORY;
+        case D_SSH_ERROR_HOST_UNKNOWN:
+        case D_SSH_ERROR_HOST_CHANGED:
+        case D_SSH_ERROR_HOST_REVOKED:
+        case D_SSH_ERROR_AUTH:
+        case D_SSH_ERROR_NO_AUTH_METHOD:
+            return D_NET_ERROR_ACCESS_DENIED;
+        case D_SSH_ERROR_TRANSPORT:
+        case D_SSH_ERROR_NO_BACKEND:
+        case D_SSH_ERROR_UNSUPPORTED:
+        case D_SSH_ERROR_CHANNEL:
+            return D_NET_ERROR_UNKNOWN;
+    }
+
+    return D_NET_ERROR_UNKNOWN;
 }

@@ -7,11 +7,15 @@
 *   Readers are bounds-checked and writers grow as needed. Both fail
 * stickily, so a whole packet can be parsed or built and checked once.
 *
+*   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
+* compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
+* (decision 101 of the register).
+*
 *
 * path:      /inc/djinterp/net/ssh/ssh_wire.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -35,9 +39,19 @@ TABLE OF CONTENTS
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
-#include <stdint.h>   // uint8_t, uint32_t, uint64_t
 // djinterp
 #include "../../c/djinterp.h"  // framework root
+#include "../net_common.h"      // D_INTERNAL_NET_HAS_INT64
+#include "../../config/net/cfg_net.h"  // D_INTERNAL_NET_REQUIRE_BACKENDS
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // uint8_t, uint32_t, uint64_t
+
+// 64-bit floor: this header needs a 64-bit integer type, and compiles to
+// nothing where the build has none -- ISO strict C++98 on a 32-bit target
+// (the owner's ruling of 2026.10.03 on round 3's question 1, (a)). The
+// answer is net_common.h's, taken once per translation unit, so that net's
+// gated headers agree.
+#if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 
 D_EXTERN_C_BEGIN
@@ -233,5 +247,9 @@ d_ssh_name_list_contains(const char* _list,
 
 D_EXTERN_C_END
 
+
+#elif (D_INTERNAL_NET_REQUIRE_BACKENDS == 1)
+    #error "ssh_wire.h: no 64-bit integer type (D_INTERNAL_NET_HAS_INT64)"
+#endif  // D_INTERNAL_NET_HAS_INT64
 
 #endif  // DJINTERP_NET_SSH_SSH_WIRE_H

@@ -2,181 +2,32 @@
 * djinterp [net]                                                  ftp_internal.c
 *
 * Implementation of the private helpers declared in ftp_internal.h.
-*   Bytes are classified locally rather than with <ctype.h>, whose answers
-* depend on the locale and are undefined for negative `char` values; wire
-* text needs exact ASCII.
+*   Bytes are classified by net's codec (codec_ascii.h) rather than with
+* <ctype.h>, whose answers depend on the locale and are undefined for
+* negative `char` values; wire text needs exact ASCII.
 *
 *
 * path:      /src/djinterp/net/ftp/ftp_internal.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "./ftp_internal.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // int64_t, uint64_t
 #include <string.h>   // memcpy, strlen
 // djinterp
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_span
+#include "../../../../inc/djinterp/c/util/sink_common.h"     // d_pack_text
+#include "../../../../inc/djinterp/net/net_common.h"  // d_net_ascii_is_*
+#include "../../../../inc/djinterp/net/ftp/ftp_common.h"     // d_ftp_buffer, d_ftp_error
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // int64_t, uint64_t
 
 
 //==============================================================================
 // 2.  HELPERS
 //==============================================================================
-
-/*
-d_ftp_internal_is_digit
-  Reports whether `_c` is an ASCII
-decimal digit.
-*/
-bool
-d_ftp_internal_is_digit(
-    char _c
-)
-{
-    return ( (_c >= '0') &&
-             (_c <= '9') );
-}
-
-/*
-d_ftp_internal_is_alpha
-  Reports whether `_c` is an ASCII letter.
-*/
-bool
-d_ftp_internal_is_alpha(
-    char _c
-)
-{
-    return ( ( (_c >= 'a') &&
-               (_c <= 'z') ) ||
-             ( (_c >= 'A') &&
-               (_c <= 'Z') ) );
-}
-
-/*
-d_ftp_internal_is_blank
-  Reports whether `_c` is a space or a horizontal tab.
-*/
-bool
-d_ftp_internal_is_blank(
-    char _c
-)
-{
-    return ( (_c == ' ') ||
-             (_c == '\t') );
-}
-
-/*
-d_ftp_internal_to_lower
-  Folds an ASCII capital to lower case and returns any other byte
-unchanged.
-*/
-char
-d_ftp_internal_to_lower(
-    char _c
-)
-{
-    // only the 26 ASCII capitals fold
-    if ( (_c >= 'A') &&
-         (_c <= 'Z') )
-    {
-        return (char)((_c - 'A') + 'a');
-    }
-
-    return _c;
-}
-
-/*
-d_ftp_internal_hex_value
-  The value of an ASCII hexadecimal digit of either case, or -1
-for any other byte.
-*/
-int
-d_ftp_internal_hex_value(
-    char _c
-)
-{
-    const char lower = d_ftp_internal_to_lower(_c);
-
-    // decimal digits first
-    if (d_ftp_internal_is_digit(lower))
-    {
-        return lower - '0';
-    }
-
-    // then a through f
-    if ( (lower >= 'a') &&
-         (lower <= 'f') )
-    {
-        return (lower - 'a') + 10;
-    }
-
-    return -1;
-}
-
-/*
-d_ftp_internal_equals_nocase
-  Compares `_length` bytes at `_text` with the NUL-terminated
-`_word`, folding ASCII case; true only when the lengths match too.
-*/
-bool
-d_ftp_internal_equals_nocase(
-    const char* _text,
-    size_t      _length,
-    const char* _word
-)
-{
-    size_t index = 0;
-
-    // walk both until the text ends or they differ
-    while (index < _length)
-    {
-        // the word ended first, or a byte differs
-        if ( (_word[index] == '\0') ||
-             (d_ftp_internal_to_lower(_text[index]) !=
-              d_ftp_internal_to_lower(_word[index])) )
-        {
-            return false;
-        }
-
-        index++;
-    }
-
-    return (_word[index] == '\0');
-}
-
-/*
-d_ftp_internal_starts_nocase
-  Reports whether the `_length` bytes at `_text` begin with the
-NUL-terminated `_word`, folding ASCII case.
-*/
-bool
-d_ftp_internal_starts_nocase(
-    const char* _text,
-    size_t      _length,
-    const char* _word
-)
-{
-    size_t index = 0;
-
-    // every byte of the word must be matched
-    while (_word[index] != '\0')
-    {
-        // the text ended first, or a byte differs
-        if ( (index >= _length) ||
-             (d_ftp_internal_to_lower(_text[index]) !=
-              d_ftp_internal_to_lower(_word[index])) )
-        {
-            return false;
-        }
-
-        index++;
-    }
-
-    return true;
-}
 
 /*
 d_ftp_internal_parse_uint
@@ -204,7 +55,7 @@ d_ftp_internal_parse_uint(
     for (size_t index = 0; index < _length; index++)
     {
         // anything but a digit ends the number too early
-        if (!d_ftp_internal_is_digit(_text[index]))
+        if (!d_net_ascii_is_digit(_text[index]))
         {
             return false;
         }
@@ -254,7 +105,7 @@ d_ftp_internal_is_number
 */
 bool
 d_ftp_internal_is_number(
-    struct d_ftp_span _span
+    struct d_pack_text _span
 )
 {
     // an empty span is not a number
@@ -266,7 +117,7 @@ d_ftp_internal_is_number(
     // every byte a digit
     for (size_t index = 0; index < _span.length; index++)
     {
-        if (!d_ftp_internal_is_digit(_span.data[index]))
+        if (!d_net_ascii_is_digit(_span.data[index]))
         {
             return false;
         }
@@ -280,7 +131,7 @@ d_ftp_internal_trim
   The span of `_length` bytes at `_text` without leading blanks,
 or trailing blanks and line-ending bytes.
 */
-struct d_ftp_span
+struct d_pack_text
 d_ftp_internal_trim(
     const char* _text,
     size_t      _length
@@ -291,79 +142,23 @@ d_ftp_internal_trim(
 
     // leading blanks
     while ( (start < end) &&
-            (d_ftp_internal_is_blank(_text[start])) )
+            (d_net_ascii_is_blank(_text[start])) )
     {
         start++;
     }
 
     // trailing blanks, CR, and LF
     while ( (end > start) &&
-            ( (d_ftp_internal_is_blank(_text[end - 1u])) ||
-              (_text[end - 1u] == '\r')                  ||
+            ( (d_net_ascii_is_blank(_text[end - 1u])) ||
+              (_text[end - 1u] == '\r')               ||
               (_text[end - 1u] == '\n') ) )
     {
         end--;
     }
 
-    const struct d_ftp_span result = { _text + start, end - start };
+    const struct d_pack_text result = { _text + start, end - start };
 
     return result;
-}
-
-/*
-d_ftp_internal_trim_eol
-  The span of `_length` bytes at `_text` without trailing CR and
-LF bytes. Blanks survive: in a listing they may belong to a file name.
-*/
-struct d_ftp_span
-d_ftp_internal_trim_eol(
-    const char* _text,
-    size_t      _length
-)
-{
-    size_t end = _length;
-
-    // only line-ending bytes go
-    while ( (end > 0u) &&
-            ( (_text[end - 1u] == '\r') ||
-              (_text[end - 1u] == '\n') ) )
-    {
-        end--;
-    }
-
-    const struct d_ftp_span result = { _text, end };
-
-    return result;
-}
-
-/*
-d_ftp_internal_has_line_break
-  Reports whether any of `_length` bytes at `_text` is CR or LF,
-the bytes that would end a command or reply line early. NULL has none.
-*/
-bool
-d_ftp_internal_has_line_break(
-    const char* _text,
-    size_t      _length
-)
-{
-    // nothing to scan
-    if (!_text)
-    {
-        return false;
-    }
-
-    // any CR or LF ends a line
-    for (size_t index = 0; index < _length; index++)
-    {
-        if ( (_text[index] == '\r') ||
-             (_text[index] == '\n') )
-        {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 /*

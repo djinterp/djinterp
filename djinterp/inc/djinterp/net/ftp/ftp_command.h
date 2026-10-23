@@ -10,7 +10,7 @@
 * path:      /inc/djinterp/net/ftp/ftp_command.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -40,8 +40,9 @@ TABLE OF CONTENTS
 // std
 #include <stddef.h>  // size_t
 // djinterp
-#include "../../c/djinterp.h"  // framework root
-#include "./ftp_common.h"      // d_ftp_span, d_ftp_error, d_ftp_buffer
+#include "../../c/djinterp.h"          // framework root
+#include "../../c/util/sink_common.h"  // d_pack_text
+#include "./ftp_common.h"              // d_ftp_error, d_ftp_buffer
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++
@@ -182,8 +183,8 @@ enum d_ftp_argument_policy
 struct d_ftp_command_line
 {
     enum d_ftp_command command;       // D_FTP_COMMAND_UNKNOWN if not known
-    struct d_ftp_span  verb;          // the verb as it was sent
-    struct d_ftp_span  argument;      // everything after the first space
+    struct d_pack_text verb;          // the verb as it was sent
+    struct d_pack_text argument;      // everything after the first space
     bool               has_argument;  // a space followed the verb
 };
 

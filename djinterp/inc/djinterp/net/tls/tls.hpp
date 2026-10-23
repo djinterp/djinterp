@@ -1,242 +1,334 @@
 /*******************************************************************************
 * djinterp [net]                                                         tls.hpp
 *
-*   TLS backend for the net subframework (OpenSSL family). It layers TLS over
-* an arbitrary net transport rather than over a raw descriptor: a tls_connection
-* wraps any net::connection and drives OpenSSL through a pair of memory BIOs,
-* shuttling ciphertext to and from the underlying transport with its ordinary
-* read()/write(). TLS therefore composes with every backend -- TCP today, unix
-* sockets, or a test transport -- and the connector/acceptor are templated on
-* the transport connector/acceptor (defaulting to the TCP ones in tcp.hpp).
+* TLS for net.hpp: the SSL kernel's contexts and sessions as C++ classes.
+*   tls_context is a configuration of ssl.h's kernel, made live in an engine
+* -- the OpenSSL family's unless another is given -- by prepare(), by the
+* first connection that needs it, or as soon as a use_* call completes it.
+* tls_connection is a net::connection running a kernel session over a
+* transport connection it owns, which adopt makes of any connection, one a
+* protocol opened in plaintext included. tls_connector connects a transport
+* and handshakes at once, so that a refused certificate is the connect's
+* error, and tls_acceptor accepts one and leaves the handshake to the
+* connection's first read or write, off the accept loop. Both are templated
+* on the transport's connector or acceptor, tcp.hpp's by default.
+*   The names and signatures are the replaced tls.hpp's, save where it named
+* OpenSSL: config() and the engine take native()'s place, session() and
+* info() native_ssl()'s, and set_min_version takes a version::value. The
+* kernel checks names, versions and pins itself, the same under every
+* engine, and this header names no TLS library: without an engine a context
+* is not valid, and connects and accepts with it fail.
+*   A context's settings apply to the connections made after them. Each
+* connection keeps a share of the kernel context it was made with, so a
+* context, or its connector or acceptor, may go while its connections live
+* on; the shares are counted under a dmutex.h lock, since connections end on
+* threads of their own. A context is changed only while no connect or
+* accept is using it.
+*   C++98 or later, wherever net.h has a 64-bit integer type, as the kernel
+* needs; elsewhere the header is empty. connect and accept fill an
+* open_result in place at every level, and from C++11 also return one; the
+* context and the connection move from C++11 and copy at no level.
+* Enumerations are scoped in structs (decision 3.4). Link ssl.c,
+* ssl_openssl.c, net.c, tcp.c, dmutex.c, sink_common.c and the codec's
+* sources, with the engine's libraries: -lssl -lcrypto for OpenSSL's.
 *
-* CONTENTS (namespace djinterp::net):
-*   internal:      SSL error mapping, memory-BIO setup, small helpers
-*   tls_context    an RAII SSL_CTX (client or server); verification + cert/key
-*   tls_connection a connection layering TLS over an owned transport connection
-*   tls_connector  models connector -- connects the transport, then handshakes
-*                  (eagerly, so verification failures surface at connect time)
-*   tls_acceptor   models acceptor  -- accepts the transport; the TLS handshake
-*                  is deferred to the first I/O (off the accept loop)
-*
-*   ROBUSTNESS: the blocking handshake/read/write pump handles WANT_READ /
-* WANT_WRITE against the memory BIOs; a clean close_notify maps to EOF; the
-* OpenSSL error queue is cleared around calls; SIGPIPE etc. from the transport
-* are already handled beneath. Client verification is on by default (system CA
-* paths, plus hostname or IP matching); it can be disabled per connector.
-*
-*   Requires:  net.hpp, tcp.hpp (default transport), env_tls.h, and the OpenSSL
-*              API family (D_ENV_TLS_HAS_OPENSSL). Link: -lssl -lcrypto.
+*   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
+* compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
+* (decision 101 of the register).
 *
 *
 * path:      /inc/djinterp/net/tls/tls.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.16
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  CONTEXTS
+    --------
+    1.  Shared kernel contexts
+         1.  internal::tls_share
+         2.  internal::tls_share_make
+         3.  internal::tls_share_retain
+         4.  internal::tls_share_release
+    2.  Contexts
+         1.  tls_lease
+         2.  tls_context
+2.  CONNECTIONS
+    -----------
+    1.  Errors and names
+         1.  internal::tls_error
+         2.  internal::tls_host
+    2.  TLS connections
+         1.  tls_connection
+3.  OPENING
+    -------
+    1.  Connecting
+         1.  tls_connector
+    2.  Accepting
+         1.  tls_acceptor
+*/
 
 #ifndef DJINTERP_NET_TLS_TLS_HPP
 #define DJINTERP_NET_TLS_TLS_HPP 1
 
+// std
+#include <cstddef>  // std::size_t
+#include <cstdio>   // std::fopen, std::fclose
+#include <new>      // std::nothrow
+#include <string>   // std::string
 // djinterp
-#include "../net.hpp"
-#include "../tcp/tcp.hpp"
-#include "../../env/net/tls/env_tls.h"
+#include "../../c/sync/dmutex.h"  // d_mutex_t
+#include "../../djinterp.hpp"     // framework root
+#include "../net_common.hpp"      // connection, open_result, io_error
+#include "../net_common.h"         // D_INTERNAL_NET_HAS_INT64
+#include "../ssl/ssl.h"           // d_ssl_context, d_ssl_session
+#include "../ssl/ssl_openssl.h"   // d_ssl_engine_openssl
+#include "../tcp/tcp.hpp"         // tcp_connector, tcp_acceptor
+#include "../../config/net/cfg_net.h"  // D_INTERNAL_NET_REQUIRE_BACKENDS
 
 
-#if !D_ENV_TLS_HAS_OPENSSL
-    #error "net/tls.hpp requires the OpenSSL API family (see env_tls.h)"
-#endif
-
-
-// std / OpenSSL / POSIX
-#include <cerrno>
-#include <climits>
-#include <cstring>
-#include <memory>
-#include <string>
-#include <utility>
-
-#include <arpa/inet.h>
-
-#include <openssl/bio.h>
-#include <openssl/err.h>
-#include <openssl/ssl.h>
-#include <openssl/x509v3.h>
+// the kernel needs a 64-bit integer type; where there is none (ISO strict
+// C++98 on a 32-bit target) there is no TLS, and nothing here
+#if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 
 NS_DJINTERP
 NS_NET
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                        INTERNAL HELPERS                                ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 1.  CONTEXTS
+//==============================================================================
 
+
+// 1.1    Shared kernel contexts
+//------------------------------------------------------------------------------
 NS_INTERNAL
 
-    // the pieces of a freshly created SSL wired to memory BIOs
-    struct ssl_setup
+    // 1.1.1
+    // internal::tls_share
+    //   struct: a kernel context made live, and how many hold it: the
+    // tls_context that made it, for as long as it keeps it, and each
+    // connection made with it. The last to let go destroys it.
+    struct tls_share
     {
-        SSL* ssl;
-        BIO* rbio;   // SSL reads from here; we BIO_write inbound ciphertext in
-        BIO* wbio;   // SSL writes here; we BIO_read outbound ciphertext out
-
-        ssl_setup()
-            : ssl(nullptr),
-              rbio(nullptr),
-              wbio(nullptr)
-        {
-        }
+        ::d_ssl_context kernel;
+        d_mutex_t       lock;
+        long            holders;
     };
 
-    // make_ssl
-    //   function: creates an SSL from the context, attaches two memory BIOs, and
-    // transfers BIO ownership to the SSL (freed by SSL_free). Returns false on
-    // allocation failure (nothing leaked).
-    D_NODISCARD inline bool
-    make_ssl(
-        SSL_CTX*   _ctx,
-        ssl_setup& _out
-    )
+    // 1.1.2
+    // internal::tls_share_make
+    //   function: a share of `_config` made live in `_engine`, held once;
+    // null, with the kernel's reason in *_out_status, when it cannot be.
+    D_NODISCARD inline tls_share*
+    tls_share_make(
+        const ::d_ssl_engine* _engine,
+        const ::d_ssl_config& _config,
+        ::d_ssl_error*        _out_status
+    ) D_NOEXCEPT
     {
-        if (_ctx == nullptr)
+        tls_share* const share = new (std::nothrow) tls_share();
+
+        // no room for the share, or for its lock
+        if ( (!share) ||
+             (::d_mutex_init(&share->lock) != D_MUTEX_SUCCESS) )
         {
-            return false;
+            delete share;
+            *_out_status = D_SSL_ERROR_OUT_OF_MEMORY;
+
+            return D_NULLPTR;
         }
 
-        SSL* ssl = SSL_new(_ctx);
+        *_out_status = ::d_ssl_context_init(&share->kernel,
+                                            _engine,
+                                            &_config);
 
-        if (ssl == nullptr)
+        // a configuration the kernel or the engine refuses
+        if (*_out_status != D_SSL_OK)
         {
-            return false;
+            (void)::d_mutex_destroy(&share->lock);
+            delete share;
+
+            return D_NULLPTR;
         }
 
-        BIO* rbio = BIO_new(BIO_s_mem());
-        BIO* wbio = BIO_new(BIO_s_mem());
+        share->holders = 1;
 
-        if ( (rbio == nullptr) ||
-             (wbio == nullptr) )
-        {
-            if (rbio != nullptr)
-            {
-                BIO_free(rbio);
-            }
-
-            if (wbio != nullptr)
-            {
-                BIO_free(wbio);
-            }
-
-            SSL_free(ssl);
-            return false;
-        }
-
-        // SSL takes ownership of both BIOs
-        SSL_set_bio(ssl, rbio, wbio);
-
-        _out.ssl  = ssl;
-        _out.rbio = rbio;
-        _out.wbio = wbio;
-
-        return true;
+        return share;
     }
 
-    // ssl_result_to_error
-    //   function: maps a fatal SSL_get_error result onto io_error. WANT_READ /
-    // WANT_WRITE are handled by the pump and never reach here.
-    D_NODISCARD inline io_error
-    ssl_result_to_error(
-        int _ssl_err
-    )
+    // 1.1.3
+    // internal::tls_share_retain
+    //   function: one more holder of `_share`, which it returns.
+    inline tls_share*
+    tls_share_retain(
+        tls_share* _share
+    ) D_NOEXCEPT
     {
-        switch (_ssl_err)
-        {
-            case SSL_ERROR_ZERO_RETURN:
-                // peer sent close_notify -- an orderly TLS shutdown
-                return io_error::closed;
+        (void)::d_mutex_lock(&_share->lock);
+        _share->holders += 1;
+        (void)::d_mutex_unlock(&_share->lock);
 
-            case SSL_ERROR_SYSCALL:
-                // a transport-level failure; errno may carry detail, otherwise
-                // it is an unexpected EOF mid-protocol
-                if (errno != 0)
-                {
-                    return from_errno(errno);
-                }
-
-                return io_error::connection_reset;
-
-            case SSL_ERROR_SSL:
-                // a protocol or certificate-verification failure
-                return io_error::access_denied;
-
-            default:
-                return io_error::unknown;
-        }
+        return _share;
     }
 
-    // clamp_to_int
-    //   function: clamps a size to INT_MAX for the int-typed OpenSSL I/O calls.
-    D_NODISCARD inline int
-    clamp_to_int(
-        std::size_t _n
-    )
+    // 1.1.4
+    // internal::tls_share_release
+    //   function: one holder fewer of `_share`, destroying it with the last;
+    // null is ignored.
+    inline void
+    tls_share_release(
+        tls_share* _share
+    ) D_NOEXCEPT
     {
-        if (_n > static_cast<std::size_t>(INT_MAX))
+        // nothing held
+        if (!_share)
         {
-            return INT_MAX;
+            return;
         }
 
-        return static_cast<int>(_n);
-    }
+        (void)::d_mutex_lock(&_share->lock);
+        _share->holders -= 1;
 
-    // is_ip_literal
-    //   function: whether the host string is a numeric IPv4/IPv6 literal (so SNI
-    // is suppressed and IP-based certificate matching is used).
-    D_NODISCARD inline bool
-    is_ip_literal(
-        const std::string& _host
-    )
-    {
-        unsigned char scratch[16];
+        const long left = _share->holders;
 
-        if (::inet_pton(AF_INET, _host.c_str(), scratch) == 1)
+        (void)::d_mutex_unlock(&_share->lock);
+
+        // the last holder takes the context with it
+        if (left == 0)
         {
-            return true;
+            ::d_ssl_context_destroy(&_share->kernel);
+            (void)::d_mutex_destroy(&_share->lock);
+            delete _share;
         }
 
-        if (::inet_pton(AF_INET6, _host.c_str(), scratch) == 1)
-        {
-            return true;
-        }
-
-        return false;
+        return;
     }
 
 NS_END  // internal
 
+// 1.2    Contexts
+//------------------------------------------------------------------------------
+class tls_connection;
 
-///////////////////////////////////////////////////////////////////////////////
-///                           TLS CONTEXT                                  ///
-///////////////////////////////////////////////////////////////////////////////
+// 1.2.1
+// tls_lease
+//   class: a share of a tls_context's live kernel context, for another
+// facade's sessions to use -- smtp.hpp's tls_options take one -- which
+// keeps that context alive for as long as the lease lives, whatever becomes
+// of the tls_context; copies share it. An empty lease holds nothing.
+class tls_context;
 
+class tls_lease
+{
+public:
+    tls_lease() D_NOEXCEPT
+        : m_share(D_NULLPTR)
+    {}
+
+    tls_lease(
+        const tls_lease& _other
+    ) D_NOEXCEPT
+        : m_share((_other.m_share)
+                      ? internal::tls_share_retain(_other.m_share)
+                      : D_NULLPTR)
+    {}
+
+    ~tls_lease()
+    {
+        internal::tls_share_release(m_share);
+    }
+
+    tls_lease&
+    operator=(
+        const tls_lease& _other
+    ) D_NOEXCEPT
+    {
+        // retained first, so a lease assigned to itself keeps its share
+        internal::tls_share* const held =
+            (_other.m_share) ? internal::tls_share_retain(_other.m_share)
+                             : D_NULLPTR;
+
+        internal::tls_share_release(m_share);
+        m_share = held;
+
+        return *this;
+    }
+
+    // get
+    //   function: the lent kernel context, or null for an empty lease.
+    D_NODISCARD const ::d_ssl_context*
+    get() const D_NOEXCEPT
+    {
+        return (m_share) ? &m_share->kernel : D_NULLPTR;
+    }
+
+private:
+    friend class tls_context;
+
+    explicit tls_lease(
+        internal::tls_share* _share
+    ) D_NOEXCEPT
+        : m_share(_share)
+    {}
+
+    internal::tls_share* m_share;
+};
+
+// 1.2.2
 // tls_context
-//   class: an RAII wrapper over an SSL_CTX, created for a client or a server
-// role. Carries shared configuration -- protocol floor (TLS 1.2), peer
-// verification, trust anchors, and (server) certificate/key -- and is reused
-// across many connections. Movable, non-copyable. Note that each SSL created
-// from the context holds its own reference, so the context may be destroyed
-// while its connections live on.
+//   class: a TLS configuration for one role, and the kernel context made live
+// from it, which it shares with each connection made since. The defaults
+// are the kernel's: a client verifies the server's chain against the
+// system's trust anchors, and its name; a server presents the certificate
+// and key it is given. Each change lets go of the live context, and the next
+// prepare, connect or accept makes a new one, so settings apply to the
+// connections made after them.
+//   The use_* calls name PEM files, which the kernel loads when the context
+// is made live; a file that cannot be read is refused at once, and named
+// nowhere. All but use_certificate_file then make a complete context live
+// -- a client's, unless it has half an identity; a server's, once it has a
+// certificate and key -- so a file that does not load, a key that does not
+// match, or any setting the kernel refuses is that call's error, with the
+// kernel's reason in failure(). A file refused so stays named, and connects
+// and accepts go on failing until one that loads takes its place.
+//   The engine is the OpenSSL family's unless one is given; a build without
+// it, or a context moved from, is not valid. Not copyable; movable from
+// C++11.
 class tls_context
 {
 public:
-    enum class role
+    // role
+    //   enum: which end of a connection the context serves; the type is
+    // role::value (decision 3.4).
+    struct role
     {
-        client,
-        server
+        enum value
+        {
+            client,
+            server
+        };
     };
 
+    // version
+    //   enum: a protocol version, as the kernel numbers it.
+    struct version
+    {
+        enum value
+        {
+            tls1_2 = D_SSL_VERSION_TLS1_2,
+            tls1_3 = D_SSL_VERSION_TLS1_3
+        };
+    };
+
+#if (D_MOVE_ENABLED == 1)
     // client / server
-    //   function: named constructors for the two roles.
+    //   function: named constructors for the two roles; they return the
+    // context by value, which C++11 can move.
     D_NODISCARD static tls_context
     client()
     {
@@ -248,41 +340,48 @@ public:
     {
         return tls_context(role::server);
     }
+#endif  // D_MOVE_ENABLED
 
+    // a context for `_role` with the kernel's defaults, made live in
+    // `_engine` when first needed
     explicit tls_context(
-        role _role
+        role::value           _role,
+        const ::d_ssl_engine* _engine = ::d_ssl_engine_openssl()
     )
-        : m_ctx(nullptr)
+        : m_engine(_engine),
+          m_config(),
+          m_ca_file(),
+          m_certificate_file(),
+          m_private_key_file(),
+          m_share(D_NULLPTR),
+          m_failure(D_SSL_OK)
     {
-        const SSL_METHOD* method =
-            (_role == role::client) ? TLS_client_method()
-                                    : TLS_server_method();
-
-        m_ctx = SSL_CTX_new(method);
-
-        if (m_ctx != nullptr)
-        {
-            // a sane protocol floor and blocking-friendly retry behaviour
-            (void)SSL_CTX_set_min_proto_version(m_ctx, TLS1_2_VERSION);
-            (void)SSL_CTX_set_mode(m_ctx, SSL_MODE_AUTO_RETRY);
-        }
+        ::d_ssl_config_init(&m_config,
+                            (_role == role::client) ? D_SSL_ROLE_CLIENT
+                                                    : D_SSL_ROLE_SERVER);
     }
 
     ~tls_context()
     {
-        if (m_ctx != nullptr)
-        {
-            SSL_CTX_free(m_ctx);
-            m_ctx = nullptr;
-        }
+        internal::tls_share_release(m_share);
     }
 
+#if (D_MOVE_ENABLED == 1)
     tls_context(
         tls_context&& _other
     ) D_NOEXCEPT
-        : m_ctx(_other.m_ctx)
+        : m_engine(_other.m_engine),
+          m_config(_other.m_config),
+          m_ca_file(static_cast<std::string&&>(_other.m_ca_file)),
+          m_certificate_file(
+              static_cast<std::string&&>(_other.m_certificate_file)),
+          m_private_key_file(
+              static_cast<std::string&&>(_other.m_private_key_file)),
+          m_share(_other.m_share),
+          m_failure(_other.m_failure)
     {
-        _other.m_ctx = nullptr;
+        _other.m_engine = D_NULLPTR;
+        _other.m_share  = D_NULLPTR;
     }
 
     tls_context&
@@ -290,217 +389,484 @@ public:
         tls_context&& _other
     ) D_NOEXCEPT
     {
+        // assigning a context to itself keeps it
         if (this != &_other)
         {
-            if (m_ctx != nullptr)
-            {
-                SSL_CTX_free(m_ctx);
-            }
+            internal::tls_share_release(m_share);
 
-            m_ctx        = _other.m_ctx;
-            _other.m_ctx = nullptr;
+            m_engine           = _other.m_engine;
+            m_config           = _other.m_config;
+            m_ca_file          = static_cast<std::string&&>(_other.m_ca_file);
+            m_certificate_file =
+                static_cast<std::string&&>(_other.m_certificate_file);
+            m_private_key_file =
+                static_cast<std::string&&>(_other.m_private_key_file);
+            m_share            = _other.m_share;
+            m_failure          = _other.m_failure;
+            _other.m_engine    = D_NULLPTR;
+            _other.m_share     = D_NULLPTR;
         }
 
         return *this;
     }
-
-    tls_context(const tls_context&)            D_DELETE;
-    tls_context& operator=(const tls_context&) D_DELETE;
+#endif  // D_MOVE_ENABLED
 
     // is_valid
-    //   function: whether the underlying SSL_CTX was created.
+    //   function: whether there is an engine to make connections in.
     D_NODISCARD bool
     is_valid() const
     {
-        return (m_ctx != nullptr);
+        return (m_engine != D_NULLPTR);
     }
 
-    // native
-    //   function: the underlying SSL_CTX (for advanced configuration).
-    D_NODISCARD SSL_CTX*
-    native() const
+    // engine
+    //   function: the engine connections are made in, or null.
+    D_NODISCARD const ::d_ssl_engine*
+    engine() const
     {
-        return m_ctx;
+        return m_engine;
+    }
+
+    // config
+    //   function: the kernel configuration the context is made live from,
+    // for what no call here sets -- ALPN, pins, cipher strings, PEM held in
+    // memory, a key log. Strings it is given must last until the context is
+    // next prepared; the files use_* name are kept here, and take the
+    // place of any set through config(). Asking for the configuration to
+    // change it lets go of the live context.
+    D_NODISCARD ::d_ssl_config&
+    config()
+    {
+        m_drop();
+
+        return m_config;
+    }
+
+    D_NODISCARD const ::d_ssl_config&
+    config() const
+    {
+        return m_config;
     }
 
     // set_min_version
-    //   function: sets the minimum protocol version (e.g. TLS1_2_VERSION,
-    // TLS1_3_VERSION).
+    //   function: the oldest version connections settle for.
     void
     set_min_version(
-        int _version
+        version::value _version
     )
     {
-        if (m_ctx != nullptr)
-        {
-            (void)SSL_CTX_set_min_proto_version(m_ctx, _version);
-        }
+        m_drop();
+        m_config.min_version = static_cast<enum d_ssl_version>(_version);
 
         return;
     }
 
     // set_verify_peer
-    //   function: turns peer-certificate verification on or off at the context
-    // level (a connector may also set this per-connection).
+    //   function: whether the peer is verified. A client checks the server's
+    // chain and name; a server asks for a client's certificate, and checks
+    // one that is sent.
     void
     set_verify_peer(
         bool _on
     )
     {
-        if (m_ctx != nullptr)
-        {
-            SSL_CTX_set_verify(m_ctx,
-                               _on ? SSL_VERIFY_PEER : SSL_VERIFY_NONE,
-                               nullptr);
-        }
+        const bool                  client = (m_config.role ==
+                                              D_SSL_ROLE_CLIENT);
+        const enum d_ssl_verify_mode on     = (client)
+                                                  ? D_SSL_VERIFY_REQUIRED
+                                                  : D_SSL_VERIFY_OPTIONAL;
+
+        m_drop();
+        m_config.verify          = (_on) ? on
+                                         : D_SSL_VERIFY_NONE;
+        m_config.verify_hostname = ( (_on) &&
+                                     (client) );
 
         return;
     }
 
     // use_default_verify_paths
-    //   function: loads the system default trust anchors for verification.
-    D_NODISCARD io_error
+    //   function: trusts the system's trust anchors, as a context does from
+    // the start; a complete context is made live at once.
+    D_NODISCARD io_error::value
     use_default_verify_paths()
     {
-        if (m_ctx == nullptr)
-        {
-            return io_error::invalid_argument;
-        }
+        m_drop();
+        m_config.use_system_trust = true;
 
-        if (SSL_CTX_set_default_verify_paths(m_ctx) != 1)
-        {
-            return io_error::unknown;
-        }
-
-        return io_error::none;
+        return m_settle();
     }
 
     // use_verify_file
-    //   function: loads a specific CA bundle (PEM) as the trust anchors.
-    D_NODISCARD io_error
+    //   function: trusts the certificates of a PEM bundle as well; a complete
+    // context is made live at once, so a bundle that does not load is
+    // refused here.
+    D_NODISCARD io_error::value
     use_verify_file(
         const std::string& _path
     )
     {
-        if (m_ctx == nullptr)
-        {
-            return io_error::invalid_argument;
-        }
-
-        if (SSL_CTX_load_verify_locations(m_ctx, _path.c_str(), nullptr) != 1)
-        {
-            return io_error::invalid_argument;
-        }
-
-        return io_error::none;
+        return m_name(m_ca_file,
+                      _path,
+                      true);
     }
 
     // use_certificate_file
-    //   function: loads the server certificate chain (PEM).
-    D_NODISCARD io_error
+    //   function: presents the certificate chain of a PEM file, leaf first.
+    // It waits for its key -- the one named, or one to come -- and makes
+    // nothing live, so a certificate replaced before its key is not refused
+    // for the key it no longer matches.
+    D_NODISCARD io_error::value
     use_certificate_file(
         const std::string& _path
     )
     {
-        if (m_ctx == nullptr)
-        {
-            return io_error::invalid_argument;
-        }
-
-        if (SSL_CTX_use_certificate_chain_file(m_ctx, _path.c_str()) != 1)
-        {
-            return io_error::invalid_argument;
-        }
-
-        return io_error::none;
+        return m_name(m_certificate_file,
+                      _path,
+                      false);
     }
 
     // use_private_key_file
-    //   function: loads the private key (PEM) and checks it against the loaded
-    // certificate.
-    D_NODISCARD io_error
+    //   function: the private key of a PEM file, for the certificate; with
+    // the context complete it is made live at once, so a key that does not
+    // load, or does not match, is refused here.
+    D_NODISCARD io_error::value
     use_private_key_file(
         const std::string& _path
     )
     {
-        if (m_ctx == nullptr)
+        return m_name(m_private_key_file,
+                      _path,
+                      true);
+    }
+
+    /**
+     * @brief Makes the context live now, unless it is.
+     *
+     * Connects and accepts do this themselves; a server can do it early, to
+     * learn of a configuration that will not load before it takes clients.
+     *
+     * @return io_error::none; io_error::invalid_argument without an engine,
+     *         or for a configuration the kernel or the engine refuses, such
+     *         as a file that does not load; or the engine's failure.
+     *         failure() gives the kernel's reason.
+     */
+    D_NODISCARD io_error::value
+    prepare()
+    {
+        // already live
+        if (m_share)
+        {
+            return io_error::none;
+        }
+
+        // no engine to make it live in
+        if (!m_engine)
+        {
+            m_failure = D_SSL_ERROR_UNSUPPORTED;
+
+            return io_error::invalid_argument;
+        }
+
+        ::d_ssl_config config = m_config;
+
+        config.ca_file          = m_file(m_ca_file,
+                                         m_config.ca_file);
+        config.certificate_file = m_file(m_certificate_file,
+                                         m_config.certificate_file);
+        config.private_key_file = m_file(m_private_key_file,
+                                         m_config.private_key_file);
+        m_share                 = internal::tls_share_make(m_engine,
+                                                           config,
+                                                           &m_failure);
+
+        return (m_share) ? io_error::none
+                         : from_c(::d_ssl_error_to_net(m_failure));
+    }
+
+    // lease
+    //   function: a share of the live context for another facade's sessions,
+    // made live now if need be; an empty lease, the reason in failure(),
+    // when it cannot be.
+    D_NODISCARD tls_lease
+    lease()
+    {
+        io_error::value error = io_error::none;
+
+        return tls_lease(m_take(&error));
+    }
+
+    // failure
+    //   function: the kernel's reason the last prepare failed, or D_SSL_OK;
+    // a change forgets it.
+    D_NODISCARD ::d_ssl_error
+    failure() const
+    {
+        return m_failure;
+    }
+
+private:
+    friend class tls_connection;
+
+    // m_take
+    //   function: a share of the live context for a connection, made live
+    // now if need be; null, with the reason in *_out_error, without one.
+    internal::tls_share*
+    m_take(
+        io_error::value* _out_error
+    )
+    {
+        *_out_error = prepare();
+
+        return (*_out_error == io_error::none)
+                   ? internal::tls_share_retain(m_share)
+                   : D_NULLPTR;
+    }
+
+    // m_drop
+    //   function: lets go of the live context, which connections made with
+    // it keep for as long as they last.
+    void
+    m_drop()
+    {
+        internal::tls_share_release(m_share);
+        m_share   = D_NULLPTR;
+        m_failure = D_SSL_OK;
+
+        return;
+    }
+
+    // m_name
+    //   function: names a file for `_slot`, once it can be read; `_settle`
+    // makes the context live if it is then complete.
+    io_error::value
+    m_name(
+        std::string&       _slot,
+        const std::string& _path,
+        bool               _settle
+    )
+    {
+        std::FILE* const file = (_path.empty()) ? D_NULLPTR
+                                                : std::fopen(_path.c_str(),
+                                                             "rb");
+
+        // a file that cannot be read can name nothing
+        if (!file)
         {
             return io_error::invalid_argument;
         }
 
-        if (SSL_CTX_use_PrivateKey_file(m_ctx,
-                                        _path.c_str(),
-                                        SSL_FILETYPE_PEM) != 1)
+        (void)std::fclose(file);
+        m_drop();
+        _slot = _path;
+
+        return (_settle) ? m_settle()
+                         : io_error::none;
+    }
+
+    // m_settle
+    //   function: makes the context live if it is complete, as the kernel
+    // judges an identity: a certificate and its key together, and a
+    // server's at all. One that is not waits, and is not refused.
+    io_error::value
+    m_settle()
+    {
+        const bool certificate =
+            ( (!m_certificate_file.empty())            ||
+              (m_config.certificate_file != D_NULLPTR) ||
+              (m_config.certificate_pem.length > 0u) );
+        const bool key         =
+            ( (!m_private_key_file.empty())            ||
+              (m_config.private_key_file != D_NULLPTR) ||
+              (m_config.private_key_pem.length > 0u) );
+
+        // half an identity, or a server without one, waits for the rest
+        if ( (certificate != key) ||
+             ( (!certificate) &&
+               (m_config.role == D_SSL_ROLE_SERVER) ) )
         {
-            return io_error::invalid_argument;
+            return io_error::none;
         }
 
-        if (SSL_CTX_check_private_key(m_ctx) != 1)
+        return prepare();
+    }
+
+    // m_file
+    //   function: the file a use_* call named, or else the configuration's.
+    static const char*
+    m_file(
+        const std::string& _named,
+        const char*        _configured
+    )
+    {
+        return (_named.empty()) ? _configured
+                                : _named.c_str();
+    }
+
+    D_DELETED_FN(tls_context(const tls_context&))
+    D_DELETED_FN(tls_context& operator=(const tls_context&))
+
+    const ::d_ssl_engine* m_engine;            // null: not valid
+    ::d_ssl_config        m_config;            // all but the use_* files
+    std::string           m_ca_file;           // use_verify_file's
+    std::string           m_certificate_file;  // use_certificate_file's
+    std::string           m_private_key_file;  // use_private_key_file's
+    internal::tls_share*  m_share;             // the live context, or null
+    ::d_ssl_error         m_failure;           // the last prepare's reason
+};
+
+
+//==============================================================================
+// 2.  CONNECTIONS
+//==============================================================================
+
+
+// 2.1    Errors and names
+//------------------------------------------------------------------------------
+NS_INTERNAL
+
+    // 2.1.1
+    // internal::tls_error
+    //   function: a failed session call in net.hpp's terms: the transport's
+    // own error behind a transport failure, d_ssl_error_to_net's otherwise,
+    // as a session's connection view reports them.
+    D_NODISCARD inline io_error::value
+    tls_error(
+        const ::d_ssl_session* _session,
+        ::d_ssl_error          _status
+    ) D_NOEXCEPT
+    {
+        return from_c( (_status == D_SSL_ERROR_TRANSPORT)
+                           ? ::d_ssl_session_transport_error(_session)
+                           : ::d_ssl_error_to_net(_status) );
+    }
+
+    // 2.1.2
+    // internal::tls_host
+    //   function: the host a client's session made from `_config` names, in
+    // *_out: `_host`, unless it is neither a host name nor an address
+    // literal, when a session that checks no names goes without one, and
+    // without SNI, and one that does cannot be made: false.
+    D_NODISCARD inline bool
+    tls_host(
+        const ::d_ssl_config& _config,
+        const std::string&    _host,
+        std::string*          _out
+    )
+    {
+        const ::d_pack_text text   = { _host.c_str(),
+                                       _host.size() };
+        const bool          usable = ( (::d_ssl_hostname_is_valid(text)) ||
+                                       (::d_ssl_host_is_ip(text)) );
+
+        *_out = (usable) ? _host
+                         : std::string();
+
+        return ( (usable) ||
+                 (!_config.verify_hostname) );
+    }
+
+NS_END  // internal
+
+// 2.2    TLS connections
+//------------------------------------------------------------------------------
+// 2.2.1
+// tls_connection
+//   class: a net::connection running a kernel session over a transport
+// connection it owns, through net.hpp's c_connection_adapter; reads and
+// writes go through the session's connection view, which handshakes first
+// where it has not. The session and the adapter live on the heap, as they
+// point into each other, so the connection moves from C++11; it copies at
+// no level. Destroying it sends nothing: close() says close_notify first.
+// Made by adopt, which tls_connector and tls_acceptor call.
+class tls_connection : public connection
+{
+public:
+    /**
+     * @brief Runs TLS over a transport connection, which it adopts.
+     *
+     * The handshake waits for handshake(), or the first read or write, so a
+     * protocol that began in plaintext can upgrade the connection it has.
+     *
+     * @param[in]  _transport  the connection, from new; owned from here, and
+     *                         deleted even when this fails.
+     * @param[in]  _context    the context the session is made with; it is
+     *                         prepared if it is not, and the connection
+     *                         keeps a share of it.
+     * @param[in]  _host       a client's server: a host name or an address
+     *                         literal, which the certificate must carry when
+     *                         the context verifies, and the name sent as
+     *                         SNI. A server's is not used.
+     * @param[out] _out        on success owns the TLS connection; otherwise
+     *                         holds the error.
+     * @return io_error::none, or the error _out records:
+     *         io_error::invalid_argument for no transport, a context that
+     *         cannot be made live, or a host that is neither a name nor an
+     *         address where the context verifies names, which goes unsent
+     *         where it does not; or io_error::out_of_memory.
+     */
+    static io_error::value
+    adopt(
+        connection*        _transport,
+        tls_context&       _context,
+        const std::string& _host,
+        open_result&       _out
+    )
+    {
+        std::string                host;
+        const bool                 named =
+            ( (_context.m_config.role == D_SSL_ROLE_SERVER) ||
+              (internal::tls_host(_context.m_config,
+                                  _host,
+                                  &host)) );
+        io_error::value            error = io_error::invalid_argument;
+        internal::tls_share* const share =
+            ( (_transport) &&
+              (named) ) ? _context.m_take(&error)
+                        : D_NULLPTR;
+        tls_connection* const      made  =
+            (share) ? m_make(_transport,
+                             share,
+                             host,
+                             &error)
+                    : D_NULLPTR;
+
+        // without a share the transport went unused
+        if (!share)
         {
-            return io_error::invalid_argument;
+            delete _transport;
         }
+
+        // no connection, nothing for the result but the reason
+        if (!made)
+        {
+            _out.fail(error);
+
+            return error;
+        }
+
+        _out.reset(made);
 
         return io_error::none;
     }
 
-private:
-    SSL_CTX* m_ctx;
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-///                         TLS CONNECTION                                 ///
-///////////////////////////////////////////////////////////////////////////////
-
-// tls_connection
-//   class: a net::connection that layers TLS over an owned transport
-// connection. read()/write() run the SSL engine against memory BIOs, moving
-// ciphertext through the transport. The handshake runs on demand (the client
-// connector forces it eagerly; a server defers it to the first I/O). Movable,
-// non-copyable. Normally constructed by tls_connector / tls_acceptor.
-class tls_connection : public connection
-{
-public:
-    tls_connection(
-        std::unique_ptr<connection> _transport,
-        SSL*                        _ssl,
-        BIO*                        _rbio,
-        BIO*                        _wbio
-    )
-        : m_transport(std::move(_transport)),
-          m_ssl(_ssl),
-          m_rbio(_rbio),
-          m_wbio(_wbio),
-          m_handshaked(false)
+    ~tls_connection() D_OVERRIDE
     {
+        m_release();
     }
 
-    ~tls_connection() override
-    {
-        // no network I/O in the destructor: free the SSL and let the transport
-        // close. Callers wanting a clean close_notify use close().
-        if (m_ssl != nullptr)
-        {
-            SSL_free(m_ssl);
-            m_ssl  = nullptr;
-            m_rbio = nullptr;
-            m_wbio = nullptr;
-        }
-    }
-
+#if (D_MOVE_ENABLED == 1)
     tls_connection(
         tls_connection&& _other
     ) D_NOEXCEPT
         : connection(),
-          m_transport(std::move(_other.m_transport)),
-          m_ssl(_other.m_ssl),
-          m_rbio(_other.m_rbio),
-          m_wbio(_other.m_wbio),
-          m_handshaked(_other.m_handshaked)
+          m_transport(_other.m_transport),
+          m_state(_other.m_state),
+          m_share(_other.m_share)
     {
-        _other.m_ssl  = nullptr;
-        _other.m_rbio = nullptr;
-        _other.m_wbio = nullptr;
+        _other.m_transport = D_NULLPTR;
+        _other.m_state     = D_NULLPTR;
+        _other.m_share     = D_NULLPTR;
     }
 
     tls_connection&
@@ -508,299 +874,96 @@ public:
         tls_connection&& _other
     ) D_NOEXCEPT
     {
+        // assigning a connection to itself keeps it
         if (this != &_other)
         {
-            if (m_ssl != nullptr)
-            {
-                SSL_free(m_ssl);
-            }
-
-            m_transport  = std::move(_other.m_transport);
-            m_ssl        = _other.m_ssl;
-            m_rbio       = _other.m_rbio;
-            m_wbio       = _other.m_wbio;
-            m_handshaked = _other.m_handshaked;
-
-            _other.m_ssl  = nullptr;
-            _other.m_rbio = nullptr;
-            _other.m_wbio = nullptr;
+            m_release();
+            m_transport        = _other.m_transport;
+            m_state            = _other.m_state;
+            m_share            = _other.m_share;
+            _other.m_transport = D_NULLPTR;
+            _other.m_state     = D_NULLPTR;
+            _other.m_share     = D_NULLPTR;
         }
 
         return *this;
     }
-
-    tls_connection(const tls_connection&)            D_DELETE;
-    tls_connection& operator=(const tls_connection&) D_DELETE;
+#endif  // D_MOVE_ENABLED
 
     // handshake
-    //   function: drives the TLS handshake to completion (idempotent once done).
-    // Called eagerly by the client connector; otherwise triggered by the first
-    // read()/write().
-    D_NODISCARD io_error
+    //   function: runs the handshake to completion; once done, it only
+    // flushes. tls_connector calls it at connect; otherwise the first read
+    // or write runs it.
+    D_NODISCARD io_error::value
     handshake()
     {
-        if (m_handshaked)
-        {
-            return io_error::none;
-        }
-
-        if ( (m_ssl == nullptr) ||
-             (!m_transport) )
+        // a connection moved from has nothing to shake
+        if (!m_state)
         {
             return io_error::closed;
         }
 
-        for (;;)
-        {
-            ERR_clear_error();
+        const ::d_ssl_error status =
+            ::d_ssl_session_handshake(&m_state->session);
 
-            const int rc = SSL_do_handshake(m_ssl);
-
-            if (rc == 1)
-            {
-                // send any final handshake output
-                const io_error e = flush_out();
-
-                if (e != io_error::none)
-                {
-                    return e;
-                }
-
-                m_handshaked = true;
-                return io_error::none;
-            }
-
-            const int err = SSL_get_error(m_ssl, rc);
-
-            if (err == SSL_ERROR_WANT_READ)
-            {
-                io_error e = flush_out();
-
-                if (e != io_error::none)
-                {
-                    return e;
-                }
-
-                e = feed_in();
-
-                if (e != io_error::none)
-                {
-                    return e;
-                }
-            }
-            else if (err == SSL_ERROR_WANT_WRITE)
-            {
-                const io_error e = flush_out();
-
-                if (e != io_error::none)
-                {
-                    return e;
-                }
-            }
-            else
-            {
-                return internal::ssl_result_to_error(err);
-            }
-        }
+        return (status == D_SSL_OK) ? io_error::none
+                                    : internal::tls_error(&m_state->session,
+                                                          status);
     }
 
     // read
-    //   function: decrypts up to `_size` bytes of application data; a clean
-    // close_notify from the peer reads as EOF (0, none).
+    //   function: decrypted application data; the peer's close_notify is
+    // the end of the stream (0, none).
     D_NODISCARD io_result
     read(
         void*       _buffer,
         std::size_t _size
-    ) override
+    ) D_OVERRIDE
     {
-        if (m_ssl == nullptr)
-        {
-            return io_result(0, io_error::closed);
-        }
-
-        if (_size == 0)
-        {
-            return io_result(0, io_error::none);
-        }
-
-        if (!m_handshaked)
-        {
-            const io_error e = handshake();
-
-            if (e != io_error::none)
-            {
-                return io_result(0, e);
-            }
-        }
-
-        for (;;)
-        {
-            ERR_clear_error();
-
-            const int rc = SSL_read(m_ssl, _buffer, internal::clamp_to_int(_size));
-
-            if (rc > 0)
-            {
-                return io_result(static_cast<std::size_t>(rc), io_error::none);
-            }
-
-            const int err = SSL_get_error(m_ssl, rc);
-
-            if (err == SSL_ERROR_ZERO_RETURN)
-            {
-                return io_result(0, io_error::none);
-            }
-
-            if (err == SSL_ERROR_WANT_READ)
-            {
-                io_error e = flush_out();
-
-                if (e != io_error::none)
-                {
-                    return io_result(0, e);
-                }
-
-                e = feed_in();
-
-                if (e != io_error::none)
-                {
-                    return io_result(0, e);
-                }
-
-                continue;
-            }
-
-            if (err == SSL_ERROR_WANT_WRITE)
-            {
-                const io_error e = flush_out();
-
-                if (e != io_error::none)
-                {
-                    return io_result(0, e);
-                }
-
-                continue;
-            }
-
-            return io_result(0, internal::ssl_result_to_error(err));
-        }
+        return (m_state) ? from_c(::d_net_connection_read(
+                                      &m_state->session.base,
+                                      _buffer,
+                                      _size))
+                         : io_result(0u,
+                                     io_error::closed);
     }
 
     // write
-    //   function: encrypts and sends up to `_size` bytes. On success the full
-    // amount is accepted by the SSL engine and its ciphertext flushed to the
-    // transport.
+    //   function: encrypts and sends application data.
     D_NODISCARD io_result
     write(
         const void* _data,
         std::size_t _size
-    ) override
+    ) D_OVERRIDE
     {
-        if (m_ssl == nullptr)
-        {
-            return io_result(0, io_error::closed);
-        }
-
-        if (_size == 0)
-        {
-            return io_result(0, io_error::none);
-        }
-
-        if (!m_handshaked)
-        {
-            const io_error e = handshake();
-
-            if (e != io_error::none)
-            {
-                return io_result(0, e);
-            }
-        }
-
-        for (;;)
-        {
-            ERR_clear_error();
-
-            const int rc = SSL_write(m_ssl, _data, internal::clamp_to_int(_size));
-
-            if (rc > 0)
-            {
-                const io_error e = flush_out();
-
-                if (e != io_error::none)
-                {
-                    return io_result(0, e);
-                }
-
-                return io_result(static_cast<std::size_t>(rc), io_error::none);
-            }
-
-            const int err = SSL_get_error(m_ssl, rc);
-
-            if (err == SSL_ERROR_WANT_READ)
-            {
-                io_error e = flush_out();
-
-                if (e != io_error::none)
-                {
-                    return io_result(0, e);
-                }
-
-                e = feed_in();
-
-                if (e != io_error::none)
-                {
-                    return io_result(0, e);
-                }
-
-                continue;
-            }
-
-            if (err == SSL_ERROR_WANT_WRITE)
-            {
-                const io_error e = flush_out();
-
-                if (e != io_error::none)
-                {
-                    return io_result(0, e);
-                }
-
-                continue;
-            }
-
-            return io_result(0, internal::ssl_result_to_error(err));
-        }
+        return (m_state) ? from_c(::d_net_connection_write(
+                                      &m_state->session.base,
+                                      _data,
+                                      _size))
+                         : io_result(0u,
+                                     io_error::closed);
     }
 
     // is_open
-    //   function: whether the TLS layer and its transport are both live.
+    //   function: whether the session and its transport are both live.
     D_NODISCARD bool
-    is_open() const override
+    is_open() const D_OVERRIDE
     {
-        return ( (m_ssl != nullptr) &&
-                 (m_transport) &&
-                 m_transport->is_open() );
+        return ( (m_state != D_NULLPTR)                               &&
+                 (::d_net_connection_is_open(&m_state->session.base)) &&
+                 (m_transport->is_open()) );
     }
 
     // close
-    //   function: sends a best-effort close_notify, frees the SSL, and closes
-    // the transport (idempotent).
+    //   function: close_notify where the session can still say it, then the
+    // transport closed; closing again does nothing more.
     void
-    close() override
+    close() D_OVERRIDE
     {
-        if (m_ssl != nullptr)
+        // the session's view says close_notify, the transport closes after
+        if (m_state)
         {
-            ERR_clear_error();
-            (void)SSL_shutdown(m_ssl);   // queue close_notify
-            (void)flush_out();           // best-effort delivery
-
-            SSL_free(m_ssl);
-            m_ssl  = nullptr;
-            m_rbio = nullptr;
-            m_wbio = nullptr;
-        }
-
-        if (m_transport)
-        {
+            ::d_net_connection_close(&m_state->session.base);
             m_transport->close();
         }
 
@@ -808,210 +971,206 @@ public:
     }
 
     // shutdown
-    //   function: for the write direction, sends close_notify; delegates the
-    // transport-level shutdown to the underlying connection.
-    D_NODISCARD io_error
+    //   function: WRITE and BOTH send close_notify, then the transport is
+    // shut down the same way, as it is for READ alone.
+    D_NODISCARD io_error::value
     shutdown(
-        shutdown_mode _mode
-    ) override
+        shutdown_mode::value _mode
+    ) D_OVERRIDE
     {
-        if (m_ssl == nullptr)
-        {
-            return io_error::closed;
-        }
-
-        if ( (_mode == shutdown_mode::write) ||
-             (_mode == shutdown_mode::both) )
-        {
-            ERR_clear_error();
-            (void)SSL_shutdown(m_ssl);
-
-            const io_error e = flush_out();
-
-            if (e != io_error::none)
-            {
-                return e;
-            }
-        }
-
-        if (m_transport)
-        {
-            return m_transport->shutdown(_mode);
-        }
-
-        return io_error::none;
+        return (m_state) ? from_c(::d_net_connection_shutdown(
+                                      &m_state->session.base,
+                                      to_c(_mode)))
+                         : io_error::closed;
     }
 
     // remote_endpoint / local_endpoint
-    //   function: the addresses of the underlying transport.
+    //   function: the addresses of the transport.
     D_NODISCARD endpoint
-    remote_endpoint() const override
+    remote_endpoint() const D_OVERRIDE
     {
-        if (m_transport)
-        {
-            return m_transport->remote_endpoint();
-        }
-
-        return endpoint();
+        return (m_transport) ? m_transport->remote_endpoint()
+                             : endpoint();
     }
 
     D_NODISCARD endpoint
-    local_endpoint() const override
+    local_endpoint() const D_OVERRIDE
     {
-        if (m_transport)
-        {
-            return m_transport->local_endpoint();
-        }
-
-        return endpoint();
+        return (m_transport) ? m_transport->local_endpoint()
+                             : endpoint();
     }
 
-    // native_ssl
-    //   function: the underlying SSL object (for advanced inspection, e.g. the
-    // negotiated cipher or peer certificate).
-    D_NODISCARD SSL*
-    native_ssl() const
+    // session
+    //   function: the kernel session, for what net.hpp's errors cannot
+    // say: its failure, state, and transport error; null once moved from.
+    D_NODISCARD const ::d_ssl_session*
+    session() const
     {
-        return m_ssl;
+        return (m_state) ? &m_state->session
+                         : D_NULLPTR;
+    }
+
+    // info
+    //   function: what the session negotiated and learned -- the version,
+    // the cipher, ALPN's protocol, the verification flags, the peer's
+    // certificate fingerprint -- zeroed before the handshake.
+    D_NODISCARD ::d_ssl_info
+    info() const
+    {
+        ::d_ssl_info out = ::d_ssl_info();
+
+        // only a session has anything to tell
+        if (m_state)
+        {
+            (void)::d_ssl_session_info(&m_state->session,
+                                       &out);
+        }
+
+        return out;
     }
 
 private:
-    // flush_out
-    //   function: drains ciphertext OpenSSL has produced (write BIO) and sends
-    // it over the transport.
-    D_NODISCARD io_error
-    flush_out()
+    // state
+    //   struct: the adapter that shows the session its transport, and the
+    // session; they point into each other, so they never move.
+    struct state
     {
-        char buffer[16384];
+        explicit state(
+            connection& _transport
+        )
+            : adapter(_transport),
+              session()
+        {}
 
-        for (;;)
-        {
-            const int n = BIO_read(m_wbio, buffer, static_cast<int>(sizeof(buffer)));
+        c_connection_adapter adapter;
+        ::d_ssl_session      session;
+    };
 
-            if (n <= 0)
-            {
-                // nothing more pending (memory BIO returns <= 0 when empty)
-                break;
-            }
+    tls_connection(
+        connection*          _transport,
+        state*               _state,
+        internal::tls_share* _share
+    )
+        : connection(),
+          m_transport(_transport),
+          m_state(_state),
+          m_share(_share)
+    {}
 
-            const io_error e =
-                transport_write_all(buffer, static_cast<std::size_t>(n));
-
-            if (e != io_error::none)
-            {
-                return e;
-            }
-        }
-
-        return io_error::none;
-    }
-
-    // feed_in
-    //   function: reads ciphertext from the transport (blocking) and hands it to
-    // OpenSSL (read BIO). A transport EOF before the engine is satisfied is a
-    // truncation.
-    D_NODISCARD io_error
-    feed_in()
-    {
-        char buffer[16384];
-
-        const io_result r = m_transport->read(buffer, sizeof(buffer));
-
-        if (r.error != io_error::none)
-        {
-            return r.error;
-        }
-
-        if (r.count == 0)
-        {
-            return io_error::closed;
-        }
-
-        const int written =
-            BIO_write(m_rbio, buffer, static_cast<int>(r.count));
-
-        if (written < static_cast<int>(r.count))
-        {
-            // a memory BIO should accept everything; short write is unexpected
-            return io_error::unknown;
-        }
-
-        return io_error::none;
-    }
-
-    // transport_write_all
-    //   function: writes the whole buffer to the transport, looping over partial
-    // writes.
-    D_NODISCARD io_error
-    transport_write_all(
-        const char* _data,
-        std::size_t _length
+    // m_make
+    //   function: a connection whose session, over `_transport`, is made
+    // with `_share`, naming `_host`; each is the connection's from here, or
+    // released with it when it cannot be made, and null returned, with the
+    // reason in *_out_error.
+    static tls_connection*
+    m_make(
+        connection*          _transport,
+        internal::tls_share* _share,
+        const std::string&   _host,
+        io_error::value*     _out_error
     )
     {
-        std::size_t offset = 0;
+        state* const          made   = new (std::nothrow) state(*_transport);
+        const ::d_pack_text   host   = { _host.c_str(),
+                                         _host.size() };
+        const ::d_ssl_error   status =
+            (made) ? ::d_ssl_session_init(&made->session,
+                                          &_share->kernel,
+                                          made->adapter.get(),
+                                          host)
+                   : D_SSL_ERROR_OUT_OF_MEMORY;
+        tls_connection* const tls    =
+            (status == D_SSL_OK) ? new (std::nothrow) tls_connection(
+                                       _transport,
+                                       made,
+                                       _share)
+                                 : D_NULLPTR;
 
-        while (offset < _length)
+        // the session, the share and the transport go with a failure
+        if (!tls)
         {
-            const io_result r =
-                m_transport->write(_data + offset, _length - offset);
+            *_out_error = (status == D_SSL_OK)
+                              ? io_error::out_of_memory
+                              : from_c(::d_ssl_error_to_net(status));
 
-            if (r.error != io_error::none)
+            // a state made holds a session to release
+            if (made)
             {
-                return r.error;
+                ::d_ssl_session_destroy(&made->session);
+                delete made;
             }
 
-            if (r.count == 0)
-            {
-                return io_error::closed;
-            }
-
-            offset += r.count;
+            internal::tls_share_release(_share);
+            delete _transport;
         }
 
-        return io_error::none;
+        return tls;
     }
 
-    std::unique_ptr<connection> m_transport;
-    SSL*                        m_ssl;
-    BIO*                        m_rbio;
-    BIO*                        m_wbio;
-    bool                        m_handshaked;
+    // m_release
+    //   function: the session before the context it was made with, and the
+    // adapter before the transport it shows.
+    void
+    m_release()
+    {
+        // a session to end, and its adapter
+        if (m_state)
+        {
+            ::d_ssl_session_destroy(&m_state->session);
+            delete m_state;
+            m_state = D_NULLPTR;
+        }
+
+        internal::tls_share_release(m_share);
+        delete m_transport;
+        m_share     = D_NULLPTR;
+        m_transport = D_NULLPTR;
+
+        return;
+    }
+
+    D_DELETED_FN(tls_connection(const tls_connection&))
+    D_DELETED_FN(tls_connection& operator=(const tls_connection&))
+
+    connection*          m_transport;  // owned
+    state*               m_state;      // owned
+    internal::tls_share* m_share;      // the context the session was made with
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                          TLS CONNECTOR                                 ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  OPENING
+//==============================================================================
 
+
+// 3.1    Connecting
+//------------------------------------------------------------------------------
+// 3.1.1
 // tls_connector
-//   class: a net::connector that establishes a transport connection with the
-// underlying connector, then negotiates TLS over it. Verification is on by
-// default (system trust anchors, hostname/IP matching against the target); the
-// handshake runs eagerly so a certificate or verification failure is reported
-// as the connect error. Templated on the transport connector (default TCP).
-template <typename _TransportConnector = tcp_connector>
+//   class: a net::connector that connects the transport with its own
+// connector, then runs TLS over it as a client of its context, which
+// verifies by default: the server's chain against the system's trust
+// anchors, and the server's name -- the endpoint's host, or the name set --
+// against its certificate. The handshake runs at connect, so a certificate
+// or verification failure is the connect's error. Templated on the
+// transport connector (TCP by default).
+template<typename TransportConnector = tcp_connector>
 class tls_connector
 {
 public:
     tls_connector()
-        : m_context(tls_context::client()),
+        : m_context(tls_context::role::client),
           m_transport(),
-          m_verify(true),
           m_server_name()
-    {
-        init_client_defaults();
-    }
+    {}
 
     explicit tls_connector(
-        const _TransportConnector& _transport
+        const TransportConnector& _transport
     )
-        : m_context(tls_context::client()),
+        : m_context(tls_context::role::client),
           m_transport(_transport),
-          m_verify(true),
           m_server_name()
-    {
-        init_client_defaults();
-    }
+    {}
 
     // context / transport
     //   function: access to the TLS context and the transport connector for
@@ -1022,29 +1181,27 @@ public:
         return m_context;
     }
 
-    D_NODISCARD _TransportConnector&
+    D_NODISCARD TransportConnector&
     transport()
     {
         return m_transport;
     }
 
     // set_verify
-    //   function: enables/disables peer verification for connections made by
-    // this connector.
+    //   function: whether connections made from here verify the server.
     void
     set_verify(
         bool _on
     )
     {
-        m_verify = _on;
         m_context.set_verify_peer(_on);
 
         return;
     }
 
     // set_server_name
-    //   function: overrides the name used for SNI and certificate matching
-    // (defaults to the endpoint host).
+    //   function: the name sent as SNI and checked against the certificate,
+    // in place of the endpoint's host; empty restores the host.
     void
     set_server_name(
         const std::string& _name
@@ -1055,155 +1212,127 @@ public:
         return;
     }
 
-    // connect
-    //   function: connects the transport, wraps it in TLS, and handshakes.
+    /**
+     * @brief Connects the transport, runs TLS over it, and handshakes.
+     *
+     * A context that cannot be made live, or a server name it would check
+     * that is neither a host name nor an address, fails before the
+     * transport is connected; the handshake runs here, so a certificate or
+     * verification failure is the connect's error.
+     *
+     * @param[in]  _endpoint  where to connect.
+     * @param[out] _out       on success owns the TLS connection; otherwise
+     *                        holds the error.
+     * @return io_error::none, or the error _out records:
+     *         io_error::access_denied for a certificate that does not
+     *         verify, and the transport's error for a connection lost.
+     */
+    io_error::value
+    connect(
+        const endpoint& _endpoint,
+        open_result&    _out
+    )
+    {
+        const tls_context&    settings = m_context;
+        const std::string&    name     = (m_server_name.empty())
+                                             ? _endpoint.host
+                                             : m_server_name;
+        std::string           host;
+        const io_error::value prepared =
+            (internal::tls_host(settings.config(),
+                                name,
+                                &host)) ? m_context.prepare()
+                                        : io_error::invalid_argument;
+
+        // a context that cannot be made live, or a name it cannot check,
+        // costs no round trip
+        if (prepared != io_error::none)
+        {
+            _out.fail(prepared);
+
+            return prepared;
+        }
+
+        const io_error::value opened = m_transport.connect(_endpoint,
+                                                           _out);
+        const io_error::value made   =
+            (opened == io_error::none)
+                ? tls_connection::adopt(_out.release(),
+                                        m_context,
+                                        name,
+                                        _out)
+                : opened;
+
+        // a transport that failed, or a session that could not be made
+        if (made != io_error::none)
+        {
+            return made;
+        }
+
+        const io_error::value shaken =
+            static_cast<tls_connection*>(_out.get())->handshake();
+
+        // a refused handshake closes the connection and reports why
+        if (shaken != io_error::none)
+        {
+            _out.fail(shaken);
+        }
+
+        return shaken;
+    }
+
+#if (D_MOVE_ENABLED == 1)
+    // connect -- the same, returning the result, which C++11 can move
     D_NODISCARD open_result
     connect(
         const endpoint& _endpoint
     )
     {
-        if (!m_context.is_valid())
-        {
-            return open_result(io_error::invalid_argument);
-        }
+        open_result result;
 
-        // establish the underlying transport connection first
-        open_result transport = m_transport.connect(_endpoint);
+        (void)connect(_endpoint,
+                      result);
 
-        if (!transport.ok())
-        {
-            return transport;
-        }
-
-        internal::ssl_setup setup;
-
-        if (!internal::make_ssl(m_context.native(), setup))
-        {
-            return open_result(io_error::out_of_memory);
-        }
-
-        SSL_set_connect_state(setup.ssl);
-
-        const std::string name =
-            m_server_name.empty() ? _endpoint.host : m_server_name;
-
-        configure_verification(setup.ssl, name);
-
-        std::unique_ptr<connection> conn(
-            new tls_connection(std::move(transport.conn),
-                               setup.ssl,
-                               setup.rbio,
-                               setup.wbio));
-
-        // eager handshake: surface verification failures at connect time
-        tls_connection* tls = static_cast<tls_connection*>(conn.get());
-
-        const io_error e = tls->handshake();
-
-        if (e != io_error::none)
-        {
-            return open_result(e);
-        }
-
-        return open_result(std::move(conn));
+        return result;
     }
+#endif  // D_MOVE_ENABLED
 
 private:
-    // init_client_defaults
-    //   function: loads system trust anchors and sets the default verify mode.
-    void
-    init_client_defaults()
-    {
-        (void)m_context.use_default_verify_paths();
-        m_context.set_verify_peer(m_verify);
-
-        return;
-    }
-
-    // configure_verification
-    //   function: sets SNI (for hostnames) and the certificate-matching target
-    // (hostname or IP) when verification is enabled.
-    void
-    configure_verification(
-        SSL*               _ssl,
-        const std::string& _name
-    )
-    {
-        if (_name.empty())
-        {
-            SSL_set_verify(_ssl,
-                           m_verify ? SSL_VERIFY_PEER : SSL_VERIFY_NONE,
-                           nullptr);
-            return;
-        }
-
-        const bool ip = internal::is_ip_literal(_name);
-
-        // SNI is only meaningful for hostnames, never IP literals
-        if (!ip)
-        {
-            (void)SSL_set_tlsext_host_name(_ssl, _name.c_str());
-        }
-
-        if (m_verify)
-        {
-            SSL_set_verify(_ssl, SSL_VERIFY_PEER, nullptr);
-
-        #if D_ENV_TLS_HAS_HOSTNAME_VALIDATION
-            if (ip)
-            {
-                X509_VERIFY_PARAM* param = SSL_get0_param(_ssl);
-                (void)X509_VERIFY_PARAM_set1_ip_asc(param, _name.c_str());
-            }
-            else
-            {
-                (void)SSL_set1_host(_ssl, _name.c_str());
-            }
-        #endif
-        }
-        else
-        {
-            SSL_set_verify(_ssl, SSL_VERIFY_NONE, nullptr);
-        }
-
-        return;
-    }
-
-    tls_context         m_context;
-    _TransportConnector m_transport;
-    bool                m_verify;
-    std::string         m_server_name;
+    tls_context        m_context;
+    TransportConnector m_transport;
+    std::string        m_server_name;
 };
 
-
-///////////////////////////////////////////////////////////////////////////////
-///                          TLS ACCEPTOR                                  ///
-///////////////////////////////////////////////////////////////////////////////
-
+// 3.2    Accepting
+//------------------------------------------------------------------------------
+// 3.2.1
 // tls_acceptor
-//   class: a net::acceptor that accepts a transport connection and wraps it in
-// TLS. The handshake is deferred to the accepted connection's first read()/
-// write(), so it runs in whatever thread the server dispatches the connection
-// to rather than on the accept loop -- a slow or hostile client cannot stall
-// acceptance. The context must carry a server certificate and key. Templated on
-// the transport acceptor (default TCP).
-template <typename _TransportAcceptor = tcp_acceptor>
+//   class: a net::acceptor that accepts a transport connection and runs TLS
+// over it as the server of its context, which needs a certificate and key.
+// The handshake waits for the accepted connection's first read or write, so
+// it runs on whatever thread serves the connection rather than on the accept
+// loop: a slow or hostile client cannot stall acceptance. Templated on the
+// transport acceptor (TCP by default).
+template<typename TransportAcceptor = tcp_acceptor>
 class tls_acceptor
 {
 public:
     tls_acceptor()
-        : m_context(tls_context::server()),
+        : m_context(tls_context::role::server),
           m_transport()
-    {
-    }
+    {}
 
+#if (D_MOVE_ENABLED == 1)
+    // tls_acceptor(tls_context&&) -- takes a configured context, which
+    // C++11 can move in; below C++11 configure the acceptor's own through
+    // context()
     explicit tls_acceptor(
         tls_context&& _context
     )
-        : m_context(std::move(_context)),
+        : m_context(static_cast<tls_context&&>(_context)),
           m_transport()
-    {
-    }
+    {}
+#endif  // D_MOVE_ENABLED
 
     // context / transport
     //   function: access to the TLS context (to load cert/key) and the
@@ -1214,7 +1343,7 @@ public:
         return m_context;
     }
 
-    D_NODISCARD _TransportAcceptor&
+    D_NODISCARD TransportAcceptor&
     transport()
     {
         return m_transport;
@@ -1222,7 +1351,7 @@ public:
 
     // bind
     //   function: binds the transport acceptor.
-    D_NODISCARD io_error
+    D_NODISCARD io_error::value
     bind(
         const endpoint& _endpoint
     )
@@ -1230,40 +1359,54 @@ public:
         return m_transport.bind(_endpoint);
     }
 
-    // accept
-    //   function: accepts a transport connection and returns it wrapped in TLS
-    // (handshake deferred to first I/O).
+    /**
+     * @brief Accepts a transport connection and runs TLS over it.
+     *
+     * A context that cannot be made live fails before a connection is
+     * taken. The handshake waits for the connection's first read or write,
+     * so it runs on whatever thread serves the connection.
+     *
+     * @param[out] _out  on success owns the TLS connection; otherwise holds
+     *                   the error.
+     * @return io_error::none, or the error _out records.
+     */
+    io_error::value
+    accept(
+        open_result& _out
+    )
+    {
+        const io_error::value prepared = m_context.prepare();
+
+        // a context that cannot be made live takes no connection
+        if (prepared != io_error::none)
+        {
+            _out.fail(prepared);
+
+            return prepared;
+        }
+
+        const io_error::value accepted = m_transport.accept(_out);
+
+        return (accepted == io_error::none)
+                   ? tls_connection::adopt(_out.release(),
+                                           m_context,
+                                           std::string(),
+                                           _out)
+                   : accepted;
+    }
+
+#if (D_MOVE_ENABLED == 1)
+    // accept -- the same, returning the result, which C++11 can move
     D_NODISCARD open_result
     accept()
     {
-        if (!m_context.is_valid())
-        {
-            return open_result(io_error::invalid_argument);
-        }
+        open_result result;
 
-        open_result transport = m_transport.accept();
+        (void)accept(result);
 
-        if (!transport.ok())
-        {
-            return transport;
-        }
-
-        internal::ssl_setup setup;
-
-        if (!internal::make_ssl(m_context.native(), setup))
-        {
-            return open_result(io_error::out_of_memory);
-        }
-
-        SSL_set_accept_state(setup.ssl);
-
-        return open_result(
-            std::unique_ptr<connection>(
-                new tls_connection(std::move(transport.conn),
-                                   setup.ssl,
-                                   setup.rbio,
-                                   setup.wbio)));
+        return result;
     }
+#endif  // D_MOVE_ENABLED
 
     // is_open
     //   function: whether the transport acceptor is open.
@@ -1292,13 +1435,18 @@ public:
     }
 
 private:
-    tls_context        m_context;
-    _TransportAcceptor m_transport;
+    tls_context       m_context;
+    TransportAcceptor m_transport;
 };
 
 
 NS_END  // net
 NS_END  // djinterp
+
+
+#elif (D_INTERNAL_NET_REQUIRE_BACKENDS == 1)
+    #error "tls.hpp: no 64-bit integer type (D_INTERNAL_NET_HAS_INT64)"
+#endif  // D_INTERNAL_NET_HAS_INT64
 
 
 #endif  // DJINTERP_NET_TLS_TLS_HPP

@@ -7,15 +7,15 @@
 *     - the RFC 1939 state machine and command table, as data         [3]
 *     - RFC 2449 extensions: response codes and CAPA parsing           [4]
 *     - both directions of the line grammar, and the listing records   [5]
-*     - a transport interface every derived module plugs into          [6]
+*     - sending lines over a net.h connection                         [6]
 *     - streaming dot-stuffing codecs for multi-line bodies            [7]
 *     - a resumable, pipelining-safe input reader                      [8]
-*     - the APOP digest, with an internal MD5                          [9]
+*     - the APOP digest, over net's own MD5                            [9]
 *   NOTHING HERE OPENS A SOCKET OR ALLOCATES. A derived module supplies a
-* d_pop_transport (socket, TLS session, curl handle, memory) and owns its
-* storage; this file never learns which. That is what lets a client and a
-* server be tested against each other over a memory transport and ship over
-* a socket unchanged.
+* net.h connection -- a socket, a TLS session, a pipe in memory -- and owns
+* its storage; this file never learns which. That is what lets a client and
+* a server be tested against each other over net_memory.h's pipe and ship
+* over a socket unchanged.
 *   Both peers read the same tables. Whether a command is legal in a state,
 * how many arguments it takes, and whether its reply carries a body are
 * stated once, so the two ends of a session cannot drift apart.
@@ -25,11 +25,15 @@
 *   Build configuration comes from cfg_pop.h; environment detection for the
 * derived modules from env_pop.h.
 *
+*   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
+* compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
+* (decision 101 of the register).
+*
 *
 * path:      /inc/djinterp/net/pop/pop.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.25
-*                                                            revised: 2026.09.25
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -55,12 +59,12 @@ TABLE OF CONTENTS
          3.  D_POP_TOKEN_CONTINUE
          4.  D_POP_TOKEN_CRLF
          5.  D_POP_TOKEN_TERMINATOR
-2.  RESULT STATUS
-    -------------
-    1.  Status codes
-         1.  d_pop_status
-         2.  D_POP_STATUS_MECHANICAL_FLOOR
-    2.  Status queries
+2.  ERRORS
+    ------
+    1.  Error codes
+         1.  d_pop_error
+         2.  D_POP_ERROR_MECHANICAL_FLOOR
+    2.  Error queries
 3.  SESSION MODEL
     -------------
     1.  States
@@ -97,15 +101,9 @@ TABLE OF CONTENTS
          3.  d_pop_uid_listing
     3.  Line codec
     4.  Listing codec
-6.  TRANSPORT
-    ---------
-    1.  The transport interface
-         1.  d_pop_transport_read_fn
-         2.  d_pop_transport_write_fn
-         3.  d_pop_transport
-    2.  The memory transport
-         1.  d_pop_memory_transport
-    3.  Transport operations
+6.  CONNECTIONS
+    -----------
+    1.  Sending
 7.  MULTI-LINE BODIES
     -----------------
     1.  Body decoding
@@ -128,11 +126,23 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>                          // size_t
-#include <stdint.h>                          // int32_t, uint32_t, uint64_t
 // djinterp
 #include "../../c/djinterp.h"                // framework root
 #include "../../c/util/sink_common.h"        // d_pack_text, d_pack_sink
 #include "../../config/net/pop/cfg_pop.h"    // D_INTERNAL_POP_*
+#include "../codec/codec_line.h"             // d_net_line_buffer
+#include "../net_common.h"                   // d_net_connection, d_net_error
+#include "../../config/net/cfg_net.h"        // D_INTERNAL_NET_REQUIRE_BACKENDS
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // int32_t, uint8_t, uint32_t,
+                                              // uint64_t
+
+// 64-bit floor: this header needs a 64-bit integer type, and compiles to
+// nothing where the build has none -- ISO strict C++98 on a 32-bit target
+// (the owner's ruling of 2026.10.03 on round 3's question 1, (a)). The
+// answer is net_common.h's, taken once per translation unit, so that net's
+// gated headers agree.
+#if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 //   Every declaration below carries C linkage, so the one compiled pop.c
 // serves both the C modules and any C++ face built over this kernel. Say so
@@ -241,56 +251,65 @@ D_EXTERN_C_BEGIN
 
 
 //==============================================================================
-// 2.  RESULT STATUS
+// 2.  ERRORS
 //==============================================================================
 // Two kinds of failure, kept apart as in compress_common.h. A FORMAL failure
 // says the exchange is not valid POP3 -- a malformed line, a command outside
 // its state. A MECHANICAL failure says the exchange may be fine and the
-// machinery ran short -- a small buffer, a transport that would block or
+// machinery ran short -- a small buffer, a connection that would block or
 // closed. They occupy disjoint ranges, so a caller that only wants to know
 // "may I retry?" tests the range rather than the enumerator.
 //   A server's -ERR is NOT a failure here. It is a well-formed response and
-// parses with D_POP_STATUS_OK; its meaning is the caller's business.
+// parses with D_POP_OK; its meaning is the caller's business.
 
 
-// 2.1    Status codes
+// 2.1    Error codes
 //------------------------------------------------------------------------------
 // 2.1.1
-// d_pop_status
+// d_pop_error
 //   enum: the result of every fallible operation in this module. Values are
 // pinned and must not be reordered.
-enum d_pop_status
+enum d_pop_error
 {
-    D_POP_STATUS_OK                = 0,
+    D_POP_OK                     = 0,
 
     // formal: the exchange is not valid POP3
-    D_POP_STATUS_INVALID_ARGUMENT  = 0x001,
-    D_POP_STATUS_MALFORMED         = 0x002,
-    D_POP_STATUS_UNKNOWN_COMMAND   = 0x003,
-    D_POP_STATUS_WRONG_STATE       = 0x004,
-    D_POP_STATUS_UNSUPPORTED       = 0x005,
-    D_POP_STATUS_LINE_TOO_LONG     = 0x006,
+    D_POP_ERROR_INVALID_ARGUMENT = 0x001,
+    D_POP_ERROR_MALFORMED        = 0x002,
+    D_POP_ERROR_UNKNOWN_COMMAND  = 0x003,
+    D_POP_ERROR_STATE            = 0x004,
+    D_POP_ERROR_UNSUPPORTED      = 0x005,
+    D_POP_ERROR_LINE_TOO_LONG    = 0x006,
 
     // mechanical: the machinery ran short
-    D_POP_STATUS_BUFFER_TOO_SMALL  = 0x100,
-    D_POP_STATUS_WOULD_BLOCK       = 0x101,
-    D_POP_STATUS_TRANSPORT_ERROR   = 0x102,
-    D_POP_STATUS_CONNECTION_CLOSED = 0x103,
-    D_POP_STATUS_SINK_ERROR        = 0x104
+    D_POP_ERROR_BUFFER_TOO_SMALL = 0x100,
+    D_POP_ERROR_WOULD_BLOCK      = 0x101,
+    D_POP_ERROR_TRANSPORT        = 0x102,
+    D_POP_ERROR_CLOSED           = 0x103,
+    D_POP_ERROR_SINK             = 0x104
 };
 
 // 2.1.2
-// D_POP_STATUS_MECHANICAL_FLOOR
-//   constant: the first mechanical status. Below it, the exchange itself was
+// D_POP_ERROR_MECHANICAL_FLOOR
+//   constant: the first mechanical error. Below it, the exchange itself was
 // at fault; at or above it, the machinery was.
-#define D_POP_STATUS_MECHANICAL_FLOOR 0x100
+#define D_POP_ERROR_MECHANICAL_FLOOR 0x100
 
-// 2.2    Status queries
+// 2.2    Error queries
 //------------------------------------------------------------------------------
-// status queries -- total over every value, never fail, never allocate
-const char* d_pop_status_name(enum d_pop_status _status);
-bool        d_pop_status_is_formal(enum d_pop_status _status);
-bool        d_pop_status_is_mechanical(enum d_pop_status _status);
+// error queries -- total over every value, never fail, never allocate.
+// d_pop_error_to_net gives the d_net_error an error maps to, by the rules
+// net.h gives with it; an unknown value is D_NET_ERROR_UNKNOWN.
+// d_pop_error_from_net gives the error a connection's d_net_error is here,
+// by net.h's rules the other way: D_NET_OK is D_POP_OK; WOULD_BLOCK and
+// INVALID_ARGUMENT are their namesakes; a stream that ended or was lost --
+// CLOSED, CONNECTION_RESET, CONNECTION_ABORTED -- is CLOSED; anything else,
+// an unknown value included, is TRANSPORT.
+const char*      d_pop_error_string(enum d_pop_error _error);
+bool             d_pop_error_is_formal(enum d_pop_error _error);
+bool             d_pop_error_is_mechanical(enum d_pop_error _error);
+enum d_net_error d_pop_error_to_net(enum d_pop_error _error);
+enum d_pop_error d_pop_error_from_net(enum d_net_error _error);
 
 
 //==============================================================================
@@ -532,12 +551,12 @@ const char* d_pop_capability_keyword(enum d_pop_capability _cap);
  * @param[in,out] _caps  the capability set; initialize it first.
  * @param[in]     _line  one body line, without CRLF.
  * @pre `_caps` was initialized by d_pop_capabilities_init.
- * @return D_POP_STATUS_OK, D_POP_STATUS_INVALID_ARGUMENT for a NULL `_caps`,
- *         D_POP_STATUS_MALFORMED for a recognized keyword with invalid
- *         parameters, or D_POP_STATUS_BUFFER_TOO_SMALL when a text value does
+ * @return D_POP_OK, D_POP_ERROR_INVALID_ARGUMENT for a NULL `_caps`,
+ *         D_POP_ERROR_MALFORMED for a recognized keyword with invalid
+ *         parameters, or D_POP_ERROR_BUFFER_TOO_SMALL when a text value does
  *         not fit its member (the flag is still set).
  */
-enum d_pop_status
+enum d_pop_error
             d_pop_capabilities_parse_line(struct d_pop_capabilities* _caps,
                                           struct d_pack_text         _line);
 
@@ -569,7 +588,7 @@ uint32_t    d_pop_build_features(void);
 // BORROW from that line: they are valid exactly as long as the line is.
 // Formatters follow the two-call buffer protocol of compress_common.h: pass
 // `_out` NULL and `_capacity` 0 to measure; a buffer that is too small yields
-// D_POP_STATUS_BUFFER_TOO_SMALL and still reports the size required. Output is
+// D_POP_ERROR_BUFFER_TOO_SMALL and still reports the size required. Output is
 // not NUL-terminated; `*_out_size` is the exact wire length.
 
 
@@ -638,14 +657,14 @@ struct d_pop_uid_listing
  *
  * @param[in]  _line  the line, without CRLF.
  * @param[out] _out   the parsed command; its texts borrow from `_line`.
- * @return D_POP_STATUS_OK; D_POP_STATUS_UNKNOWN_COMMAND for a well-formed
+ * @return D_POP_OK; D_POP_ERROR_UNKNOWN_COMMAND for a well-formed
  *         keyword this module does not know, with `keyword` and up to
- *         D_POP_ARGS_MAX arguments still filled; D_POP_STATUS_MALFORMED for a
+ *         D_POP_ARGS_MAX arguments still filled; D_POP_ERROR_MALFORMED for a
  *         bad keyword or the wrong number of arguments; or
- *         D_POP_STATUS_INVALID_ARGUMENT for a NULL `_out`.
+ *         D_POP_ERROR_INVALID_ARGUMENT for a NULL `_out`.
  */
-enum d_pop_status d_pop_command_parse(struct d_pack_text         _line,
-                                      struct d_pop_command_line* _out);
+enum d_pop_error d_pop_command_parse(struct d_pack_text         _line,
+                                     struct d_pop_command_line* _out);
 
 /**
  * @brief Formats one command line, CRLF included, as a client sends it.
@@ -654,17 +673,17 @@ enum d_pop_status d_pop_command_parse(struct d_pack_text         _line,
  * @param[out] _out       the destination, or NULL to measure.
  * @param[in]  _capacity  the size of `_out` in bytes.
  * @param[out] _out_size  receives the wire length.
- * @return D_POP_STATUS_OK; D_POP_STATUS_MALFORMED for an invalid keyword, an
+ * @return D_POP_OK; D_POP_ERROR_MALFORMED for an invalid keyword, an
  *         argument count outside the command's range, or an argument that is
  *         empty or holds CR, LF, NUL, or (except a rest-of-line argument)
- *         SP; D_POP_STATUS_LINE_TOO_LONG past D_POP_COMMAND_MAX;
- *         D_POP_STATUS_BUFFER_TOO_SMALL; or D_POP_STATUS_INVALID_ARGUMENT.
+ *         SP; D_POP_ERROR_LINE_TOO_LONG past D_POP_COMMAND_MAX;
+ *         D_POP_ERROR_BUFFER_TOO_SMALL; or D_POP_ERROR_INVALID_ARGUMENT.
  */
-enum d_pop_status d_pop_command_format(
-                      const struct d_pop_command_line* _command,
-                      char*                            _out,
-                      size_t                           _capacity,
-                      size_t*                          _out_size);
+enum d_pop_error d_pop_command_format(
+                     const struct d_pop_command_line* _command,
+                     char*                            _out,
+                     size_t                           _capacity,
+                     size_t*                          _out_size);
 
 /**
  * @brief Parses one status line, as a client receives it.
@@ -674,12 +693,12 @@ enum d_pop_status d_pop_command_format(
  *
  * @param[in]  _line  the line, without CRLF.
  * @param[out] _out   the parsed response; its texts borrow from `_line`.
- * @return D_POP_STATUS_OK (for -ERR as much as +OK),
- *         D_POP_STATUS_MALFORMED when no indicator leads the line, or
- *         D_POP_STATUS_INVALID_ARGUMENT for a NULL `_out`.
+ * @return D_POP_OK (for -ERR as much as +OK),
+ *         D_POP_ERROR_MALFORMED when no indicator leads the line, or
+ *         D_POP_ERROR_INVALID_ARGUMENT for a NULL `_out`.
  */
-enum d_pop_status d_pop_response_parse(struct d_pack_text     _line,
-                                       struct d_pop_response* _out);
+enum d_pop_error d_pop_response_parse(struct d_pack_text     _line,
+                                      struct d_pop_response* _out);
 
 /**
  * @brief Formats one status line, CRLF included, as a server sends it.
@@ -691,16 +710,15 @@ enum d_pop_status d_pop_response_parse(struct d_pack_text     _line,
  * @param[out] _out       the destination, or NULL to measure.
  * @param[in]  _capacity  the size of `_out` in bytes.
  * @param[out] _out_size  receives the wire length.
- * @return D_POP_STATUS_OK; D_POP_STATUS_MALFORMED for indicator NONE, a code
+ * @return D_POP_OK; D_POP_ERROR_MALFORMED for indicator NONE, a code
  *         on a non-ERR line, or text holding CR, LF, or NUL;
- *         D_POP_STATUS_LINE_TOO_LONG past D_POP_RESPONSE_MAX;
- *         D_POP_STATUS_BUFFER_TOO_SMALL; or D_POP_STATUS_INVALID_ARGUMENT.
+ *         D_POP_ERROR_LINE_TOO_LONG past D_POP_RESPONSE_MAX;
+ *         D_POP_ERROR_BUFFER_TOO_SMALL; or D_POP_ERROR_INVALID_ARGUMENT.
  */
-enum d_pop_status d_pop_response_format(
-                      const struct d_pop_response* _response,
-                      char*                        _out,
-                      size_t                       _capacity,
-                      size_t*                      _out_size);
+enum d_pop_error d_pop_response_format(const struct d_pop_response* _response,
+                                       char*                        _out,
+                                       size_t                       _capacity,
+                                       size_t*                      _out_size);
 
 // response-code names -- total, never fail. _name returns NULL for NONE and
 // UNKNOWN; _from_text matches case-insensitively and yields UNKNOWN for an
@@ -716,152 +734,75 @@ enum d_pop_resp_code d_pop_resp_code_from_text(struct d_pack_text _text);
  * @param[in]  _text     the digits; no sign, no whitespace.
  * @param[in]  _maximum  the largest acceptable value.
  * @param[out] _out      receives the value.
- * @return D_POP_STATUS_OK, D_POP_STATUS_MALFORMED for an empty field, a
+ * @return D_POP_OK, D_POP_ERROR_MALFORMED for an empty field, a
  *         non-digit, or a value above `_maximum`, or
- *         D_POP_STATUS_INVALID_ARGUMENT for a NULL `_out`.
+ *         D_POP_ERROR_INVALID_ARGUMENT for a NULL `_out`.
  */
-enum d_pop_status d_pop_parse_decimal(struct d_pack_text _text,
-                                      uint64_t           _maximum,
-                                      uint64_t*          _out);
+enum d_pop_error d_pop_parse_decimal(struct d_pack_text _text,
+                                     uint64_t           _maximum,
+                                     uint64_t*          _out);
 
 // listing parsers -- each takes the text after "+OK " (or one body line) and
-// returns D_POP_STATUS_OK, D_POP_STATUS_MALFORMED, or
-// D_POP_STATUS_INVALID_ARGUMENT for a NULL `_out`. A message number must be at
+// returns D_POP_OK, D_POP_ERROR_MALFORMED, or
+// D_POP_ERROR_INVALID_ARGUMENT for a NULL `_out`. A message number must be at
 // least 1. Trailing text after the required fields is permitted and ignored,
 // as RFC 1939 allows servers to append information.
-enum d_pop_status d_pop_maildrop_parse(struct d_pack_text     _text,
-                                       struct d_pop_maildrop* _out);
-enum d_pop_status d_pop_scan_listing_parse(struct d_pack_text         _text,
-                                           struct d_pop_scan_listing* _out);
-enum d_pop_status d_pop_uid_listing_parse(struct d_pack_text        _text,
-                                          struct d_pop_uid_listing* _out);
+enum d_pop_error d_pop_maildrop_parse(struct d_pack_text     _text,
+                                      struct d_pop_maildrop* _out);
+enum d_pop_error d_pop_scan_listing_parse(struct d_pack_text         _text,
+                                          struct d_pop_scan_listing* _out);
+enum d_pop_error d_pop_uid_listing_parse(struct d_pack_text        _text,
+                                         struct d_pop_uid_listing* _out);
 
 // listing formatters -- write the fields without CRLF, for use as +OK text or
 // as a body line, under the two-call protocol. They fail with
-// D_POP_STATUS_MALFORMED for a message number of 0 or an invalid uid,
-// D_POP_STATUS_BUFFER_TOO_SMALL, or D_POP_STATUS_INVALID_ARGUMENT.
-enum d_pop_status d_pop_maildrop_format(
-                      const struct d_pop_maildrop* _maildrop,
-                      char*                        _out,
-                      size_t                       _capacity,
-                      size_t*                      _out_size);
-enum d_pop_status d_pop_scan_listing_format(
-                      const struct d_pop_scan_listing* _listing,
-                      char*                            _out,
-                      size_t                           _capacity,
-                      size_t*                          _out_size);
-enum d_pop_status d_pop_uid_listing_format(
-                      const struct d_pop_uid_listing* _listing,
-                      char*                           _out,
-                      size_t                          _capacity,
-                      size_t*                         _out_size);
+// D_POP_ERROR_MALFORMED for a message number of 0 or an invalid uid,
+// D_POP_ERROR_BUFFER_TOO_SMALL, or D_POP_ERROR_INVALID_ARGUMENT.
+enum d_pop_error d_pop_maildrop_format(const struct d_pop_maildrop* _maildrop,
+                                       char*                        _out,
+                                       size_t                       _capacity,
+                                       size_t*                      _out_size);
+enum d_pop_error d_pop_scan_listing_format(
+                     const struct d_pop_scan_listing* _listing,
+                     char*                            _out,
+                     size_t                           _capacity,
+                     size_t*                          _out_size);
+enum d_pop_error d_pop_uid_listing_format(
+                     const struct d_pop_uid_listing* _listing,
+                     char*                           _out,
+                     size_t                          _capacity,
+                     size_t*                         _out_size);
 
 // uid validation -- 1 to D_POP_UID_MAX characters, each 0x21 to 0x7E
 bool              d_pop_uid_is_valid(struct d_pack_text _uid);
 
 
 //==============================================================================
-// 6.  TRANSPORT
+// 6.  CONNECTIONS
 //==============================================================================
-// The byte stream a session runs over, as two callbacks and a context. This is
-// the seam every derived module plugs into: a socket module wraps a
-// descriptor, a TLS module wraps a session, a test wraps memory. Nothing above
-// this section knows which.
-//   A transport may be blocking or non-blocking. A non-blocking one returns
-// D_POP_STATUS_WOULD_BLOCK, and every consumer in this module keeps enough
-// state to be called again later and resume where it stopped.
+// The byte stream a session runs over is a net.h connection: a socket
+// module's, a TLS session as one, net_memory.h's pipe for a test. Nothing
+// above this section knows which. A connection may be blocking or
+// non-blocking: a non-blocking one answers WOULD_BLOCK, and every consumer
+// in this module keeps enough state to be called again later and resume
+// where it stopped. A connection's errors become this module's through
+// d_pop_error_from_net, and the end of its stream, a read of no bytes and
+// no error, is D_POP_ERROR_CLOSED.
 
 
-// 6.1    The transport interface
+// 6.1    Sending
 //------------------------------------------------------------------------------
-// 6.1.1
-// d_pop_transport_read_fn
-//   function pointer: reads up to `_capacity` bytes into `_buffer`, storing
-// the count in `*_out_read`. Returns D_POP_STATUS_OK with a count of at least
-// 1, D_POP_STATUS_CONNECTION_CLOSED at orderly end of stream,
-// D_POP_STATUS_WOULD_BLOCK, or D_POP_STATUS_TRANSPORT_ERROR.
-typedef enum d_pop_status (*d_pop_transport_read_fn)(void*   _context,
-                                                     void*   _buffer,
-                                                     size_t  _capacity,
-                                                     size_t* _out_read);
-
-// 6.1.2
-// d_pop_transport_write_fn
-//   function pointer: writes up to `_size` bytes from `_data`, storing the
-// count in `*_out_written`. A short write is permitted. Returns the same
-// statuses as the read callback.
-typedef enum d_pop_status (*d_pop_transport_write_fn)(void*       _context,
-                                                      const void* _data,
-                                                      size_t      _size,
-                                                      size_t*     _out_written);
-
-// 6.1.3
-// d_pop_transport
-//   struct: a transport and its context. Passed by value; holds no ownership
-// of `context`.
-struct d_pop_transport
-{
-    d_pop_transport_read_fn  read;
-    d_pop_transport_write_fn write;
-    void*                    context;
-};
-
-// 6.2    The memory transport
-//------------------------------------------------------------------------------
-// 6.2.1
-// d_pop_memory_transport
-//   struct: the context of a transport that reads from a fixed buffer and
-// writes to a sink. `chunk`, when non-zero, caps every read, which is how a
-// test proves a consumer survives arbitrary fragmentation. Reads past the end
-// report CONNECTION_CLOSED, or WOULD_BLOCK when `block_at_end` is non-zero.
-struct d_pop_memory_transport
-{
-    const unsigned char* input;
-    size_t               input_size;
-    size_t               input_offset;
-    size_t               chunk;
-    int32_t              block_at_end;
-    struct d_pack_sink   output;
-};
-
-// 6.3    Transport operations
-//------------------------------------------------------------------------------
-// memory transport -- borrows `_input` and `_output`; neither allocates
-void                   d_pop_memory_transport_init(
-                           struct d_pop_memory_transport* _memory,
-                           const void*                    _input,
-                           size_t                         _input_size,
-                           struct d_pack_sink             _output);
-struct d_pop_transport d_pop_transport_from_memory(
-                           struct d_pop_memory_transport* _memory);
-
-/**
- * @brief Writes all of `_data`, looping over short writes.
- *
- * @param[in]  _transport    the transport.
- * @param[in]  _data         the bytes to send.
- * @param[in]  _size         how many.
- * @param[out] _out_written  receives the count written, which on a
- *                           non-OK status says where to resume; may be NULL.
- * @return D_POP_STATUS_OK once every byte is written, or the first non-OK
- *         status from the transport, or D_POP_STATUS_INVALID_ARGUMENT.
- */
-enum d_pop_status      d_pop_transport_write_all(
-                           struct d_pop_transport _transport,
-                           const void*            _data,
-                           size_t                 _size,
-                           size_t*                _out_written);
-
-// send helpers -- format into a stack buffer, then write_all. They return any
-// status of the corresponding formatter or of d_pop_transport_write_all. On
-// WOULD_BLOCK the line may be partly sent; a non-blocking caller formats and
-// writes itself instead.
-enum d_pop_status      d_pop_send_command(
-                           struct d_pop_transport           _transport,
-                           const struct d_pop_command_line* _command);
-enum d_pop_status      d_pop_send_response(
-                           struct d_pop_transport       _transport,
-                           const struct d_pop_response* _response);
+// send helpers -- format into a stack buffer, then write it all with
+// d_net_write_all. They return any error of the corresponding formatter, or
+// the connection's, through d_pop_error_from_net: INVALID_ARGUMENT for a
+// NULL connection, CLOSED for one that takes nothing. On WOULD_BLOCK the line
+// may be partly sent; a non-blocking caller formats and writes itself
+// instead, as does one that wants the connection's own error.
+enum d_pop_error d_pop_send_command(
+                     struct d_net_connection*         _connection,
+                     const struct d_pop_command_line* _command);
+enum d_pop_error d_pop_send_response(struct d_net_connection*     _connection,
+                                     const struct d_pop_response* _response);
 
 
 //==============================================================================
@@ -924,15 +865,15 @@ void d_pop_body_encoder_init(struct d_pop_body_encoder* _encoder);
  * @param[in]     _size      its size.
  * @param[in]     _sink      where content goes; a NULL `write` discards.
  * @param[out]    _consumed  receives how many bytes of `_data` were used.
- * @return D_POP_STATUS_OK (test d_pop_body_decoder_is_done for completion),
- *         D_POP_STATUS_SINK_ERROR if the sink refused bytes, or
- *         D_POP_STATUS_INVALID_ARGUMENT.
+ * @return D_POP_OK (test d_pop_body_decoder_is_done for completion),
+ *         D_POP_ERROR_SINK if the sink refused bytes, or
+ *         D_POP_ERROR_INVALID_ARGUMENT.
  */
-enum d_pop_status d_pop_body_decode(struct d_pop_body_decoder* _decoder,
-                                    const void*                _data,
-                                    size_t                     _size,
-                                    struct d_pack_sink         _sink,
-                                    size_t*                    _consumed);
+enum d_pop_error d_pop_body_decode(struct d_pop_body_decoder* _decoder,
+                                   const void*                _data,
+                                   size_t                     _size,
+                                   struct d_pack_sink         _sink,
+                                   size_t*                    _consumed);
 
 /**
  * @brief Stuffs one chunk of a body into `_sink`.
@@ -942,13 +883,13 @@ enum d_pop_status d_pop_body_decode(struct d_pop_body_decoder* _decoder,
  * @param[in]     _size     its size.
  * @param[in]     _sink     the destination.
  * @pre d_pop_body_encode_finish has not been called on `_encoder`.
- * @return D_POP_STATUS_OK, D_POP_STATUS_SINK_ERROR, or
- *         D_POP_STATUS_INVALID_ARGUMENT (including after finish).
+ * @return D_POP_OK, D_POP_ERROR_SINK, or
+ *         D_POP_ERROR_INVALID_ARGUMENT (including after finish).
  */
-enum d_pop_status d_pop_body_encode(struct d_pop_body_encoder* _encoder,
-                                    const void*                _data,
-                                    size_t                     _size,
-                                    struct d_pack_sink         _sink);
+enum d_pop_error d_pop_body_encode(struct d_pop_body_encoder* _encoder,
+                                   const void*                _data,
+                                   size_t                     _size,
+                                   struct d_pack_sink         _sink);
 
 /**
  * @brief Ends a body: completes a trailing partial line, then writes the
@@ -957,11 +898,11 @@ enum d_pop_status d_pop_body_encode(struct d_pop_body_encoder* _encoder,
  * @param[in,out] _encoder  the encoder state.
  * @param[in]     _sink     the destination.
  * @post `_encoder` accepts no further content.
- * @return D_POP_STATUS_OK, D_POP_STATUS_SINK_ERROR, or
- *         D_POP_STATUS_INVALID_ARGUMENT.
+ * @return D_POP_OK, D_POP_ERROR_SINK, or
+ *         D_POP_ERROR_INVALID_ARGUMENT.
  */
-enum d_pop_status d_pop_body_encode_finish(struct d_pop_body_encoder* _encoder,
-                                           struct d_pack_sink         _sink);
+enum d_pop_error d_pop_body_encode_finish(struct d_pop_body_encoder* _encoder,
+                                          struct d_pack_sink         _sink);
 
 
 //==============================================================================
@@ -978,16 +919,20 @@ enum d_pop_status d_pop_body_encode_finish(struct d_pop_body_encoder* _encoder,
 //------------------------------------------------------------------------------
 // 8.1.1
 // d_pop_reader
-//   struct: an input buffer over a transport. `strict` defaults from
-// cfg_pop.h: when 1, a status line ended by a bare LF is D_POP_STATUS_MALFORMED.
+//   struct: an input buffer over a connection, framed into lines by net's
+// line buffer. `strict` defaults from cfg_pop.h: when 1, a status line ended
+// by a bare LF is D_POP_ERROR_MALFORMED. `discarding` is 1 while the rest
+// of a line too long for `buffer` is dropped. `net_error` is what the
+// connection's last read reported, D_NET_OK until one fails: the cause
+// behind a D_POP_ERROR_TRANSPORT or CLOSED, which this module's errors
+// cannot tell.
 struct d_pop_reader
 {
-    size_t  start;
-    size_t  end;
-    size_t  scan;
-    int32_t strict;
-    int32_t discarding;
-    char    buffer[D_POP_LINE_CAPACITY];
+    struct d_net_line_buffer lines;
+    int32_t                  strict;
+    int32_t                  discarding;
+    enum d_net_error         net_error;
+    char                     buffer[D_POP_LINE_CAPACITY];
 };
 
 // 8.2    Reader operations
@@ -997,41 +942,48 @@ void              d_pop_reader_init(struct d_pop_reader* _reader);
 size_t            d_pop_reader_buffered(const struct d_pop_reader* _reader);
 
 /**
- * @brief Reads one line, pulling from the transport as needed.
+ * @brief Reads one line, pulling from the connection as needed.
  *
- * @param[in,out] _reader     the reader.
- * @param[in]     _transport  the transport to pull from.
- * @param[out]    _out_line   receives the line without its line ending.
+ * @note A read that delivers bytes succeeds, whatever error came with
+ *       them: the bytes are kept, and a lasting failure is the next read's
+ *       to report.
+ *
+ * @param[in,out] _reader      the reader.
+ * @param[in,out] _connection  the connection to pull from.
+ * @param[out]    _out_line    receives the line without its line ending.
  * @post `*_out_line` borrows the reader's buffer and is invalidated by the
  *       next call on `_reader`.
- * @return D_POP_STATUS_OK; D_POP_STATUS_LINE_TOO_LONG when a line fills the
+ * @return D_POP_OK; D_POP_ERROR_LINE_TOO_LONG when a line fills the
  *         buffer (the rest of it is discarded, and the next call resumes at
- *         the following line); D_POP_STATUS_MALFORMED for a bare LF in strict
- *         mode (the line is consumed); any non-OK transport status, after
- *         which the call may be repeated; or D_POP_STATUS_INVALID_ARGUMENT.
+ *         the following line); D_POP_ERROR_MALFORMED for a bare LF in strict
+ *         mode (the line is consumed); D_POP_ERROR_CLOSED at the end of the
+ *         stream; the connection's error through d_pop_error_from_net, kept
+ *         in `net_error`, after which the call may be repeated; or
+ *         D_POP_ERROR_INVALID_ARGUMENT for a NULL argument.
  */
-enum d_pop_status d_pop_reader_read_line(struct d_pop_reader*   _reader,
-                                         struct d_pop_transport _transport,
-                                         struct d_pack_text*    _out_line);
+enum d_pop_error d_pop_reader_read_line(struct d_pop_reader*     _reader,
+                                        struct d_net_connection* _connection,
+                                        struct d_pack_text*      _out_line);
 
 /**
  * @brief Reads one multi-line body into `_sink`, through its terminator.
  *
- * @param[in,out] _reader     the reader; buffered bytes are decoded first.
- * @param[in]     _transport  the transport to pull from.
- * @param[in,out] _decoder    the body state; initialize it per body.
- * @param[in]     _sink       where content goes; a NULL `write` discards.
- * @post On D_POP_STATUS_OK the terminator is consumed and bytes after it
+ * @param[in,out] _reader      the reader; buffered bytes are decoded first.
+ * @param[in,out] _connection  the connection to pull from.
+ * @param[in,out] _decoder     the body state; initialize it per body.
+ * @param[in]     _sink        where content goes; a NULL `write` discards.
+ * @post On D_POP_OK the terminator is consumed and bytes after it
  *       remain buffered in `_reader`.
- * @return D_POP_STATUS_OK once the body is complete; any non-OK transport
- *         status, after which the call may be repeated with the same
- *         decoder; D_POP_STATUS_SINK_ERROR; or
- *         D_POP_STATUS_INVALID_ARGUMENT.
+ * @return D_POP_OK once the body is complete; the errors of
+ *         d_pop_reader_read_line's reads, after which the call may be
+ *         repeated with the same decoder; D_POP_ERROR_SINK; or
+ *         D_POP_ERROR_INVALID_ARGUMENT for a NULL reader, connection, or
+ *         decoder.
  */
-enum d_pop_status d_pop_reader_read_body(struct d_pop_reader*       _reader,
-                                         struct d_pop_transport     _transport,
-                                         struct d_pop_body_decoder* _decoder,
-                                         struct d_pack_sink         _sink);
+enum d_pop_error d_pop_reader_read_body(struct d_pop_reader*       _reader,
+                                        struct d_net_connection*   _connection,
+                                        struct d_pop_body_decoder* _decoder,
+                                        struct d_pack_sink         _sink);
 
 
 //==============================================================================
@@ -1040,9 +992,10 @@ enum d_pop_status d_pop_reader_read_body(struct d_pop_reader*       _reader,
 // RFC 1939 section 7: the server greets with a timestamp, and the client
 // proves knowledge of a shared secret by sending MD5(timestamp || secret) in
 // hex. APOP is shared by both sides -- a client computes the digest, a server
-// computes it again to compare -- so it lives here. MD5 is implemented
-// internally; no crypto library is needed. It is also broken: APOP resists
-// passive replay and nothing more, and should run inside TLS where possible.
+// computes it again to compare -- so it lives here. MD5 comes from net's
+// codec (codec_digest.h); no crypto library is needed. It is also broken:
+// APOP resists passive replay and nothing more, and should run inside TLS
+// where possible.
 
 
 // 9.1    Digest operations
@@ -1053,12 +1006,12 @@ enum d_pop_status d_pop_reader_read_body(struct d_pop_reader*       _reader,
  * @param[in]  _greeting       the text of the +OK greeting.
  * @param[out] _out_timestamp  receives the timestamp, angle brackets
  *                             included; it borrows from `_greeting`.
- * @return D_POP_STATUS_OK, D_POP_STATUS_UNSUPPORTED when the greeting holds
+ * @return D_POP_OK, D_POP_ERROR_UNSUPPORTED when the greeting holds
  *         no `<...@...>` timestamp (the server does not offer APOP), or
- *         D_POP_STATUS_INVALID_ARGUMENT.
+ *         D_POP_ERROR_INVALID_ARGUMENT.
  */
-enum d_pop_status d_pop_apop_timestamp(struct d_pack_text  _greeting,
-                                       struct d_pack_text* _out_timestamp);
+enum d_pop_error d_pop_apop_timestamp(struct d_pack_text  _greeting,
+                                      struct d_pack_text* _out_timestamp);
 
 /**
  * @brief Computes the APOP digest as lowercase hex.
@@ -1067,12 +1020,12 @@ enum d_pop_status d_pop_apop_timestamp(struct d_pack_text  _greeting,
  * @param[in]  _secret     the shared secret.
  * @param[out] _out        receives D_POP_APOP_DIGEST_LENGTH hex characters
  *                         and a NUL.
- * @return D_POP_STATUS_OK, D_POP_STATUS_UNSUPPORTED when D_CFG_POP_APOP is
- *         0, or D_POP_STATUS_INVALID_ARGUMENT.
+ * @return D_POP_OK, D_POP_ERROR_UNSUPPORTED when D_CFG_POP_APOP is
+ *         0, or D_POP_ERROR_INVALID_ARGUMENT.
  */
-enum d_pop_status d_pop_apop_digest(struct d_pack_text _timestamp,
-                                    struct d_pack_text _secret,
-                                    char _out[D_POP_APOP_DIGEST_LENGTH + 1]);
+enum d_pop_error d_pop_apop_digest(struct d_pack_text _timestamp,
+                                   struct d_pack_text _secret,
+                                   char _out[D_POP_APOP_DIGEST_LENGTH + 1]);
 
 /**
  * @brief Checks a client's APOP digest, as a server does.
@@ -1093,5 +1046,9 @@ bool              d_pop_apop_verify(struct d_pack_text _timestamp,
 
 D_EXTERN_C_END
 
+
+#elif (D_INTERNAL_NET_REQUIRE_BACKENDS == 1)
+    #error "pop.h: no 64-bit integer type (D_INTERNAL_NET_HAS_INT64)"
+#endif  // D_INTERNAL_NET_HAS_INT64
 
 #endif  // DJINTERP_NET_POP_POP_H

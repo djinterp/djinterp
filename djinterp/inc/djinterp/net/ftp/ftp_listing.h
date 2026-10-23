@@ -6,11 +6,15 @@
 * size, modification time, permissions, owner, group, and link target, as far
 * as the dialect provides them -- as spans into the line.
 *
+*   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
+* compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
+* (decision 101 of the register).
+*
 *
 * path:      /inc/djinterp/net/ftp/ftp_listing.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -35,11 +39,21 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>  // size_t
-#include <stdint.h>  // uint32_t, uint64_t
 // djinterp
-#include "../../c/djinterp.h"  // framework root
-#include "./ftp_common.h"      // d_ftp_span
-#include "./ftp_fact.h"        // d_ftp_time
+#include "../../c/djinterp.h"          // framework root
+#include "../../c/util/sink_common.h"  // d_pack_text
+#include "./ftp_fact.h"                // d_ftp_time
+#include "../net_common.h"              // D_INTERNAL_NET_HAS_INT64
+#include "../../config/net/cfg_net.h"  // D_INTERNAL_NET_REQUIRE_BACKENDS
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // uint32_t, uint64_t
+
+// 64-bit floor: this header needs a 64-bit integer type, and compiles to
+// nothing where the build has none -- ISO strict C++98 on a 32-bit target
+// (the owner's ruling of 2026.10.03 on round 3's question 1, (a)). The
+// answer is net_common.h's, taken once per translation unit, so that net's
+// gated headers agree.
+#if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++
@@ -92,12 +106,12 @@ enum d_ftp_entry_known
 //   struct: one parsed listing line. Every span points into that line.
 struct d_ftp_entry
 {
-    struct d_ftp_span     name;         // the entry's name; never empty
-    struct d_ftp_span     link_target;  // a symbolic link's target
-    struct d_ftp_span     owner;        // owning user
-    struct d_ftp_span     group;        // owning group
-    struct d_ftp_span     unique;       // MLSx "unique" fact
-    struct d_ftp_span     permissions;  // MLSx "perm" fact, e.g. "adfrw"
+    struct d_pack_text    name;         // the entry's name; never empty
+    struct d_pack_text    link_target;  // a symbolic link's target
+    struct d_pack_text    owner;        // owning user
+    struct d_pack_text    group;        // owning group
+    struct d_pack_text    unique;       // MLSx "unique" fact
+    struct d_pack_text    permissions;  // MLSx "perm" fact, e.g. "adfrw"
     enum d_ftp_entry_type type;         // what the entry names
     uint64_t              size;         // size in bytes
     struct d_ftp_time     modified;     // last modification time
@@ -177,5 +191,9 @@ enum d_ftp_line_result    d_ftp_listing_parse(const char*               _line,
 
 D_EXTERN_C_END
 
+
+#elif (D_INTERNAL_NET_REQUIRE_BACKENDS == 1)
+    #error "ftp_listing.h: no 64-bit integer type (D_INTERNAL_NET_HAS_INT64)"
+#endif  // D_INTERNAL_NET_HAS_INT64
 
 #endif  // DJINTERP_NET_FTP_FTP_LISTING_H

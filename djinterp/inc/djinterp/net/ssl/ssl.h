@@ -4,34 +4,40 @@
 * The shared SSL/TLS kernel: tier 0 of the SSL modules.
 *   Everything TLS clients, servers, and test doubles share that needs no
 * TLS library, plus the contract through which a library is plugged in:
-*     - status codes, and the protocol vocabulary as data           [2, 3]
+*     - error codes, and the protocol vocabulary as data            [2, 3]
 *     - peer-verification policy and results                           [4]
 *     - RFC 9525 identity matching, IP literals, and SNI               [5]
 *     - ALPN lists, and telling TLS from plaintext by its first bytes  [6]
 *     - PEM, base64, and SHA-256 certificate fingerprints              [7]
 *     - configuration, validated and resolved into a plan              [8]
-*     - a transport interface, and an in-memory pipe for tests         [9]
-*     - the sans-I/O engine interface a TLS library is bound through  [10]
-*     - contexts and sessions: the pump and the kernel's own checks   [11]
+*     - the sans-I/O engine interface a TLS library is bound through   [9]
+*     - contexts and sessions: the pump, the kernel's own checks, and a
+*       session as a net.h connection over any other                  [10]
 *   THE KERNEL LINKS NO TLS LIBRARY AND NEVER OPENS A SOCKET. An engine -- a
 * derived module wrapping OpenSSL or another library -- turns ciphertext
-* into plaintext and back. The kernel moves every byte between it and a
-* d_ssl_transport, and checks names, pins, versions, and ALPN itself, so a
-* session behaves the same under every engine. The kernel allocates
-* nothing; engines allocate.
-*   TLS may begin on a transport that has already carried plaintext, which
-* is what STARTTLS-style upgrades build on; the upgrade commands themselves
-* belong to the protocol modules that speak them.
+* into plaintext and back. The kernel moves every byte between it and the
+* net.h connection a session runs over, and checks names, pins, versions,
+* and ALPN itself, so a session behaves the same under every engine. The
+* kernel allocates nothing; engines allocate.
+*   A session is itself a net.h connection, over its plaintext, so whatever
+* runs over a socket runs over TLS unchanged -- and over a session, another
+* session. TLS may begin on a connection that has already carried
+* plaintext, which is what STARTTLS-style upgrades build on; the upgrade
+* commands themselves belong to the protocol modules that speak them.
 *   Text spans are d_pack_text and byte spans d_pack_bytes, from
 * sink_common.h. Every declaration has C linkage.
 *   Build configuration comes from cfg_ssl.h; environment detection for the
 * engines from env_ssl.h.
 *
+*   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
+* compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
+* (decision 101 of the register).
+*
 *
 * path:      /inc/djinterp/net/ssl/ssl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -57,12 +63,12 @@ TABLE OF CONTENTS
     4.  Kernel buffers
          1.  D_SSL_IO_CAPACITY
          2.  D_SSL_CIPHER_NAME_MAX
-2.  RESULT STATUS
-    -------------
-    1.  Status codes
-         1.  d_ssl_status
-         2.  D_SSL_STATUS_MECHANICAL_FLOOR
-    2.  Status queries
+2.  ERRORS
+    ------
+    1.  Error codes
+         1.  d_ssl_error
+         2.  D_SSL_ERROR_MECHANICAL_FLOOR
+    2.  Error queries
 3.  PROTOCOL VOCABULARY
     -------------------
     1.  Versions
@@ -111,19 +117,7 @@ TABLE OF CONTENTS
          2.  d_ssl_config
          3.  d_ssl_plan
     2.  Configuration operations
-9.  TRANSPORT
-    ---------
-    1.  The transport interface
-         1.  d_ssl_transport_read_fn
-         2.  d_ssl_transport_write_fn
-         3.  d_ssl_transport
-    2.  The in-memory pipe
-         1.  d_ssl_ring
-         2.  d_ssl_pipe_end
-         3.  d_ssl_pipe
-         4.  d_ssl_pipe_side
-    3.  Transport operations
-10. ENGINES
+9.  ENGINES
     -------
     1.  Engine vocabulary
          1.  d_ssl_engine_feature
@@ -141,9 +135,10 @@ TABLE OF CONTENTS
          10. d_ssl_engine_describe_fn
          11. d_ssl_engine_peer_name_fn
          12. d_ssl_engine_peer_certificate_fn
+         13. d_ssl_engine_session_resume_fn
     3.  The engine interface
          1.  d_ssl_engine
-11. CONTEXTS AND SESSIONS
+10. CONTEXTS AND SESSIONS
     ---------------------
     1.  Contexts
          1.  d_ssl_context
@@ -153,6 +148,7 @@ TABLE OF CONTENTS
          2.  d_ssl_want
          3.  d_ssl_session
     4.  Session operations
+    5.  Sessions as connections
 */
 
 #ifndef DJINTERP_NET_SSL_SSL_H
@@ -160,11 +156,22 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>                        // size_t
-#include <stdint.h>                        // uint8_t, uint16_t, uint32_t
 // djinterp
 #include "../../c/djinterp.h"              // framework root
 #include "../../c/util/sink_common.h"      // d_pack_text, d_pack_bytes
 #include "../../config/net/ssl/cfg_ssl.h"  // D_INTERNAL_SSL_*
+#include "../net_common.h"                 // d_net_error
+#include "../../config/net/cfg_net.h"      // D_INTERNAL_NET_REQUIRE_BACKENDS
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // int32_t, uint8_t, uint16_t,
+                                              // uint32_t, uint64_t
+
+// 64-bit floor: this header needs a 64-bit integer type, and compiles to
+// nothing where the build has none -- ISO strict C++98 on a 32-bit target
+// (the owner's ruling of 2026.10.03 on round 3's question 1, (a)). The
+// answer is net_common.h's, taken once per translation unit, so that net's
+// gated headers agree.
+#if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 #if !defined(D_EXTERN_C_BEGIN) || !defined(D_EXTERN_C_END)
     #error "ssl.h requires D_EXTERN_C_BEGIN/D_EXTERN_C_END from djinterp.h"
@@ -270,7 +277,7 @@ D_EXTERN_C_BEGIN
 
 
 //==============================================================================
-// 2.  RESULT STATUS
+// 2.  ERRORS
 //==============================================================================
 // Two kinds of failure, kept apart as in the other kernels. A FORMAL failure
 // says the TLS exchange, the peer, or the configuration is at fault: the same
@@ -278,66 +285,66 @@ D_EXTERN_C_BEGIN
 // short -- a buffer, a transport that would block or broke, memory, the
 // library itself -- and the exchange may be sound. The ranges are disjoint,
 // so "may I retry?" is a range test.
-//   The first four mechanical values equal their d_pop_status namesakes on
-// purpose: a module carrying one net kernel over another, POP3 over a TLS
-// session say, passes transport statuses across unchanged.
 
 
-// 2.1    Status codes
+// 2.1    Error codes
 //------------------------------------------------------------------------------
 // 2.1.1
-// d_ssl_status
+// d_ssl_error
 //   enum: the result of every fallible operation in this module. Values are
 // pinned. The less obvious ones:
 //     NOT_FOUND          a search came up empty: no further PEM block, no ALPN
 //                        protocol in common, no server name for an address.
 //     NOT_TLS            the peer's first bytes are not a TLS record: it is
 //                        speaking something else, usually plaintext.
-//     UNEXPECTED_EOF     the transport ended before the TLS stream did: the
+//     TRUNCATED          the transport ended before the TLS stream did: the
 //                        peer hung up mid-handshake, or data may be missing.
-//     CONNECTION_CLOSED  the orderly end: the peer sent close_notify.
+//     CLOSED             the orderly end: the peer sent close_notify.
 //     WANT_READ          an engine needs more ciphertext. It passes only from
 //                        an engine to the kernel; no session call returns it.
-enum d_ssl_status
+enum d_ssl_error
 {
-    D_SSL_STATUS_OK                = 0,
+    D_SSL_OK                     = 0,
 
     // formal: the exchange, the peer, or the configuration is at fault
-    D_SSL_STATUS_INVALID_ARGUMENT  = 0x001,
-    D_SSL_STATUS_MALFORMED         = 0x002,
-    D_SSL_STATUS_NOT_FOUND         = 0x003,
-    D_SSL_STATUS_UNSUPPORTED       = 0x004,
-    D_SSL_STATUS_INVALID_CONFIG    = 0x005,
-    D_SSL_STATUS_WRONG_STATE       = 0x006,
-    D_SSL_STATUS_NOT_TLS           = 0x007,
-    D_SSL_STATUS_HANDSHAKE_FAILED  = 0x008,
-    D_SSL_STATUS_VERIFY_FAILED     = 0x009,
-    D_SSL_STATUS_PROTOCOL_ERROR    = 0x00A,
-    D_SSL_STATUS_UNEXPECTED_EOF    = 0x00B,
+    D_SSL_ERROR_INVALID_ARGUMENT = 0x001,
+    D_SSL_ERROR_MALFORMED        = 0x002,
+    D_SSL_ERROR_NOT_FOUND        = 0x003,
+    D_SSL_ERROR_UNSUPPORTED      = 0x004,
+    D_SSL_ERROR_CONFIG           = 0x005,
+    D_SSL_ERROR_STATE            = 0x006,
+    D_SSL_ERROR_NOT_TLS          = 0x007,
+    D_SSL_ERROR_HANDSHAKE        = 0x008,
+    D_SSL_ERROR_VERIFY           = 0x009,
+    D_SSL_ERROR_PROTOCOL         = 0x00A,
+    D_SSL_ERROR_TRUNCATED        = 0x00B,
 
     // mechanical: the machinery ran short
-    D_SSL_STATUS_BUFFER_TOO_SMALL  = 0x100,
-    D_SSL_STATUS_WOULD_BLOCK       = 0x101,
-    D_SSL_STATUS_TRANSPORT_ERROR   = 0x102,
-    D_SSL_STATUS_CONNECTION_CLOSED = 0x103,
-    D_SSL_STATUS_WANT_READ         = 0x104,
-    D_SSL_STATUS_OUT_OF_MEMORY     = 0x105,
-    D_SSL_STATUS_BACKEND_ERROR     = 0x106
+    D_SSL_ERROR_BUFFER_TOO_SMALL = 0x100,
+    D_SSL_ERROR_WOULD_BLOCK      = 0x101,
+    D_SSL_ERROR_TRANSPORT        = 0x102,
+    D_SSL_ERROR_CLOSED           = 0x103,
+    D_SSL_ERROR_WANT_READ        = 0x104,
+    D_SSL_ERROR_OUT_OF_MEMORY    = 0x105,
+    D_SSL_ERROR_BACKEND          = 0x106
 };
 
 // 2.1.2
-// D_SSL_STATUS_MECHANICAL_FLOOR
-//   constant: the lowest mechanical status value.
-#define D_SSL_STATUS_MECHANICAL_FLOOR 0x100
+// D_SSL_ERROR_MECHANICAL_FLOOR
+//   constant: the lowest mechanical error value.
+#define D_SSL_ERROR_MECHANICAL_FLOOR 0x100
 
-// 2.2    Status queries
+// 2.2    Error queries
 //------------------------------------------------------------------------------
-// Pure lookups; they never fail. d_ssl_status_name returns the enumerator's
-// name without its prefix ("VERIFY_FAILED"), or NULL for a value outside the
-// enum. The two predicates classify a status by range; OK is neither.
-const char* d_ssl_status_name(enum d_ssl_status _status);
-bool        d_ssl_status_is_formal(enum d_ssl_status _status);
-bool        d_ssl_status_is_mechanical(enum d_ssl_status _status);
+// Pure lookups; they never fail. d_ssl_error_name returns the enumerator's
+// name without its prefix ("VERIFY"), or NULL for a value outside the
+// enum. The two predicates classify a value by range; OK is neither.
+// d_ssl_error_to_net gives the d_net_error an error maps to, by the rules
+// net.h gives with it; D_NET_ERROR_UNKNOWN for a value outside the enum.
+const char*      d_ssl_error_name(enum d_ssl_error _error);
+bool             d_ssl_error_is_formal(enum d_ssl_error _error);
+bool             d_ssl_error_is_mechanical(enum d_ssl_error _error);
+enum d_net_error d_ssl_error_to_net(enum d_ssl_error _error);
 
 
 //==============================================================================
@@ -479,11 +486,11 @@ enum d_ssl_alert
 // found in configuration files, case-insensitively -- "TLSv1.2", "TLS1.2",
 // "tls 1.2", "TLS_1_2", "1.2", "SSLv3" -- and returns NONE for anything else.
 //   d_ssl_alert_name gives the RFC name ("close_notify"), or NULL for an
-// unassigned value or D_SSL_ALERT_NONE. d_ssl_alert_status says what an alert
-// means for a session: close_notify is CONNECTION_CLOSED; certificate
-// complaints are VERIFY_FAILED; failures to agree on parameters are
-// HANDSHAKE_FAILED; internal_error is BACKEND_ERROR; the rest, unknown values
-// included, are PROTOCOL_ERROR. D_SSL_ALERT_NONE maps to OK.
+// unassigned value or D_SSL_ALERT_NONE. d_ssl_alert_error says what an alert
+// means for a session: close_notify is CLOSED; certificate
+// complaints are VERIFY; failures to agree on parameters are
+// HANDSHAKE; internal_error is BACKEND; the rest, unknown values
+// included, are PROTOCOL. D_SSL_ALERT_NONE maps to OK.
 const char*        d_ssl_version_name(enum d_ssl_version _version);
 bool               d_ssl_version_is_known(enum d_ssl_version _version);
 bool               d_ssl_version_is_deprecated(enum d_ssl_version _version);
@@ -491,7 +498,7 @@ enum d_ssl_version d_ssl_version_from_name(struct d_pack_text _name);
 const char*        d_ssl_role_name(enum d_ssl_role _role);
 const char*        d_ssl_backend_name(enum d_ssl_backend _backend);
 const char*        d_ssl_alert_name(int32_t _alert);
-enum d_ssl_status  d_ssl_alert_status(int32_t _alert);
+enum d_ssl_error   d_ssl_alert_error(int32_t _alert);
 
 
 //==============================================================================
@@ -570,15 +577,15 @@ const char* d_ssl_verify_flag_name(uint32_t _flag);
  * @param[in]  _capacity  the size of `_out` in bytes; it must exceed the
  *                        text length.
  * @param[out] _out_size  receives the text length, excluding the NUL.
- * @return D_SSL_STATUS_OK; D_SSL_STATUS_BUFFER_TOO_SMALL, with `*_out_size`
+ * @return D_SSL_OK; D_SSL_ERROR_BUFFER_TOO_SMALL, with `*_out_size`
  *         set, if the text and its NUL do not fit; or
- *         D_SSL_STATUS_INVALID_ARGUMENT for a NULL `_out_size`, or a NULL
+ *         D_SSL_ERROR_INVALID_ARGUMENT for a NULL `_out_size`, or a NULL
  *         `_out` with a nonzero `_capacity`.
  */
-enum d_ssl_status d_ssl_verify_describe(uint32_t _flags,
-                                        char*    _out,
-                                        size_t   _capacity,
-                                        size_t*  _out_size);
+enum d_ssl_error d_ssl_verify_describe(uint32_t _flags,
+                                       char*    _out,
+                                       size_t   _capacity,
+                                       size_t*  _out_size);
 
 
 //==============================================================================
@@ -647,13 +654,13 @@ bool d_ssl_host_is_ip(struct d_pack_text _host);
  * @param[out] _out         receives the address, 4 octets for IPv4 and 16
  *                          for IPv6; untouched on failure.
  * @param[out] _out_length  receives 4 or 16.
- * @return D_SSL_STATUS_OK; D_SSL_STATUS_MALFORMED if `_text` is not an
- *         address literal; or D_SSL_STATUS_INVALID_ARGUMENT for NULL
+ * @return D_SSL_OK; D_SSL_ERROR_MALFORMED if `_text` is not an
+ *         address literal; or D_SSL_ERROR_INVALID_ARGUMENT for NULL
  *         arguments.
  */
-enum d_ssl_status d_ssl_ip_parse(struct d_pack_text _text,
-                                 uint8_t            _out[D_SSL_IP_MAX],
-                                 size_t*            _out_length);
+enum d_ssl_error d_ssl_ip_parse(struct d_pack_text _text,
+                                uint8_t            _out[D_SSL_IP_MAX],
+                                size_t*            _out_length);
 
 /**
  * @brief Derives the Server Name Indication a client sends for a host.
@@ -664,12 +671,12 @@ enum d_ssl_status d_ssl_ip_parse(struct d_pack_text _text,
  *
  * @param[in]  _host     the host the client is connecting to.
  * @param[out] _out_sni  receives the name to send, borrowed from `_host`.
- * @return D_SSL_STATUS_OK; D_SSL_STATUS_NOT_FOUND if `_host` is an address
- *         literal (send no SNI); D_SSL_STATUS_MALFORMED if it is not a valid
- *         host name; or D_SSL_STATUS_INVALID_ARGUMENT for NULL arguments.
+ * @return D_SSL_OK; D_SSL_ERROR_NOT_FOUND if `_host` is an address
+ *         literal (send no SNI); D_SSL_ERROR_MALFORMED if it is not a valid
+ *         host name; or D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments.
  */
-enum d_ssl_status d_ssl_sni_from_host(struct d_pack_text  _host,
-                                      struct d_pack_text* _out_sni);
+enum d_ssl_error d_ssl_sni_from_host(struct d_pack_text  _host,
+                                     struct d_pack_text* _out_sni);
 
 // 5.3    Identity matching
 //------------------------------------------------------------------------------
@@ -697,7 +704,7 @@ bool d_ssl_identity_match(const struct d_ssl_peer_name* _names,
 // servers, and one library's own selection routine has been the source of a
 // memory disclosure (CVE-2024-5535). Stream sniffing tells a TLS record from
 // anything else by its first bytes, which turns a plaintext peer on a TLS
-// port into D_SSL_STATUS_NOT_TLS instead of a library's "wrong version
+// port into D_SSL_ERROR_NOT_TLS instead of a library's "wrong version
 // number", and lets a server share one port between TLS and plaintext.
 
 
@@ -725,17 +732,17 @@ bool d_ssl_alpn_contains(struct d_pack_bytes _list,
  * @param[out] _out        the destination, or NULL to measure.
  * @param[in]  _capacity   the size of `_out` in bytes.
  * @param[out] _out_size   receives the encoded size.
- * @return D_SSL_STATUS_OK; D_SSL_STATUS_BUFFER_TOO_SMALL, with `*_out_size`
- *         set; D_SSL_STATUS_MALFORMED if a name is empty or too long, or the
+ * @return D_SSL_OK; D_SSL_ERROR_BUFFER_TOO_SMALL, with `*_out_size`
+ *         set; D_SSL_ERROR_MALFORMED if a name is empty or too long, or the
  *         list would exceed D_SSL_ALPN_LIST_MAX; or
- *         D_SSL_STATUS_INVALID_ARGUMENT for NULL arguments or a zero
+ *         D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments or a zero
  *         `_count`.
  */
-enum d_ssl_status d_ssl_alpn_encode(const struct d_pack_text* _protocols,
-                                    size_t                    _count,
-                                    void*                     _out,
-                                    size_t                    _capacity,
-                                    size_t*                   _out_size);
+enum d_ssl_error d_ssl_alpn_encode(const struct d_pack_text* _protocols,
+                                   size_t                    _count,
+                                   void*                     _out,
+                                   size_t                    _capacity,
+                                   size_t*                   _out_size);
 
 /**
  * @brief Steps through an ALPN wire list, one protocol per call.
@@ -745,14 +752,14 @@ enum d_ssl_status d_ssl_alpn_encode(const struct d_pack_text* _protocols,
  *                               entry read.
  * @param[out]    _out_protocol  receives the next name, borrowed from
  *                               `_list`.
- * @return D_SSL_STATUS_OK with a name; D_SSL_STATUS_NOT_FOUND at the end of
- *         the list; D_SSL_STATUS_MALFORMED if the entry at `*_offset` is
- *         empty or overruns the list; or D_SSL_STATUS_INVALID_ARGUMENT for
+ * @return D_SSL_OK with a name; D_SSL_ERROR_NOT_FOUND at the end of
+ *         the list; D_SSL_ERROR_MALFORMED if the entry at `*_offset` is
+ *         empty or overruns the list; or D_SSL_ERROR_INVALID_ARGUMENT for
  *         NULL arguments or an offset past the end.
  */
-enum d_ssl_status d_ssl_alpn_next(struct d_pack_bytes _list,
-                                  size_t*             _offset,
-                                  struct d_pack_text* _out_protocol);
+enum d_ssl_error d_ssl_alpn_next(struct d_pack_bytes _list,
+                                 size_t*             _offset,
+                                 struct d_pack_text* _out_protocol);
 
 /**
  * @brief Chooses the protocol a server answers an ALPN offer with.
@@ -764,14 +771,14 @@ enum d_ssl_status d_ssl_alpn_next(struct d_pack_bytes _list,
  * @param[in]  _preferred     the server's list, most preferred first.
  * @param[in]  _offered       the list from the client's ClientHello.
  * @param[out] _out_protocol  receives the choice, borrowed from `_offered`.
- * @return D_SSL_STATUS_OK with a choice; D_SSL_STATUS_NOT_FOUND if the lists
+ * @return D_SSL_OK with a choice; D_SSL_ERROR_NOT_FOUND if the lists
  *         share nothing, which a server answers with no_application_protocol;
- *         D_SSL_STATUS_MALFORMED if either list is invalid; or
- *         D_SSL_STATUS_INVALID_ARGUMENT for a NULL `_out_protocol`.
+ *         D_SSL_ERROR_MALFORMED if either list is invalid; or
+ *         D_SSL_ERROR_INVALID_ARGUMENT for a NULL `_out_protocol`.
  */
-enum d_ssl_status d_ssl_alpn_select(struct d_pack_bytes _preferred,
-                                    struct d_pack_bytes _offered,
-                                    struct d_pack_text* _out_protocol);
+enum d_ssl_error d_ssl_alpn_select(struct d_pack_bytes _preferred,
+                                   struct d_pack_bytes _offered,
+                                   struct d_pack_text* _out_protocol);
 
 // 6.2    Stream sniffing
 //------------------------------------------------------------------------------
@@ -847,21 +854,21 @@ struct d_ssl_pem_block
  * @note A block is a "-----BEGIN <label>-----" line and the matching
  *       "-----END <label>-----" line. Text between blocks, such as the
  *       explanatory lines some tools write, is skipped. Call until
- *       D_SSL_STATUS_NOT_FOUND.
+ *       D_SSL_ERROR_NOT_FOUND.
  *
  * @param[in]     _text    the PEM text, such as a whole CA bundle.
  * @param[in,out] _offset  the cursor, 0 to start; advanced past each block,
  *                         or to the end of `_text` on MALFORMED.
  * @param[out]    _out     receives the block, borrowed from `_text`.
- * @return D_SSL_STATUS_OK with a block; D_SSL_STATUS_NOT_FOUND when no
- *         further BEGIN line exists; D_SSL_STATUS_MALFORMED for a BEGIN line
+ * @return D_SSL_OK with a block; D_SSL_ERROR_NOT_FOUND when no
+ *         further BEGIN line exists; D_SSL_ERROR_MALFORMED for a BEGIN line
  *         without its END, as in a truncated file; or
- *         D_SSL_STATUS_INVALID_ARGUMENT for NULL arguments or an offset past
+ *         D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments or an offset past
  *         the end.
  */
-enum d_ssl_status d_ssl_pem_next(struct d_pack_text      _text,
-                                 size_t*                 _offset,
-                                 struct d_ssl_pem_block* _out);
+enum d_ssl_error d_ssl_pem_next(struct d_pack_text      _text,
+                                size_t*                 _offset,
+                                struct d_ssl_pem_block* _out);
 
 /**
  * @brief Decodes a PEM body from base64: to DER, for a certificate.
@@ -876,14 +883,14 @@ enum d_ssl_status d_ssl_pem_next(struct d_pack_text      _text,
  * @param[out] _out       the destination, or NULL to measure.
  * @param[in]  _capacity  the size of `_out` in bytes.
  * @param[out] _out_size  receives the decoded size.
- * @return D_SSL_STATUS_OK; D_SSL_STATUS_BUFFER_TOO_SMALL, with `*_out_size`
- *         set; D_SSL_STATUS_MALFORMED for invalid base64; or
- *         D_SSL_STATUS_INVALID_ARGUMENT for NULL arguments.
+ * @return D_SSL_OK; D_SSL_ERROR_BUFFER_TOO_SMALL, with `*_out_size`
+ *         set; D_SSL_ERROR_MALFORMED for invalid base64; or
+ *         D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments.
  */
-enum d_ssl_status d_ssl_pem_decode(struct d_pack_text _body,
-                                   void*              _out,
-                                   size_t             _capacity,
-                                   size_t*            _out_size);
+enum d_ssl_error d_ssl_pem_decode(struct d_pack_text _body,
+                                  void*              _out,
+                                  size_t             _capacity,
+                                  size_t*            _out_size);
 
 // 7.3    Fingerprints
 //------------------------------------------------------------------------------
@@ -897,24 +904,24 @@ bool d_ssl_fingerprint_equal(const uint8_t _a[D_SSL_FINGERPRINT_LENGTH],
  *
  * @param[in]  _der  the DER-encoded certificate.
  * @param[out] _out  receives the 32-octet digest.
- * @return D_SSL_STATUS_OK, or D_SSL_STATUS_INVALID_ARGUMENT if `_out` is NULL
+ * @return D_SSL_OK, or D_SSL_ERROR_INVALID_ARGUMENT if `_out` is NULL
  *         or `_der` has a NULL pointer with a nonzero size.
  */
-enum d_ssl_status d_ssl_fingerprint_compute(
-                      struct d_pack_bytes _der,
-                      uint8_t             _out[D_SSL_FINGERPRINT_LENGTH]);
+enum d_ssl_error d_ssl_fingerprint_compute(
+                     struct d_pack_bytes _der,
+                     uint8_t             _out[D_SSL_FINGERPRINT_LENGTH]);
 
 /**
  * @brief Writes a fingerprint as colon-joined uppercase hex, "AB:CD:...:EF".
  *
  * @param[in]  _fingerprint  the 32-octet digest.
  * @param[out] _out          receives the text and a NUL.
- * @return D_SSL_STATUS_OK, or D_SSL_STATUS_INVALID_ARGUMENT for NULL
+ * @return D_SSL_OK, or D_SSL_ERROR_INVALID_ARGUMENT for NULL
  *         arguments.
  */
-enum d_ssl_status d_ssl_fingerprint_format(
-                      const uint8_t _fingerprint[D_SSL_FINGERPRINT_LENGTH],
-                      char          _out[D_SSL_FINGERPRINT_TEXT_LENGTH + 1]);
+enum d_ssl_error d_ssl_fingerprint_format(
+                     const uint8_t _fingerprint[D_SSL_FINGERPRINT_LENGTH],
+                     char          _out[D_SSL_FINGERPRINT_TEXT_LENGTH + 1]);
 
 /**
  * @brief Reads a fingerprint as users supply it.
@@ -926,12 +933,12 @@ enum d_ssl_status d_ssl_fingerprint_format(
  *
  * @param[in]  _text  the fingerprint text.
  * @param[out] _out   receives the 32-octet digest; untouched on failure.
- * @return D_SSL_STATUS_OK; D_SSL_STATUS_MALFORMED if `_text` is not a SHA-256
- *         fingerprint; or D_SSL_STATUS_INVALID_ARGUMENT for NULL arguments.
+ * @return D_SSL_OK; D_SSL_ERROR_MALFORMED if `_text` is not a SHA-256
+ *         fingerprint; or D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments.
  */
-enum d_ssl_status d_ssl_fingerprint_parse(
-                      struct d_pack_text _text,
-                      uint8_t            _out[D_SSL_FINGERPRINT_LENGTH]);
+enum d_ssl_error d_ssl_fingerprint_parse(
+                     struct d_pack_text _text,
+                     uint8_t            _out[D_SSL_FINGERPRINT_LENGTH]);
 
 // 7.4    Platform trust stores
 //------------------------------------------------------------------------------
@@ -1081,11 +1088,11 @@ void d_ssl_config_init(struct d_ssl_config* _config,
  *
  * @param[in,out] _config       the configuration.
  * @param[in]     _fingerprint  a 32-octet SHA-256 certificate fingerprint.
- * @return D_SSL_STATUS_OK; D_SSL_STATUS_BUFFER_TOO_SMALL if D_SSL_PINS_MAX
- *         pins are already set; or D_SSL_STATUS_INVALID_ARGUMENT for NULL
+ * @return D_SSL_OK; D_SSL_ERROR_BUFFER_TOO_SMALL if D_SSL_PINS_MAX
+ *         pins are already set; or D_SSL_ERROR_INVALID_ARGUMENT for NULL
  *         arguments.
  */
-enum d_ssl_status d_ssl_config_add_pin(
+enum d_ssl_error d_ssl_config_add_pin(
     struct d_ssl_config* _config,
     const uint8_t        _fingerprint[D_SSL_FINGERPRINT_LENGTH]);
 
@@ -1109,192 +1116,28 @@ enum d_ssl_status d_ssl_config_add_pin(
  *       - paths are non-empty, and cipher strings are printable ASCII.
  *
  * @param[in] _config  the configuration.
- * @return D_SSL_STATUS_OK if valid; D_SSL_STATUS_UNSUPPORTED for a request
- *         this build refuses; D_SSL_STATUS_INVALID_CONFIG for an
- *         inconsistent one; or D_SSL_STATUS_INVALID_ARGUMENT for a NULL
+ * @return D_SSL_OK if valid; D_SSL_ERROR_UNSUPPORTED for a request
+ *         this build refuses; D_SSL_ERROR_CONFIG for an
+ *         inconsistent one; or D_SSL_ERROR_INVALID_ARGUMENT for a NULL
  *         `_config`, or a span in it with a NULL pointer and a nonzero size.
  */
-enum d_ssl_status d_ssl_config_validate(const struct d_ssl_config* _config);
+enum d_ssl_error d_ssl_config_validate(const struct d_ssl_config* _config);
 
 /**
  * @brief Validates a configuration and resolves it into a d_ssl_plan.
  *
  * @param[in]  _config    the configuration.
  * @param[out] _out_plan  receives the plan; untouched on failure.
- * @return D_SSL_STATUS_OK; a status of d_ssl_config_validate if the
- *         configuration is invalid; or D_SSL_STATUS_INVALID_ARGUMENT for NULL
+ * @return D_SSL_OK; a status of d_ssl_config_validate if the
+ *         configuration is invalid; or D_SSL_ERROR_INVALID_ARGUMENT for NULL
  *         arguments.
  */
-enum d_ssl_status d_ssl_config_plan(const struct d_ssl_config* _config,
-                                    struct d_ssl_plan*         _out_plan);
+enum d_ssl_error d_ssl_config_plan(const struct d_ssl_config* _config,
+                                   struct d_ssl_plan*         _out_plan);
 
 
 //==============================================================================
-// 9.  TRANSPORT
-//==============================================================================
-// How ciphertext reaches the peer: two callbacks and a context, the same
-// shape the other net kernels use. A socket, a pipe, a proxy tunnel, or
-// another TLS session -- d_ssl_session_transport presents a session as one
-// -- can all carry a session, and the session never learns which.
-//   A transport may already have carried plaintext. TLS can begin at any
-// point in a stream, which is what STARTTLS-style upgrades need; the caller
-// must ensure no bytes the peer sent before the upgrade are still buffered on
-// its side, or they would be mistaken for the first bytes of the handshake.
-
-
-// 9.1    The transport interface
-//------------------------------------------------------------------------------
-// 9.1.1
-// d_ssl_transport_read_fn
-//   function pointer: reads up to _capacity (at least 1) bytes into _buffer,
-// storing the count in *_out_read. Returns D_SSL_STATUS_OK with a count of at
-// least 1; D_SSL_STATUS_CONNECTION_CLOSED at the orderly end of the stream;
-// D_SSL_STATUS_WOULD_BLOCK when a non-blocking transport has nothing now; or
-// D_SSL_STATUS_TRANSPORT_ERROR.
-typedef enum d_ssl_status (*d_ssl_transport_read_fn)(void*   _context,
-                                                     void*   _buffer,
-                                                     size_t  _capacity,
-                                                     size_t* _out_read);
-
-// 9.1.2
-// d_ssl_transport_write_fn
-//   function pointer: writes up to _size (at least 1) bytes from _data,
-// storing the count taken in *_out_written. Returns D_SSL_STATUS_OK with a
-// count of at least 1, or the statuses of d_ssl_transport_read_fn, where
-// CONNECTION_CLOSED means the peer no longer reads.
-typedef enum d_ssl_status (*d_ssl_transport_write_fn)(void*       _context,
-                                                      const void* _data,
-                                                      size_t      _size,
-                                                      size_t*     _out_written);
-
-// 9.1.3
-// d_ssl_transport
-//   struct: a byte stream a session runs over. Passed by value; holds no
-// ownership of context.
-struct d_ssl_transport
-{
-    d_ssl_transport_read_fn  read;
-    d_ssl_transport_write_fn write;
-    void*                    context;
-};
-
-// 9.2    The in-memory pipe
-//------------------------------------------------------------------------------
-// Two byte rings joined back to back: what end A writes, end B reads, and
-// the reverse. Both ends run in one thread, so a client and a server session
-// can handshake with each other with no socket at all -- the test bed for
-// engines, for protocols carried over TLS, and for their resumption paths.
-// Rings are bounded by the storage the caller gives them, and a full ring
-// answers writes with WOULD_BLOCK, an empty one reads with WOULD_BLOCK, so
-// every blocking path gets exercised. A per-end chunk limit forces short
-// reads and writes; closing an end's writing side delivers
-// CONNECTION_CLOSED to the other end once it has drained what was sent.
-
-// 9.2.1
-// d_ssl_ring
-//   struct: a bounded byte ring over caller storage.
-struct d_ssl_ring
-{
-    unsigned char* data;
-    size_t         capacity;
-    size_t         head;
-    size_t         size;
-    bool           closed;
-};
-
-// 9.2.2
-// d_ssl_pipe_end
-//   struct: one end of a pipe: the ring it reads, the ring it writes, and its
-// chunk limit (0 for none).
-struct d_ssl_pipe_end
-{
-    struct d_ssl_ring* inbound;
-    struct d_ssl_ring* outbound;
-    size_t             chunk;
-};
-
-// 9.2.3
-// d_ssl_pipe
-//   struct: a two-ended in-memory byte stream. Its ends point into the pipe
-// itself, so an initialized pipe must not be copied or moved.
-struct d_ssl_pipe
-{
-    struct d_ssl_ring     rings[2];
-    struct d_ssl_pipe_end ends[2];
-};
-
-// 9.2.4
-// d_ssl_pipe_side
-//   enum: names an end of a pipe.
-enum d_ssl_pipe_side
-{
-    D_SSL_PIPE_A = 0,
-    D_SSL_PIPE_B = 1
-};
-
-// 9.3    Transport operations
-//------------------------------------------------------------------------------
-// Pipe accessors. d_ssl_pipe_transport returns the transport of end _side.
-// d_ssl_pipe_set_chunk caps each read and write by that end at _chunk bytes
-// (0 removes the cap). d_ssl_pipe_close marks that end's writing side
-// finished: the other end reads CONNECTION_CLOSED after draining, and
-// further writes by _side fail with TRANSPORT_ERROR. d_ssl_pipe_pending
-// counts the bytes waiting for end _side to read. A NULL pipe or an unknown
-// side is ignored, or yields an empty transport or zero.
-struct d_ssl_transport d_ssl_pipe_transport(struct d_ssl_pipe*   _pipe,
-                                            enum d_ssl_pipe_side _side);
-void                   d_ssl_pipe_set_chunk(struct d_ssl_pipe*   _pipe,
-                                            enum d_ssl_pipe_side _side,
-                                            size_t               _chunk);
-void                   d_ssl_pipe_close(struct d_ssl_pipe*   _pipe,
-                                        enum d_ssl_pipe_side _side);
-size_t                 d_ssl_pipe_pending(const struct d_ssl_pipe* _pipe,
-                                          enum d_ssl_pipe_side     _side);
-
-/**
- * @brief Initializes a pipe over caller storage.
- *
- * @param[out] _pipe        the pipe; it must not move once initialized.
- * @param[in]  _buffer_a    storage for the bytes end A sends; it must
- *                          outlive the pipe.
- * @param[in]  _capacity_a  its size in bytes; at least 1.
- * @param[in]  _buffer_b    storage for the bytes end B sends; it must
- *                          outlive the pipe.
- * @param[in]  _capacity_b  its size in bytes; at least 1.
- * @return D_SSL_STATUS_OK, or D_SSL_STATUS_INVALID_ARGUMENT for a NULL
- *         argument or a zero capacity.
- */
-enum d_ssl_status d_ssl_pipe_init(struct d_ssl_pipe* _pipe,
-                                  void*              _buffer_a,
-                                  size_t             _capacity_a,
-                                  void*              _buffer_b,
-                                  size_t             _capacity_b);
-
-/**
- * @brief Writes all of `_data` through a transport, looping over short writes.
- *
- * @param[in]  _transport    the transport.
- * @param[in]  _data         the bytes; may be NULL when `_size` is 0.
- * @param[in]  _size         how many.
- * @param[out] _out_written  receives how many were written, all of them on
- *                           success; may be NULL.
- * @return D_SSL_STATUS_OK once all are written; otherwise the transport's
- *         failure, with `*_out_written` telling how far it got, so that a
- *         WOULD_BLOCK caller resumes from there;
- *         D_SSL_STATUS_TRANSPORT_ERROR if the transport reports writing
- *         nothing or more than it was given; or
- *         D_SSL_STATUS_INVALID_ARGUMENT for a transport without a write
- *         callback, or a NULL `_data` with a nonzero `_size`.
- */
-enum d_ssl_status d_ssl_transport_write_all(
-                      struct d_ssl_transport _transport,
-                      const void*            _data,
-                      size_t                 _size,
-                      size_t*                _out_written);
-
-
-//==============================================================================
-// 10. ENGINES
+// 9.  ENGINES
 //==============================================================================
 // An engine binds the kernel to one TLS library. It is a table of functions
 // -- struct d_ssl_engine -- that a derived module fills in and exports, and
@@ -1314,7 +1157,7 @@ enum d_ssl_status d_ssl_transport_write_all(
 //       Contexts may be shared across threads only if the engine says so.
 //     - A step returns OK, WANT_READ (feed me more ciphertext, then call
 //       again), or a failure. Engines never return WOULD_BLOCK or
-//       TRANSPORT_ERROR; the kernel treats either as BACKEND_ERROR.
+//       TRANSPORT; the kernel treats either as BACKEND.
 //     - Output is never refused: whatever a step produces is buffered inside
 //       the engine until drained. The kernel drains before every step.
 //     - On failure, an engine queues the alert it sends, if any, for the
@@ -1325,9 +1168,9 @@ enum d_ssl_status d_ssl_transport_write_all(
 //       the outcome again afterwards, and checks names and pins itself.
 
 
-// 10.1   Engine vocabulary
+// 9.1    Engine vocabulary
 //------------------------------------------------------------------------------
-// 10.1.1
+// 9.1.1
 // d_ssl_engine_feature
 //   enum: bits of d_ssl_engine.features, declaring what an engine can do.
 // d_ssl_context_init refuses, with UNSUPPORTED, a configuration needing a
@@ -1355,7 +1198,7 @@ enum d_ssl_engine_feature
     D_SSL_ENGINE_LEGACY       = 0x0080
 };
 
-// 10.1.2
+// 9.1.2
 // d_ssl_info
 //   struct: what a session negotiated and learned, as far as it got:
 //     version         the negotiated version, NONE until known.
@@ -1387,100 +1230,100 @@ struct d_ssl_info
     uint8_t            fingerprint[D_SSL_FINGERPRINT_LENGTH];
 };
 
-// 10.2   Engine operations
+// 9.2    Engine operations
 //------------------------------------------------------------------------------
-// 10.2.1
+// 9.2.1
 // d_ssl_engine_context_create_fn
 //   function pointer: creates the engine's context from a validated
 // configuration and its plan, loading trust anchors, the local identity,
 // cipher settings, and the ALPN list. It must copy whatever it keeps, since
 // neither argument outlives the call. Stores the context in *_out_context and
-// returns OK, or returns UNSUPPORTED, INVALID_CONFIG (a file that does not
+// returns OK, or returns UNSUPPORTED, CONFIG (a file that does not
 // load, a key that does not match its certificate, a cipher string the
-// library rejects), OUT_OF_MEMORY, or BACKEND_ERROR.
-typedef enum d_ssl_status (*d_ssl_engine_context_create_fn)(
+// library rejects), OUT_OF_MEMORY, or BACKEND.
+typedef enum d_ssl_error (*d_ssl_engine_context_create_fn)(
     const struct d_ssl_config* _config,
     const struct d_ssl_plan*   _plan,
     void**                     _out_context);
 
-// 10.2.2
+// 9.2.2
 // d_ssl_engine_context_destroy_fn
 //   function pointer: frees a context. Every session made from it has been
 // destroyed first.
 typedef void (*d_ssl_engine_context_destroy_fn)(void* _context);
 
-// 10.2.3
+// 9.2.3
 // d_ssl_engine_session_create_fn
 //   function pointer: creates a session in a context. For a client, _host is
 // the reference identity to check the peer against, or NULL when the plan
 // does not verify host names, and _sni the server name to send, or NULL for
 // none; servers receive NULL for both. Both are NUL-terminated and must be
 // copied. Stores the session in *_out_session and returns OK, OUT_OF_MEMORY,
-// or BACKEND_ERROR.
-typedef enum d_ssl_status (*d_ssl_engine_session_create_fn)(
+// or BACKEND.
+typedef enum d_ssl_error (*d_ssl_engine_session_create_fn)(
     void*       _context,
     const char* _host,
     const char* _sni,
     void**      _out_session);
 
-// 10.2.4
+// 9.2.4
 // d_ssl_engine_session_destroy_fn
 //   function pointer: frees a session, in whatever state it was left.
 typedef void (*d_ssl_engine_session_destroy_fn)(void* _session);
 
-// 10.2.5
+// 9.2.5
 // d_ssl_engine_feed_fn
 //   function pointer: hands the engine ciphertext read from the peer. It must
 // take all _size bytes (at least 1), buffering what its next step does not
-// consume. Returns OK, OUT_OF_MEMORY, or BACKEND_ERROR.
-typedef enum d_ssl_status (*d_ssl_engine_feed_fn)(void*       _session,
-                                                  const void* _data,
-                                                  size_t      _size);
+// consume. Returns OK, OUT_OF_MEMORY, or BACKEND.
+typedef enum d_ssl_error (*d_ssl_engine_feed_fn)(void*       _session,
+                                                 const void* _data,
+                                                 size_t      _size);
 
-// 10.2.6
+// 9.2.6
 // d_ssl_engine_drain_fn
 //   function pointer: moves up to _capacity bytes of pending outbound
 // ciphertext into _buffer, removing them from the engine, and stores the
 // count in *_out_size -- 0 when nothing is pending. Returns OK or
-// BACKEND_ERROR.
-typedef enum d_ssl_status (*d_ssl_engine_drain_fn)(void*   _session,
-                                                   void*   _buffer,
-                                                   size_t  _capacity,
-                                                   size_t* _out_size);
+// BACKEND.
+typedef enum d_ssl_error (*d_ssl_engine_drain_fn)(void*   _session,
+                                                  void*   _buffer,
+                                                  size_t  _capacity,
+                                                  size_t* _out_size);
 
-// 10.2.7
+// 9.2.7
 // d_ssl_engine_step_fn
 //   function pointer: advances the handshake, or queues close_notify. As
 // handshake: returns OK once the handshake is complete (and on every call
 // after), WANT_READ while it awaits the peer, or a failure. As close: queues
 // close_notify and returns OK; calling it twice is harmless.
-typedef enum d_ssl_status (*d_ssl_engine_step_fn)(void* _session);
+typedef enum d_ssl_error (*d_ssl_engine_step_fn)(void* _session);
 
-// 10.2.8
+// 9.2.8
 // d_ssl_engine_read_fn
 //   function pointer: decrypts up to _capacity (at least 1) bytes of
 // application data into _buffer. Returns OK with *_out_read at least 1,
-// WANT_READ when no complete record is buffered, CONNECTION_CLOSED once the
+// WANT_READ when no complete record is buffered, CLOSED once the
 // peer's close_notify arrives, or a failure. Handshake messages that arrive
 // after the handshake (session tickets, key updates) are absorbed here.
-typedef enum d_ssl_status (*d_ssl_engine_read_fn)(void*   _session,
-                                                  void*   _buffer,
-                                                  size_t  _capacity,
-                                                  size_t* _out_read);
+typedef enum d_ssl_error (*d_ssl_engine_read_fn)(void*   _session,
+                                                 void*   _buffer,
+                                                 size_t  _capacity,
+                                                 size_t* _out_read);
 
-// 10.2.9
+// 9.2.9
 // d_ssl_engine_write_fn
 //   function pointer: encrypts application data. Returns OK having taken at
 // least 1 of _size (at least 1) bytes, storing the count in *_out_written;
 // WANT_READ if the engine must hear from the peer first; or a failure.
-typedef enum d_ssl_status (*d_ssl_engine_write_fn)(void*       _session,
-                                                   const void* _data,
-                                                   size_t      _size,
-                                                   size_t*     _out_written);
+typedef enum d_ssl_error (*d_ssl_engine_write_fn)(void*       _session,
+                                                  const void* _data,
+                                                  size_t      _size,
+                                                  size_t*     _out_written);
 
-// 10.2.10
+// 9.2.10
 // d_ssl_engine_describe_fn
-//   function pointer: fills the engine's part of a d_ssl_info (see 10.1.2)
+//   function pointer: fills the engine's part of a d_ssl_info (see 9.1.2)
 // with what the session knows so far. The kernel resets the record first --
 // version NONE, no alerts, verify NOT_PERFORMED -- so fields the engine
 // cannot tell may be left alone. The verify bits are the chain result alone:
@@ -1488,7 +1331,7 @@ typedef enum d_ssl_status (*d_ssl_engine_write_fn)(void*       _session,
 typedef void (*d_ssl_engine_describe_fn)(void*              _session,
                                          struct d_ssl_info* _out);
 
-// 10.2.11
+// 9.2.11
 // d_ssl_engine_peer_name_fn
 //   function pointer: stores the _index-th DNS or IP subjectAltName entry of
 // the peer's certificate in *_out, borrowed until the next call into the
@@ -1498,7 +1341,7 @@ typedef bool (*d_ssl_engine_peer_name_fn)(void*                   _session,
                                           size_t                  _index,
                                           struct d_ssl_peer_name* _out);
 
-// 10.2.12
+// 9.2.12
 // d_ssl_engine_peer_certificate_fn
 //   function pointer: stores the DER encoding of the peer's certificate in
 // *_out_der, borrowed until the next call into the engine, and returns true;
@@ -1507,15 +1350,27 @@ typedef bool (*d_ssl_engine_peer_certificate_fn)(
     void*                _session,
     struct d_pack_bytes* _out_der);
 
-// 10.3   The engine interface
+// 9.2.13
+// d_ssl_engine_session_resume_fn
+//   function pointer: offers a client session, before its handshake, the
+// session `_from` -- another of the context's, established -- to resume, and
+// returns OK whether or not the server will take it: the handshake decides,
+// and d_ssl_info's resumed reports it. Returns BACKEND when the library
+// refuses the offer outright.
+typedef enum d_ssl_error (*d_ssl_engine_session_resume_fn)(
+    void* _session,
+    void* _from);
+
+// 9.3    The engine interface
 //------------------------------------------------------------------------------
-// 10.3.1
+// 9.3.1
 // d_ssl_engine
 //   struct: an engine: its name, its library, its features, and its
 // operations. Engines are immutable static data. Every operation is required
-// except peer_name, which an engine with D_SSL_ENGINE_HOSTNAME may omit, and
+// except peer_name, which an engine with D_SSL_ENGINE_HOSTNAME may omit;
 // peer_certificate, without which pins cannot be checked and fingerprints
-// stay unknown.
+// stay unknown; and session_resume, without which d_ssl_session_resume offers
+// nothing and a session resumes only as the engine itself arranges.
 struct d_ssl_engine
 {
     const char*                      name;
@@ -1534,22 +1389,29 @@ struct d_ssl_engine
     d_ssl_engine_describe_fn         describe;
     d_ssl_engine_peer_name_fn        peer_name;
     d_ssl_engine_peer_certificate_fn peer_certificate;
+    d_ssl_engine_session_resume_fn   session_resume;
 };
 
 
 //==============================================================================
-// 11. CONTEXTS AND SESSIONS
+// 10.  CONTEXTS AND SESSIONS
 //==============================================================================
 // A context is a configuration made live in an engine: trust loaded, keys
 // parsed, the plan fixed. A session is one TLS connection over one
-// transport, made from a context; many sessions share a context. The kernel
-// owns the session's pump -- moving ciphertext between the engine and the
-// transport -- and its policy checks, so an application sees the same
-// behaviour under every engine:
+// transport -- any net.h connection: a socket, a pipe, a proxy tunnel, or
+// another session -- made from a context; many sessions share a context.
+// The kernel owns the session's pump -- moving ciphertext between the engine
+// and the transport -- and its policy checks, so an application sees the
+// same behaviour under every engine:
 //     - Operations on a blocking transport complete or fail. On a
 //       non-blocking one, any may return WOULD_BLOCK; retry the same call,
 //       with the same arguments, once d_ssl_session_wants says the transport
 //       is ready.
+//     - A transport may already have carried plaintext: TLS can begin at
+//       any point in a stream, which is what STARTTLS-style upgrades need.
+//       The caller must ensure no bytes the peer sent before the upgrade
+//       are still buffered on its side, or they would be mistaken for the
+//       first bytes of the handshake.
 //     - Reads and writes perform the handshake first if it is not done.
 //     - A handshake is complete only once its last flight is on the wire,
 //       and only after the kernel has checked the version, ALPN, the peer
@@ -1557,19 +1419,22 @@ struct d_ssl_engine
 //       last flight unsent.
 //     - The first bytes from the peer are sniffed; a peer not speaking TLS
 //       fails with NOT_TLS before the engine sees anything.
-//     - A transport that ends before close_notify fails with UNEXPECTED_EOF,
-//       not CONNECTION_CLOSED, so truncation cannot pass for a clean end.
-//       Protocols that frame their own messages (POP3 after QUIT, say) may
-//       treat it as benign.
+//     - A transport that ends before close_notify fails with TRUNCATED,
+//       not CLOSED, so truncation cannot pass for a clean end: a read that
+//       finds the end of its stream, or a write the peer no longer takes,
+//       its connection closed, reset, or aborted. Protocols that frame
+//       their own messages (POP3 after QUIT, say) may treat it as benign.
+//       Any other transport failure is TRANSPORT, and
+//       d_ssl_session_transport_error tells which.
 //     - Failures are sticky: once a session fails, every later operation
 //       returns the same status.
 // Neither contexts nor sessions allocate in the kernel; engines allocate.
 // Initialized contexts and sessions must not be copied.
 
 
-// 11.1   Contexts
+// 10.1   Contexts
 //------------------------------------------------------------------------------
-// 11.1.1
+// 10.1.1
 // d_ssl_context
 //   struct: a live configuration: the engine, its context handle, the plan,
 // and the pins the kernel checks. Read-only once initialized.
@@ -1582,7 +1447,7 @@ struct d_ssl_context
     uint8_t                    pins[D_SSL_PINS_MAX][D_SSL_FINGERPRINT_LENGTH];
 };
 
-// 11.2   Context operations
+// 10.2   Context operations
 //------------------------------------------------------------------------------
 /**
  * @brief Makes a configuration live in an engine.
@@ -1598,15 +1463,15 @@ struct d_ssl_context
  * @post   On success the context owns the engine's context; release it with
  *         d_ssl_context_destroy, after every session made from it. On
  *         failure the context is left empty and need not be destroyed.
- * @return D_SSL_STATUS_OK; D_SSL_STATUS_UNSUPPORTED if the build or the
+ * @return D_SSL_OK; D_SSL_ERROR_UNSUPPORTED if the build or the
  *         engine cannot honour the configuration; a status of
  *         d_ssl_config_validate; the engine's failure from creating its
- *         context; or D_SSL_STATUS_INVALID_ARGUMENT for NULL arguments or an
+ *         context; or D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments or an
  *         engine missing a required operation.
  */
-enum d_ssl_status d_ssl_context_init(struct d_ssl_context*      _context,
-                                     const struct d_ssl_engine* _engine,
-                                     const struct d_ssl_config* _config);
+enum d_ssl_error d_ssl_context_init(struct d_ssl_context*      _context,
+                                    const struct d_ssl_engine* _engine,
+                                    const struct d_ssl_config* _config);
 
 /**
  * @brief Releases a context's engine context and clears the record.
@@ -1617,9 +1482,9 @@ enum d_ssl_status d_ssl_context_init(struct d_ssl_context*      _context,
  */
 void d_ssl_context_destroy(struct d_ssl_context* _context);
 
-// 11.3   Sessions
+// 10.3   Sessions
 //------------------------------------------------------------------------------
-// 11.3.1
+// 10.3.1
 // d_ssl_state
 //   enum: where a session is.
 //     IDLE         initialized; no bytes exchanged.
@@ -1638,7 +1503,7 @@ enum d_ssl_state
     D_SSL_STATE_FAILED      = 4
 };
 
-// 11.3.2
+// 10.3.2
 // d_ssl_want
 //   enum: what a session waits on after returning WOULD_BLOCK: the transport
 // becoming readable, or writable. WRITE also follows an OK write whose
@@ -1650,23 +1515,31 @@ enum d_ssl_want
     D_SSL_WANT_WRITE   = 2
 };
 
-// 11.3.3
+// 10.3.3
 // d_ssl_session
-//   struct: one TLS connection. The fields are the kernel's; read them
-// through the accessors below. stage holds ciphertext drained from the
-// engine but not yet accepted by the transport. engine_done marks an engine
-// handshake that has finished, and checked the kernel's checks passing,
-// while the last flight may still be pending. sniff collects the peer's
-// first bytes until they are judged. bytes_in and bytes_out count the
-// ciphertext moved through the transport.
+//   struct: one TLS connection. base comes first, so &session->base is a
+// d_net_connection* over the session's plaintext that every net.h function
+// accepts (10.5); the other fields are the kernel's, read through the
+// accessors below. transport is the connection the ciphertext moves over,
+// and transport_error what its last call reported. stage holds ciphertext
+// drained from the engine but not yet accepted by the transport.
+// engine_done marks an engine handshake that has finished, and checked the
+// kernel's checks passing, while the last flight may still be pending.
+// sniff collects the peer's first bytes until they are judged. bytes_in and
+// bytes_out count the ciphertext moved through the transport. view_closed
+// marks a session whose connection view was closed.
 struct d_ssl_session
 {
+    struct d_net_connection     base;
     const struct d_ssl_context* context;
     void*                       handle;
-    struct d_ssl_transport      transport;
+    struct d_net_connection*    transport;
+    enum d_net_error            transport_error;
     enum d_ssl_state            state;
-    enum d_ssl_status           failure;
+    enum d_ssl_error            failure;
     enum d_ssl_want             want;
+    bool                        owns_transport;
+    bool                        view_closed;
     bool                        engine_done;
     bool                        checked;
     bool                        sniffed;
@@ -1684,7 +1557,7 @@ struct d_ssl_session
     unsigned char               stage[D_SSL_IO_CAPACITY];
 };
 
-// 11.4   Session operations
+// 10.4   Session operations
 //------------------------------------------------------------------------------
 /**
  * @brief Creates a session over a transport.
@@ -1697,23 +1570,47 @@ struct d_ssl_session
  * @param[out] _session    the session to initialize.
  * @param[in]  _context    an initialized context; it must outlive the
  *                         session.
- * @param[in]  _transport  the transport, with both callbacks.
+ * @param[in]  _transport  the connection the ciphertext moves over, with
+ *                         net.h's four required operations. The session
+ *                         borrows it, and it must outlive the session; see
+ *                         d_ssl_session_own_transport.
  * @param[in]  _host       client: the host, empty only if the plan does not
  *                         verify host names. Server: empty.
  * @post   On success the session owns the engine's session; release it with
  *         d_ssl_session_destroy. On failure it holds nothing, and destroying
- *         it is harmless.
- * @return D_SSL_STATUS_OK; D_SSL_STATUS_MALFORMED if `_host` is neither a
+ *         it is harmless. Either way its base is a connection, closed after
+ *         a failure.
+ * @return D_SSL_OK; D_SSL_ERROR_MALFORMED if `_host` is neither a
  *         valid host name nor an address literal;
- *         D_SSL_STATUS_INVALID_ARGUMENT for NULL arguments, an empty
- *         context, a transport missing a callback, a client that verifies
- *         names given no host, or a server given one; or the engine's
- *         failure from creating its session.
+ *         D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments, an empty
+ *         context, a transport without the four required operations, a
+ *         client that verifies names given no host, or a server given one;
+ *         or the engine's failure from creating its session.
  */
-enum d_ssl_status d_ssl_session_init(struct d_ssl_session*       _session,
-                                     const struct d_ssl_context* _context,
-                                     struct d_ssl_transport      _transport,
-                                     struct d_pack_text          _host);
+enum d_ssl_error d_ssl_session_init(struct d_ssl_session*       _session,
+                                    const struct d_ssl_context* _context,
+                                    struct d_net_connection*    _transport,
+                                    struct d_pack_text          _host);
+
+/**
+ * @brief Offers a client session, before its handshake, an established
+ *        session of the same context to resume.
+ *
+ * @note  FTPS needs it: a server may require a data connection to resume the
+ *        control connection's session, as vsftpd does by default. Whether
+ *        the server takes the offer is the handshake's to say:
+ *        d_ssl_session_info's resumed reports it.
+ *
+ * @param[in,out] _session  a client session, initialized, not yet past
+ *                          D_SSL_STATE_IDLE.
+ * @param[in]     _from     an established session of the same context.
+ * @return D_SSL_OK, also when the engine has no session_resume and offers
+ *         nothing; D_SSL_ERROR_INVALID_ARGUMENT for a NULL argument, a
+ *         server's session, sessions of different contexts, `_session` past
+ *         IDLE, or `_from` not established; or the engine's failure.
+ */
+enum d_ssl_error d_ssl_session_resume(struct d_ssl_session*       _session,
+                                      const struct d_ssl_session* _from);
 
 /**
  * @brief Releases a session's engine session and clears the record.
@@ -1721,8 +1618,9 @@ enum d_ssl_status d_ssl_session_init(struct d_ssl_session*       _session,
  * @note Nothing is sent: shut the session down first for an orderly close.
  *
  * @param[in,out] _session  the session; NULL is ignored.
- * @post   The session is empty; destroying it again is harmless. Transports
- *         made from it by d_ssl_session_transport must no longer be used.
+ * @post   The session is empty and its base a closed connection;
+ *         destroying it again is harmless. Its transport is left as it was,
+ *         owned or not: destroying is not closing.
  */
 void d_ssl_session_destroy(struct d_ssl_session* _session);
 
@@ -1737,14 +1635,14 @@ void d_ssl_session_destroy(struct d_ssl_session* _session);
  *       established session this only flushes.
  *
  * @param[in,out] _session  the session.
- * @return D_SSL_STATUS_OK once established; D_SSL_STATUS_WOULD_BLOCK, to be
- *         retried; D_SSL_STATUS_NOT_TLS, _HANDSHAKE_FAILED, _VERIFY_FAILED
- *         (d_ssl_session_info gives the flags), _PROTOCOL_ERROR, or
- *         _UNEXPECTED_EOF for a failed handshake; a transport or engine
- *         failure; D_SSL_STATUS_WRONG_STATE on a closed session; or the
- *         sticky failure of a failed one.
+ * @return D_SSL_OK once established; D_SSL_ERROR_WOULD_BLOCK, to be
+ *         retried; D_SSL_ERROR_NOT_TLS, _HANDSHAKE, _VERIFY
+ *         (d_ssl_session_info gives the flags), _PROTOCOL, or _TRUNCATED for
+ *         a failed handshake; a transport or engine failure;
+ *         D_SSL_ERROR_STATE on a closed session; or the sticky failure of a
+ *         failed one.
  */
-enum d_ssl_status d_ssl_session_handshake(struct d_ssl_session* _session);
+enum d_ssl_error d_ssl_session_handshake(struct d_ssl_session* _session);
 
 /**
  * @brief Reads application data, handshaking first if needed.
@@ -1754,17 +1652,17 @@ enum d_ssl_status d_ssl_session_handshake(struct d_ssl_session* _session);
  * @param[in]     _capacity  its size; at least 1.
  * @param[out]    _out_read  receives the count: at least 1 on success, 0
  *                           otherwise.
- * @return D_SSL_STATUS_OK with data; D_SSL_STATUS_CONNECTION_CLOSED once the
+ * @return D_SSL_OK with data; D_SSL_ERROR_CLOSED once the
  *         peer has sent close_notify, and on every read after;
- *         D_SSL_STATUS_WOULD_BLOCK; D_SSL_STATUS_UNEXPECTED_EOF if the
+ *         D_SSL_ERROR_WOULD_BLOCK; D_SSL_ERROR_TRUNCATED if the
  *         transport ended first; a handshake, protocol, transport, or engine
- *         failure; or D_SSL_STATUS_INVALID_ARGUMENT for NULL arguments or a
+ *         failure; or D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments or a
  *         zero `_capacity`.
  */
-enum d_ssl_status d_ssl_session_read(struct d_ssl_session* _session,
-                                     void*                 _buffer,
-                                     size_t                _capacity,
-                                     size_t*               _out_read);
+enum d_ssl_error d_ssl_session_read(struct d_ssl_session* _session,
+                                    void*                 _buffer,
+                                    size_t                _capacity,
+                                    size_t*               _out_read);
 
 /**
  * @brief Encrypts and sends application data, handshaking first if needed.
@@ -1781,16 +1679,16 @@ enum d_ssl_status d_ssl_session_read(struct d_ssl_session* _session,
  * @param[in]     _size         how many; at least 1.
  * @param[out]    _out_written  receives how many were taken: at least 1 on
  *                              success, 0 otherwise.
- * @return D_SSL_STATUS_OK with a count; D_SSL_STATUS_WOULD_BLOCK before
- *         anything was taken; D_SSL_STATUS_WRONG_STATE after this end's
+ * @return D_SSL_OK with a count; D_SSL_ERROR_WOULD_BLOCK before
+ *         anything was taken; D_SSL_ERROR_STATE after this end's
  *         close_notify; a handshake, transport, or engine failure; or
- *         D_SSL_STATUS_INVALID_ARGUMENT for NULL arguments or a zero
+ *         D_SSL_ERROR_INVALID_ARGUMENT for NULL arguments or a zero
  *         `_size`.
  */
-enum d_ssl_status d_ssl_session_write(struct d_ssl_session* _session,
-                                      const void*           _data,
-                                      size_t                _size,
-                                      size_t*               _out_written);
+enum d_ssl_error d_ssl_session_write(struct d_ssl_session* _session,
+                                     const void*           _data,
+                                     size_t                _size,
+                                     size_t*               _out_written);
 
 /**
  * @brief Writes all of `_data` and flushes it.
@@ -1802,15 +1700,15 @@ enum d_ssl_status d_ssl_session_write(struct d_ssl_session* _session,
  * @param[in]     _data         the bytes; may be NULL when `_size` is 0.
  * @param[in]     _size         how many.
  * @param[out]    _out_written  receives how many were taken; may be NULL.
- * @return D_SSL_STATUS_OK once all are taken and sent;
- *         D_SSL_STATUS_WOULD_BLOCK, after which a caller resumes with the
+ * @return D_SSL_OK once all are taken and sent;
+ *         D_SSL_ERROR_WOULD_BLOCK, after which a caller resumes with the
  *         remainder, or with d_ssl_session_flush once `*_out_written`
  *         equals `_size`; or a failure of d_ssl_session_write.
  */
-enum d_ssl_status d_ssl_session_write_all(struct d_ssl_session* _session,
-                                          const void*           _data,
-                                          size_t                _size,
-                                          size_t*               _out_written);
+enum d_ssl_error d_ssl_session_write_all(struct d_ssl_session* _session,
+                                         const void*           _data,
+                                         size_t                _size,
+                                         size_t*               _out_written);
 
 /**
  * @brief Sends the ciphertext a session still holds.
@@ -1820,12 +1718,12 @@ enum d_ssl_status d_ssl_session_write_all(struct d_ssl_session* _session,
  *       session, that one is flushed separately.
  *
  * @param[in,out] _session  the session.
- * @return D_SSL_STATUS_OK once nothing is pending; D_SSL_STATUS_WOULD_BLOCK
- *         if the transport stopped taking bytes; D_SSL_STATUS_UNEXPECTED_EOF
+ * @return D_SSL_OK once nothing is pending; D_SSL_ERROR_WOULD_BLOCK
+ *         if the transport stopped taking bytes; D_SSL_ERROR_TRUNCATED
  *         if the peer stopped reading; a transport or engine failure; or the
  *         sticky failure of a failed session.
  */
-enum d_ssl_status d_ssl_session_flush(struct d_ssl_session* _session);
+enum d_ssl_error d_ssl_session_flush(struct d_ssl_session* _session);
 
 /**
  * @brief Closes this end of a session: queues close_notify and flushes it.
@@ -1836,32 +1734,81 @@ enum d_ssl_status d_ssl_session_flush(struct d_ssl_session* _session);
  *       established is simply marked CLOSED, sending nothing.
  *
  * @param[in,out] _session  the session.
- * @return D_SSL_STATUS_OK once close_notify is on the wire, or the session
- *         was already closed; D_SSL_STATUS_WOULD_BLOCK, to be retried; a
+ * @return D_SSL_OK once close_notify is on the wire, or the session
+ *         was already closed; D_SSL_ERROR_WOULD_BLOCK, to be retried; a
  *         transport or engine failure; or the sticky failure of a failed
  *         session.
  */
-enum d_ssl_status d_ssl_session_shutdown(struct d_ssl_session* _session);
+enum d_ssl_error d_ssl_session_shutdown(struct d_ssl_session* _session);
+
+/**
+ * @brief Makes closing the session's connection view close its transport
+ *        too, or stop doing so.
+ *
+ * @note A session borrows its transport by default, as a protocol upgraded
+ *       in place needs: it goes on with the plaintext connection after TLS,
+ *       or closes it itself. A caller handing the session's base to code
+ *       that closes what it is given, and expects the socket gone, makes the
+ *       session own the transport instead.
+ *
+ * @param[in,out] _session  the session; NULL is ignored.
+ * @param[in]     _owns     whether closing the view closes the transport.
+ */
+void d_ssl_session_own_transport(struct d_ssl_session* _session,
+                                 bool                  _owns);
 
 // Session accessors; they never fail. d_ssl_session_state and
 // d_ssl_session_wants report where the session is and what it waits on (a
-// NULL or destroyed session reads as FAILED and NOTHING). d_ssl_session_info
-// copies what the session negotiated and learned into *_out, and returns
-// false (leaving *_out alone) for NULL arguments or a destroyed session.
-// d_ssl_session_transport presents the session as a transport over its
-// plaintext, for a protocol to run over or another session to nest in; its
-// reads and writes are d_ssl_session_read and d_ssl_session_write. Like them,
-// a write through it may leave ciphertext pending in the session, so a caller
-// streaming data one way through a stack flushes each session in it.
+// NULL or destroyed session reads as FAILED and NOTHING).
+// d_ssl_session_failure reports the sticky failure of a FAILED session, and
+// D_SSL_OK otherwise. d_ssl_session_transport_error reports what the
+// transport's last call returned: D_NET_OK when it succeeded or there was
+// none, and its d_net_error behind a TRANSPORT failure.
+// d_ssl_session_info copies what the session negotiated and learned into
+// *_out, and returns false (leaving *_out alone) for NULL arguments or a
+// destroyed session.
 enum d_ssl_state d_ssl_session_state(const struct d_ssl_session* _session);
 enum d_ssl_want  d_ssl_session_wants(const struct d_ssl_session* _session);
+enum d_ssl_error d_ssl_session_failure(const struct d_ssl_session* _session);
+enum d_net_error d_ssl_session_transport_error(
+                     const struct d_ssl_session* _session);
 bool             d_ssl_session_info(const struct d_ssl_session* _session,
                                     struct d_ssl_info*          _out);
 
-struct d_ssl_transport d_ssl_session_transport(struct d_ssl_session* _session);
+// 10.5   Sessions as connections
+//------------------------------------------------------------------------------
+// A session's base is a net.h connection over its plaintext, ready from
+// d_ssl_session_init: HTTP's reader, net.h's framing, a protocol module, or
+// another session runs over it as over a socket. Each operation is the
+// session call of the same name, its outcome told in net.h's terms:
+//     - read: data; the peer's close_notify is the end of the stream, a
+//       count of 0 with D_NET_OK, and so is every read after it;
+//       WOULD_BLOCK stays WOULD_BLOCK; truncation is D_NET_ERROR_CLOSED;
+//       a transport failure is the transport's own d_net_error; any other
+//       failure maps through d_ssl_error_to_net.
+//     - write: as read, and after this end's close_notify,
+//       D_NET_ERROR_CLOSED. Ciphertext a non-blocking transport would not
+//       take waits in the session, as d_ssl_session_write explains.
+//     - is_open: until the session fails, ends with both close_notifies,
+//       or its view is closed.
+//     - close: close_notify when the session is established, unless the
+//       transport will not take it at once; then the view is closed, its
+//       reads, writes and shutdowns reporting D_NET_ERROR_CLOSED, and the
+//       transport is closed too when the session owns it. Closing again
+//       does nothing.
+//     - shutdown: WRITE and BOTH send close_notify first; then the
+//       transport is shut down the same way, as it is for READ alone.
+//     - remote_endpoint and local_endpoint: the transport's.
+// The detail behind a failure stays with the session: d_ssl_session_failure,
+// d_ssl_session_transport_error, and d_ssl_session_info say what net.h's
+// error cannot.
 
 
 D_EXTERN_C_END
 
+
+#elif (D_INTERNAL_NET_REQUIRE_BACKENDS == 1)
+    #error "ssl.h: no 64-bit integer type (D_INTERNAL_NET_HAS_INT64)"
+#endif  // D_INTERNAL_NET_HAS_INT64
 
 #endif  // DJINTERP_NET_SSL_SSL_H

@@ -2,17 +2,17 @@
 * djinterp [net]                                                    ftp_common.h
 *
 * Shared vocabulary of the FTP protocol foundation.
-*   Well-known ports, the CR LF terminator, the span and buffer types every
-* module reads and writes through, the error enumeration, and the line
-* splitter. Nothing under net/ftp/ performs I/O or allocates: parsers return
-* spans into caller memory, and writers fill caller buffers, leaving them
-* unchanged on failure.
+*   Well-known ports, the CR LF terminator, the buffer type every module
+* writes through, and the error enumeration; lines are split by net's
+* codec_line.h. Nothing under net/ftp/ performs I/O or allocates: parsers
+* return spans (d_pack_text) into caller memory, and writers fill caller
+* buffers, leaving them unchanged on failure.
 *
 *
 * path:      /inc/djinterp/net/ftp/ftp_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -30,13 +30,12 @@ TABLE OF CONTENTS
 2.  TYPES
     -----
     1.  Text
-         1.  d_ftp_span
-         2.  d_ftp_buffer
+         1.  d_ftp_buffer
     2.  Errors
          1.  d_ftp_error
 3.  TEXT AND ERRORS
     ---------------
-    1.  Buffers and lines
+    1.  Buffers
     2.  Errors
 */
 
@@ -46,7 +45,10 @@ TABLE OF CONTENTS
 // std
 #include <stddef.h>  // size_t
 // djinterp
-#include "../../c/djinterp.h"  // framework root
+#include "../../c/djinterp.h"          // framework root
+#include "../../c/util/sink_common.h"  // d_pack_text
+#include "../codec/codec_line.h"       // d_net_line_next, for listings
+#include "../net_common.h"             // d_net_error
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++
@@ -104,18 +106,12 @@ D_EXTERN_C_BEGIN
 
 // 2.1    Text
 //------------------------------------------------------------------------------
-// 2.1.1
-// d_ftp_span
-//   struct: a borrowed, unterminated run of bytes -- the form in which parsers
-// hand back the parts of what they read. It points into memory the caller
-// owns and is valid exactly as long as that memory is.
-struct d_ftp_span
-{
-    const char* data;    // first byte; may be NULL when length is 0
-    size_t      length;  // byte count
-};
+// Parsers hand back the parts of what they read as d_pack_text spans
+// (c/util/sink_common.h): borrowed, unterminated, `data` NULL only when
+// `length` is 0, and valid exactly as long as the caller's memory they point
+// into.
 
-// 2.1.2
+// 2.1.1
 // d_ftp_buffer
 //   struct: caller-owned output storage. Writers append at `length`, never
 // past `capacity`, and keep the text NUL-terminated, so `capacity` must exceed
@@ -151,8 +147,8 @@ enum d_ftp_error
     // transport
     D_FTP_ERROR_RESOLVE,               // the host name did not resolve
     D_FTP_ERROR_CONNECT,               // no connection could be made
-    D_FTP_ERROR_TIMEOUT,               // an operation outlived its deadline
-    D_FTP_ERROR_CONNECTION_CLOSED,     // the peer closed a connection early
+    D_FTP_ERROR_TIMED_OUT,             // an operation outlived its deadline
+    D_FTP_ERROR_CLOSED,                // the peer closed a connection early
     D_FTP_ERROR_TLS,                   // TLS negotiation or verification
 
     // protocol, mapped from negative replies
@@ -184,7 +180,7 @@ enum d_ftp_error
 //==============================================================================
 
 
-// 3.1    Buffers and lines
+// 3.1    Buffers
 //------------------------------------------------------------------------------
 /**
  * @brief Prepares an output buffer over caller storage, empty and terminated.
@@ -194,21 +190,9 @@ enum d_ftp_error
  *                       rejects.
  * @param[in]  _capacity the size of `_storage` in bytes.
  */
-void   d_ftp_buffer_init(struct d_ftp_buffer* _buffer,
-                         char*                _storage,
-                         size_t               _capacity);
-/**
- * @brief Splits the next line off the front of a span.
- *
- * Lines end at LF; a CR before the LF is dropped with it. A final line needs
- * no terminator, and a trailing terminator yields no empty last line.
- *
- * @param[in,out] _cursor   the unread text; advanced past the line.
- * @param[out]    _out_line the line, without its terminator.
- * @return true if a line was produced; false once `_cursor` is empty.
- */
-bool   d_ftp_span_next_line(struct d_ftp_span* _cursor,
-                            struct d_ftp_span* _out_line);
+void d_ftp_buffer_init(struct d_ftp_buffer* _buffer,
+                       char*                _storage,
+                       size_t               _capacity);
 
 // 3.2    Errors
 //------------------------------------------------------------------------------
@@ -219,6 +203,30 @@ bool   d_ftp_span_next_line(struct d_ftp_span* _cursor,
  * @return the description; never NULL.
  */
 const char* d_ftp_error_string(enum d_ftp_error _error);
+/**
+ * @brief Maps an error onto d_net_error, by the rules net.h gives with it.
+ *
+ * @param[in] _error the error.
+ * @return the d_net_error it maps to; D_NET_ERROR_UNKNOWN for a value
+ *         outside the enum.
+ */
+enum d_net_error d_ftp_error_to_net(enum d_ftp_error _error);
+/**
+ * @brief Gives the error a connection's d_net_error is here, by net.h's
+ *        rules the other way.
+ *
+ * D_NET_OK is D_FTP_OK; INVALID_ARGUMENT, OUT_OF_MEMORY and TIMED_OUT are
+ * their namesakes; a stream that ended or was lost -- CLOSED,
+ * CONNECTION_RESET, CONNECTION_ABORTED -- is CLOSED; an address that names
+ * no host -- ADDRESS_INVALID, HOST_UNREACHABLE -- is RESOLVE; a connection
+ * refused -- CONNECTION_REFUSED, NETWORK_DOWN, ACCESS_DENIED -- is CONNECT;
+ * PROTOCOL is MALFORMED; anything else, an unknown value included, is
+ * UNKNOWN. d_ftp_error_to_net of a transport error comes back to it.
+ *
+ * @param[in] _error the connection's error.
+ * @return the FTP error it is.
+ */
+enum d_ftp_error d_ftp_error_from_net(enum d_net_error _error);
 
 
 D_EXTERN_C_END

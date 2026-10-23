@@ -24,19 +24,23 @@
 * plaintext received after the server agreed to AUTH TLS, which an attacker
 * could have injected, aborts the upgrade; and a TLS data stream that stops
 * without close_notify is reported as truncated, not complete.
-*   Every call blocks. The TCP transport bounds each connection attempt by
-* the options' connect_timeout_ms; it has no read timeouts yet, so
-* response_timeout_ms and idle_timeout_ms take effect only once it does, and
-* an active-mode transfer waits for the server's connection without limit.
+*   Every call blocks. The options bound each connection attempt by
+* connect_timeout_ms, each read and write on the control connection by
+* response_timeout_ms, and each on a data connection by idle_timeout_ms; an
+* active-mode transfer waits for the server's connection without limit.
 * A client holds two TLS sessions and its buffers, so it is large: give it
 * static or heap storage, and do not copy it once initialized. Buffer sizes
 * come from cfg_ftp.h.
+*
+*   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
+* compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
+* (decision 101 of the register).
 *
 *
 * path:      /inc/djinterp/net/ftp/ftp_client.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -71,11 +75,10 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>  // size_t
-#include <stdint.h>  // uint16_t, uint32_t
 // djinterp
 #include "../../c/djinterp.h"                // framework root
 #include "../../config/net/ftp/cfg_ftp.h"  // D_INTERNAL_FTP_*
-#include "../net.h"                          // d_net_error
+#include "../net_common.h"                   // d_net_error
 #include "../ssl/ssl.h"                      // d_ssl_context, d_ssl_session
 #include "../tcp/tcp.h"                      // d_tcp_connection
 #include "./ftp_command.h"                   // d_ftp_command
@@ -84,6 +87,16 @@ TABLE OF CONTENTS
 #include "./ftp_options.h"                   // d_ftp_options
 #include "./ftp_reply.h"                     // d_ftp_reply_parser
 #include "./ftp_security.h"                  // d_ftp_protection
+#include "../../config/net/cfg_net.h"        // D_INTERNAL_NET_REQUIRE_BACKENDS
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // uint16_t, uint32_t
+
+// 64-bit floor: this header needs a 64-bit integer type, and compiles to
+// nothing where the build has none -- ISO strict C++98 on a 32-bit target
+// (the owner's ruling of 2026.10.03 on round 3's question 1, (a)). The
+// answer is net_common.h's, taken once per translation unit, so that net's
+// gated headers agree.
+#if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++
@@ -192,7 +205,7 @@ struct d_ftp_client
     bool                        logged_in;        // login accepted
     bool                        type_sent;        // TYPE set this session
     bool                        extended_refused; // EPSV or EPRT refused
-    enum d_ssl_status           tls_status;       // cause of ERROR_TLS
+    enum d_ssl_error            tls_status;       // cause of ERROR_TLS
     enum d_net_error            net_error;        // cause of a lost link
 };
 
@@ -248,7 +261,7 @@ void d_ftp_client_init(struct d_ftp_client*        _client,
  *         arguments, a client already connected, TLS options without a
  *         context, or a context whose plan checks less than the options
  *         require; D_FTP_ERROR_RESOLVE, D_FTP_ERROR_CONNECT, or
- *         D_FTP_ERROR_TIMEOUT when no connection is made, with the
+ *         D_FTP_ERROR_TIMED_OUT when no connection is made, with the
  *         transport's error in `net_error`; D_FTP_ERROR_TLS for a
  *         failed handshake, with the kernel's status in `tls_status`;
  *         D_FTP_ERROR_SECURITY if the server refused AUTH TLS while security
@@ -316,7 +329,7 @@ enum d_ftp_error d_ftp_client_command(struct d_ftp_client* _client,
 // returns the first error: D_FTP_ERROR_BAD_SEQUENCE when not logged in;
 // D_FTP_ERROR_INVALID_ARGUMENT for NULL or empty arguments; the error of a
 // refused command or of the final reply; the callback's own error, which
-// abandons the transfer; D_FTP_ERROR_DATA_CONNECTION or D_FTP_ERROR_TIMEOUT
+// abandons the transfer; D_FTP_ERROR_DATA_CONNECTION or D_FTP_ERROR_TIMED_OUT
 // for a data connection that could not be made or failed; D_FTP_ERROR_TLS for
 // TLS that failed on it, or that ended without close_notify; or a
 // control-connection failure. `reply` holds the last reply read.
@@ -358,7 +371,7 @@ enum d_ftp_error d_ftp_client_store(struct d_ftp_client* _client,
  *        LIST otherwise.
  *
  * The listing reaches the sink as the server sent it, lines ending in CR LF,
- * ready for d_ftp_span_next_line() and d_ftp_listing_parse().
+ * ready for d_net_line_next() and d_ftp_listing_parse().
  *
  * @param[in,out] _client     the client, logged in.
  * @param[in]     _path       the directory, or NULL for the current one.
@@ -396,5 +409,9 @@ void             d_ftp_client_close(struct d_ftp_client* _client);
 
 D_EXTERN_C_END
 
+
+#elif (D_INTERNAL_NET_REQUIRE_BACKENDS == 1)
+    #error "ftp_client.h: no 64-bit integer type (D_INTERNAL_NET_HAS_INT64)"
+#endif  // D_INTERNAL_NET_HAS_INT64
 
 #endif  // DJINTERP_NET_FTP_FTP_CLIENT_H

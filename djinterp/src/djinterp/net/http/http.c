@@ -11,11 +11,13 @@
 * path:      /src/djinterp/net/http/http.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/http/http.h"  // corresponding header
 // std
 #include <string.h>  // memcmp, strlen
+// djinterp
+#include "../../../../inc/djinterp/net/net_common.h"  // d_net_ascii_*
 
 
 // d_http_reason
@@ -121,19 +123,6 @@ static const struct d_http_reason REASONS[] =
 };
 
 /*
-d_http_is_digit
-  ASCII digits.
-*/
-static bool
-d_http_is_digit(
-    char _c
-)
-{
-    return ( (_c >= '0') &&
-             (_c <= '9') );
-}
-
-/*
 d_http_is_tchar
   tchar (RFC 9110, 5.6.2): letters, digits, and fifteen punctuation marks.
 */
@@ -143,11 +132,7 @@ d_http_is_tchar(
 )
 {
     // letters and digits, ASCII only
-    if ( ( (_c >= 'a') &&
-           (_c <= 'z') )     ||
-         ( (_c >= 'A') &&
-           (_c <= 'Z') )     ||
-         (d_http_is_digit(_c)) )
+    if (d_net_ascii_is_alnum(_c))
     {
         return true;
     }
@@ -173,33 +158,6 @@ d_http_is_tchar(
         default:
             return false;
     }
-}
-
-/*
-d_http_lower
-  ASCII lowercase, never locale case.
-*/
-static char
-d_http_lower(
-    char _c
-)
-{
-    return ( (_c >= 'A') &&
-             (_c <= 'Z') ) ? (char)(_c + ('a' - 'A'))
-                           : _c;
-}
-
-/*
-d_http_is_blank
-  The whitespace HTTP allows inside a field value: SP and HTAB.
-*/
-static bool
-d_http_is_blank(
-    char _c
-)
-{
-    return ( (_c == ' ') ||
-             (_c == '\t') );
 }
 
 /*
@@ -232,7 +190,7 @@ d_http_method_parse(
          ( (!_text.data) &&
            (_text.length != 0u) ) )
     {
-        return D_HTTP_ERROR_ARGUMENT;
+        return D_HTTP_ERROR_INVALID_ARGUMENT;
     }
 
     // a method is a token
@@ -322,15 +280,15 @@ d_http_version_parse(
          ( (!_text.data) &&
            (_text.length != 0u) ) )
     {
-        return D_HTTP_ERROR_ARGUMENT;
+        return D_HTTP_ERROR_INVALID_ARGUMENT;
     }
 
     // HTTP-version = HTTP-name "/" DIGIT "." DIGIT, and major version 1
-    if ( (_text.length != 8u)               ||
+    if ( (_text.length != 8u)                   ||
          (memcmp(_text.data,
                  "HTTP/1.",
-                 7u) != 0)                  ||
-         (!d_http_is_digit(_text.data[7])) )
+                 7u) != 0)                      ||
+         (!d_net_ascii_is_digit(_text.data[7])) )
     {
         return D_HTTP_ERROR_VERSION;
     }
@@ -369,14 +327,14 @@ d_http_status_parse(
          ( (!_text.data) &&
            (_text.length != 0u) ) )
     {
-        return D_HTTP_ERROR_ARGUMENT;
+        return D_HTTP_ERROR_INVALID_ARGUMENT;
     }
 
     // status-code = 3DIGIT
-    if ( (_text.length != 3u)              ||
-         (!d_http_is_digit(_text.data[0])) ||
-         (!d_http_is_digit(_text.data[1])) ||
-         (!d_http_is_digit(_text.data[2])) )
+    if ( (_text.length != 3u)                   ||
+         (!d_net_ascii_is_digit(_text.data[0])) ||
+         (!d_net_ascii_is_digit(_text.data[1])) ||
+         (!d_net_ascii_is_digit(_text.data[2])) )
     {
         return D_HTTP_ERROR_STATUS;
     }
@@ -526,7 +484,7 @@ d_http_is_field_value(
     for (size_t i = 0u; i < _text.length; ++i)
     {
         const unsigned char byte  = (unsigned char)_text.data[i];
-        const bool          blank = d_http_is_blank(_text.data[i]);
+        const bool          blank = d_net_ascii_is_blank(_text.data[i]);
 
         // a control, DEL, or whitespace at either end
         if ( ( (!blank)           &&
@@ -545,42 +503,20 @@ d_http_is_field_value(
 
 /*
 d_http_trim_whitespace
-  Narrows the view from both ends; the bytes are not touched.
+  OWS is spaces and horizontal tabs (RFC 9110 section 5.6.3): the codec's
+blanks. The view narrows; the bytes are not touched.
 */
 struct d_pack_text
 d_http_trim_whitespace(
     struct d_pack_text _text
 )
 {
-    struct d_pack_text trimmed = _text;
-
-    // an unreadable text has nothing to trim
-    if (!trimmed.data)
-    {
-        return trimmed;
-    }
-
-    // leading whitespace
-    while ( (trimmed.length > 0u) &&
-            (d_http_is_blank(trimmed.data[0])) )
-    {
-        trimmed.data   += 1;
-        trimmed.length -= 1u;
-    }
-
-    // trailing whitespace
-    while ( (trimmed.length > 0u) &&
-            (d_http_is_blank(trimmed.data[trimmed.length - 1u])) )
-    {
-        trimmed.length -= 1u;
-    }
-
-    return trimmed;
+    return d_net_ascii_trim(_text);
 }
 
 /*
 d_http_field_name_equal
-  The same length, and the same bytes once ASCII case is folded.
+  Field names compare without regard to ASCII case (RFC 9110 section 5.1).
 */
 bool
 d_http_field_name_equal(
@@ -588,26 +524,8 @@ d_http_field_name_equal(
     struct d_pack_text _other
 )
 {
-    // different lengths, or an unreadable name
-    if ( (_name.length != _other.length) ||
-         ( (_name.length != 0u) &&
-           ( (!_name.data) ||
-             (!_other.data) ) ) )
-    {
-        return false;
-    }
-
-    // each byte, case folded
-    for (size_t i = 0u; i < _name.length; ++i)
-    {
-        // the first difference
-        if (d_http_lower(_name.data[i]) != d_http_lower(_other.data[i]))
-        {
-            return false;
-        }
-    }
-
-    return true;
+    return d_net_ascii_ieq(_name,
+                           _other);
 }
 
 /*
@@ -623,7 +541,7 @@ d_http_error_name(
     {
         case D_HTTP_OK:
             return "no error";
-        case D_HTTP_ERROR_ARGUMENT:
+        case D_HTTP_ERROR_INVALID_ARGUMENT:
             return "a NULL argument";
         case D_HTTP_ERROR_METHOD:
             return "method is not a token";
@@ -656,4 +574,42 @@ d_http_error_name(
         default:
             return "unknown error";
     }
+}
+
+/*
+d_http_error_to_net
+  One case per enumerator and no default, so the compiler reports a missing
+case; the groups follow net.h's rules. A value outside the enum is UNKNOWN.
+*/
+enum d_net_error
+d_http_error_to_net(
+    enum d_http_error _error
+)
+{
+    switch (_error)
+    {
+        case D_HTTP_OK:
+            return D_NET_OK;
+        case D_HTTP_ERROR_INVALID_ARGUMENT:
+            return D_NET_ERROR_INVALID_ARGUMENT;
+        case D_HTTP_ERROR_METHOD:
+        case D_HTTP_ERROR_VERSION:
+        case D_HTTP_ERROR_STATUS:
+        case D_HTTP_ERROR_FIELD_NAME:
+        case D_HTTP_ERROR_FIELD_VALUE:
+        case D_HTTP_ERROR_START_LINE:
+        case D_HTTP_ERROR_LINE_ENDING:
+        case D_HTTP_ERROR_OBS_FOLD:
+        case D_HTTP_ERROR_TARGET:
+        case D_HTTP_ERROR_HOST:
+            return D_NET_ERROR_PROTOCOL;
+        case D_HTTP_ERROR_START_LINE_TOO_LONG:
+        case D_HTTP_ERROR_HEAD_TOO_LARGE:
+        case D_HTTP_ERROR_TOO_MANY_FIELDS:
+            return D_NET_ERROR_MESSAGE_TOO_LARGE;
+        case D_HTTP_ERROR_INCOMPLETE:
+            return D_NET_ERROR_WOULD_BLOCK;
+    }
+
+    return D_NET_ERROR_UNKNOWN;
 }

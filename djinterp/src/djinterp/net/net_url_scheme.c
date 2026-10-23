@@ -11,14 +11,14 @@
 * path:      /src/djinterp/net/net_url_scheme.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../inc/djinterp/net/net_url.h"  // corresponding header
 // std
 #include <string.h>  // strlen
 // djinterp
-#include "../../../inc/djinterp/net/net.h"  // d_net_endpoint_set, D_NET_HOST_MAX
-#include "./net_url_internal.h"             // shared helpers
+#include "../../../inc/djinterp/net/net_common.h"         // d_net_endpoint_set, D_NET_HOST_MAX
+#include "./net_url_internal.h"                           // shared helpers
 
 
 // d_net_url_scheme_entry
@@ -76,7 +76,7 @@ d_net_url_scheme_entry_of(
         // compare letter by letter, folding ASCII case
         while ( (same < count)          &&
                 (same < _scheme.length) &&
-                (d_net_url_lower(_scheme.data[same]) == name[same]) )
+                (d_net_ascii_lower(_scheme.data[same]) == name[same]) )
         {
             same += 1u;
         }
@@ -153,7 +153,7 @@ d_net_url_error_name(
     {
         case D_NET_URL_OK:
             return "no error";
-        case D_NET_URL_ERROR_ARGUMENT:
+        case D_NET_URL_ERROR_INVALID_ARGUMENT:
             return "a NULL argument";
         case D_NET_URL_ERROR_SCHEME:
             return "malformed scheme";
@@ -175,11 +175,44 @@ d_net_url_error_name(
             return "malformed percent escape";
         case D_NET_URL_ERROR_BASE:
             return "base is not absolute";
-        case D_NET_URL_ERROR_BUFFER:
+        case D_NET_URL_ERROR_BUFFER_TOO_SMALL:
             return "buffer too small";
         default:
             return "unknown error";
     }
+}
+
+/*
+d_net_url_error_to_net
+  One case per enumerator and no default, so the compiler reports a missing
+case; the groups follow net.h's rules. A value outside the enum is UNKNOWN.
+*/
+enum d_net_error
+d_net_url_error_to_net(
+    enum d_net_url_error _error
+)
+{
+    switch (_error)
+    {
+        case D_NET_URL_OK:
+            return D_NET_OK;
+        case D_NET_URL_ERROR_INVALID_ARGUMENT:
+        case D_NET_URL_ERROR_BUFFER_TOO_SMALL:
+            return D_NET_ERROR_INVALID_ARGUMENT;
+        case D_NET_URL_ERROR_SCHEME:
+        case D_NET_URL_ERROR_USERINFO:
+        case D_NET_URL_ERROR_HOST:
+        case D_NET_URL_ERROR_IP_LITERAL:
+        case D_NET_URL_ERROR_PORT:
+        case D_NET_URL_ERROR_PATH:
+        case D_NET_URL_ERROR_QUERY:
+        case D_NET_URL_ERROR_FRAGMENT:
+        case D_NET_URL_ERROR_PERCENT:
+        case D_NET_URL_ERROR_BASE:
+            return D_NET_ERROR_ADDRESS_INVALID;
+    }
+
+    return D_NET_ERROR_UNKNOWN;
 }
 
 /*

@@ -7,10 +7,12 @@
 * unchanged. Connections and listeners live in caller storage; nothing here
 * allocates. TCP and unix-domain stream sockets are both served, the protocol
 * taken from the endpoint.
-*   Blocking throughout. EINTR is retried; SIGPIPE is suppressed on every
-* send; every socket is close-on-exec; and closing a listener wakes an accept
-* blocked on it in another thread. Native errors map onto d_net_error as the
-* C++ tcp.hpp before this one mapped them.
+*   Blocking throughout, each wait bounded where the caller asks: a connect
+* per address, every read and write of a connection, an accept. EINTR is
+* retried; SIGPIPE is suppressed on every send; every socket is
+* close-on-exec; and closing a listener wakes an accept blocked on it in
+* another thread. Native errors map onto d_net_error as the C++ tcp.hpp
+* before this one mapped them.
 *   Backends: BSD sockets and Winsock 2, chosen by env_tcp.h. Without one, or
 * with D_CFG_TCP 0, the functions compile to stubs that report
 * D_NET_ERROR_NETWORK_DOWN. The Winsock backend starts Winsock itself, once,
@@ -21,7 +23,7 @@
 * path:      /inc/djinterp/net/tcp/tcp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.18
 *******************************************************************************/
 
 /*
@@ -44,6 +46,7 @@ TABLE OF CONTENTS
     -----------
     1.  Availability
     2.  Native errors and sockets
+    3.  The host
 4.  OPTIONS
     -------
     1.  Defaults
@@ -64,11 +67,12 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>  // size_t
-#include <stdint.h>  // intptr_t
 // djinterp
 #include "../../c/djinterp.h"              // framework root
 #include "../../config/net/tcp/cfg_tcp.h"  // D_INTERNAL_TCP_*
-#include "../net.h"                        // d_net_connection, d_net_endpoint
+#include "../net_common.h"                 // d_net_connection, d_net_endpoint
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // intptr_t
 
 
 D_EXTERN_C_BEGIN
@@ -113,9 +117,11 @@ struct d_tcp_options
 {
     long connect_timeout_ms;  // per address tried; 0 or less waits as the
                               // system does
+    long io_timeout_ms;       // per read and per write of a connection
+                              // opened or accepted; 0 or less: no limit
     int  listen_backlog;      // listen()'s backlog
     bool no_delay;            // set TCP_NODELAY, disabling Nagle
-    bool reuse_address;       // set SO_REUSEADDR on listeners
+    bool reuse_address;       // SO_REUSEADDR on listeners; BSD sockets only
     bool reuse_port;          // set SO_REUSEPORT on listeners, where it exists
 };
 
@@ -129,11 +135,13 @@ struct d_tcp_options
 // opens, and remain readable after it closes.
 struct d_tcp_connection
 {
-    struct d_net_connection base;      // the net.h view; must stay first
-    struct d_net_endpoint   remote;    // the peer; an empty host is unknown
-    struct d_net_endpoint   local;     // this end; an empty host is unknown
-    d_tcp_socket            socket;    // D_TCP_SOCKET_INVALID once closed
-    enum d_net_protocol     protocol;  // TCP, UNIX, or an adopted UDP
+    struct d_net_connection base;        // the net.h view; must stay first
+    struct d_net_endpoint   remote;      // the peer; an empty host is unknown
+    struct d_net_endpoint   local;       // this end; an empty host is unknown
+    d_tcp_socket            socket;      // D_TCP_SOCKET_INVALID once closed
+    enum d_net_protocol     protocol;    // TCP, UNIX, or an adopted UDP
+    long                    timeout_ms;  // each read's and write's limit; 0:
+                                         // none
 };
 
 // 2.3    Listeners
@@ -145,13 +153,14 @@ struct d_tcp_connection
 // another thread.
 struct d_tcp_listener
 {
-    struct d_net_endpoint local;       // the bound address, or the path
-    d_tcp_socket          socket;      // D_TCP_SOCKET_INVALID once closed
-    d_tcp_socket          wake_read;   // the wake pipe's read end
-    d_tcp_socket          wake_write;  // the wake pipe's write end
-    enum d_net_protocol   protocol;    // TCP or UNIX
-    bool                  no_delay;    // applied to accepted connections
-    bool                  owns_path;   // a unix-domain path to remove
+    struct d_net_endpoint local;          // the bound address, or the path
+    d_tcp_socket          socket;         // D_TCP_SOCKET_INVALID once closed
+    d_tcp_socket          wake_read;      // the wake pipe's read end
+    d_tcp_socket          wake_write;     // the wake pipe's write end
+    enum d_net_protocol   protocol;       // TCP or UNIX
+    long                  io_timeout_ms;  // given to accepted connections
+    bool                  no_delay;       // applied to accepted connections
+    bool                  owns_path;      // a unix-domain path to remove
 };
 
 
@@ -188,6 +197,26 @@ enum d_net_error d_tcp_error_from_native(int _code);
 void d_tcp_socket_cloexec(d_tcp_socket _socket);
 void d_tcp_socket_no_sigpipe(d_tcp_socket _socket);
 
+// 3.3    The host
+//------------------------------------------------------------------------------
+/**
+ * @brief Writes this machine's name as the system knows it.
+ *
+ * The name is whatever gethostname reports, short or fully qualified; a
+ * caller that needs a fully qualified name checks for a dot itself, as SMTP
+ * does for EHLO.
+ *
+ * @param[out] _buffer    receives the name, NUL-terminated.
+ * @param[in]  _capacity  its size in bytes.
+ * @return D_NET_OK; D_NET_ERROR_MESSAGE_TOO_LARGE when the name and its
+ *         terminator do not fit, `_buffer` then holding an empty string;
+ *         D_NET_ERROR_INVALID_ARGUMENT for a NULL `_buffer` or a zero
+ *         `_capacity`; D_NET_ERROR_NETWORK_DOWN from the stubs, or when
+ *         Winsock cannot start; otherwise the mapped native error.
+ */
+enum d_net_error d_tcp_host_name(char*  _buffer,
+                                 size_t _capacity);
+
 
 //==============================================================================
 // 4.  OPTIONS
@@ -196,8 +225,11 @@ void d_tcp_socket_no_sigpipe(d_tcp_socket _socket);
 
 // 4.1    Defaults
 //------------------------------------------------------------------------------
-// d_tcp_options_init -- no connect timeout, cfg_tcp.h's backlog, Nagle left
-// on, SO_REUSEADDR on, SO_REUSEPORT off; a NULL argument is ignored
+// d_tcp_options_init -- no connect or I/O timeout, cfg_tcp.h's backlog,
+// Nagle left on, SO_REUSEADDR on, SO_REUSEPORT off; a NULL argument is
+// ignored. reuse_address does nothing under Winsock: Windows rebinds an
+// address its last listener left in TIME_WAIT without it, and Winsock's
+// SO_REUSEADDR would let a second listener take a port another holds.
 void d_tcp_options_init(struct d_tcp_options* _options);
 
 
@@ -223,13 +255,14 @@ void             d_tcp_connection_init(struct d_tcp_connection* _connection);
  * @param[out] _connection  receives the connection; closed on failure.
  * @param[in]  _endpoint    where to connect: TCP, or UNIX where
  *                          D_ENV_TCP_HAS_UNIX.
- * @param[in]  _options     connect_timeout_ms and no_delay apply; NULL
- *                          means the defaults.
- * @return D_NET_ERROR_NONE; D_NET_ERROR_INVALID_ARGUMENT for a NULL
+ * @param[in]  _options     connect_timeout_ms, io_timeout_ms and no_delay
+ *                          apply; NULL means the defaults.
+ * @return D_NET_OK; D_NET_ERROR_INVALID_ARGUMENT for a NULL
  *         argument or a UDP endpoint; D_NET_ERROR_ADDRESS_INVALID for a
  *         unix-domain endpoint without unix-domain support;
  *         D_NET_ERROR_TIMED_OUT when the timeout expires; otherwise the
- *         last address's error, or the resolver's.
+ *         last address's error, the resolver's, or the error setting the
+ *         I/O timeout, which closes the connection again.
  */
 enum d_net_error d_tcp_connect(struct d_tcp_connection*     _connection,
                                const struct d_net_endpoint* _endpoint,
@@ -245,7 +278,7 @@ enum d_net_error d_tcp_connect(struct d_tcp_connection*     _connection,
  *                          stream socket, D_NET_PROTOCOL_UDP for a
  *                          connected datagram socket; IP endpoints are
  *                          recorded with it.
- * @return D_NET_ERROR_NONE; D_NET_ERROR_INVALID_ARGUMENT for a NULL
+ * @return D_NET_OK; D_NET_ERROR_INVALID_ARGUMENT for a NULL
  *         connection, an invalid socket, or an unknown protocol, the socket
  *         then being closed; D_NET_ERROR_NETWORK_DOWN from the stubs.
  */
@@ -261,10 +294,12 @@ enum d_net_error d_tcp_connection_adopt(struct d_tcp_connection* _connection,
  * @param[in,out] _connection  the connection.
  * @param[out]    _buffer      receives the bytes.
  * @param[in]     _size        its size.
- * @return the bytes read and D_NET_ERROR_NONE; a count of 0 with
- *         D_NET_ERROR_NONE at the end of the stream; D_NET_ERROR_CLOSED on
- *         a closed connection; D_NET_ERROR_WOULD_BLOCK from a non-blocking
- *         socket with nothing to read; otherwise the mapped native error.
+ * @return the bytes read and D_NET_OK; a count of 0 with
+ *         D_NET_OK at the end of the stream; D_NET_ERROR_CLOSED on
+ *         a closed connection; D_NET_ERROR_TIMED_OUT when the connection's
+ *         timeout expires first; D_NET_ERROR_WOULD_BLOCK from a
+ *         non-blocking socket with nothing to read; otherwise the mapped
+ *         native error.
  */
 struct d_net_io_result d_tcp_connection_read(
                            struct d_tcp_connection* _connection,
@@ -277,9 +312,10 @@ struct d_net_io_result d_tcp_connection_read(
  * @param[in,out] _connection  the connection.
  * @param[in]     _data        the bytes.
  * @param[in]     _size        how many.
- * @return the bytes written and D_NET_ERROR_NONE; D_NET_ERROR_CLOSED on a
+ * @return the bytes written and D_NET_OK; D_NET_ERROR_CLOSED on a
  *         closed connection; D_NET_ERROR_CONNECTION_RESET when the peer has
- *         gone; otherwise the mapped native error.
+ *         gone; D_NET_ERROR_TIMED_OUT when the connection's timeout expires
+ *         with nothing written; otherwise the mapped native error.
  */
 struct d_net_io_result d_tcp_connection_write(
                            struct d_tcp_connection* _connection,
@@ -302,17 +338,50 @@ d_tcp_socket     d_tcp_connection_native(
                      const struct d_tcp_connection* _connection);
 
 /**
+ * @brief Counts the bytes received and not yet read, without taking them.
+ *
+ * @param[in]  _connection  the connection.
+ * @param[out] _out_count   receives the count; 0 when it is unknown.
+ * @return true if the count is known; false for NULL, a closed connection,
+ *         a platform that cannot count (D_ENV_TCP_CAN_COUNT), a failed
+ *         count, and the stubs.
+ */
+bool             d_tcp_connection_available(
+                     const struct d_tcp_connection* _connection,
+                     size_t*                        _out_count);
+
+/**
+ * @brief Bounds each later read and write, and so every wait a protocol
+ *        over the connection makes.
+ *
+ * A read finds nothing in time, or a write cannot start, and the call
+ * reports D_NET_ERROR_TIMED_OUT; a write that started may return short. The
+ * socket's own receive and send timeouts carry the limit, so it applies to
+ * a blocking socket, as every socket opened here is. What a stream holds
+ * after a timeout is unknown: a protocol closes the connection.
+ *
+ * @param[in,out] _connection  the connection.
+ * @param[in]     _timeout_ms  the limit in milliseconds; 0 or less removes
+ *                             it.
+ * @return D_NET_OK; D_NET_ERROR_CLOSED on a closed connection;
+ *         D_NET_ERROR_INVALID_ARGUMENT for NULL; otherwise the mapped native
+ *         error, which leaves the limit as it was.
+ */
+enum d_net_error d_tcp_connection_set_timeout(
+                     struct d_tcp_connection* _connection,
+                     long                     _timeout_ms);
+
+/**
  * @brief Closes one or both directions, leaving the socket open.
  *
  * @param[in,out] _connection  the connection.
  * @param[in]     _mode        the direction or directions.
- * @return D_NET_ERROR_NONE; D_NET_ERROR_CLOSED on a closed connection;
+ * @return D_NET_OK; D_NET_ERROR_CLOSED on a closed connection;
  *         D_NET_ERROR_INVALID_ARGUMENT for NULL or an unknown mode;
  *         otherwise the mapped native error.
  */
-enum d_net_error d_tcp_connection_shutdown(
-                     struct d_tcp_connection* _connection,
-                     enum d_net_shutdown      _mode);
+enum d_net_error d_tcp_connection_shutdown(struct d_tcp_connection* _connection,
+                                           enum d_net_shutdown      _mode);
 
 /**
  * @brief Closes the socket. Closing a closed connection does nothing.
@@ -320,8 +389,7 @@ enum d_net_error d_tcp_connection_shutdown(
  * @param[in,out] _connection  the connection; NULL is ignored.
  * @post The connection is closed; its endpoints remain readable.
  */
-void             d_tcp_connection_close(
-                     struct d_tcp_connection* _connection);
+void             d_tcp_connection_close(struct d_tcp_connection* _connection);
 
 /**
  * @brief Hands the socket to the caller without closing it.
@@ -331,8 +399,7 @@ void             d_tcp_connection_close(
  *         NULL or a closed connection.
  * @post The connection is closed, and closing it again does nothing.
  */
-d_tcp_socket     d_tcp_connection_release(
-                     struct d_tcp_connection* _connection);
+d_tcp_socket     d_tcp_connection_release(struct d_tcp_connection* _connection);
 
 
 //==============================================================================
@@ -360,9 +427,9 @@ void             d_tcp_listener_init(struct d_tcp_listener* _listener);
  * @param[in,out] _listener  the listener; closed on failure.
  * @param[in]     _endpoint  where to listen.
  * @param[in]     _options   listen_backlog, reuse_address, reuse_port, and,
- *                           for accepted connections, no_delay apply; NULL
- *                           means the defaults.
- * @return D_NET_ERROR_NONE; D_NET_ERROR_INVALID_ARGUMENT for a NULL
+ *                           for accepted connections, io_timeout_ms and
+ *                           no_delay apply; NULL means the defaults.
+ * @return D_NET_OK; D_NET_ERROR_INVALID_ARGUMENT for a NULL
  *         argument or a UDP endpoint; D_NET_ERROR_ADDRESS_INVALID for a
  *         unix-domain endpoint without unix-domain support, or a path too
  *         long; D_NET_ERROR_ADDRESS_IN_USE; otherwise the mapped native or
@@ -378,8 +445,9 @@ enum d_net_error d_tcp_listen(struct d_tcp_listener*       _listener,
  * @brief Waits for a connection and accepts it.
  *
  * @param[in,out] _listener    the listener.
- * @param[out]    _connection  receives the connection; closed on failure.
- * @return D_NET_ERROR_NONE; D_NET_ERROR_CLOSED when the listener is closed,
+ * @param[out]    _connection  receives the connection, with the listener's
+ *                             I/O timeout; closed on failure.
+ * @return D_NET_OK; D_NET_ERROR_CLOSED when the listener is closed,
  *         including by d_tcp_listener_close from another thread during the
  *         wait; D_NET_ERROR_INVALID_ARGUMENT for NULL; otherwise the mapped
  *         native error, which leaves the listener usable.
@@ -387,17 +455,34 @@ enum d_net_error d_tcp_listen(struct d_tcp_listener*       _listener,
 enum d_net_error d_tcp_accept(struct d_tcp_listener*   _listener,
                               struct d_tcp_connection* _connection);
 
+/**
+ * @brief Waits a limited time for a connection, and accepts it.
+ *
+ * Under Winsock a close from another thread during a limited wait is seen
+ * when the wait ends; an unlimited one is d_tcp_accept's.
+ *
+ * @param[in,out] _listener    the listener.
+ * @param[out]    _connection  receives the connection, with the listener's
+ *                             I/O timeout; closed on failure.
+ * @param[in]     _wait_ms     the limit in milliseconds; 0 accepts only a
+ *                             connection already waiting, and less than 0
+ *                             waits without limit, as d_tcp_accept does.
+ * @return what d_tcp_accept returns, and D_NET_ERROR_TIMED_OUT when no
+ *         connection arrived in time, which leaves the listener usable.
+ */
+enum d_net_error d_tcp_accept_wait(struct d_tcp_listener*   _listener,
+                                   struct d_tcp_connection* _connection,
+                                   long                     _wait_ms);
+
 // 6.3    State and lifetime
 //------------------------------------------------------------------------------
 // queries -- O(1), no system call; the local endpoint was recorded when the
 // listener bound
-bool             d_tcp_listener_is_open(
-                     const struct d_tcp_listener* _listener);
+bool             d_tcp_listener_is_open(const struct d_tcp_listener* _listener);
 bool             d_tcp_listener_local_endpoint(
                      const struct d_tcp_listener* _listener,
                      struct d_net_endpoint*       _out);
-d_tcp_socket     d_tcp_listener_native(
-                     const struct d_tcp_listener* _listener);
+d_tcp_socket     d_tcp_listener_native(const struct d_tcp_listener* _listener);
 
 /**
  * @brief Closes the listener, waking an accept blocked on it.

@@ -36,11 +36,15 @@
 *   It is compiled as C and exports C linkage, so C++ modules consume it
 * directly.
 *
+*   Where D_INTERNAL_NET_HAS_INT64 is 0, with no 64-bit integer type, it
+* compiles to nothing, unless D_CFG_NET_REQUIRE_BACKENDS asks for an #error
+* (decision 101 of the register).
+*
 *
 * path:      /inc/djinterp/net/imap/imap.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.18
 *******************************************************************************/
 
 /*
@@ -189,10 +193,22 @@ TABLE OF CONTENTS
 // std
 #include <stdbool.h>                   // bool
 #include <stddef.h>                    // size_t
-#include <stdint.h>                    // int32_t, uint32_t, int64_t, uint64_t
 // djinterp
 #include "../../c/djinterp.h"          // framework root
 #include "../../c/util/sink_common.h"  // d_pack_sink, d_pack_text
+#include "../net_common.h"             // d_net_error
+#include "../../config/net/cfg_net.h"  // D_INTERNAL_NET_REQUIRE_BACKENDS
+// re_std
+#include "../../../re_std/cstdint/dstdint.h"  // int32_t, int64_t, uint16_t,
+                                              // uint32_t, uint64_t, UINT32_C,
+                                              // UINT64_C
+
+// 64-bit floor: this header needs a 64-bit integer type, and compiles to
+// nothing where the build has none -- ISO strict C++98 on a 32-bit target
+// (the owner's ruling of 2026.10.03 on round 3's question 1, (a)). The
+// answer is net_common.h's, taken once per translation unit, so that net's
+// gated headers agree.
+#if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 
 //   C linkage for everything below, so a C++ translation unit can consume this
@@ -248,7 +264,7 @@ enum d_imap_backend d_imap_backend_default(void);
 // One error vocabulary for every IMAP module. This module produces only the
 // first group; the others exist so that a caller sees the same codes whichever
 // backend it runs on. Every fallible function returns enum d_imap_error, and
-// D_IMAP_ERROR_NONE is 0, so `if (error)` tests for failure.
+// D_IMAP_OK is 0, so `if (error)` tests for failure.
 
 
 // 2.1    Error codes
@@ -259,12 +275,12 @@ enum d_imap_backend d_imap_backend_default(void);
 // append-only, since backends and callers switch on them.
 enum d_imap_error
 {
-    D_IMAP_ERROR_NONE             = 0,   // success
+    D_IMAP_OK                     = 0,   // success
     // produced by this module, and by every backend
     D_IMAP_ERROR_INVALID_ARGUMENT = 1,   // NULL pointer, bad enum, bad option
     D_IMAP_ERROR_SINK             = 2,   // the output sink refused bytes
-    D_IMAP_ERROR_CAPACITY         = 3,   // a caller's array is too small
-    D_IMAP_ERROR_SYNTAX           = 4,   // input is not valid IMAP syntax
+    D_IMAP_ERROR_BUFFER_TOO_SMALL = 3,   // a caller's array is too small
+    D_IMAP_ERROR_MALFORMED        = 4,   // input is not valid IMAP syntax
     D_IMAP_ERROR_INCOMPLETE       = 5,   // input ends mid-item; read more
     D_IMAP_ERROR_RANGE            = 6,   // a number or field is out of range
     D_IMAP_ERROR_ENCODING         = 7,   // invalid UTF-8 or modified UTF-7
@@ -283,12 +299,12 @@ enum d_imap_error
     D_IMAP_ERROR_RESOLVE          = 17,  // host name resolution failed
     D_IMAP_ERROR_CONNECT          = 18,  // refused or unreachable
     D_IMAP_ERROR_TLS              = 19,  // TLS handshake or verification
-    D_IMAP_ERROR_TIMEOUT          = 20,  // an operation timed out
+    D_IMAP_ERROR_TIMED_OUT        = 20,  // an operation timed out
     D_IMAP_ERROR_CLOSED           = 21,  // the connection closed without BYE
-    D_IMAP_ERROR_IO               = 22,  // any other transport failure
+    D_IMAP_ERROR_TRANSPORT        = 22,  // any other transport failure
     // resources and faults
-    D_IMAP_ERROR_MEMORY           = 23,  // allocation failed
-    D_IMAP_ERROR_INTERNAL         = 24   // a backend fault or unmapped error
+    D_IMAP_ERROR_OUT_OF_MEMORY    = 23,  // allocation failed
+    D_IMAP_ERROR_UNKNOWN          = 24   // a backend fault or unmapped error
 };
 
 // 2.1.2
@@ -301,10 +317,13 @@ enum d_imap_error
 // error queries -- none allocate or fail. Names are the enumerator suffix in
 // lower case ("invalid_argument"); messages are short sentences for people.
 // An unknown value reads "unknown" and belongs to neither class.
-const char* d_imap_error_name(enum d_imap_error _error);
-const char* d_imap_error_message(enum d_imap_error _error);
-bool        d_imap_error_is_server(enum d_imap_error _error);
-bool        d_imap_error_is_transport(enum d_imap_error _error);
+// d_imap_error_to_net gives the d_net_error an error maps to, by the rules
+// net.h gives with it; an unknown value is D_NET_ERROR_UNKNOWN.
+const char*      d_imap_error_name(enum d_imap_error _error);
+const char*      d_imap_error_message(enum d_imap_error _error);
+bool             d_imap_error_is_server(enum d_imap_error _error);
+bool             d_imap_error_is_transport(enum d_imap_error _error);
+enum d_net_error d_imap_error_to_net(enum d_imap_error _error);
 
 
 //==============================================================================
@@ -509,7 +528,7 @@ struct d_imap_tagger
  * @param[in]  _prefix  up to D_IMAP_TAG_PREFIX_MAX tag characters (any
  *                      ASTRING-CHAR except "+"); empty selects "A".
  * @post   on success the first tag issued is the prefix followed by "0001".
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if `_tagger` is
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if `_tagger` is
  *         `NULL`, or `_prefix` is too long or holds a character no tag may.
  */
 enum d_imap_error  d_imap_tagger_init(struct d_imap_tagger* _tagger,
@@ -522,7 +541,7 @@ enum d_imap_error  d_imap_tagger_init(struct d_imap_tagger* _tagger,
  *
  * @param[in,out] _tagger  an initialized tagger.
  * @param[out]    _tag     receives the tag.
- * @return D_IMAP_ERROR_NONE, or D_IMAP_ERROR_INVALID_ARGUMENT if either
+ * @return D_IMAP_OK, or D_IMAP_ERROR_INVALID_ARGUMENT if either
  *         pointer is `NULL` or `_tagger` is corrupt.
  */
 enum d_imap_error  d_imap_tagger_next(struct d_imap_tagger* _tagger,
@@ -762,8 +781,8 @@ bool              d_imap_capability_from_name(
  *
  * @param[in]  _list  the capability list.
  * @param[out] _caps  receives the set; untouched on failure.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if `_caps` is
- *         `NULL`; D_IMAP_ERROR_SYNTAX if an entry is not an atom or an
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if `_caps` is
+ *         `NULL`; D_IMAP_ERROR_MALFORMED if an entry is not an atom or an
  *         APPENDLIMIT value is not a number; D_IMAP_ERROR_RANGE if that
  *         number exceeds D_IMAP_NUMBER64_MAX.
  */
@@ -843,7 +862,7 @@ void              d_imap_options_init(struct d_imap_options* _options);
  *       token unless D_IMAP_OPTION_ALLOW_CLEARTEXT_AUTH is set.
  *
  * @param[in] _options  the block to check.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a malformed
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a malformed
  *         value; D_IMAP_ERROR_RANGE for a port above 65535;
  *         D_IMAP_ERROR_SECURITY for a credential that could only travel in
  *         the clear.
@@ -878,7 +897,7 @@ uint16_t          d_imap_options_port(const struct d_imap_options* _options);
  * @param[in]  _supported  the D_IMAP_AUTH_BIT set the backend implements.
  * @param[in]  _secure     whether TLS protects the connection now.
  * @param[out] _mechanism  receives the choice on success.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if a pointer is
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if a pointer is
  *         `NULL`; D_IMAP_ERROR_SECURITY if every candidate needs TLS the
  *         connection lacks; D_IMAP_ERROR_UNSUPPORTED if there is none.
  */
@@ -1046,9 +1065,8 @@ bool              d_imap_flag_from_name(struct d_pack_text _name,
 bool              d_imap_mailbox_attribute_from_name(
                       struct d_pack_text             _name,
                       enum d_imap_mailbox_attribute* _attribute);
-bool              d_imap_status_item_from_name(
-                      struct d_pack_text       _name,
-                      enum d_imap_status_item* _item);
+bool              d_imap_status_item_from_name(struct d_pack_text       _name,
+                                               enum d_imap_status_item* _item);
 /**
  * @brief Parses a parenthesized flag list, as in FLAGS, PERMANENTFLAGS, or a
  *        FETCH response's FLAGS item.
@@ -1058,8 +1076,8 @@ bool              d_imap_status_item_from_name(
  * @param[out] _set      receives the D_IMAP_FLAG_BIT set of known flags.
  * @param[out] _unknown  receives the count of other flags and keywords; may
  *                       be `NULL`.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if `_set` is
- *         `NULL`; D_IMAP_ERROR_SYNTAX if `_list` is not a flag list.
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if `_set` is
+ *         `NULL`; D_IMAP_ERROR_MALFORMED if `_list` is not a flag list.
  */
 enum d_imap_error d_imap_flags_parse(struct d_pack_text _list,
                                      uint32_t*          _set,
@@ -1072,7 +1090,7 @@ enum d_imap_error d_imap_flags_parse(struct d_pack_text _list,
  *
  * @param[in] _sink  the destination.
  * @param[in] _set   a D_IMAP_FLAG_BIT set.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if the sink has
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if the sink has
  *         no write function or `_set` holds an unknown bit;
  *         D_IMAP_ERROR_SINK if the sink refuses.
  */
@@ -1087,8 +1105,8 @@ enum d_imap_error d_imap_flags_write(struct d_pack_sink _sink,
  *                       attributes.
  * @param[out] _unknown  receives the count of other attributes; may be
  *                       `NULL`.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if `_set` is
- *         `NULL`; D_IMAP_ERROR_SYNTAX if `_list` is not an attribute list.
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if `_set` is
+ *         `NULL`; D_IMAP_ERROR_MALFORMED if `_list` is not an attribute list.
  */
 enum d_imap_error d_imap_mailbox_attributes_parse(struct d_pack_text _list,
                                                   uint32_t*          _set,
@@ -1099,7 +1117,7 @@ enum d_imap_error d_imap_mailbox_attributes_parse(struct d_pack_text _list,
  * @param[in] _sink   the destination.
  * @param[in] _items  a non-empty D_IMAP_STATUS_BIT set, written in
  *                    enumeration order.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if the sink has
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if the sink has
  *         no write function, or `_items` is empty or holds an unknown bit;
  *         D_IMAP_ERROR_SINK if the sink refuses.
  */
@@ -1115,10 +1133,10 @@ enum d_imap_error d_imap_status_items_write(struct d_pack_sink _sink,
  * @param[in]  _list  the list, "(" through ")", optionally followed by CRLF:
  *                    what follows the mailbox name in "* STATUS".
  * @param[out] _data  receives the items; untouched on failure.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if `_data` is
- *         `NULL`; D_IMAP_ERROR_SYNTAX if `_list` is malformed or a known item
- *         lacks a number; D_IMAP_ERROR_RANGE if a value exceeds its item's
- *         width; D_IMAP_ERROR_INCOMPLETE if `_list` ends early.
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if `_data` is `NULL`;
+ *         D_IMAP_ERROR_MALFORMED if `_list` is malformed or a known item lacks
+ *         a number; D_IMAP_ERROR_RANGE if a value exceeds its item's width;
+ *         D_IMAP_ERROR_INCOMPLETE if `_list` ends early.
  */
 enum d_imap_error d_imap_status_data_parse(struct d_pack_text         _list,
                                            struct d_imap_status_data* _data);
@@ -1196,7 +1214,7 @@ enum d_imap_string_form
  * @param[in]  _value  the string.
  * @param[in]  _flags  D_IMAP_STRING_* flags.
  * @param[out] _form   receives the form.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if `_form` is
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if `_form` is
  *         `NULL` or `_value` has a length but no data; D_IMAP_ERROR_ENCODING
  *         if `_value` holds a NUL.
  */
@@ -1214,7 +1232,7 @@ enum d_imap_error d_imap_astring_form(struct d_pack_text       _value,
  *                     string needing a literal is refused, not written.
  * @post   for either literal form, the caller still owes the octets of
  *         `_value`; see d_imap_string_form.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
  *         a write function, data-less text, or a literal with no `_form`;
  *         D_IMAP_ERROR_ENCODING if `_value` holds a NUL; D_IMAP_ERROR_SINK if
  *         the sink refuses.
@@ -1229,7 +1247,7 @@ enum d_imap_error d_imap_astring_write(struct d_pack_sink       _sink,
  * @param[in] _sink   the destination.
  * @param[in] _value  the string.
  * @param[in] _flags  D_IMAP_STRING_UTF8 admits valid UTF-8; others ignored.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
  *         a write function or data-less text; D_IMAP_ERROR_ENCODING if
  *         `_value` cannot be quoted; D_IMAP_ERROR_SINK if the sink refuses.
  */
@@ -1245,22 +1263,21 @@ enum d_imap_error d_imap_quoted_write(struct d_pack_sink _sink,
  *                     non-synchronizing form.
  * @param[out] _form   receives which literal form was written; may be
  *                     `NULL`.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
  *         a write function; D_IMAP_ERROR_RANGE if `_size` exceeds
  *         D_IMAP_NUMBER64_MAX; D_IMAP_ERROR_SINK if the sink refuses.
  */
-enum d_imap_error d_imap_literal_prefix_write(
-                      struct d_pack_sink       _sink,
-                      uint64_t                 _size,
-                      uint32_t                 _flags,
-                      enum d_imap_string_form* _form);
+enum d_imap_error d_imap_literal_prefix_write(struct d_pack_sink       _sink,
+                                              uint64_t                 _size,
+                                              uint32_t                 _flags,
+                                              enum d_imap_string_form* _form);
 /**
  * @brief Writes the value of a quoted string's content, removing escapes.
  *
  * @param[in] _sink     the destination.
  * @param[in] _content  the text between the quotes, still escaped.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
- *         a write function or data-less text; D_IMAP_ERROR_SYNTAX for a
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
+ *         a write function or data-less text; D_IMAP_ERROR_MALFORMED for a
  *         backslash not followed by '"' or '\'; D_IMAP_ERROR_SINK if the
  *         sink refuses.
  */
@@ -1274,7 +1291,7 @@ enum d_imap_error d_imap_quoted_unescape(struct d_pack_sink _sink,
  *
  * @param[in] _sink  the destination.
  * @param[in] _utf8  the name, in UTF-8.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
  *         a write function or data-less text; D_IMAP_ERROR_ENCODING for
  *         invalid UTF-8 or a NUL; D_IMAP_ERROR_SINK if the sink refuses.
  */
@@ -1290,7 +1307,7 @@ enum d_imap_error d_imap_mutf7_encode(struct d_pack_sink _sink,
  *
  * @param[in] _sink   the destination.
  * @param[in] _mutf7  the name, in modified UTF-7.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
  *         a write function or data-less text; D_IMAP_ERROR_ENCODING as
  *         noted; D_IMAP_ERROR_SINK if the sink refuses.
  */
@@ -1308,7 +1325,7 @@ enum d_imap_error d_imap_mutf7_decode(struct d_pack_sink _sink,
  * @param[in]  _flags  D_IMAP_STRING_* flags.
  * @param[out] _form   receives the form used; may be `NULL`, in which case a
  *                     name needing a literal is refused, not written.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
  *         a write function, data-less text, or a literal with no `_form`;
  *         D_IMAP_ERROR_ENCODING for invalid UTF-8 or a NUL;
  *         D_IMAP_ERROR_SINK if the sink refuses.
@@ -1355,7 +1372,7 @@ struct d_imap_seq_range
  * @param[in] _sink    the destination.
  * @param[in] _ranges  the ranges.
  * @param[in] _count   how many; at least one.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
  *         a write function, a `NULL` `_ranges`, or a `_count` of 0;
  *         D_IMAP_ERROR_SINK if the sink refuses.
  */
@@ -1374,11 +1391,11 @@ enum d_imap_error d_imap_seqset_write(struct d_pack_sink             _sink,
  * @param[in]  _capacity  the room in `_ranges`.
  * @param[out] _count     receives the number of ranges in the set, even
  *                        when that exceeds `_capacity`.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a `NULL`
- *         `_count`, or a `NULL` `_ranges` with room; D_IMAP_ERROR_SYNTAX for
- *         a malformed set; D_IMAP_ERROR_RANGE for 0 or a number above
- *         D_IMAP_NUMBER_MAX; D_IMAP_ERROR_CAPACITY if the set has more ranges
- *         than `_capacity`.
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a `NULL` `_count`, or a
+ *         `NULL` `_ranges` with room; D_IMAP_ERROR_MALFORMED for a malformed
+ *         set; D_IMAP_ERROR_RANGE for 0 or a number above D_IMAP_NUMBER_MAX;
+ *         D_IMAP_ERROR_BUFFER_TOO_SMALL if the set has more ranges than
+ *         `_capacity`.
  */
 enum d_imap_error d_imap_seqset_parse(struct d_pack_text       _text,
                                       struct d_imap_seq_range* _ranges,
@@ -1425,7 +1442,7 @@ struct d_imap_datetime
  * @param[in]  _seconds   seconds since 1970-01-01T00:00:00Z.
  * @param[in]  _zone      the zone, in minutes east of UTC.
  * @param[out] _datetime  receives the local time.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if `_datetime` is
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if `_datetime` is
  *         `NULL`; D_IMAP_ERROR_RANGE if `_zone` is out of range or the year
  *         falls outside 0000 .. 9999.
  */
@@ -1439,7 +1456,7 @@ enum d_imap_error d_imap_datetime_from_unix(int64_t                 _seconds,
  *
  * @param[in]  _datetime  the local time.
  * @param[out] _seconds   receives seconds since 1970-01-01T00:00:00Z.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if `_seconds` is
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if `_seconds` is
  *         `NULL`; D_IMAP_ERROR_RANGE if a field is out of range.
  */
 enum d_imap_error d_imap_datetime_to_unix(struct d_imap_datetime _datetime,
@@ -1449,7 +1466,7 @@ enum d_imap_error d_imap_datetime_to_unix(struct d_imap_datetime _datetime,
  *
  * @param[in] _sink      the destination.
  * @param[in] _datetime  the date; time and zone are ignored.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
  *         a write function; D_IMAP_ERROR_RANGE for an invalid date;
  *         D_IMAP_ERROR_SINK if the sink refuses.
  */
@@ -1460,7 +1477,7 @@ enum d_imap_error d_imap_date_write(struct d_pack_sink     _sink,
  *
  * @param[in] _sink      the destination.
  * @param[in] _datetime  the time.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
  *         a write function; D_IMAP_ERROR_RANGE if a field is out of range;
  *         D_IMAP_ERROR_SINK if the sink refuses.
  */
@@ -1472,8 +1489,8 @@ enum d_imap_error d_imap_datetime_write(struct d_pack_sink     _sink,
  * @param[in]  _text      the date, "1-Feb-2026".
  * @param[out] _datetime  receives it, with time and zone zeroed; untouched
  *                        on failure.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if `_datetime` is
- *         `NULL`; D_IMAP_ERROR_SYNTAX for a malformed date;
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if `_datetime` is
+ *         `NULL`; D_IMAP_ERROR_MALFORMED for a malformed date;
  *         D_IMAP_ERROR_RANGE for an impossible one.
  */
 enum d_imap_error d_imap_date_parse(struct d_pack_text      _text,
@@ -1483,8 +1500,8 @@ enum d_imap_error d_imap_date_parse(struct d_pack_text      _text,
  *
  * @param[in]  _text      the date-time, " 1-Feb-2026 09:05:07 -0500".
  * @param[out] _datetime  receives it; untouched on failure.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if `_datetime` is
- *         `NULL`; D_IMAP_ERROR_SYNTAX for a malformed date-time;
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if `_datetime` is
+ *         `NULL`; D_IMAP_ERROR_MALFORMED for a malformed date-time;
  *         D_IMAP_ERROR_RANGE for an impossible one.
  */
 enum d_imap_error d_imap_datetime_parse(struct d_pack_text      _text,
@@ -1588,8 +1605,9 @@ enum d_imap_code
 // condition and code queries -- none allocate or fail. Names are the wire
 // spellings ("READ-ONLY"), empty for NONE, OTHER, and unknown values; lookups
 // match case-insensitively and fall back to NONE (conditions) or OTHER
-// (codes). A condition maps to the error a command meeting it should report:
-// NO, BAD, and BYE to their own codes, anything else to D_IMAP_ERROR_NONE.
+// (codes), but for an empty name, which is NONE for both. A condition maps
+// to the error a command meeting it should report: NO, BAD, and BYE to their
+// own codes, anything else to D_IMAP_OK.
 const char*           d_imap_condition_name(enum d_imap_condition _condition);
 enum d_imap_condition d_imap_condition_from_name(struct d_pack_text _name);
 const char*           d_imap_code_name(enum d_imap_code _code);
@@ -1645,9 +1663,9 @@ struct d_imap_response
  *
  * @param[in]  _line      the response.
  * @param[out] _response  receives the parse; untouched on failure.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if `_response` is
- *         `NULL` or `_line` has a length but no data; D_IMAP_ERROR_SYNTAX for
- *         a malformed head; D_IMAP_ERROR_RANGE if the leading number exceeds
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if `_response` is `NULL` or
+ *         `_line` has a length but no data; D_IMAP_ERROR_MALFORMED for a
+ *         malformed head; D_IMAP_ERROR_RANGE if the leading number exceeds
  *         D_IMAP_NUMBER_MAX.
  */
 enum d_imap_error d_imap_response_parse(struct d_pack_text       _line,
@@ -1755,8 +1773,8 @@ void               d_imap_lexer_init(struct d_imap_lexer* _lexer,
  * @param[in,out] _lexer  the lexer.
  * @param[in]     _flags  D_IMAP_LEX_* flags for this token.
  * @param[out]    _token  receives the token.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if a pointer is
- *         `NULL`; D_IMAP_ERROR_SYNTAX for input that is no token;
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if a pointer is
+ *         `NULL`; D_IMAP_ERROR_MALFORMED for input that is no token;
  *         D_IMAP_ERROR_RANGE for a literal count above D_IMAP_NUMBER64_MAX;
  *         D_IMAP_ERROR_INCOMPLETE if the input ends inside a token.
  */
@@ -1787,10 +1805,9 @@ struct d_pack_text d_imap_lexer_rest(const struct d_imap_lexer* _lexer);
  *
  * @param[in] _sink   the destination.
  * @param[in] _token  an ATOM, NUMBER, NIL, QUOTED, or LITERAL token.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
- *         a write function, a `NULL` token, or another kind;
- *         D_IMAP_ERROR_SYNTAX for a bad escape; D_IMAP_ERROR_SINK if the sink
- *         refuses.
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without a write
+ *         function, a `NULL` token, or another kind; D_IMAP_ERROR_MALFORMED for
+ *         a bad escape; D_IMAP_ERROR_SINK if the sink refuses.
  */
 enum d_imap_error d_imap_string_decode(struct d_pack_sink         _sink,
                                        const struct d_imap_token* _token);
@@ -1803,9 +1820,9 @@ enum d_imap_error d_imap_string_decode(struct d_pack_sink         _sink,
  *                    UTF8=ACCEPT, in which case the name is already UTF-8
  *                    and is validated rather than decoded from modified
  *                    UTF-7.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a sink without
  *         a write function, a `NULL` token, or another kind;
- *         D_IMAP_ERROR_SYNTAX for a bad escape; D_IMAP_ERROR_ENCODING for an
+ *         D_IMAP_ERROR_MALFORMED for a bad escape; D_IMAP_ERROR_ENCODING for an
  *         invalid name; D_IMAP_ERROR_SINK if the sink refuses.
  */
 enum d_imap_error d_imap_mailbox_decode(struct d_pack_sink         _sink,
@@ -1833,8 +1850,8 @@ struct d_imap_list_entry
  *
  * @param[in]  _data   what follows the keyword: attributes, delimiter, name.
  * @param[out] _entry  receives the listing; untouched on failure.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT if `_entry` is
- *         `NULL`; D_IMAP_ERROR_SYNTAX for malformed data;
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT if `_entry` is
+ *         `NULL`; D_IMAP_ERROR_MALFORMED for malformed data;
  *         D_IMAP_ERROR_INCOMPLETE if a literal name is not yet all present.
  */
 enum d_imap_error d_imap_list_parse(struct d_pack_text        _data,
@@ -1857,10 +1874,11 @@ enum d_imap_error d_imap_list_parse(struct d_pack_text        _data,
  *                        exceeds `_capacity`.
  * @param[out] _modseq    receives the MODSEQ, or 0 without one; may be
  *                        `NULL`.
- * @return D_IMAP_ERROR_NONE; D_IMAP_ERROR_INVALID_ARGUMENT for a `NULL`
- *         `_count`, or a `NULL` `_ids` with room; D_IMAP_ERROR_SYNTAX for
- *         malformed data; D_IMAP_ERROR_RANGE for 0 or an oversized number;
- *         D_IMAP_ERROR_CAPACITY if there are more results than `_capacity`.
+ * @return D_IMAP_OK; D_IMAP_ERROR_INVALID_ARGUMENT for a `NULL` `_count`, or a
+ *         `NULL` `_ids` with room; D_IMAP_ERROR_MALFORMED for malformed data;
+ *         D_IMAP_ERROR_RANGE for 0 or an oversized number;
+ *         D_IMAP_ERROR_BUFFER_TOO_SMALL if there are more results than
+ *         `_capacity`.
  */
 enum d_imap_error d_imap_search_parse(struct d_pack_text _data,
                                       uint32_t*          _ids,
@@ -1871,5 +1889,9 @@ enum d_imap_error d_imap_search_parse(struct d_pack_text _data,
 
 D_EXTERN_C_END
 
+
+#elif (D_INTERNAL_NET_REQUIRE_BACKENDS == 1)
+    #error "imap.h: no 64-bit integer type (D_INTERNAL_NET_HAS_INT64)"
+#endif  // D_INTERNAL_NET_HAS_INT64
 
 #endif  // DJINTERP_NET_IMAP_IMAP_H

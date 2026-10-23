@@ -1,12 +1,12 @@
 /*******************************************************************************
 * djinterp [net]                                                        curl.hpp
 *
-* The C++ face of the libcurl binding: web.hpp's requests, performed through
+* The C++ face of the libcurl binding: http.hpp's requests, performed through
 * net/curl/curl.h.
 *   A derived layer. Every transfer runs through d_curl_perform; this header
-* translates web.hpp's vocabulary into the binding's records and back, and
+* translates http.hpp's vocabulary into the binding's records and back, and
 * adds what C lacks:
-*     - status mapping to web::transport_error                       [2]
+*     - status mapping to net::transport_error                       [2]
 *     - library queries, and RAII over the global state              [3]
 *     - options, std::function sinks, and the two drivers            [4]
 *   No libcurl type appears here, and the header compiles without libcurl;
@@ -14,14 +14,24 @@
 * a build without libcurl an error instead (cfg_curl.h).
 *   A sink may throw. Unwinding through libcurl's C frames is undefined, so
 * the exception is caught where libcurl calls back into C++, the transfer
-* ends and is cleaned up, and the driver rethrows it. Builds without
+* ends and is cleaned up, and the driver rethrows it: from C++11 the very
+* exception, through std::exception_ptr; below C++11, which cannot carry
+* one past the C frames, its nearest standard kind -- std::bad_alloc as
+* itself, any other std::exception as a std::runtime_error with its what(),
+* anything else as a std::runtime_error saying so. Builds without
 * exceptions compile none of this.
+*   C++98 and later. The sink is a re_std::function at every level, and the
+* enumeration is scoped in a struct (decision 3.4): feature::value. libcurl's
+* global state is initialized in a function-local static, which C++11
+* promises is initialized once across threads; below it GCC, Clang and MSVC
+* guard such statics all the same, and elsewhere a C++98 program calls
+* ensure_global() before it starts threads.
 *
 *
 * path:      /inc/djinterp/net/curl/curl.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.16
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -56,17 +66,27 @@ TABLE OF CONTENTS
 #define DJINTERP_NET_CURL_CURL_HPP 1
 
 // std
-#include <cstddef>     // std::size_t
-#include <cstdint>     // std::uint32_t
-#include <exception>   // std::exception_ptr, std::rethrow_exception
-#include <functional>  // std::function
-#include <string>      // std::string
-#include <vector>      // std::vector
+#include <cstddef>  // std::size_t
+#include <string>   // std::string
+#include <vector>   // std::vector
 // djinterp
 #include "../../djinterp.hpp"         // framework root
 #include "../../env/cpp/env_cpp98.h"  // D_ENV_CPP98_HAS_EXCEPTION
-#include "../web.hpp"                 // request, response, transport_error
+#include "../http/http.hpp"           // request, response, transport_error
 #include "./curl.h"                   // the C binding
+#if (D_ENV_CPP98_HAS_EXCEPTION == 1)
+    // std
+    #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+        #include <exception>  // std::exception_ptr, std::rethrow_exception
+    #else
+        #include <exception>  // std::exception
+        #include <new>        // std::bad_alloc
+        #include <stdexcept>  // std::runtime_error
+    #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif  // D_ENV_CPP98_HAS_EXCEPTION
+// re_std
+#include "../../../re_std/cstdint/cstdint.hpp"        // re_std::uint32_t
+#include "../../../re_std/functional/function.hpp"   // re_std::function
 
 
 //==============================================================================
@@ -79,23 +99,23 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_KEYWORD_CURL
 //   keyword: resolves to `curl`, the name of this layer's namespace inside
-// djinterp::web. Guarded, so the core may adopt it without collision.
+// djinterp::net. Guarded, so the core may adopt it without collision.
 #ifndef D_KEYWORD_CURL
     #define D_KEYWORD_CURL curl
 #endif  // D_KEYWORD_CURL
 
 
 NS_DJINTERP
-NS_WEB
+NS_NET
 D_NAMESPACE(D_KEYWORD_CURL)
 
 
 //==============================================================================
 // 2.  ERRORS
 //==============================================================================
-// The binding's statuses in web.hpp's vocabulary. The categories match one
-// for one; the two the binding adds have no web counterpart and map to the
-// nearest honest one.
+// The binding's statuses in http.hpp's vocabulary. The categories match one
+// for one; the two the binding adds have no counterpart in http.hpp and map
+// to the nearest honest one.
 
 
 // 2.1    Status mapping
@@ -104,49 +124,49 @@ D_NAMESPACE(D_KEYWORD_CURL)
 //   function: a binding status as a transport_error. UNSUPPORTED -- a build
 // without libcurl -- is unsupported_protocol, and INVALID_ARGUMENT, a field
 // the binding refuses, is unknown.
-D_NODISCARD inline transport_error
+D_NODISCARD inline transport_error::value
 to_transport_error(
-    ::d_curl_status _status
-) noexcept
+    ::d_curl_error _status
+) D_NOEXCEPT
 {
     switch (_status)
     {
-        case D_CURL_STATUS_OK:
+        case D_CURL_OK:
             return transport_error::none;
 
-        case D_CURL_STATUS_UNSUPPORTED:
-        case D_CURL_STATUS_UNSUPPORTED_PROTOCOL:
+        case D_CURL_ERROR_UNSUPPORTED:
+        case D_CURL_ERROR_UNSUPPORTED_PROTOCOL:
             return transport_error::unsupported_protocol;
 
-        case D_CURL_STATUS_COULD_NOT_RESOLVE_HOST:
+        case D_CURL_ERROR_RESOLVE:
             return transport_error::could_not_resolve_host;
 
-        case D_CURL_STATUS_COULD_NOT_CONNECT:
+        case D_CURL_ERROR_CONNECT:
             return transport_error::could_not_connect;
 
-        case D_CURL_STATUS_TIMED_OUT:
+        case D_CURL_ERROR_TIMED_OUT:
             return transport_error::timed_out;
 
-        case D_CURL_STATUS_TLS_ERROR:
+        case D_CURL_ERROR_TLS:
             return transport_error::tls_error;
 
-        case D_CURL_STATUS_TOO_MANY_REDIRECTS:
+        case D_CURL_ERROR_TOO_MANY_REDIRECTS:
             return transport_error::too_many_redirects;
 
-        case D_CURL_STATUS_WRITE_ERROR:
+        case D_CURL_ERROR_SINK:
             return transport_error::write_error;
 
-        case D_CURL_STATUS_READ_ERROR:
+        case D_CURL_ERROR_SOURCE:
             return transport_error::read_error;
 
-        case D_CURL_STATUS_CANCELED:
+        case D_CURL_ERROR_CANCELED:
             return transport_error::canceled;
 
-        case D_CURL_STATUS_OUT_OF_MEMORY:
+        case D_CURL_ERROR_OUT_OF_MEMORY:
             return transport_error::out_of_memory;
 
-        case D_CURL_STATUS_INVALID_ARGUMENT:
-        case D_CURL_STATUS_UNKNOWN:
+        case D_CURL_ERROR_INVALID_ARGUMENT:
+        case D_CURL_ERROR_UNKNOWN:
         default:
             return transport_error::unknown;
     }
@@ -166,17 +186,20 @@ to_transport_error(
 // feature
 //   enum: a capability libcurl reports at run time, valued as
 // d_curl_feature.
-enum class feature : unsigned char
+struct feature
 {
-    ssl        = D_CURL_FEATURE_SSL,
-    http2      = D_CURL_FEATURE_HTTP2,
-    http3      = D_CURL_FEATURE_HTTP3,
-    ipv6       = D_CURL_FEATURE_IPV6,
-    libz       = D_CURL_FEATURE_LIBZ,
-    brotli     = D_CURL_FEATURE_BROTLI,
-    zstd       = D_CURL_FEATURE_ZSTD,
-    asynch_dns = D_CURL_FEATURE_ASYNCH_DNS,
-    threadsafe = D_CURL_FEATURE_THREADSAFE
+    enum value
+    {
+        ssl        = D_CURL_FEATURE_SSL,
+        http2      = D_CURL_FEATURE_HTTP2,
+        http3      = D_CURL_FEATURE_HTTP3,
+        ipv6       = D_CURL_FEATURE_IPV6,
+        libz       = D_CURL_FEATURE_LIBZ,
+        brotli     = D_CURL_FEATURE_BROTLI,
+        zstd       = D_CURL_FEATURE_ZSTD,
+        asynch_dns = D_CURL_FEATURE_ASYNCH_DNS,
+        threadsafe = D_CURL_FEATURE_THREADSAFE
+    };
 };
 
 // 3.2    Library queries
@@ -184,26 +207,26 @@ enum class feature : unsigned char
 // available
 //   function: whether this build performs transfers over libcurl.
 D_NODISCARD inline bool
-available() noexcept
+available() D_NOEXCEPT
 {
-    return (::d_curl_version() != nullptr);
+    return (::d_curl_version() != D_NULLPTR);
 }
 
 // version_string
 //   function: the loaded libcurl's version text ("8.5.0"), or "" without
 // libcurl.
 D_NODISCARD inline const char*
-version_string() noexcept
+version_string() D_NOEXCEPT
 {
     const char* const text = ::d_curl_version();
 
-    return (text != nullptr) ? text : "";
+    return (text != D_NULLPTR) ? text : "";
 }
 
 // version_number
 //   function: the loaded libcurl's version as 0xMMmmpp, or 0 without it.
-D_NODISCARD inline std::uint32_t
-version_number() noexcept
+D_NODISCARD inline re_std::uint32_t
+version_number() D_NOEXCEPT
 {
     return ::d_curl_version_number();
 }
@@ -213,8 +236,8 @@ version_number() noexcept
 // libcurl, and for a feature the build's headers predate.
 D_NODISCARD inline bool
 supports(
-    feature _feature
-) noexcept
+    feature::value _feature
+) D_NOEXCEPT
 {
     return ::d_curl_supports(static_cast< ::d_curl_feature>(_feature));
 }
@@ -222,7 +245,7 @@ supports(
 // supports_ssl
 //   function: whether the loaded libcurl speaks TLS.
 D_NODISCARD inline bool
-supports_ssl() noexcept
+supports_ssl() D_NOEXCEPT
 {
     return supports(feature::ssl);
 }
@@ -230,7 +253,7 @@ supports_ssl() noexcept
 // supports_http2
 //   function: whether the loaded libcurl speaks HTTP/2.
 D_NODISCARD inline bool
-supports_http2() noexcept
+supports_http2() D_NOEXCEPT
 {
     return supports(feature::http2);
 }
@@ -241,11 +264,11 @@ supports_http2() noexcept
 D_NODISCARD inline const char*
 error_message(
     int _code
-) noexcept
+) D_NOEXCEPT
 {
     const char* const text = ::d_curl_code_message(_code);
 
-    return (text != nullptr) ? text : "";
+    return (text != D_NULLPTR) ? text : "";
 }
 
 // 3.3    Global state
@@ -258,59 +281,58 @@ error_message(
 class scoped_global
 {
 public:
-    scoped_global() noexcept
+    scoped_global() D_NOEXCEPT
         : m_status(::d_curl_global_init())
     {}
 
     ~scoped_global()
     {
         // only a successful initialization is balanced
-        if (m_status == D_CURL_STATUS_OK)
+        if (m_status == D_CURL_OK)
         {
             ::d_curl_global_cleanup();
         }
     }
 
-    scoped_global(const scoped_global&)            D_DELETE;
-    scoped_global& operator=(const scoped_global&) D_DELETE;
-    scoped_global(scoped_global&&)                 D_DELETE;
-    scoped_global& operator=(scoped_global&&)      D_DELETE;
-
     // ok
     //   function: whether the initialization succeeded.
     D_NODISCARD bool
-    ok() const noexcept
+    ok() const D_NOEXCEPT
     {
-        return (m_status == D_CURL_STATUS_OK);
+        return (m_status == D_CURL_OK);
     }
 
     // error
     //   function: why the initialization failed, or none.
-    D_NODISCARD transport_error
-    error() const noexcept
+    D_NODISCARD transport_error::value
+    error() const D_NOEXCEPT
     {
         return to_transport_error(m_status);
     }
 
 private:
-    ::d_curl_status m_status;
+    D_DELETED_FN(scoped_global(const scoped_global&))
+    D_DELETED_FN(scoped_global& operator=(const scoped_global&))
+
+    ::d_curl_error m_status;
 };
 
 // 3.3.2
 // ensure_global
 //   function: initializes libcurl's global state once per process, and
 // reports whether it is ready. C++11 makes the first call's initialization
-// thread-safe, which libcurl's own is not before 7.84. Every transfer calls
-// it; the initialization is never balanced, which libcurl permits.
+// thread-safe, which libcurl's own is not before 7.84; below C++11 the
+// compilers named in the banner make it so too. Every transfer calls it;
+// the initialization is never balanced, which libcurl permits.
 NS_INTERNAL
 
     // global_error
     //   function: the outcome of the one initialization, as a
     // transport_error.
-    D_NODISCARD inline transport_error
-    global_error() noexcept
+    D_NODISCARD inline transport_error::value
+    global_error() D_NOEXCEPT
     {
-        static const transport_error s_error =
+        static const transport_error::value s_error =
             to_transport_error(::d_curl_global_init());
 
         return s_error;
@@ -319,7 +341,7 @@ NS_INTERNAL
 NS_END  // internal
 
 D_NODISCARD inline bool
-ensure_global() noexcept
+ensure_global() D_NOEXCEPT
 {
     return (internal::global_error() == transport_error::none);
 }
@@ -329,7 +351,7 @@ ensure_global() noexcept
 // 4.  TRANSFERS
 //==============================================================================
 // A request goes out through the binding, and its response comes back: the
-// status and fields into a web::response, the body into a sink or the
+// status and fields into a net::response, the body into a sink or the
 // response itself. Where redirects are followed, the fields of every
 // response in the chain arrive, in order, and only the last one's body.
 
@@ -341,12 +363,13 @@ ensure_global() noexcept
 //   type: receives each piece of a response body as it arrives; returns
 // false to end the transfer, which then fails as write_error. It may throw;
 // see perform_stream.
-using body_sink = std::function<bool(const char*, std::size_t)>;
+typedef re_std::function<bool(const char*,
+                              std::size_t)> body_sink;
 
 // 4.1.2
 // options
 //   struct: how a transfer runs. The defaults are d_curl_options_init's,
-// but for the User-Agent, which is web.hpp's.
+// but for the User-Agent, which is http.hpp's.
 //     timeout_ms          the whole transfer's limit; 0 or less for none.
 //     connect_timeout_ms  the connection phase's limit; 0 or less for
 //                         libcurl's.
@@ -356,7 +379,7 @@ using body_sink = std::function<bool(const char*, std::size_t)>;
 //     verbose             have libcurl describe the transfer on stderr.
 //     accept_encoding     the codings to accept and decode; "" for every
 //                         one libcurl supports.
-//     user_agent          the User-Agent; "" for D_WEB_DEFAULT_USER_AGENT.
+//     user_agent          the User-Agent; "" for D_NET_HTTP_DEFAULT_USER_AGENT.
 //     proxy               the proxy URL; "" for libcurl's default, which
 //                         reads the environment's proxy variables.
 //     bypass_proxy        use no proxy at all, whatever proxy and the
@@ -371,7 +394,7 @@ struct options
           verify_tls(true),
           verbose(false),
           accept_encoding(),
-          user_agent(D_WEB_DEFAULT_USER_AGENT),
+          user_agent(D_NET_HTTP_DEFAULT_USER_AGENT),
           proxy(),
           bypass_proxy(false)
     {}
@@ -401,11 +424,143 @@ struct options
 // caught, if any.
 NS_INTERNAL
 
+#if ( (D_ENV_CPP98_HAS_EXCEPTION == 1) && \
+      (D_ENV_LANG_IS_CPP11_OR_HIGHER) )
+
+    // caught_exception
+    //   class: the exception a callback caught, held until libcurl is off
+    // the stack: from C++11, the very exception.
+    class caught_exception
+    {
+    public:
+        caught_exception()
+            : m_error()
+        {}
+
+        // keep -- holds the exception being handled; call in a handler
+        void
+        keep() D_NOEXCEPT
+        {
+            m_error = std::current_exception();
+
+            return;
+        }
+
+        // rethrow -- throws it again, if there is one
+        void
+        rethrow() const
+        {
+            // only a kept exception is thrown
+            if (m_error)
+            {
+                std::rethrow_exception(m_error);
+            }
+
+            return;
+        }
+
+    private:
+        std::exception_ptr m_error;
+    };
+
+#elif (D_ENV_CPP98_HAS_EXCEPTION == 1)
+
+    // caught_exception
+    //   class: the exception a callback caught, held until libcurl is off
+    // the stack. C++98 cannot carry the exception itself past the C frames,
+    // so it keeps the nearest standard kind: std::bad_alloc as itself, any
+    // other std::exception as its what(), anything else as the fact.
+    class caught_exception
+    {
+    public:
+        caught_exception()
+            : m_kind(none),
+              m_what()
+        {}
+
+        // keep -- classifies the exception being handled; call in a handler
+        void
+        keep() D_NOEXCEPT
+        {
+            try
+            {
+                throw;
+            }
+            catch (const std::bad_alloc&)
+            {
+                m_kind = out_of_memory;
+            }
+            catch (const std::exception& _error)
+            {
+                m_kind = standard;
+                m_what = _error.what();
+            }
+            catch (...)
+            {
+                m_kind = other;
+            }
+
+            return;
+        }
+
+        // rethrow -- throws the nearest standard kind, if one was kept
+        void
+        rethrow() const
+        {
+            switch (m_kind)
+            {
+                case out_of_memory:
+                    throw std::bad_alloc();
+
+                case standard:
+                    throw std::runtime_error(m_what);
+
+                case other:
+                    throw std::runtime_error("djinterp::net::curl: a sink "
+                                             "threw an exception that is "
+                                             "not a std::exception");
+
+                case none:
+                default:
+                    break;
+            }
+
+            return;
+        }
+
+    private:
+        enum kind
+        {
+            none,
+            out_of_memory,
+            standard,
+            other
+        };
+
+        kind        m_kind;
+        std::string m_what;
+    };
+
+#endif  // D_ENV_CPP98_HAS_EXCEPTION
+
     struct stream_state
     {
-        const body_sink*   sink;
-        header_list*       headers;
-        std::exception_ptr error;
+        stream_state(
+            const body_sink* _sink,
+            header_list*     _headers
+        )
+            : sink(_sink),
+              headers(_headers)
+#if (D_ENV_CPP98_HAS_EXCEPTION == 1)
+              , error()
+#endif  // D_ENV_CPP98_HAS_EXCEPTION
+        {}
+
+        const body_sink* sink;
+        header_list*     headers;
+#if (D_ENV_CPP98_HAS_EXCEPTION == 1)
+        caught_exception error;
+#endif  // D_ENV_CPP98_HAS_EXCEPTION
     };
 
 #if (D_ENV_CPP98_HAS_EXCEPTION == 1)
@@ -418,7 +573,7 @@ NS_INTERNAL
         stream_state& _state,
         const char*   _data,
         std::size_t   _size
-    ) noexcept
+    ) D_NOEXCEPT
     {
         try
         {
@@ -427,7 +582,7 @@ NS_INTERNAL
         }
         catch (...)
         {
-            _state.error = std::current_exception();
+            _state.error.keep();
 
             return false;
         }
@@ -441,7 +596,7 @@ NS_INTERNAL
         stream_state&      _state,
         const d_pack_text& _name,
         const d_pack_text& _value
-    ) noexcept
+    ) D_NOEXCEPT
     {
         try
         {
@@ -455,7 +610,7 @@ NS_INTERNAL
         }
         catch (...)
         {
-            _state.error = std::current_exception();
+            _state.error.keep();
 
             return false;
         }
@@ -469,11 +624,7 @@ NS_INTERNAL
         const stream_state& _state
     )
     {
-        // a callback caught one
-        if (_state.error)
-        {
-            std::rethrow_exception(_state.error);
-        }
+        _state.error.rethrow();
 
         return;
     }
@@ -488,7 +639,7 @@ NS_INTERNAL
         stream_state& _state,
         const char*   _data,
         std::size_t   _size
-    ) noexcept
+    ) D_NOEXCEPT
     {
         return (*_state.sink)(_data,
                               _size);
@@ -501,7 +652,7 @@ NS_INTERNAL
         stream_state&      _state,
         const d_pack_text& _name,
         const d_pack_text& _value
-    ) noexcept
+    ) D_NOEXCEPT
     {
         _state.headers->push_back(
             header_field(std::string(_name.data,
@@ -517,7 +668,7 @@ NS_INTERNAL
     inline void
     rethrow_caught(
         const stream_state& _state
-    ) noexcept
+    ) D_NOEXCEPT
     {
         (void)_state;
 
@@ -536,7 +687,7 @@ NS_INTERNAL
         void*       _state,
         const void* _data,
         std::size_t _size
-    ) noexcept
+    ) D_NOEXCEPT
     {
         return guarded_body(*static_cast<stream_state*>(_state),
                             static_cast<const char*>(_data),
@@ -551,7 +702,7 @@ NS_INTERNAL
         void*       _state,
         d_pack_text _name,
         d_pack_text _value
-    ) noexcept
+    ) D_NOEXCEPT
     {
         return guarded_field(*static_cast<stream_state*>(_state),
                              _name,
@@ -573,8 +724,9 @@ NS_INTERNAL
         fields.reserve(_headers.size());
 
         // each field in order
-        for (const header_field& field : _headers)
+        for (std::size_t i = 0; i < _headers.size(); ++i)
         {
+            const header_field&   field = _headers[i];
             const ::d_curl_header entry =
             {
                 { field.first.data(), field.first.size() },
@@ -594,13 +746,13 @@ NS_INTERNAL
     c_request(
         const request&                       _request,
         const std::vector< ::d_curl_header>& _fields
-    ) noexcept
+    ) D_NOEXCEPT
     {
         const ::d_curl_request record =
         {
             to_string(_request.method),
             _request.url.c_str(),
-            _fields.data(),
+            (_fields.empty()) ? D_NULLPTR : &_fields[0],
             _fields.size(),
             { _request.body.data(), _request.body.size() }
         };
@@ -614,7 +766,7 @@ NS_INTERNAL
     D_NODISCARD inline ::d_curl_options
     c_options(
         const options& _options
-    ) noexcept
+    ) D_NOEXCEPT
     {
         ::d_curl_options settings = ::d_curl_options();
 
@@ -631,10 +783,10 @@ NS_INTERNAL
         settings.verbose            = _options.verbose;
         settings.accept_encoding    = _options.accept_encoding.c_str();
         settings.user_agent         = (_options.user_agent.empty())
-                                          ? D_WEB_DEFAULT_USER_AGENT
+                                          ? D_NET_HTTP_DEFAULT_USER_AGENT
                                           : _options.user_agent.c_str();
         settings.proxy              = (_options.proxy.empty())
-                                          ? nullptr
+                                          ? D_NULLPTR
                                           : _options.proxy.c_str();
 
         // no proxy at all, whatever the environment says
@@ -652,17 +804,43 @@ NS_INTERNAL
     D_NODISCARD inline ::d_curl_sink
     c_sink(
         stream_state& _state
-    ) noexcept
+    ) D_NOEXCEPT
     {
         const ::d_curl_sink sink =
         {
-            (*_state.sink) ? d_internal_curl_hpp_on_body : nullptr,
+            (!_state.sink->empty()) ? d_internal_curl_hpp_on_body
+                                    : D_NULLPTR,
             d_internal_curl_hpp_on_field,
             &_state
         };
 
         return sink;
     }
+
+    // body_collector
+    //   struct: perform's sink: appends every piece to a string.
+    struct body_collector
+    {
+        explicit body_collector(
+            std::string* _body
+        )
+            : body(_body)
+        {}
+
+        bool
+        operator()(
+            const char* _data,
+            std::size_t _length
+        ) const
+        {
+            body->append(_data,
+                         _length);
+
+            return true;
+        }
+
+        std::string* body;
+    };
 
 NS_END  // internal
 
@@ -686,7 +864,7 @@ NS_END  // internal
  * @throws whatever `_sink` threw, rethrown once the transfer has ended and
  *         been cleaned up; and std::bad_alloc.
  */
-D_NODISCARD inline transport_error
+D_NODISCARD inline transport_error::value
 perform_stream(
     const request&   _request,
     const body_sink& _sink,
@@ -696,7 +874,7 @@ perform_stream(
 {
     _meta = response();
 
-    const transport_error global = internal::global_error();
+    const transport_error::value global = internal::global_error();
 
     // libcurl's global state comes first, once per process
     if (global != transport_error::none)
@@ -713,12 +891,12 @@ perform_stream(
                             fields);
     const ::d_curl_options              c_options =
         internal::c_options(_options);
-    internal::stream_state              state     =
-        { &_sink, &_meta.headers, std::exception_ptr() };
+    internal::stream_state              state(&_sink,
+                                              &_meta.headers);
     const ::d_curl_sink                 c_sink    =
         internal::c_sink(state);
     ::d_curl_result                     result    =
-        { D_CURL_STATUS_OK, 0, 0 };
+        { D_CURL_OK, 0, 0 };
 
     (void)::d_curl_perform(&c_request,
                            &c_options,
@@ -753,16 +931,8 @@ perform(
 {
     response        result;
     std::string     body;
-    const body_sink sink =
-        [&body](const char* _data,
-                std::size_t _length) -> bool
-        {
-            body.append(_data,
-                        _length);
-
-            return true;
-        };
-    const transport_error error = perform_stream(_request,
+    const body_sink sink = internal::body_collector(&body);
+    const transport_error::value error = perform_stream(_request,
                                                  sink,
                                                  result,
                                                  _options);
@@ -778,7 +948,7 @@ perform(
 
 
 NS_END  // curl
-NS_END  // web
+NS_END  // net
 NS_END  // djinterp
 
 

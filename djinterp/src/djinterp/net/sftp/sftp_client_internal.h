@@ -12,7 +12,7 @@
 * path:      /src/djinterp/net/sftp/sftp_client_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -32,12 +32,13 @@ TABLE OF CONTENTS
 
 // std
 #include <stddef.h>  // size_t
-#include <stdint.h>  // uint32_t, uint64_t
 // djinterp
 #include "../../../../inc/djinterp/c/djinterp.h"               // framework root
 #include "../../../../inc/djinterp/c/util/sink_common.h"       // d_pack_bytes
 #include "../../../../inc/djinterp/net/sftp/sftp_client.h"     // d_sftp_client
 #include "../../../../inc/djinterp/net/sftp/sftp_common.h"     // d_sftp_packet
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t, uint64_t
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++
@@ -61,17 +62,16 @@ D_EXTERN_C_BEGIN
 enum d_sftp_error d_sftp_internal_client_receive(
                       struct d_sftp_client* _client,
                       struct d_sftp_packet* _out);
-enum d_sftp_error d_sftp_internal_client_status(
-                      struct d_sftp_client* _client,
-                      struct d_sftp_packet* _packet);
+enum d_sftp_error d_sftp_internal_client_status(struct d_sftp_client* _client,
+                                                struct d_sftp_packet* _packet);
 
 
 // 1.2    Requests
 //------------------------------------------------------------------------------
 // Each sends one request under the next id, stored in `*_out_id`: a READ of
 // `_length` bytes at `_offset`, or a WRITE of `_data` there. A request past
-// the packet limit is D_SFTP_ERROR_TOO_LARGE, one the writer could not
-// build D_SFTP_ERROR_MEMORY, and a failed stream as for receiving.
+// the packet limit is D_SFTP_ERROR_MESSAGE_TOO_LARGE, one the writer could not
+// build D_SFTP_ERROR_OUT_OF_MEMORY, and a failed stream as for receiving.
 enum d_sftp_error d_sftp_internal_client_read_request(
                       struct d_sftp_client*       _client,
                       const struct d_sftp_handle* _handle,
@@ -95,7 +95,7 @@ enum d_sftp_error d_sftp_internal_client_write_request(
 //------------------------------------------------------------------------------
 // d_sftp_internal_client_ready() is the check every operation starts with:
 // D_SFTP_ERROR_INVALID_ARGUMENT for a NULL client or pointer, then
-// D_SFTP_ERROR_BAD_SEQUENCE for a client not open.
+// D_SFTP_ERROR_STATE for a client not open.
 enum d_sftp_error d_sftp_internal_client_ready(
                       const struct d_sftp_client* _client,
                       const void*                 _first,

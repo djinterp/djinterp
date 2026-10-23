@@ -8,7 +8,7 @@
 * path:      /src/djinterp/net/ssh/ssh_session.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ssh/ssh_session.h"  // corresponding header
 // std
@@ -17,13 +17,14 @@
 #include <stdlib.h>   // malloc, free, getenv
 #include <string.h>   // memcpy, memset, strchr, strlen
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"  // framework root
-#include "../../../../inc/djinterp/config/net/ssh/cfg_ssh.h"  // D_INTERNAL_SSH_*
-#include "../../../../inc/djinterp/net/ssh/ssh_engine.h"  // d_ssh_engine_vtable
-#include "../../../../inc/djinterp/net/ssh/ssh_key.h"  // d_ssh_key_type, d_ssh_fingerprint
+#include "../../../../inc/djinterp/c/djinterp.h"               // framework root
+#include "../../../../inc/djinterp/config/net/ssh/cfg_ssh.h"   // D_INTERNAL_SSH_*
+#include "../../../../inc/djinterp/net/net_common.h"    // d_net_ascii_lower
+#include "../../../../inc/djinterp/net/ssh/ssh_engine.h"       // d_ssh_engine_vtable
+#include "../../../../inc/djinterp/net/ssh/ssh_key.h"          // d_ssh_key_type, d_ssh_fingerprint
 #include "../../../../inc/djinterp/net/ssh/ssh_known_hosts.h"  // d_ssh_known_hosts_add
-#include "../../../../inc/djinterp/net/ssh/ssh_wire.h"  // d_ssh_name_list_contains
-#include "../../../../inc/djinterp/net/ssh/ssh_internal.h"  // d_ssh_internal_*
+#include "../../../../inc/djinterp/net/ssh/ssh_wire.h"         // d_ssh_name_list_contains
+#include "../../../../inc/djinterp/net/ssh/ssh_internal.h"     // d_ssh_internal_*
 
 #if (D_INTERNAL_SSH_WINSOCK == 1)
     #include <winsock2.h>    // SOCKET, closesocket
@@ -92,7 +93,8 @@ d_ssh_internal_list_valid(
 {
     return ( (!_list) ||
              ( (_list[0] != '\0') &&
-               (d_ssh_internal_name_list_valid(_list, strlen(_list))) ) );
+               (d_ssh_internal_name_list_valid(_list,
+                                               strlen(_list))) ) );
 }
 
 /*
@@ -126,7 +128,9 @@ d_ssh_internal_pool_copy(
     const size_t size = strlen(_text) + 1;
     char* const  copy = *_cursor;
 
-    memcpy(copy, _text, size);
+    memcpy(copy,
+           _text,
+           size);
     *_cursor += size;
 
     return copy;
@@ -139,7 +143,7 @@ allocation; NULL, with *_status still D_SSH_OK, when no home is set.
 */
 D_STATIC char*
 d_ssh_internal_default_known_hosts(
-    enum d_ssh_status* _status
+    enum d_ssh_error* _status
 )
 {
     const char* const home   = getenv(D_INTERNAL_SSH_HOME_VARIABLE);
@@ -159,13 +163,17 @@ d_ssh_internal_default_known_hosts(
 
     if (!path)
     {
-        *_status = D_SSH_ERR_MEMORY;
+        *_status = D_SSH_ERROR_OUT_OF_MEMORY;
 
         return NULL;
     }
 
-    memcpy(path, home, home_length);
-    memcpy(path + home_length, suffix, suffix_length + 1);
+    memcpy(path,
+           home,
+           home_length);
+    memcpy(path + home_length,
+           suffix,
+           suffix_length + 1);
 
     return path;
 }
@@ -176,7 +184,7 @@ d_ssh_internal_copy_strings
 owns, lowercasing the host once, here, because known_hosts compares names
 without regard to case.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_copy_strings(
     struct d_ssh_session*       _session,
     const struct d_ssh_options* _options,
@@ -196,15 +204,16 @@ d_ssh_internal_copy_strings(
 
     if (!strings)
     {
-        return D_SSH_ERR_MEMORY;
+        return D_SSH_ERROR_OUT_OF_MEMORY;
     }
 
     char*       cursor = strings;
-    char* const host   = d_ssh_internal_pool_copy(&cursor, _options->host);
+    char* const host   = d_ssh_internal_pool_copy(&cursor,
+                                                  _options->host);
 
     for (size_t i = 0; host[i] != '\0'; i++)
     {
-        host[i] = d_ssh_internal_lower(host[i]);
+        host[i] = d_net_ascii_lower(host[i]);
     }
 
     _session->strings            = strings;
@@ -212,15 +221,20 @@ d_ssh_internal_copy_strings(
     _session->known_hosts        = d_ssh_internal_pool_copy(&cursor,
                                                             _known_hosts);
     _session->system_known_hosts =
-        d_ssh_internal_pool_copy(&cursor, _options->system_known_hosts);
+        d_ssh_internal_pool_copy(&cursor,
+                                 _options->system_known_hosts);
     _session->algorithms.kex       =
-        d_ssh_internal_pool_copy(&cursor, lists->kex);
+        d_ssh_internal_pool_copy(&cursor,
+                                 lists->kex);
     _session->algorithms.host_keys =
-        d_ssh_internal_pool_copy(&cursor, lists->host_keys);
+        d_ssh_internal_pool_copy(&cursor,
+                                 lists->host_keys);
     _session->algorithms.ciphers   =
-        d_ssh_internal_pool_copy(&cursor, lists->ciphers);
+        d_ssh_internal_pool_copy(&cursor,
+                                 lists->ciphers);
     _session->algorithms.macs      =
-        d_ssh_internal_pool_copy(&cursor, lists->macs);
+        d_ssh_internal_pool_copy(&cursor,
+                                 lists->macs);
 
     return D_SSH_OK;
 }
@@ -347,7 +361,9 @@ d_ssh_internal_note(
         const size_t length = strlen(text);
         const size_t size   = (length < limit) ? length : limit;
 
-        memcpy(_session->message, text, size);
+        memcpy(_session->message,
+               text,
+               size);
         _session->message[size] = '\0';
         _session->detail        = _session->message;
     }
@@ -359,15 +375,16 @@ d_ssh_internal_note(
 d_ssh_internal_fail
   Internal: ends the session with `_status`.
 */
-enum d_ssh_status
+enum d_ssh_error
 d_ssh_internal_fail(
     struct d_ssh_session* _session,
-    enum d_ssh_status     _status,
+    enum d_ssh_error      _status,
     const char*           _detail
 )
 {
     _session->state = D_SSH_STATE_FAILED;
-    d_ssh_internal_note(_session, _detail);
+    d_ssh_internal_note(_session,
+                        _detail);
 
     return _status;
 }
@@ -377,22 +394,25 @@ d_ssh_internal_settle
   Internal: applies an engine result to the session: a fatal one fails it,
 any other failure is described, and success changes nothing.
 */
-enum d_ssh_status
+enum d_ssh_error
 d_ssh_internal_settle(
     struct d_ssh_session* _session,
-    enum d_ssh_status     _status
+    enum d_ssh_error      _status
 )
 {
     if (d_ssh_internal_is_fatal(_status))
     {
-        return d_ssh_internal_fail(_session, _status, NULL);
+        return d_ssh_internal_fail(_session,
+                                   _status,
+                                   NULL);
     }
 
     // an ended stream is an outcome, not a failure worth describing
     if ( (_status != D_SSH_OK) &&
-         (_status != D_SSH_ERR_CLOSED) )
+         (_status != D_SSH_ERROR_CLOSED) )
     {
-        d_ssh_internal_note(_session, NULL);
+        d_ssh_internal_note(_session,
+                            NULL);
     }
 
     return _status;
@@ -433,7 +453,7 @@ d_ssh_internal_scan_host
 host -- with the host key once it has arrived -- reporting the verdict and
 the key types recorded.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_scan_host(
     const struct d_ssh_session* _session,
     const unsigned char*        _key,
@@ -442,9 +462,11 @@ d_ssh_internal_scan_host(
     char*                       _types
 )
 {
+    // filled before it is read, so left uninitialized (#111)
+    // filled before it is read, so left uninitialized (#111)
     char                       name[D_SSH_INTERNAL_HOST_MAX];
     struct d_ssh_internal_scan scan;
-    enum d_ssh_status          status =
+    enum d_ssh_error           status =
         d_ssh_internal_host_string(_session->host,
                                    _session->port,
                                    name,
@@ -455,11 +477,15 @@ d_ssh_internal_scan_host(
         return status;
     }
 
-    status = d_ssh_internal_scan_init(&scan, name, _key, _key_size);
+    status = d_ssh_internal_scan_init(&scan,
+                                      name,
+                                      _key,
+                                      _key_size);
 
     if (status == D_SSH_OK)
     {
-        status = d_ssh_internal_scan_file(&scan, _session->known_hosts);
+        status = d_ssh_internal_scan_file(&scan,
+                                          _session->known_hosts);
     }
 
     if (status == D_SSH_OK)
@@ -471,7 +497,9 @@ d_ssh_internal_scan_host(
     if (status == D_SSH_OK)
     {
         *_match = d_ssh_internal_scan_verdict(&scan);
-        memcpy(_types, scan.types, sizeof(scan.types));
+        memcpy(_types,
+               scan.types,
+               sizeof(scan.types));
     }
 
     d_ssh_internal_scan_free(&scan);
@@ -492,7 +520,7 @@ d_ssh_internal_algorithm_known(
     const char* _types
 )
 {
-    char name[D_SSH_KEY_TYPE_SIZE];
+    char name[D_SSH_KEY_TYPE_SIZE];  // filled before it is read
 
     if (_length >= sizeof(name))
     {
@@ -501,17 +529,25 @@ d_ssh_internal_algorithm_known(
 
     // the RSA signature algorithms share one key type
     if ( (_length > 9) &&
-         (memcmp(_algorithm, "rsa-sha2-", 9) == 0) )
+         (memcmp(_algorithm,
+                 "rsa-sha2-",
+                 9) == 0) )
     {
-        memcpy(name, "ssh-rsa", sizeof("ssh-rsa"));
+        memcpy(name,
+               "ssh-rsa",
+               sizeof("ssh-rsa"));
     }
     else
     {
-        memcpy(name, _algorithm, _length);
+        memcpy(name,
+               _algorithm,
+               _length);
         name[_length] = '\0';
     }
 
-    return d_ssh_name_list_contains(_types, strlen(_types), name);
+    return d_ssh_name_list_contains(_types,
+                                    strlen(_types),
+                                    name);
 }
 
 /*
@@ -538,11 +574,14 @@ d_ssh_internal_order_host_keys(
 
         while (*cursor != '\0')
         {
-            const char* const end    = strchr(cursor, ',');
+            const char* const end    = strchr(cursor,
+                                              ',');
             const size_t      length = (end) ? (size_t)(end - cursor)
                                              : strlen(cursor);
             const bool        known  =
-                d_ssh_internal_algorithm_known(cursor, length, _types);
+                d_ssh_internal_algorithm_known(cursor,
+                                               length,
+                                               _types);
 
             if ( (length > 0) &&
                  (known == (pass == 0)) )
@@ -552,7 +591,9 @@ d_ssh_internal_order_host_keys(
                     _ordered[written++] = ',';
                 }
 
-                memcpy(_ordered + written, cursor, length);
+                memcpy(_ordered + written,
+                       cursor,
+                       length);
                 written += length;
             }
 
@@ -571,19 +612,23 @@ d_ssh_internal_start
 runs the handshake; any failure fails the session. Unspecified ciphers and
 MACs become the module's own only where D_CFG_SSH_RESTRICT_ALGORITHMS is on.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_start(
     struct d_ssh_session* _session
 )
 {
     char                  types[D_SSH_INTERNAL_TYPES_MAX] = { 0 };
     enum d_ssh_host_match match  = D_SSH_HOST_UNKNOWN;
-    enum d_ssh_status     status = D_SSH_OK;
+    enum d_ssh_error      status = D_SSH_OK;
 
     // the insecure policy reads no file, so it has no types to prefer
     if (_session->policy != D_SSH_HOST_KEY_INSECURE_ACCEPT_ANY)
     {
-        status = d_ssh_internal_scan_host(_session, NULL, 0, &match, types);
+        status = d_ssh_internal_scan_host(_session,
+                                          NULL,
+                                          0,
+                                          &match,
+                                          types);
     }
 
     if (status != D_SSH_OK)
@@ -600,13 +645,17 @@ d_ssh_internal_start(
 
     if (!ordered)
     {
-        return d_ssh_internal_fail(_session, D_SSH_ERR_MEMORY, NULL);
+        return d_ssh_internal_fail(_session,
+                                   D_SSH_ERROR_OUT_OF_MEMORY,
+                                   NULL);
     }
 
     struct d_ssh_algorithms algorithms = _session->algorithms;
     void*                   handle     = NULL;
 
-    d_ssh_internal_order_host_keys(base, types, ordered);
+    d_ssh_internal_order_host_keys(base,
+                                   types,
+                                   ordered);
     algorithms.host_keys = ordered;
 
     if (D_INTERNAL_SSH_RESTRICT_ALGORITHMS == 1)
@@ -630,10 +679,13 @@ d_ssh_internal_start(
     }
 
     _session->handle = handle;
-    status           = _session->engine->handshake(handle, _session->socket);
+    status           = _session->engine->handshake(handle,
+                                                   _session->socket);
 
     return (status == D_SSH_OK) ? D_SSH_OK
-                                : d_ssh_internal_fail(_session, status, NULL);
+                                : d_ssh_internal_fail(_session,
+                                                      status,
+                                                      NULL);
 }
 
 /*
@@ -642,36 +694,44 @@ d_ssh_internal_take_host_key
 and fingerprint. A blob with no readable type is a protocol failure: no
 known_hosts line could ever name it.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_take_host_key(
     struct d_ssh_session* _session
 )
 {
     const unsigned char* key    = NULL;
     size_t               size   = 0;
-    enum d_ssh_status    status =
-        _session->engine->host_key(_session->handle, &key, &size);
+    enum d_ssh_error     status =
+        _session->engine->host_key(_session->handle,
+                                   &key,
+                                   &size);
 
     if ( (status == D_SSH_OK) &&
          ( (!key) ||
            (size == 0) ) )
     {
-        status = D_SSH_ERR_PROTOCOL;
+        status = D_SSH_ERROR_PROTOCOL;
     }
 
     if (status != D_SSH_OK)
     {
-        return d_ssh_internal_fail(_session, status, NULL);
+        return d_ssh_internal_fail(_session,
+                                   status,
+                                   NULL);
     }
 
     unsigned char* const copy = malloc(size);
 
     if (!copy)
     {
-        return d_ssh_internal_fail(_session, D_SSH_ERR_MEMORY, NULL);
+        return d_ssh_internal_fail(_session,
+                                   D_SSH_ERROR_OUT_OF_MEMORY,
+                                   NULL);
     }
 
-    memcpy(copy, key, size);
+    memcpy(copy,
+           key,
+           size);
     _session->host_key      = copy;
     _session->host_key_size = size;
 
@@ -691,7 +751,7 @@ d_ssh_internal_take_host_key(
     return (status == D_SSH_OK)
                ? D_SSH_OK
                : d_ssh_internal_fail(_session,
-                                     D_SSH_ERR_PROTOCOL,
+                                     D_SSH_ERROR_PROTOCOL,
                                      "the host key is malformed");
 }
 
@@ -702,7 +762,7 @@ it, CALLBACK asks the program, and STRICT refuses. A key that should be
 recorded but cannot be fails the connection, rather than be trusted again
 next time with no record of it.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_accept_new(
     struct d_ssh_session* _session,
     const char**          _detail
@@ -726,7 +786,7 @@ d_ssh_internal_accept_new(
     {
         *_detail = "the host key is not recorded in known_hosts";
 
-        return D_SSH_ERR_HOST_UNKNOWN;
+        return D_SSH_ERROR_HOST_UNKNOWN;
     }
 
     if (!remember)
@@ -744,7 +804,7 @@ d_ssh_internal_accept_new(
     {
         *_detail = "the host key could not be recorded in known_hosts";
 
-        return D_SSH_ERR_KNOWN_HOSTS;
+        return D_SSH_ERROR_KNOWN_HOSTS;
     }
 
     return D_SSH_OK;
@@ -756,13 +816,13 @@ d_ssh_internal_verify
 differs from the record, or is revoked, fails under every policy that reads
 the files; only an unrecorded host is left to the policy to decide.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_verify(
     struct d_ssh_session* _session,
     const char**          _detail
 )
 {
-    char                  types[D_SSH_INTERNAL_TYPES_MAX];
+    char                  types[D_SSH_INTERNAL_TYPES_MAX];  // filled, then read
     enum d_ssh_host_match match = D_SSH_HOST_UNKNOWN;
 
     *_detail = NULL;
@@ -773,7 +833,7 @@ d_ssh_internal_verify(
         return D_SSH_OK;
     }
 
-    const enum d_ssh_status status =
+    const enum d_ssh_error status =
         d_ssh_internal_scan_host(_session,
                                  _session->host_key,
                                  _session->host_key_size,
@@ -798,7 +858,7 @@ d_ssh_internal_verify(
     {
         *_detail = "the host key is marked @revoked in known_hosts";
 
-        return D_SSH_ERR_HOST_REVOKED;
+        return D_SSH_ERROR_HOST_REVOKED;
     }
 
     if (match == D_SSH_HOST_CHANGED)
@@ -806,10 +866,11 @@ d_ssh_internal_verify(
         *_detail = "the host key differs from every key known_hosts records "
                    "for this host";
 
-        return D_SSH_ERR_HOST_CHANGED;
+        return D_SSH_ERROR_HOST_CHANGED;
     }
 
-    return d_ssh_internal_accept_new(_session, _detail);
+    return d_ssh_internal_accept_new(_session,
+                                     _detail);
 }
 
 /*
@@ -841,11 +902,11 @@ d_ssh_options_default(void)
 /*
 d_ssh_internal_options_check
   File-local: judges options before anything is allocated. A missing engine
-is D_SSH_ERR_NO_BACKEND and a host that known_hosts could not record is
-D_SSH_ERR_FORMAT; anything else missing or out of range is
-D_SSH_ERR_ARGUMENT.
+is D_SSH_ERROR_NO_BACKEND and a host that known_hosts could not record is
+D_SSH_ERROR_MALFORMED; anything else missing or out of range is
+D_SSH_ERROR_INVALID_ARGUMENT.
 */
-D_STATIC enum d_ssh_status
+D_STATIC enum d_ssh_error
 d_ssh_internal_options_check(
     const struct d_ssh_options* _options,
     d_ssh_socket                _socket
@@ -855,12 +916,12 @@ d_ssh_internal_options_check(
          (!_options->host) ||
          (_socket == D_SSH_SOCKET_INVALID) )
     {
-        return D_SSH_ERR_ARGUMENT;
+        return D_SSH_ERROR_INVALID_ARGUMENT;
     }
 
     if (!_options->engine)
     {
-        return D_SSH_ERR_NO_BACKEND;
+        return D_SSH_ERROR_NO_BACKEND;
     }
 
     const enum d_ssh_host_key_policy policy = _options->host_key_policy;
@@ -878,11 +939,11 @@ d_ssh_internal_options_check(
          (!d_ssh_internal_list_valid(_options->algorithms.ciphers))   ||
          (!d_ssh_internal_list_valid(_options->algorithms.macs)) )
     {
-        return D_SSH_ERR_ARGUMENT;
+        return D_SSH_ERROR_INVALID_ARGUMENT;
     }
 
     return (d_ssh_internal_host_valid(_options->host)) ? D_SSH_OK
-                                                       : D_SSH_ERR_FORMAT;
+                                                       : D_SSH_ERROR_MALFORMED;
 }
 
 /*
@@ -890,7 +951,7 @@ d_ssh_init
   Validation finishes before anything is allocated or the socket touched, so
 a refused session has nothing to release.
 */
-enum d_ssh_status
+enum d_ssh_error
 d_ssh_init(
     struct d_ssh_session*       _session,
     const struct d_ssh_options* _options,
@@ -900,15 +961,18 @@ d_ssh_init(
 {
     if (!_session)
     {
-        return D_SSH_ERR_ARGUMENT;
+        return D_SSH_ERROR_INVALID_ARGUMENT;
     }
 
-    memset(_session, 0, sizeof(*_session));
+    memset(_session,
+           0,
+           sizeof(*_session));
     _session->socket     = D_SSH_SOCKET_INVALID;
     _session->state      = D_SSH_STATE_CLOSED;
     _session->host_match = D_SSH_HOST_UNKNOWN;
 
-    enum d_ssh_status status = d_ssh_internal_options_check(_options, _socket);
+    enum d_ssh_error status = d_ssh_internal_options_check(_options,
+                                                           _socket);
 
     if (status != D_SSH_OK)
     {
@@ -958,22 +1022,22 @@ d_ssh_connect
 byte is sent. After the handshake the key is copied, typed, and
 fingerprinted before it is judged, so that a refusal can still show it.
 */
-enum d_ssh_status
+enum d_ssh_error
 d_ssh_connect(
     struct d_ssh_session* _session
 )
 {
     if (!_session)
     {
-        return D_SSH_ERR_ARGUMENT;
+        return D_SSH_ERROR_INVALID_ARGUMENT;
     }
 
     if (_session->state != D_SSH_STATE_NEW)
     {
-        return D_SSH_ERR_STATE;
+        return D_SSH_ERROR_STATE;
     }
 
-    enum d_ssh_status status = d_ssh_internal_start(_session);
+    enum d_ssh_error status = d_ssh_internal_start(_session);
 
     if (status == D_SSH_OK)
     {
@@ -988,11 +1052,14 @@ d_ssh_connect(
 
     const char* detail = NULL;
 
-    status = d_ssh_internal_verify(_session, &detail);
+    status = d_ssh_internal_verify(_session,
+                                   &detail);
 
     if (status != D_SSH_OK)
     {
-        return d_ssh_internal_fail(_session, status, detail);
+        return d_ssh_internal_fail(_session,
+                                   status,
+                                   detail);
     }
 
     _session->state = D_SSH_STATE_VERIFIED;
@@ -1005,7 +1072,7 @@ d_ssh_disconnect
   Only a healthy transport carries the courtesy message; either way the
 engine's session is released and an owned socket closed.
 */
-enum d_ssh_status
+enum d_ssh_error
 d_ssh_disconnect(
     struct d_ssh_session* _session,
     const char*           _reason
@@ -1013,7 +1080,7 @@ d_ssh_disconnect(
 {
     if (!_session)
     {
-        return D_SSH_ERR_ARGUMENT;
+        return D_SSH_ERROR_INVALID_ARGUMENT;
     }
 
     if (_session->state == D_SSH_STATE_CLOSED)
@@ -1021,7 +1088,7 @@ d_ssh_disconnect(
         return D_SSH_OK;
     }
 
-    enum d_ssh_status status = D_SSH_OK;
+    enum d_ssh_error status = D_SSH_OK;
 
     if ( (_session->handle) &&
          ( (_session->state == D_SSH_STATE_VERIFIED) ||
@@ -1033,7 +1100,8 @@ d_ssh_disconnect(
 
         if (status != D_SSH_OK)
         {
-            d_ssh_internal_note(_session, NULL);
+            d_ssh_internal_note(_session,
+                                NULL);
         }
     }
 
@@ -1062,7 +1130,9 @@ d_ssh_destroy(
     free(_session->strings);
     free(_session->host_key);
 
-    memset(_session, 0, sizeof(*_session));
+    memset(_session,
+           0,
+           sizeof(*_session));
     _session->socket     = D_SSH_SOCKET_INVALID;
     _session->state      = D_SSH_STATE_CLOSED;
     _session->host_match = D_SSH_HOST_UNKNOWN;

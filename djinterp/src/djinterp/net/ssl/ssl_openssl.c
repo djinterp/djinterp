@@ -21,14 +21,13 @@
 * path:      /src/djinterp/net/ssl/ssl_openssl.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ssl/ssl_openssl.h"  // corresponding header
 // std
 #include <limits.h>   // INT_MAX
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // int32_t, uint32_t
 #include <stdlib.h>   // calloc, malloc, free, getenv
 #include <string.h>   // memcpy, strlen
 // djinterp
@@ -37,6 +36,9 @@
 #include "../../../../inc/djinterp/env/net/ssl/env_ssl.h"     // D_ENV_SSL_*
 #include "../../../../inc/djinterp/env/net/tls/env_tls.h"     // D_ENV_TLS_*
 #include "../../../../inc/djinterp/net/ssl/ssl.h"             // d_ssl_engine
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // int32_t, uint16_t,
+                                                     // uint32_t
 
 #if ( (D_INTERNAL_SSL_OPENSSL == 1) &&                                         \
       (D_ENV_SSL_TRUST_STORE == D_ENV_SSL_TRUST_WINDOWS) )
@@ -171,15 +173,15 @@ d_internal_ssl_openssl_library_failure
   The status of a library call that failed outside any exchange -- creating a
 context, a session, or a BIO -- clearing the error it left behind.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_library_failure(void)
 {
     const bool exhausted = d_internal_ssl_openssl_out_of_memory();
 
     ERR_clear_error();
 
-    return (exhausted) ? D_SSL_STATUS_OUT_OF_MEMORY
-                       : D_SSL_STATUS_BACKEND_ERROR;
+    return (exhausted) ? D_SSL_ERROR_OUT_OF_MEMORY
+                       : D_SSL_ERROR_BACKEND;
 }
 
 /*
@@ -189,7 +191,7 @@ alerts mean the peer failed verification, negotiation alerts that the two
 ends found nothing to agree on, internal_error that the library itself
 failed, and the rest that the peer broke the protocol.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_alert_status(
     int32_t _alert
 )
@@ -204,7 +206,7 @@ d_internal_ssl_openssl_alert_status(
         case D_SSL_ALERT_CERTIFICATE_UNKNOWN:
         case D_SSL_ALERT_UNKNOWN_CA:
         case D_SSL_ALERT_CERTIFICATE_REQUIRED:
-            return D_SSL_STATUS_VERIFY_FAILED;
+            return D_SSL_ERROR_VERIFY;
 
         // no version, suite, extension, or protocol in common
         case D_SSL_ALERT_HANDSHAKE_FAILURE:
@@ -216,15 +218,15 @@ d_internal_ssl_openssl_alert_status(
         case D_SSL_ALERT_UNSUPPORTED_EXTENSION:
         case D_SSL_ALERT_UNRECOGNIZED_NAME:
         case D_SSL_ALERT_NO_APPLICATION_PROTOCOL:
-            return D_SSL_STATUS_HANDSHAKE_FAILED;
+            return D_SSL_ERROR_HANDSHAKE;
 
         // the library failed, not the exchange
         case D_SSL_ALERT_INTERNAL_ERROR:
-            return D_SSL_STATUS_BACKEND_ERROR;
+            return D_SSL_ERROR_BACKEND;
 
         // malformed or unexpected input from the peer
         default:
-            return D_SSL_STATUS_PROTOCOL_ERROR;
+            return D_SSL_ERROR_PROTOCOL;
     }
 }
 
@@ -236,7 +238,7 @@ withheld, which is recognized first. An alert the peer sent means the peer
 refused: the handshake, while it runs, and the protocol after. With neither,
 the peer's input was malformed.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_failure(
     const struct d_internal_ssl_openssl_session* _session
 )
@@ -244,13 +246,13 @@ d_internal_ssl_openssl_failure(
     // running out of memory is the library's failure, not the exchange's
     if (d_internal_ssl_openssl_out_of_memory())
     {
-        return D_SSL_STATUS_OUT_OF_MEMORY;
+        return D_SSL_ERROR_OUT_OF_MEMORY;
     }
 
     // a required certificate never arrived: the peer failed verification
     if (d_internal_ssl_openssl_missing_certificate())
     {
-        return D_SSL_STATUS_VERIFY_FAILED;
+        return D_SSL_ERROR_VERIFY;
     }
 
     // a fatal alert this end sent names what it found wrong
@@ -265,11 +267,11 @@ d_internal_ssl_openssl_failure(
          (_session->alert_received != D_SSL_ALERT_CLOSE_NOTIFY) )
     {
         return (SSL_in_init(_session->library) == 1)
-                   ? D_SSL_STATUS_HANDSHAKE_FAILED
-                   : D_SSL_STATUS_PROTOCOL_ERROR;
+                   ? D_SSL_ERROR_HANDSHAKE
+                   : D_SSL_ERROR_PROTOCOL;
     }
 
-    return D_SSL_STATUS_PROTOCOL_ERROR;
+    return D_SSL_ERROR_PROTOCOL;
 }
 
 /*
@@ -278,7 +280,7 @@ d_internal_ssl_openssl_outcome
 the engine's statuses. SSL_ERROR_WANT_WRITE cannot arise, since a memory BIO
 takes every write, and with the other remaining errors it is the backend's.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_outcome(
     const struct d_internal_ssl_openssl_session* _session,
     int                                          _result
@@ -291,18 +293,18 @@ d_internal_ssl_openssl_outcome(
     {
         // the library waits on the peer
         case SSL_ERROR_WANT_READ:
-            return D_SSL_STATUS_WANT_READ;
+            return D_SSL_ERROR_WANT_READ;
 
         // the peer's close_notify arrived
         case SSL_ERROR_ZERO_RETURN:
-            return D_SSL_STATUS_CONNECTION_CLOSED;
+            return D_SSL_ERROR_CLOSED;
 
         // the exchange failed
         case SSL_ERROR_SSL:
             return d_internal_ssl_openssl_failure(_session);
 
         default:
-            return D_SSL_STATUS_BACKEND_ERROR;
+            return D_SSL_ERROR_BACKEND;
     }
 }
 
@@ -465,7 +467,7 @@ d_internal_ssl_openssl_set_versions
 versions straight through as the code points the static assertions above
 pin. The library refuses a version it was built without.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_set_versions(
     SSL_CTX*                 _library,
     const struct d_ssl_plan* _plan
@@ -484,10 +486,10 @@ d_internal_ssl_openssl_set_versions(
     {
         ERR_clear_error();
 
-        return D_SSL_STATUS_UNSUPPORTED;
+        return D_SSL_ERROR_UNSUPPORTED;
     }
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -525,10 +527,10 @@ d_internal_ssl_openssl_set_verification(
 /*
 d_internal_ssl_openssl_load_pem_anchors
   Adds every certificate in PEM text to the context's trust store. Text that
-yields no certificate at all is INVALID_CONFIG. The library's "no further
+yields no certificate at all is CONFIG. The library's "no further
 PEM" error, which ends every such loop, is cleared.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_load_pem_anchors(
     SSL_CTX*           _library,
     struct d_pack_text _pem
@@ -539,7 +541,7 @@ d_internal_ssl_openssl_load_pem_anchors(
     // text too long for the library, or no memory for the BIO
     if (source == NULL)
     {
-        return D_SSL_STATUS_INVALID_CONFIG;
+        return D_SSL_ERROR_CONFIG;
     }
 
     X509_STORE* const store       = SSL_CTX_get_cert_store(_library);
@@ -568,8 +570,8 @@ d_internal_ssl_openssl_load_pem_anchors(
     BIO_free(source);
     ERR_clear_error();
 
-    return (added > 0) ? D_SSL_STATUS_OK
-                       : D_SSL_STATUS_INVALID_CONFIG;
+    return (added > 0) ? D_SSL_OK
+                       : D_SSL_ERROR_CONFIG;
 }
 
 /*
@@ -724,9 +726,9 @@ d_internal_ssl_openssl_load_system(
 d_internal_ssl_openssl_load_anchors
   Loads every trust anchor the configuration names: PEM text, a bundle file,
 a hashed directory, and, where the plan checks chains, the platform's store.
-A named source that does not load is INVALID_CONFIG.
+A named source that does not load is CONFIG.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_load_anchors(
     SSL_CTX*                   _library,
     const struct d_ssl_config* _config,
@@ -736,11 +738,11 @@ d_internal_ssl_openssl_load_anchors(
     // anchors given as text
     if (_config->ca_pem.length > 0)
     {
-        const enum d_ssl_status status =
+        const enum d_ssl_error status =
             d_internal_ssl_openssl_load_pem_anchors(_library,
                                                     _config->ca_pem);
 
-        if (status != D_SSL_STATUS_OK)
+        if (status != D_SSL_OK)
         {
             return status;
         }
@@ -758,7 +760,7 @@ d_internal_ssl_openssl_load_anchors(
         {
             ERR_clear_error();
 
-            return D_SSL_STATUS_INVALID_CONFIG;
+            return D_SSL_ERROR_CONFIG;
         }
     }
 
@@ -769,7 +771,7 @@ d_internal_ssl_openssl_load_anchors(
         d_internal_ssl_openssl_load_system(_library);
     }
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -777,7 +779,7 @@ d_internal_ssl_openssl_use_pem_chain
   Installs a certificate chain given as PEM text, leaf first: the leaf as the
 context's certificate and each later certificate as a link of its chain.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_use_pem_chain(
     SSL_CTX*           _library,
     struct d_pack_text _pem
@@ -788,27 +790,27 @@ d_internal_ssl_openssl_use_pem_chain(
     // text too long for the library, or no memory for the BIO
     if (source == NULL)
     {
-        return D_SSL_STATUS_INVALID_CONFIG;
+        return D_SSL_ERROR_CONFIG;
     }
 
-    X509* const       leaf   = PEM_read_bio_X509(source,
-                                                 NULL,
-                                                 NULL,
-                                                 NULL);
-    enum d_ssl_status status = D_SSL_STATUS_INVALID_CONFIG;
+    X509* const      leaf   = PEM_read_bio_X509(source,
+                                                NULL,
+                                                NULL,
+                                                NULL);
+    enum d_ssl_error status = D_SSL_ERROR_CONFIG;
 
     // the first certificate is the context's own
     if ( (leaf != NULL) &&
          (SSL_CTX_use_certificate(_library,
                                   leaf) == 1) )
     {
-        status = D_SSL_STATUS_OK;
+        status = D_SSL_OK;
     }
 
     X509_free(leaf);
 
     // each later certificate extends the chain
-    while (status == D_SSL_STATUS_OK)
+    while (status == D_SSL_OK)
     {
         X509* const extra = PEM_read_bio_X509(source,
                                               NULL,
@@ -825,8 +827,8 @@ d_internal_ssl_openssl_use_pem_chain(
                                                    extra);
 
         X509_free(extra);
-        status = (added == 1) ? D_SSL_STATUS_OK
-                              : D_SSL_STATUS_INVALID_CONFIG;
+        status = (added == 1) ? D_SSL_OK
+                              : D_SSL_ERROR_CONFIG;
     }
 
     BIO_free(source);
@@ -840,7 +842,7 @@ d_internal_ssl_openssl_use_pem_key
   Installs a private key given as PEM text. The text is read in place, and
 the parsed key is released once the context holds its own reference.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_use_pem_key(
     SSL_CTX*           _library,
     struct d_pack_text _pem
@@ -851,21 +853,21 @@ d_internal_ssl_openssl_use_pem_key(
     // text too long for the library, or no memory for the BIO
     if (source == NULL)
     {
-        return D_SSL_STATUS_INVALID_CONFIG;
+        return D_SSL_ERROR_CONFIG;
     }
 
-    EVP_PKEY* const   key    = PEM_read_bio_PrivateKey(source,
-                                                       NULL,
-                                                       NULL,
-                                                       NULL);
-    enum d_ssl_status status = D_SSL_STATUS_INVALID_CONFIG;
+    EVP_PKEY* const  key    = PEM_read_bio_PrivateKey(source,
+                                                      NULL,
+                                                      NULL,
+                                                      NULL);
+    enum d_ssl_error status = D_SSL_ERROR_CONFIG;
 
     // a key that parses and that the library accepts
     if ( (key != NULL) &&
          (SSL_CTX_use_PrivateKey(_library,
                                  key) == 1) )
     {
-        status = D_SSL_STATUS_OK;
+        status = D_SSL_OK;
     }
 
     EVP_PKEY_free(key);
@@ -881,7 +883,7 @@ d_internal_ssl_openssl_use_identity
 chain and its private key, each from a file or from PEM text independently,
 and then checks that the key belongs to the certificate.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_use_identity(
     SSL_CTX*                   _library,
     const struct d_ssl_config* _config
@@ -891,10 +893,10 @@ d_internal_ssl_openssl_use_identity(
     if ( (_config->certificate_file == NULL) &&
          (_config->certificate_pem.length == 0) )
     {
-        return D_SSL_STATUS_OK;
+        return D_SSL_OK;
     }
 
-    enum d_ssl_status status = D_SSL_STATUS_INVALID_CONFIG;
+    enum d_ssl_error status = D_SSL_ERROR_CONFIG;
 
     // the chain, from its file or its text
     if (_config->certificate_file != NULL)
@@ -902,8 +904,8 @@ d_internal_ssl_openssl_use_identity(
         status = (SSL_CTX_use_certificate_chain_file(
                       _library,
                       _config->certificate_file) == 1)
-                     ? D_SSL_STATUS_OK
-                     : D_SSL_STATUS_INVALID_CONFIG;
+                     ? D_SSL_OK
+                     : D_SSL_ERROR_CONFIG;
     }
     else
     {
@@ -913,16 +915,16 @@ d_internal_ssl_openssl_use_identity(
     }
 
     // the key, likewise
-    if ( (status == D_SSL_STATUS_OK) &&
+    if ( (status == D_SSL_OK) &&
          (_config->private_key_file != NULL) )
     {
         status = (SSL_CTX_use_PrivateKey_file(_library,
                                               _config->private_key_file,
                                               SSL_FILETYPE_PEM) == 1)
-                     ? D_SSL_STATUS_OK
-                     : D_SSL_STATUS_INVALID_CONFIG;
+                     ? D_SSL_OK
+                     : D_SSL_ERROR_CONFIG;
     }
-    else if (status == D_SSL_STATUS_OK)
+    else if (status == D_SSL_OK)
     {
         status = d_internal_ssl_openssl_use_pem_key(
                      _library,
@@ -930,10 +932,10 @@ d_internal_ssl_openssl_use_identity(
     }
 
     // the key must belong to the certificate
-    if ( (status == D_SSL_STATUS_OK) &&
+    if ( (status == D_SSL_OK) &&
          (SSL_CTX_check_private_key(_library) != 1) )
     {
-        status = D_SSL_STATUS_INVALID_CONFIG;
+        status = D_SSL_ERROR_CONFIG;
     }
 
     ERR_clear_error();
@@ -948,7 +950,7 @@ d_internal_ssl_openssl_set_suites
   Sets the TLS 1.3 cipher suites, in the library's own syntax. The library
 refuses a list naming no suite it knows.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_set_suites(
     SSL_CTX*    _library,
     const char* _suites
@@ -960,10 +962,10 @@ d_internal_ssl_openssl_set_suites(
     {
         ERR_clear_error();
 
-        return D_SSL_STATUS_INVALID_CONFIG;
+        return D_SSL_ERROR_CONFIG;
     }
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 #else
@@ -973,7 +975,7 @@ d_internal_ssl_openssl_set_suites
   A library without SSL_CTX_set_ciphersuites cannot honour a TLS 1.3 suite
 list, and a context that ignored one would do less than was asked.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_set_suites(
     SSL_CTX*    _library,
     const char* _suites
@@ -982,7 +984,7 @@ d_internal_ssl_openssl_set_suites(
     (void)_library;
     (void)_suites;
 
-    return D_SSL_STATUS_UNSUPPORTED;
+    return D_SSL_ERROR_UNSUPPORTED;
 }
 
 #endif  // D_ENV_SSL_OPENSSL_HAS_CIPHERSUITES
@@ -993,7 +995,7 @@ d_internal_ssl_openssl_set_ciphers
 older, cipher_suites for TLS 1.3. Either left NULL keeps the library's
 defaults.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_set_ciphers(
     SSL_CTX*                   _library,
     const struct d_ssl_config* _config
@@ -1006,7 +1008,7 @@ d_internal_ssl_openssl_set_ciphers(
     {
         ERR_clear_error();
 
-        return D_SSL_STATUS_INVALID_CONFIG;
+        return D_SSL_ERROR_CONFIG;
     }
 
     // the TLS 1.3 suites, where the configuration names them
@@ -1016,7 +1018,7 @@ d_internal_ssl_openssl_set_ciphers(
                                                  _config->cipher_suites);
     }
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -1025,7 +1027,7 @@ d_internal_ssl_openssl_set_alpn
 stands. A server keeps its own copy for the selection callback, since the
 configuration does not outlive context creation.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_set_alpn(
     struct d_internal_ssl_openssl_context* _context,
     const struct d_ssl_config*             _config
@@ -1036,7 +1038,7 @@ d_internal_ssl_openssl_set_alpn(
     // no list: nothing to offer or select from
     if (list.size == 0)
     {
-        return D_SSL_STATUS_OK;
+        return D_SSL_OK;
     }
 
     // a client offers it; this call alone answers 0 for success
@@ -1046,7 +1048,7 @@ d_internal_ssl_openssl_set_alpn(
                                                     list.data,
                                                     (unsigned int)list.size);
 
-        return (refused == 0) ? D_SSL_STATUS_OK
+        return (refused == 0) ? D_SSL_OK
                               : d_internal_ssl_openssl_library_failure();
     }
 
@@ -1055,7 +1057,7 @@ d_internal_ssl_openssl_set_alpn(
     // a server's copy
     if (_context->alpn == NULL)
     {
-        return D_SSL_STATUS_OUT_OF_MEMORY;
+        return D_SSL_ERROR_OUT_OF_MEMORY;
     }
 
     memcpy(_context->alpn,
@@ -1066,7 +1068,7 @@ d_internal_ssl_openssl_set_alpn(
                                d_internal_ssl_openssl_on_alpn,
                                _context);
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 #if (D_ENV_SSL_OPENSSL_HAS_KEYLOG == 1)
@@ -1123,22 +1125,22 @@ d_internal_ssl_openssl_configure
   Applies a configuration and its plan to a fresh library context, one step
 at a time; the first step to fail decides the status.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_configure(
     struct d_internal_ssl_openssl_context* _context,
     const struct d_ssl_config*             _config
 )
 {
-    SSL_CTX* const    library = _context->library;
-    enum d_ssl_status status  = d_internal_ssl_openssl_set_versions(
-                                    library,
-                                    &_context->plan);
+    SSL_CTX* const   library = _context->library;
+    enum d_ssl_error status  = d_internal_ssl_openssl_set_versions(
+                                   library,
+                                   &_context->plan);
 
     d_internal_ssl_openssl_set_verification(library,
                                             &_context->plan);
 
     // trust anchors
-    if (status == D_SSL_STATUS_OK)
+    if (status == D_SSL_OK)
     {
         status = d_internal_ssl_openssl_load_anchors(library,
                                                      _config,
@@ -1146,21 +1148,21 @@ d_internal_ssl_openssl_configure(
     }
 
     // the local identity
-    if (status == D_SSL_STATUS_OK)
+    if (status == D_SSL_OK)
     {
         status = d_internal_ssl_openssl_use_identity(library,
                                                      _config);
     }
 
     // cipher strings
-    if (status == D_SSL_STATUS_OK)
+    if (status == D_SSL_OK)
     {
         status = d_internal_ssl_openssl_set_ciphers(library,
                                                     _config);
     }
 
     // application protocols
-    if (status == D_SSL_STATUS_OK)
+    if (status == D_SSL_OK)
     {
         status = d_internal_ssl_openssl_set_alpn(_context,
                                                  _config);
@@ -1208,7 +1210,7 @@ d_internal_ssl_openssl_context_create
 configured by d_internal_ssl_openssl_configure. A context that cannot honour
 its configuration is destroyed before the failure returns.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_context_create(
     const struct d_ssl_config* _config,
     const struct d_ssl_plan*   _plan,
@@ -1220,7 +1222,7 @@ d_internal_ssl_openssl_context_create(
          (_plan == NULL)   ||
          (_out_context == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     struct d_internal_ssl_openssl_context* const context =
@@ -1230,7 +1232,7 @@ d_internal_ssl_openssl_context_create(
     // no memory for the engine's record
     if (context == NULL)
     {
-        return D_SSL_STATUS_OUT_OF_MEMORY;
+        return D_SSL_ERROR_OUT_OF_MEMORY;
     }
 
     context->plan    = *_plan;
@@ -1246,12 +1248,12 @@ d_internal_ssl_openssl_context_create(
         return d_internal_ssl_openssl_library_failure();
     }
 
-    const enum d_ssl_status status =
+    const enum d_ssl_error status =
         d_internal_ssl_openssl_configure(context,
                                          _config);
 
     // a context that cannot honour its configuration is not kept
-    if (status != D_SSL_STATUS_OK)
+    if (status != D_SSL_OK)
     {
         d_internal_ssl_openssl_context_destroy(context);
 
@@ -1260,7 +1262,7 @@ d_internal_ssl_openssl_context_create(
 
     *_out_context = context;
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -1270,7 +1272,7 @@ Each BIO answers an empty read with "retry" rather than end-of-file: the
 inbound one so that a library waiting on the peer reports WANT_READ, the
 outbound one so that it never reports an end drain did not cause.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_session_attach(
     struct d_internal_ssl_openssl_session* _session,
     const char*                            _sni
@@ -1312,7 +1314,7 @@ d_internal_ssl_openssl_session_attach(
     {
         SSL_set_accept_state(library);
 
-        return D_SSL_STATUS_OK;
+        return D_SSL_OK;
     }
 
     SSL_set_connect_state(library);
@@ -1325,7 +1327,7 @@ d_internal_ssl_openssl_session_attach(
         return d_internal_ssl_openssl_library_failure();
     }
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -1360,7 +1362,7 @@ d_internal_ssl_openssl_session_create
 are the kernel's to check, through peer_name. The server name, if any, goes
 into the client's hello.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_session_create(
     void*       _context,
     const char* _host,
@@ -1372,7 +1374,7 @@ d_internal_ssl_openssl_session_create(
     if ( (_context == NULL) ||
          (_out_session == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     (void)_host;
@@ -1384,19 +1386,19 @@ d_internal_ssl_openssl_session_create(
     // no memory for the engine's record
     if (session == NULL)
     {
-        return D_SSL_STATUS_OUT_OF_MEMORY;
+        return D_SSL_ERROR_OUT_OF_MEMORY;
     }
 
     session->context        = _context;
     session->alert_sent     = D_SSL_ALERT_NONE;
     session->alert_received = D_SSL_ALERT_NONE;
 
-    const enum d_ssl_status status =
+    const enum d_ssl_error status =
         d_internal_ssl_openssl_session_attach(session,
                                               _sni);
 
     // a session the library could not set up is not kept
-    if (status != D_SSL_STATUS_OK)
+    if (status != D_SSL_OK)
     {
         d_internal_ssl_openssl_session_destroy(session);
 
@@ -1405,7 +1407,42 @@ d_internal_ssl_openssl_session_create(
 
     *_out_session = session;
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
+}
+
+/*
+d_internal_ssl_openssl_session_resume
+  Offers the session the library session `_from` holds now. SSL_get1_session
+gives the latest one: under TLS 1.3 that is the session the server's
+NewSessionTicket made, which the library reads with the application data
+after the handshake -- by the time an FTPS client opens a data connection it
+has read several replies, and holds it. With nothing yet to offer the
+handshake is a full one. The reference taken is the offer's own, released
+once SSL_set_session has taken its own.
+*/
+static enum d_ssl_error
+d_internal_ssl_openssl_session_resume(
+    void* _session,
+    void* _from
+)
+{
+    struct d_internal_ssl_openssl_session* const session = _session;
+    struct d_internal_ssl_openssl_session* const from    = _from;
+    SSL_SESSION* const offered = SSL_get1_session(from->library);
+
+    // nothing yet to offer
+    if (offered == NULL)
+    {
+        return D_SSL_OK;
+    }
+
+    const int taken = SSL_set_session(session->library,
+                                      offered);
+
+    SSL_SESSION_free(offered);
+
+    return (taken == 1) ? D_SSL_OK
+                        : d_internal_ssl_openssl_library_failure();
 }
 
 /*
@@ -1414,7 +1451,7 @@ d_internal_ssl_openssl_feed
 library's int lengths can express. A memory BIO refuses a write only when it
 cannot grow.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_feed(
     void*       _session,
     const void* _data,
@@ -1426,7 +1463,7 @@ d_internal_ssl_openssl_feed(
          ( (_data == NULL) &&
            (_size > 0) ) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     const struct d_internal_ssl_openssl_session* const session = _session;
@@ -1446,13 +1483,13 @@ d_internal_ssl_openssl_feed(
 
         if (written <= 0)
         {
-            return D_SSL_STATUS_OUT_OF_MEMORY;
+            return D_SSL_ERROR_OUT_OF_MEMORY;
         }
 
         taken += (size_t)written;
     }
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -1460,7 +1497,7 @@ d_internal_ssl_openssl_drain
   Moves pending ciphertext out of the outbound BIO, as much as the buffer
 holds and one int-sized piece at most; the kernel calls again for the rest.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_drain(
     void*   _session,
     void*   _buffer,
@@ -1473,7 +1510,7 @@ d_internal_ssl_openssl_drain(
          (_buffer == NULL)  ||
          (_out_size == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     const struct d_internal_ssl_openssl_session* const session = _session;
@@ -1487,7 +1524,7 @@ d_internal_ssl_openssl_drain(
     // nothing pending, or nowhere to put it
     if (count == 0)
     {
-        return D_SSL_STATUS_OK;
+        return D_SSL_OK;
     }
 
     const int moved = BIO_read(session->outbound,
@@ -1497,12 +1534,12 @@ d_internal_ssl_openssl_drain(
     // a memory BIO holding bytes always yields some
     if (moved <= 0)
     {
-        return D_SSL_STATUS_BACKEND_ERROR;
+        return D_SSL_ERROR_BACKEND;
     }
 
     *_out_size = (size_t)moved;
 
-    return D_SSL_STATUS_OK;
+    return D_SSL_OK;
 }
 
 /*
@@ -1511,7 +1548,7 @@ d_internal_ssl_openssl_handshake
 library answers 1 once the handshake is complete, on that call and on every
 later one.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_handshake(
     void* _session
 )
@@ -1519,7 +1556,7 @@ d_internal_ssl_openssl_handshake(
     // parameter validation
     if (_session == NULL)
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     const struct d_internal_ssl_openssl_session* const session = _session;
@@ -1531,7 +1568,7 @@ d_internal_ssl_openssl_handshake(
     // complete, now or earlier
     if (result == 1)
     {
-        return D_SSL_STATUS_OK;
+        return D_SSL_OK;
     }
 
     return d_internal_ssl_openssl_outcome(session,
@@ -1544,7 +1581,7 @@ d_internal_ssl_openssl_read
 here -- session tickets, key updates -- and answers WANT_READ when they were
 all the fed ciphertext held.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_read(
     void*   _session,
     void*   _buffer,
@@ -1558,7 +1595,7 @@ d_internal_ssl_openssl_read(
          (_capacity == 0)   ||
          (_out_read == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     const struct d_internal_ssl_openssl_session* const session = _session;
@@ -1577,7 +1614,7 @@ d_internal_ssl_openssl_read(
     {
         *_out_read = (size_t)result;
 
-        return D_SSL_STATUS_OK;
+        return D_SSL_OK;
     }
 
     return d_internal_ssl_openssl_outcome(session,
@@ -1590,7 +1627,7 @@ d_internal_ssl_openssl_write
 a call leaves inside the engine stays bounded; the kernel calls again for the
 rest.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_write(
     void*       _session,
     const void* _data,
@@ -1604,7 +1641,7 @@ d_internal_ssl_openssl_write(
          (_size == 0)       ||
          (_out_written == NULL) )
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     const struct d_internal_ssl_openssl_session* const session = _session;
@@ -1624,7 +1661,7 @@ d_internal_ssl_openssl_write(
     {
         *_out_written = (size_t)result;
 
-        return D_SSL_STATUS_OK;
+        return D_SSL_OK;
     }
 
     return d_internal_ssl_openssl_outcome(session,
@@ -1637,7 +1674,7 @@ d_internal_ssl_openssl_close
 once the peer's has arrived as well; either is success. A second call finds
 close_notify already sent and does nothing.
 */
-static enum d_ssl_status
+static enum d_ssl_error
 d_internal_ssl_openssl_close(
     void* _session
 )
@@ -1645,7 +1682,7 @@ d_internal_ssl_openssl_close(
     // parameter validation
     if (_session == NULL)
     {
-        return D_SSL_STATUS_INVALID_ARGUMENT;
+        return D_SSL_ERROR_INVALID_ARGUMENT;
     }
 
     const struct d_internal_ssl_openssl_session* const session = _session;
@@ -1653,7 +1690,7 @@ d_internal_ssl_openssl_close(
     // close_notify goes out once
     if ((SSL_get_shutdown(session->library) & SSL_SENT_SHUTDOWN) != 0)
     {
-        return D_SSL_STATUS_OK;
+        return D_SSL_OK;
     }
 
     ERR_clear_error();
@@ -1663,7 +1700,7 @@ d_internal_ssl_openssl_close(
     // sent, whether or not the peer's has arrived
     if (result >= 0)
     {
-        return D_SSL_STATUS_OK;
+        return D_SSL_OK;
     }
 
     return d_internal_ssl_openssl_outcome(session,
@@ -2160,7 +2197,8 @@ d_ssl_engine_openssl(void)
         .close            = d_internal_ssl_openssl_close,
         .describe         = d_internal_ssl_openssl_describe,
         .peer_name        = d_internal_ssl_openssl_peer_name,
-        .peer_certificate = d_internal_ssl_openssl_peer_certificate
+        .peer_certificate = d_internal_ssl_openssl_peer_certificate,
+        .session_resume   = d_internal_ssl_openssl_session_resume,
     };
 
     return &engine;

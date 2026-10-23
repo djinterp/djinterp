@@ -9,7 +9,7 @@
 * path:      /src/djinterp/net/ftp/ftp_path.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_path.h"  // corresponding header
 // std
@@ -17,9 +17,11 @@
 #include <stddef.h>   // size_t
 #include <string.h>   // memchr, strlen
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"          // framework root
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_error
-#include "./ftp_internal.h"                               // shared helpers
+#include "../../../../inc/djinterp/c/djinterp.h"            // framework root
+#include "../../../../inc/djinterp/c/util/sink_common.h"    // d_pack_text
+#include "../../../../inc/djinterp/net/codec/codec_line.h"  // d_net_line_has_break
+#include "../../../../inc/djinterp/net/ftp/ftp_common.h"    // d_ftp_error
+#include "./ftp_internal.h"                                 // shared helpers
 
 
 //==============================================================================
@@ -43,11 +45,12 @@ d_ftp_pathname_quote(
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
 
-    const size_t length = strlen(_path);
+    const size_t             length = strlen(_path);
+    const struct d_pack_text path   = { _path,
+                                        length };
 
     // a line break cannot be represented inside a reply line
-    if (d_ftp_internal_has_line_break(_path,
-                                      length))
+    if (d_net_line_has_break(path))
     {
         return D_FTP_ERROR_INVALID_ARGUMENT;
     }
@@ -293,10 +296,10 @@ d_ftp_path_resolve(
 
     const char* const base     = ( (_base) &&
                                    (_path[0] != '/') ) ? _base : "";
-    const bool        bad_base = d_ftp_internal_has_line_break(base,
-                                                               strlen(base));
-    const bool        bad_path = d_ftp_internal_has_line_break(_path,
-                                                               strlen(_path));
+    const bool        bad_base = d_net_line_has_break(
+                                     d_pack_text_from_cstr(base));
+    const bool        bad_path = d_net_line_has_break(
+                                     d_pack_text_from_cstr(_path));
 
     // CR and LF would reach a command line
     if ( (bad_base) ||

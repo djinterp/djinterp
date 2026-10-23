@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/net/ssh/ssh_key.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -36,7 +36,7 @@ TABLE OF CONTENTS
 #include <stddef.h>  // size_t
 // djinterp
 #include "../../c/djinterp.h"  // framework root
-#include "./ssh_common.h"      // d_ssh_status
+#include "./ssh_common.h"      // d_ssh_error
 
 
 D_EXTERN_C_BEGIN
@@ -76,12 +76,12 @@ D_EXTERN_C_BEGIN
  * @param[in]  _size      its length.
  * @param[out] _type      receives the NUL-terminated name.
  * @param[in]  _capacity  the size of `_type`; D_SSH_KEY_TYPE_SIZE suffices.
- * @return `D_SSH_OK`; `D_SSH_ERR_FORMAT` if the blob does not start with a
+ * @return `D_SSH_OK`; `D_SSH_ERROR_MALFORMED` if the blob does not start with a
  *         non-empty, printable name shorter than D_SSH_KEY_TYPE_SIZE; or
- *         `D_SSH_ERR_ARGUMENT` if a pointer is `NULL` or `_capacity` is too
- *         small.
+ *         `D_SSH_ERROR_INVALID_ARGUMENT` if a pointer is `NULL` or `_capacity`
+ *         is too small.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_key_type(const unsigned char* _key,
                size_t               _size,
                char*                _type,
@@ -95,10 +95,10 @@ d_ssh_key_type(const unsigned char* _key,
  * @param[out] _text      receives the NUL-terminated fingerprint.
  * @param[in]  _capacity  the size of `_text`, at least
  *                        D_SSH_FINGERPRINT_SIZE.
- * @return `D_SSH_OK`; or `D_SSH_ERR_ARGUMENT` if a pointer is `NULL`,
+ * @return `D_SSH_OK`; or `D_SSH_ERROR_INVALID_ARGUMENT` if a pointer is `NULL`,
  *         `_size` is 0, or `_capacity` is too small.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_fingerprint(const unsigned char* _key,
                   size_t               _size,
                   char*                _text,
@@ -112,11 +112,11 @@ d_ssh_fingerprint(const unsigned char* _key,
  *
  * @param[out] _buffer  the buffer; may be `NULL` when `_size` is 0.
  * @param[in]  _size    its length.
- * @return `D_SSH_OK`; `D_SSH_ERR_UNSUPPORTED` if the platform has no known
- *         source; `D_SSH_ERR_IO` if the source failed; or
- *         `D_SSH_ERR_ARGUMENT`.
+ * @return `D_SSH_OK`; `D_SSH_ERROR_UNSUPPORTED` if the platform has no known
+ *         source; `D_SSH_ERROR_TRANSPORT` if the source failed; or
+ *         `D_SSH_ERROR_INVALID_ARGUMENT`.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_random(void*  _buffer,
              size_t _size);
 

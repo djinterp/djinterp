@@ -10,20 +10,24 @@
 * path:      /src/djinterp/net/ftp/ftp_listing_unix.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_listing.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t, NULL
-#include <stdint.h>   // int64_t, uint8_t, uint16_t, uint32_t, uint64_t
 #include <string.h>   // memchr, memcmp, strchr
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"          // framework root
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_span
-#include "../../../../inc/djinterp/net/ftp/ftp_fact.h"    // d_ftp_time
-#include "./ftp_internal.h"                               // text helpers
-#include "./ftp_listing_internal.h"                       // listing helpers
+#include "../../../../inc/djinterp/c/djinterp.h"             // framework root
+#include "../../../../inc/djinterp/c/util/sink_common.h"     // d_pack_text
+#include "../../../../inc/djinterp/net/net_common.h"  // d_net_ascii_*
+#include "../../../../inc/djinterp/net/ftp/ftp_fact.h"       // d_ftp_time
+#include "./ftp_internal.h"                                  // text helpers
+#include "./ftp_listing_internal.h"                          // listing helpers
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // int64_t, uint8_t,
+                                                     // uint16_t, uint32_t,
+                                                     // uint64_t, UINT64_MAX
 
 
 //==============================================================================
@@ -47,9 +51,9 @@ struct d_ftp_internal_date
 // where the date ended.
 struct d_ftp_internal_columns
 {
-    struct d_ftp_span fields[6];  // the fields, in order
-    size_t            count;      // fields used
-    size_t            date_end;   // just past the date
+    struct d_pack_text fields[6];  // the fields, in order
+    size_t             count;      // fields used
+    size_t             date_end;   // just past the date
 };
 
 //==============================================================================
@@ -63,7 +67,7 @@ case-insensitively, or 0.
 */
 D_STATIC unsigned
 d_ftp_internal_month(
-    struct d_ftp_span _token
+    struct d_pack_text _token
 )
 {
     static const char* const MONTHS[12] =
@@ -75,9 +79,8 @@ d_ftp_internal_month(
     // each abbreviation in turn
     for (size_t index = 0; index < 12u; index++)
     {
-        if (d_ftp_internal_equals_nocase(_token.data,
-                                         _token.length,
-                                         MONTHS[index]))
+        if (d_net_ascii_ieq_cstr(_token,
+                                 MONTHS[index]))
         {
             return (unsigned)(index + 1u);
         }
@@ -199,7 +202,7 @@ attributes -- into an entry type and mode bits.
 */
 bool
 d_ftp_internal_unix_mode(
-    struct d_ftp_span      _field,
+    struct d_pack_text     _field,
     enum d_ftp_entry_type* _out_type,
     uint32_t*              _out_mode
 )
@@ -244,7 +247,7 @@ d_ftp_internal_read_iso_date
 */
 D_STATIC bool
 d_ftp_internal_read_iso_date(
-    struct d_ftp_span  _token,
+    struct d_pack_text _token,
     struct d_ftp_time* _time
 )
 {
@@ -256,9 +259,9 @@ d_ftp_internal_read_iso_date(
         return false;
     }
 
-    const struct d_ftp_span year  = { _token.data, 4u };
-    const struct d_ftp_span month = { _token.data + 5u, 2u };
-    const struct d_ftp_span day   = { _token.data + 8u, 2u };
+    const struct d_pack_text year  = { _token.data, 4u };
+    const struct d_pack_text month = { _token.data + 5u, 2u };
+    const struct d_pack_text day   = { _token.data + 8u, 2u };
 
     // digits between the dashes
     if ( (!d_ftp_internal_is_number(year))  ||
@@ -286,24 +289,24 @@ the year for d_ftp_internal_place_year().
 */
 D_STATIC bool
 d_ftp_internal_unix_calendar(
-    struct d_ftp_span           _line,
-    struct d_ftp_span           _first,
-    struct d_ftp_span           _next,
+    struct d_pack_text          _line,
+    struct d_pack_text          _first,
+    struct d_pack_text          _next,
     size_t                      _second_end,
     struct d_ftp_internal_date* _out
 )
 {
-    const struct d_ftp_time empty     = { 0u, 0u, 0u, 0u, 0u, 0u, 0u };
-    const unsigned          month     = d_ftp_internal_month(_first);
-    const size_t            third     = d_ftp_internal_skip_blanks(
-                                            _line,
-                                            _second_end);
-    const size_t            third_end = d_ftp_internal_token_end(_line,
-                                                                 third);
-    const struct d_ftp_span last      = d_ftp_internal_span_at(_line,
-                                                               third,
-                                                               third_end);
-    uint64_t                day       = 0u;
+    const struct d_ftp_time  empty     = { 0u, 0u, 0u, 0u, 0u, 0u, 0u };
+    const unsigned           month     = d_ftp_internal_month(_first);
+    const size_t             third     = d_ftp_internal_skip_blanks(
+                                             _line,
+                                             _second_end);
+    const size_t             third_end = d_ftp_internal_token_end(_line,
+                                                                  third);
+    const struct d_pack_text last      = d_ftp_internal_span_at(_line,
+                                                                third,
+                                                                third_end);
+    uint64_t                 day       = 0u;
 
     // a month name, then a day of the month
     if ( (month == 0u)                              ||
@@ -375,7 +378,7 @@ when a date is recorded.
 */
 D_STATIC bool
 d_ftp_internal_unix_date(
-    struct d_ftp_span        _line,
+    struct d_pack_text       _line,
     size_t                   _position,
     const struct d_ftp_time* _now,
     struct d_ftp_entry*      _out,
@@ -391,11 +394,11 @@ d_ftp_internal_unix_date(
     const size_t               second_end =
         d_ftp_internal_token_end(_line,
                                  second);
-    const struct d_ftp_span    first      =
+    const struct d_pack_text   first      =
         d_ftp_internal_span_at(_line,
                                _position,
                                first_end);
-    const struct d_ftp_span    next       =
+    const struct d_pack_text   next       =
         d_ftp_internal_span_at(_line,
                                second,
                                second_end);
@@ -453,7 +456,7 @@ d_ftp_internal_split_link(
     struct d_ftp_entry* _entry
 )
 {
-    const struct d_ftp_span name = _entry->name;
+    const struct d_pack_text name = _entry->name;
 
     // the first arrow wins
     for (size_t index = 0; (index + 4u) <= name.length; index++)
@@ -483,9 +486,9 @@ group often enough that position from the left cannot be trusted.
 */
 D_STATIC void
 d_ftp_internal_unix_fields(
-    const struct d_ftp_span _fields[],
-    size_t                  _count,
-    struct d_ftp_entry*     _out
+    const struct d_pack_text _fields[],
+    size_t                   _count,
+    struct d_ftp_entry*      _out
 )
 {
     size_t   end  = _count;
@@ -549,7 +552,7 @@ come before a date.
 */
 D_STATIC bool
 d_ftp_internal_unix_columns(
-    struct d_ftp_span              _line,
+    struct d_pack_text             _line,
     size_t                         _position,
     const struct d_ftp_time*       _now,
     struct d_ftp_entry*            _out,
@@ -597,15 +600,14 @@ the date, and then the name -- everything after the date, spaces and all.
 */
 enum d_ftp_line_result
 d_ftp_internal_parse_unix(
-    struct d_ftp_span        _line,
+    struct d_pack_text       _line,
     const struct d_ftp_time* _now,
     struct d_ftp_entry*      _out
 )
 {
     // "total N" summarizes the listing and names nothing
-    if (d_ftp_internal_starts_nocase(_line.data,
-                                     _line.length,
-                                     "total"))
+    if (d_net_ascii_istarts(_line,
+                            "total"))
     {
         return D_FTP_LINE_SKIP;
     }
@@ -613,7 +615,7 @@ d_ftp_internal_parse_unix(
     const size_t                  mode_end   =
         d_ftp_internal_token_end(_line,
                                  0u);
-    const struct d_ftp_span       mode_field = { _line.data, mode_end };
+    const struct d_pack_text      mode_field = { _line.data, mode_end };
     enum d_ftp_entry_type         type       = D_FTP_ENTRY_UNKNOWN;
     uint32_t                      mode       = 0u;
     struct d_ftp_internal_columns columns    = { { { NULL, 0u } }, 0u, 0u };

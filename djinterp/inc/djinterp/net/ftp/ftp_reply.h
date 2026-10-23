@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/net/ftp/ftp_reply.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -41,8 +41,9 @@ TABLE OF CONTENTS
 // std
 #include <stddef.h>  // size_t
 // djinterp
-#include "../../c/djinterp.h"  // framework root
-#include "./ftp_common.h"      // d_ftp_span, d_ftp_error, d_ftp_buffer
+#include "../../c/djinterp.h"          // framework root
+#include "../../c/util/sink_common.h"  // d_pack_text
+#include "./ftp_common.h"              // d_ftp_error, d_ftp_buffer
 
 
 // Linkage: declared inside D_EXTERN_C_BEGIN / D_EXTERN_C_END so that C++
@@ -160,10 +161,10 @@ enum d_ftp_reply_code
 // text of "211-Features:\r\n EPSV\r\n211 End\r\n" is "Features:\n EPSV\nEnd".
 struct d_ftp_reply
 {
-    unsigned          code;        // the three-digit reply code
-    size_t            line_count;  // 1 for a single-line reply
-    struct d_ftp_span text;        // the lines, codes removed, '\n'-joined
-    bool              truncated;   // text was cut short to fit the storage
+    unsigned           code;        // the three-digit reply code
+    size_t             line_count;  // 1 for a single-line reply
+    struct d_pack_text text;        // the lines, codes removed, '\n'-joined
+    bool               truncated;   // text was cut short to fit the storage
 };
 
 // 1.2.2

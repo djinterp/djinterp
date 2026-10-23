@@ -9,19 +9,22 @@
 * path:      /src/djinterp/net/ftp/ftp_listing_dos.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/ftp/ftp_listing.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
-#include <stdint.h>   // uint8_t, uint16_t, uint64_t
 // djinterp
-#include "../../../../inc/djinterp/c/djinterp.h"          // framework root
-#include "../../../../inc/djinterp/net/ftp/ftp_common.h"  // d_ftp_span
-#include "../../../../inc/djinterp/net/ftp/ftp_fact.h"    // d_ftp_time
-#include "./ftp_internal.h"                               // text helpers
-#include "./ftp_listing_internal.h"                       // listing helpers
+#include "../../../../inc/djinterp/c/djinterp.h"             // framework root
+#include "../../../../inc/djinterp/c/util/sink_common.h"     // d_pack_text
+#include "../../../../inc/djinterp/net/net_common.h"  // d_net_ascii_*
+#include "../../../../inc/djinterp/net/ftp/ftp_fact.h"       // d_ftp_time
+#include "./ftp_internal.h"                                  // text helpers
+#include "./ftp_listing_internal.h"                          // listing helpers
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t, uint16_t,
+                                                     // uint64_t, UINT64_MAX
 
 
 //==============================================================================
@@ -34,7 +37,7 @@ d_ftp_internal_is_dos_date
 */
 bool
 d_ftp_internal_is_dos_date(
-    struct d_ftp_span _token
+    struct d_pack_text _token
 )
 {
     // eight or ten characters
@@ -53,7 +56,7 @@ d_ftp_internal_is_dos_date(
         if ( ( (dash) &&
                (_token.data[index] != '-') ) ||
              ( (!dash) &&
-               (!d_ftp_internal_is_digit(_token.data[index])) ) )
+               (!d_net_ascii_is_digit(_token.data[index])) ) )
         {
             return false;
         }
@@ -69,25 +72,24 @@ a 12-hour time (12, 1, ..., 11) to 24 hours.
 */
 D_STATIC bool
 d_ftp_internal_read_dos_clock(
-    struct d_ftp_span  _token,
+    struct d_pack_text _token,
     struct d_ftp_time* _time
 )
 {
-    struct d_ftp_span clock     = _token;
-    bool              afternoon = false;
-    bool              meridiem  = false;
+    struct d_pack_text clock     = _token;
+    bool               afternoon = false;
+    bool               meridiem  = false;
 
     // a trailing AM or PM marks a 12-hour clock
     if (clock.length > 2u)
     {
-        const char* const suffix  = clock.data + clock.length - 2u;
-        const bool        morning = d_ftp_internal_equals_nocase(suffix,
-                                                                 2u,
-                                                                 "AM");
+        const struct d_pack_text suffix  = { clock.data + clock.length - 2u,
+                                             2u };
+        const bool               morning = d_net_ascii_ieq_cstr(suffix,
+                                                                "AM");
 
-        afternoon = d_ftp_internal_equals_nocase(suffix,
-                                                 2u,
-                                                 "PM");
+        afternoon = d_net_ascii_ieq_cstr(suffix,
+                                         "PM");
         meridiem  = ( (morning) ||
                       (afternoon) );
 
@@ -128,8 +130,8 @@ it, with overflow refused.
 */
 D_STATIC bool
 d_ftp_internal_read_grouped(
-    struct d_ftp_span _token,
-    uint64_t*         _out_value
+    struct d_pack_text _token,
+    uint64_t*          _out_value
 )
 {
     uint64_t value  = 0;
@@ -147,7 +149,7 @@ d_ftp_internal_read_grouped(
             continue;
         }
 
-        if (!d_ftp_internal_is_digit(c))
+        if (!d_net_ascii_is_digit(c))
         {
             return false;
         }
@@ -183,7 +185,7 @@ them.
 */
 D_STATIC struct d_ftp_time
 d_ftp_internal_dos_date(
-    struct d_ftp_span _date
+    struct d_pack_text _date
 )
 {
     const unsigned    year = d_ftp_internal_digits_value(_date.data + 6u,
@@ -209,16 +211,15 @@ not.
 */
 D_STATIC bool
 d_ftp_internal_dos_kind(
-    struct d_ftp_span   _kind,
+    struct d_pack_text  _kind,
     struct d_ftp_entry* _out
 )
 {
     uint64_t size = 0u;
 
     // a directory
-    if (d_ftp_internal_equals_nocase(_kind.data,
-                                     _kind.length,
-                                     "<DIR>"))
+    if (d_net_ascii_ieq_cstr(_kind,
+                             "<DIR>"))
     {
         _out->type = D_FTP_ENTRY_DIRECTORY;
 
@@ -255,13 +256,13 @@ and all.
 */
 enum d_ftp_line_result
 d_ftp_internal_parse_dos(
-    struct d_ftp_span   _line,
+    struct d_pack_text  _line,
     struct d_ftp_entry* _out
 )
 {
-    const size_t            date_end = d_ftp_internal_token_end(_line,
-                                                                0u);
-    const struct d_ftp_span date     = { _line.data, date_end };
+    const size_t             date_end = d_ftp_internal_token_end(_line,
+                                                                 0u);
+    const struct d_pack_text date     = { _line.data, date_end };
 
     // the line opens with its date
     if (!d_ftp_internal_is_dos_date(date))

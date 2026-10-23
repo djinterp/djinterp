@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/net/ssh/ssh_session.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.26
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -46,7 +46,7 @@ TABLE OF CONTENTS
 #include <stddef.h>   // size_t
 // djinterp
 #include "../../c/djinterp.h"   // framework root
-#include "./ssh_common.h"       // d_ssh_status, d_ssh_socket
+#include "./ssh_common.h"       // d_ssh_error, d_ssh_socket
 #include "./ssh_engine.h"       // d_ssh_engine_vtable
 #include "./ssh_key.h"          // D_SSH_*_SIZE
 #include "./ssh_known_hosts.h"  // d_ssh_host_match
@@ -197,14 +197,15 @@ d_ssh_options_default(void);
  * @param[in]  _options  the options; copied.
  * @param[in]  _socket   a connected, blocking stream socket.
  * @param[in]  _owns     `true` if the session closes `_socket` when it ends.
- * @return `D_SSH_OK`; `D_SSH_ERR_NO_BACKEND` if `engine` is `NULL`;
- *         `D_SSH_ERR_FORMAT` if `host` holds whitespace or a character
- *         known_hosts reserves; `D_SSH_ERR_MEMORY`; or `D_SSH_ERR_ARGUMENT`
- *         if a pointer, the port, the policy, or an engine operation is
- *         missing or invalid, or CALLBACK lacks `decide`. On failure the
- *         session is left closed and the socket untouched.
+ * @return `D_SSH_OK`; `D_SSH_ERROR_NO_BACKEND` if `engine` is `NULL`;
+ *         `D_SSH_ERROR_MALFORMED` if `host` holds whitespace or a character
+ *         known_hosts reserves; `D_SSH_ERROR_OUT_OF_MEMORY`; or
+ *         `D_SSH_ERROR_INVALID_ARGUMENT` if a pointer, the port, the policy, or
+ *         an engine operation is missing or invalid, or CALLBACK lacks
+ *         `decide`. On failure the session is left closed and the socket
+ *         untouched.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_init(struct d_ssh_session*       _session,
            const struct d_ssh_options* _options,
            d_ssh_socket                _socket,
@@ -221,14 +222,15 @@ d_ssh_init(struct d_ssh_session*       _session,
  *
  * @param[in,out] _session  a D_SSH_STATE_NEW session.
  * @return `D_SSH_OK`, leaving the session D_SSH_STATE_VERIFIED;
- *         `D_SSH_ERR_HOST_UNKNOWN`, `D_SSH_ERR_HOST_CHANGED`,
- *         `D_SSH_ERR_HOST_REVOKED`, `D_SSH_ERR_KNOWN_HOSTS`,
- *         `D_SSH_ERR_HANDSHAKE`, `D_SSH_ERR_IO`, `D_SSH_ERR_TIMEOUT`,
- *         `D_SSH_ERR_PROTOCOL`, `D_SSH_ERR_MEMORY`, or
- *         `D_SSH_ERR_UNSUPPORTED`, each leaving it D_SSH_STATE_FAILED; or
- *         `D_SSH_ERR_STATE` or `D_SSH_ERR_ARGUMENT`.
+ *         `D_SSH_ERROR_HOST_UNKNOWN`, `D_SSH_ERROR_HOST_CHANGED`,
+ *         `D_SSH_ERROR_HOST_REVOKED`, `D_SSH_ERROR_KNOWN_HOSTS`,
+ *         `D_SSH_ERROR_HANDSHAKE`, `D_SSH_ERROR_TRANSPORT`,
+ *         `D_SSH_ERROR_TIMED_OUT`, `D_SSH_ERROR_PROTOCOL`,
+ *         `D_SSH_ERROR_OUT_OF_MEMORY`, or `D_SSH_ERROR_UNSUPPORTED`, each
+ *         leaving it D_SSH_STATE_FAILED; or `D_SSH_ERROR_STATE` or
+ *         `D_SSH_ERROR_INVALID_ARGUMENT`.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_connect(struct d_ssh_session* _session);
 /**
  * @brief Ends the session: sends SSH_MSG_DISCONNECT if the session is
@@ -241,9 +243,9 @@ d_ssh_connect(struct d_ssh_session* _session);
  * @param[in]     _reason   a description for the server, or `NULL`.
  * @return `D_SSH_OK`, including when already closed; or the failure to send
  *         the message, after which the session is closed all the same; or
- *         `D_SSH_ERR_ARGUMENT`.
+ *         `D_SSH_ERROR_INVALID_ARGUMENT`.
  */
-D_NODISCARD enum d_ssh_status
+D_NODISCARD enum d_ssh_error
 d_ssh_disconnect(struct d_ssh_session* _session,
                  const char*           _reason);
 /**
