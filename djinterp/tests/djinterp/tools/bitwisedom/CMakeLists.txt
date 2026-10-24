@@ -5,7 +5,7 @@
 # every level, and the window driven headless.
 #
 #     model_c++NN        the model's suite, built at C++17, 20 and 23 -- each
-#                        level this compiler can select; 32 sections
+#                        level this compiler can select; 41 sections
 #     header_*           each example's header and self-test, written by
 #                        bitwisedom-gen and compiled at every C and C++ level
 #                        the compiler can select: the self-test does not
@@ -25,20 +25,18 @@
 #                        headers, every value compared; and, where GCC or
 #                        Clang targets x86, the CPUID example beside
 #                        <cpuid.h>
-#     ui_smoke           the window through ImGui's null backend: every tab,
-#                        every row, every setting, operations, files and a
-#                        wandering mouse; then menus, renames, resizes and
-#                        code in and out, as a user would; a sheet of a
-#                        thousand rows, its groups opened and closed one by
-#                        one and all at once; a new sheet, children added
-#                        in the tree, square cells, the menu bar and Help,
-#                        and readable text; with every ID clash and every
-#                        ImGui error recorded; 28 sections
+#     cli_*              the command line, by transcript: each file in cli/
+#                        is commands run one after another in a directory of
+#                        their own, and what each writes and exits with
+#                        (check_cli.cmake)
+#
+#   The window's test, ui_smoke, is build/ui's, beside the window: it needs
+# uxoxo, which the djinterp tree does not.
 #
 # path:      /tests/djinterp/tools/bitwisedom/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.18
+#                                                            revised: 2026.10.22
 #*******************************************************************************
 
 #-------------------------------------------------------------------------------
@@ -65,7 +63,7 @@ foreach(_level 17 20 23)
     add_test(NAME model_c++${_level}
              COMMAND bitwisedom_model_tests_${_level})
     set_tests_properties(model_c++${_level} PROPERTIES
-        PASS_REGULAR_EXPRESSION "passed: 36   failed: 0")
+        PASS_REGULAR_EXPRESSION "passed: 41   failed: 0")
 endforeach()
 
 
@@ -304,42 +302,21 @@ endforeach()
 
 
 #-------------------------------------------------------------------------------
-# the window, headless
+# the command line, by transcript
 #-------------------------------------------------------------------------------
-# It compiles its own ImGui and its own copy of uxoxo's platform, with every
-# ID clash recorded (IMGUI_DEBUG_HIGHLIGHT_ALL_ID_CONFLICTS): without that,
-# ImGui notices a clash only under the mouse. The define never reaches the
-# window itself.
-if(TARGET bitwisedom)
-    set(_imgui "${UXOXO_ROOT}/inc/imgui")
+# the transcripts, as the grammar's sections take the commands up
+set(_transcripts
+    basics making rows settings op reading streams importing front)
 
-    add_executable(bitwisedom_ui_smoke
-        ui_smoke.cpp
-        ${BITWISEDOM_APP_SOURCES}
-        "${UXOXO_ROOT}/src/uxoxo/platform/imgui_platform.cpp"
-        "${_imgui}/imgui.cpp"
-        "${_imgui}/imgui_draw.cpp"
-        "${_imgui}/imgui_tables.cpp"
-        "${_imgui}/imgui_widgets.cpp"
-        "${_imgui}/imgui_demo.cpp"
-        "${_imgui}/misc/cpp/imgui_stdlib.cpp"
-        "${_imgui}/backends/imgui_impl_null.cpp")
-    bitwisedom_output(bitwisedom_ui_smoke)
-    target_include_directories(bitwisedom_ui_smoke PRIVATE
-        "${BITWISEDOM_SOURCE_DIR}")
-    target_include_directories(bitwisedom_ui_smoke SYSTEM PRIVATE
-        ${BITWISEDOM_UXOXO_INCLUDES})
-    target_compile_definitions(bitwisedom_ui_smoke PRIVATE
-        IMGUI_DEBUG_HIGHLIGHT_ALL_ID_CONFLICTS)
-    target_link_libraries(bitwisedom_ui_smoke PRIVATE bitwisedom::core)
-    if(WIN32)
-        target_link_libraries(bitwisedom_ui_smoke PRIVATE comdlg32)
-    endif()
-    bitwisedom_apply_dependency_defaults(bitwisedom_ui_smoke)
-
-    add_test(NAME ui_smoke
-             COMMAND bitwisedom_ui_smoke
-             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-    set_tests_properties(ui_smoke PROPERTIES
-        PASS_REGULAR_EXPRESSION "passed: 44   failed: 0")
-endif()
+foreach(_transcript ${_transcripts})
+    add_test(NAME cli_${_transcript}
+             COMMAND "${CMAKE_COMMAND}"
+                     "-DBITWISEDOM=$<TARGET_FILE:bitwisedom>"
+                     "-DBITWISEDOM_GEN=$<TARGET_FILE:bitwisedom-gen>"
+                     "-DEMULATOR=${CMAKE_CROSSCOMPILING_EMULATOR}"
+                     "-DTRANSCRIPT=${CMAKE_CURRENT_LIST_DIR}/cli/${_transcript}.txt"
+                     "-DWORK=${CMAKE_CURRENT_BINARY_DIR}/cli/${_transcript}"
+                     -P "${CMAKE_CURRENT_LIST_DIR}/check_cli.cmake")
+    set_tests_properties(cli_${_transcript} PROPERTIES
+        PASS_REGULAR_EXPRESSION "transcript passed")
+endforeach()

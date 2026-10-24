@@ -1,0 +1,49 @@
+# op: an operation over rows, previewed, then applied
+$ bitwisedom new --width=16 -o s.json
+$ bitwisedom add s.json LOW --bit=0
+$ bitwisedom add s.json NIB --lsb=4 --width=4
+$ bitwisedom add s.json NIB_5 --field=NIB --number=5
+$ bitwisedom op s.json shift_left 4
+> root   0xFFFF  ->  0xFFF0  lost 4  bits 0..15 -> bits 4..15
+> LOW    0x0001  ->  0x0010          bit 0 -> bit 4
+> NIB    0x00F0  ->  0x0F00          bits 4..7 -> bits 8..11
+> NIB_5  0x0050  ->  0x0500          becomes the literal 0x500
+$ bitwisedom op s.json shift_left 4 --row=LOW --row=NIB --probe
+> LOW      0x0001  ->  0x0010    bit 0 -> bit 4
+> NIB      0x00F0  ->  0x0F00    bits 4..7 -> bits 8..11
+> (probe)  0x0000  ->  0x0000
+$ bitwisedom op s.json rotate_left 12 --row=NIB
+> NIB  0x00F0  ->  0x000F    bits 4..7 -> bits 0..3
+$ bitwisedom op s.json shift_left 4 --row=LOW --apply -v
+! LOW  0x0001  ->  0x0010    bit 0 -> bit 4
+! bitwisedom: note: shift left applied to 1 row
+$ bitwisedom op s.json swap_bytes --row=LOW --apply -n
+! LOW  0x0010  ->  0x1000    bit 4 -> bit 12
+! bitwisedom: note: swap bytes applied to 1 row (a dry run: nothing was written)
+$ bitwisedom op s.json shift_left
+! bitwisedom: error: op: shift_left takes an OPERAND: a count
+! Try 'bitwisedom op --help' for more information.
+? 2
+$ bitwisedom op s.json complement 3
+! bitwisedom: error: op: complement takes no OPERAND
+! Try 'bitwisedom op --help' for more information.
+? 2
+$ bitwisedom op s.json shift_leftt 1
+! bitwisedom: error: op: OPERATION: 'shift_leftt' is not shift_left, shift_right, arithmetic_shift_right, rotate_left, rotate_right, complement, and, or, xor, and_not, add, subtract, multiply, negate, swap_bytes, reverse_bits, set_bit, clear_bit or toggle_bit; did you mean 'shift_left'?
+! Try 'bitwisedom op --help' for more information.
+? 2
+$ bitwisedom op s.json shift_left 1 --row=NOPE
+! bitwisedom: error: op: no row is named 'NOPE'
+! Try 'bitwisedom op --help' for more information.
+? 2
+$ bitwisedom show s.json
+> root    range  bits 0..15  0xFFFF
+>   FLAG  bit    bit 0       0x0001
+> LOW     bit    bit 4       0x0010
+> NIB     range  bits 4..7   0x00F0
+> NIB_5   value  bits 4..7   0x0050
+# an option that collects values takes one each time it is given (R8)
+$ bitwisedom op s.json shift_left 1 --row LOW NIB
+! bitwisedom: error: op: the following argument was not expected: NIB
+! Try 'bitwisedom op --help' for more information.
+? 2

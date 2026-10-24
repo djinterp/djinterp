@@ -1,0 +1,493 @@
+# show, check, decode, eval, convert and examples
+$ bitwisedom show example:rgb565
+> Channels          group       -                     -
+>   RGB565_R        range       bits 11..15           0xF800
+>   RGB565_G        range       bits 5..10            0x07E0
+>   RGB565_B        range       bits 0..4             0x001F
+> Levels            group       -                     -
+>   RGB565_R_MAX    value       bits 11..15           0xF800
+>   RGB565_G_MAX    value       bits 5..10            0x07E0
+>   RGB565_B_MAX    value       bits 0..4             0x001F
+>   RGB565_R_HALF   value       bits 11..15           0x8000
+>   RGB565_G_HALF   value       bits 5..10            0x0400
+>   RGB565_B_HALF   value       bits 0..4             0x0010
+> Colours           group       -                     -
+>   RGB565_BLACK    literal     no bits               0x0000
+>   RGB565_WHITE    expression  bits 0..15            0xFFFF
+>   RGB565_RED      expression  bits 11..15           0xF800
+>   RGB565_GREEN    expression  bits 5..10            0x07E0
+>   RGB565_BLUE     expression  bits 0..4             0x001F
+>   RGB565_YELLOW   expression  bits 5..15            0xFFE0
+>   RGB565_CYAN     expression  bits 0..10            0x07FF
+>   RGB565_MAGENTA  expression  bits 0..4 and 11..15  0xF81F
+>   RGB565_GREY     expression  bits 4, 10 and 15     0x8410
+> Packing           group       -                     -
+>   RGB565_PACK     macro       -                     -
+$ bitwisedom show example:rgb565 --format=json
+> [
+>     {
+>         "name": "Channels",
+>         "local": "Channels",
+>         "kind": "group",
+>         "depth": 0,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "0xFFFF",
+>         "value": "-",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_R",
+>         "local": "R",
+>         "kind": "range",
+>         "depth": 1,
+>         "lsb": 11,
+>         "width": 5,
+>         "bits": "0xF800",
+>         "value": "0xF800",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_G",
+>         "local": "G",
+>         "kind": "range",
+>         "depth": 1,
+>         "lsb": 5,
+>         "width": 6,
+>         "bits": "0x07E0",
+>         "value": "0x07E0",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_B",
+>         "local": "B",
+>         "kind": "range",
+>         "depth": 1,
+>         "lsb": 0,
+>         "width": 5,
+>         "bits": "0x001F",
+>         "value": "0x001F",
+>         "error": ""
+>     },
+>     {
+>         "name": "Levels",
+>         "local": "Levels",
+>         "kind": "group",
+>         "depth": 0,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "0xFFFF",
+>         "value": "-",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_R_MAX",
+>         "local": "R_MAX",
+>         "kind": "value",
+>         "depth": 1,
+>         "lsb": 11,
+>         "width": 5,
+>         "bits": "0xF800",
+>         "value": "0xF800",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_G_MAX",
+>         "local": "G_MAX",
+>         "kind": "value",
+>         "depth": 1,
+>         "lsb": 5,
+>         "width": 6,
+>         "bits": "0x07E0",
+>         "value": "0x07E0",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_B_MAX",
+>         "local": "B_MAX",
+>         "kind": "value",
+>         "depth": 1,
+>         "lsb": 0,
+>         "width": 5,
+>         "bits": "0x001F",
+>         "value": "0x001F",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_R_HALF",
+>         "local": "R_HALF",
+>         "kind": "value",
+>         "depth": 1,
+>         "lsb": 11,
+>         "width": 5,
+>         "bits": "0x8000",
+>         "value": "0x8000",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_G_HALF",
+>         "local": "G_HALF",
+>         "kind": "value",
+>         "depth": 1,
+>         "lsb": 5,
+>         "width": 6,
+>         "bits": "0x0400",
+>         "value": "0x0400",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_B_HALF",
+>         "local": "B_HALF",
+>         "kind": "value",
+>         "depth": 1,
+>         "lsb": 0,
+>         "width": 5,
+>         "bits": "0x0010",
+>         "value": "0x0010",
+>         "error": ""
+>     },
+>     {
+>         "name": "Colours",
+>         "local": "Colours",
+>         "kind": "group",
+>         "depth": 0,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "0xFFFF",
+>         "value": "-",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_BLACK",
+>         "local": "BLACK",
+>         "kind": "literal",
+>         "depth": 1,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "0x0000",
+>         "value": "0x0000",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_WHITE",
+>         "local": "WHITE",
+>         "kind": "expression",
+>         "depth": 1,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "0xFFFF",
+>         "value": "0xFFFF",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_RED",
+>         "local": "RED",
+>         "kind": "expression",
+>         "depth": 1,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "0xF800",
+>         "value": "0xF800",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_GREEN",
+>         "local": "GREEN",
+>         "kind": "expression",
+>         "depth": 1,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "0x07E0",
+>         "value": "0x07E0",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_BLUE",
+>         "local": "BLUE",
+>         "kind": "expression",
+>         "depth": 1,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "0x001F",
+>         "value": "0x001F",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_YELLOW",
+>         "local": "YELLOW",
+>         "kind": "expression",
+>         "depth": 1,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "0xFFE0",
+>         "value": "0xFFE0",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_CYAN",
+>         "local": "CYAN",
+>         "kind": "expression",
+>         "depth": 1,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "0x07FF",
+>         "value": "0x07FF",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_MAGENTA",
+>         "local": "MAGENTA",
+>         "kind": "expression",
+>         "depth": 1,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "0xF81F",
+>         "value": "0xF81F",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_GREY",
+>         "local": "GREY",
+>         "kind": "expression",
+>         "depth": 1,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "0x8410",
+>         "value": "0x8410",
+>         "error": ""
+>     },
+>     {
+>         "name": "Packing",
+>         "local": "Packing",
+>         "kind": "group",
+>         "depth": 0,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "",
+>         "value": "-",
+>         "error": ""
+>     },
+>     {
+>         "name": "RGB565_PACK",
+>         "local": "PACK",
+>         "kind": "macro",
+>         "depth": 1,
+>         "lsb": -1,
+>         "width": 0,
+>         "bits": "",
+>         "value": "-",
+>         "error": ""
+>     }
+> ]
+$ bitwisedom check example:rgb565 example:uart_cr
+> example:rgb565: no issues
+> example:uart_cr: no issues
+$ bitwisedom check example:rgb565 --format=json
+> [{ "sheet": "example:rgb565", "errors": 0, "warnings": 0, "notes": 0, "issues": [] }]
+$ bitwisedom decode example:rgb565 0xF81F 0
+> 0xF81F
+>     RGB565_R  bits 11..15     0x1F RGB565_R_MAX
+>     RGB565_B  bits 0..4       0x1F RGB565_B_MAX
+>     =         RGB565_MAGENTA
+> 0x0000
+>     =  RGB565_BLACK
+$ bitwisedom decode example:uart_cr 0x80000000
+> 0x80000000
+>     UART_CR_PARITY  bits 4..5  0x0 UART_CR_PARITY_NONE
+>     UART_CR_STOP    bit 6      0x0 UART_CR_STOP_1
+>     (no symbol)     bit 31
+? 1
+$ bitwisedom decode example:rgb565 0xF81F --format=json
+> [
+>     {
+>         "value": "0xF81F",
+>         "bits": [],
+>         "fields": [
+>             { "name": "RGB565_R", "value": "0x1F", "names": ["RGB565_R_MAX"] },
+>             { "name": "RGB565_B", "value": "0x1F", "names": ["RGB565_B_MAX"] }
+>         ],
+>         "equals": ["RGB565_MAGENTA"],
+>         "unnamed": ""
+>     }
+> ]
+$ bitwisedom decode example:rgb565 0xZZ
+! bitwisedom: error: decode: '0xZZ' is not a number: 'Z' is not a hexadecimal digit
+! Try 'bitwisedom decode --help' for more information.
+? 2
+$ bitwisedom eval example:rgb565 'RGB565_RED | RGB565_BLUE' 'RGB565_RED >> 11'
+> RGB565_RED | RGB565_BLUE
+>     hex      0xF81F
+>     decimal  63519
+>     binary   0b1111_1000_0001_1111
+>     bits     bits 0..4 and 11..15
+> RGB565_RED >> 11
+>     hex      0x001F
+>     decimal  31
+>     binary   0b1_1111
+>     bits     bits 0..4
+$ bitwisedom eval example:rgb565 'RGB565_RED +'
+! bitwisedom: error: 'RGB565_RED +': the expression ends too soon
+? 1
+$ bitwisedom eval example:rgb565 RGB565_GREEN --format=json
+> [
+>     {
+>         "expression": "RGB565_GREEN",
+>         "hex": "0x07E0",
+>         "decimal": "2016",
+>         "binary": "0b111_1110_0000",
+>         "bits": "bits 5..10"
+>     }
+> ]
+$ bitwisedom convert example:rgb565 --to=bitfield -o rgb.json
+$ bitwisedom show rgb.json
+> Channels          group       -                     -
+>   RGB565_R        range       bits 11..15           0xF800
+>   RGB565_G        range       bits 5..10            0x07E0
+>   RGB565_B        range       bits 0..4             0x001F
+> Levels            group       -                     -
+>   RGB565_R_MAX    value       bits 11..15           0xF800
+>   RGB565_G_MAX    value       bits 5..10            0x07E0
+>   RGB565_B_MAX    value       bits 0..4             0x001F
+>   RGB565_R_HALF   value       bits 11..15           0x8000
+>   RGB565_G_HALF   value       bits 5..10            0x0400
+>   RGB565_B_HALF   value       bits 0..4             0x0010
+> Colours           group       -                     -
+>   RGB565_BLACK    literal     no bits               0x0000
+>   RGB565_WHITE    expression  bits 0..15            0xFFFF
+>   RGB565_RED      expression  bits 11..15           0xF800
+>   RGB565_GREEN    expression  bits 5..10            0x07E0
+>   RGB565_BLUE     expression  bits 0..4             0x001F
+>   RGB565_YELLOW   expression  bits 5..15            0xFFE0
+>   RGB565_CYAN     expression  bits 0..10            0x07FF
+>   RGB565_MAGENTA  expression  bits 0..4 and 11..15  0xF81F
+>   RGB565_GREY     expression  bits 4, 10 and 15     0x8410
+> Packing           group       -                     -
+>   RGB565_PACK     macro       -                     -
+$ bitwisedom convert example:rgb565 --to=yaml
+! bitwisedom: error: convert: --to: 'yaml' is not sheet, bitfield or export
+! Try 'bitwisedom convert --help' for more information.
+? 2
+$ bitwisedom examples
+> Hardware:
+>   uart_cr                32 bits  UART control register
+>   usb_request_type        8 bits  USB bmRequestType
+>   lm75_temperature       16 bits  LM75 temperature register
+>   x86_eflags             32 bits  x86 EFLAGS
+>   x86_64_pte             64 bits  x86-64 page-table entry
+>   pci_config_header     512 bits  PCI configuration header (512 bits)
+> Formats:
+>   rv32i_itype            32 bits  RISC-V I-type instruction
+>   ieee754_single         32 bits  IEEE 754 single (float)
+>   rgb565                 16 bits  RGB565 pixel
+> POSIX:
+>   posix_mode             16 bits  File mode bits (st_mode)
+> Windows:
+>   win32_hresult          32 bits  HRESULT (winerror.h)
+>   win32_window_style     32 bits  Window styles (winuser.h)
+> macOS:
+>   macos_macho_flags      32 bits  Mach-O header flags (mach-o/loader.h)
+>   macos_cpu_type         32 bits  CPU types (mach/machine.h)
+> Linux:
+>   linux_ioctl            32 bits  ioctl numbers (asm-generic/ioctl.h)
+>   linux_epoll_events     32 bits  epoll events (sys/epoll.h)
+>   linux_capabilities     64 bits  Capabilities (linux/capability.h)
+> FreeBSD:
+>   freebsd_file_flags     32 bits  File flags (sys/stat.h)
+>   freebsd_kevent         16 bits  kevent filters and flags (sys/event.h)
+> Large:
+>   win32_hresults         32 bits  Every HRESULT in winerror.h (1,376 codes)
+>   x86_cpuid             320 bits  CPUID feature flags (320 bits)
+$ bitwisedom examples --format=json
+> [
+>     { "name": "uart_cr", "title": "UART control register", "shelf": "Hardware", "width": 32 },
+>     {
+>         "name": "rv32i_itype",
+>         "title": "RISC-V I-type instruction",
+>         "shelf": "Formats",
+>         "width": 32
+>     },
+>     { "name": "posix_mode", "title": "File mode bits (st_mode)", "shelf": "POSIX", "width": 16 },
+>     { "name": "usb_request_type", "title": "USB bmRequestType", "shelf": "Hardware", "width": 8 },
+>     {
+>         "name": "lm75_temperature",
+>         "title": "LM75 temperature register",
+>         "shelf": "Hardware",
+>         "width": 16
+>     },
+>     { "name": "x86_eflags", "title": "x86 EFLAGS", "shelf": "Hardware", "width": 32 },
+>     { "name": "x86_64_pte", "title": "x86-64 page-table entry", "shelf": "Hardware", "width": 64 },
+>     {
+>         "name": "ieee754_single",
+>         "title": "IEEE 754 single (float)",
+>         "shelf": "Formats",
+>         "width": 32
+>     },
+>     { "name": "rgb565", "title": "RGB565 pixel", "shelf": "Formats", "width": 16 },
+>     { "name": "win32_hresult", "title": "HRESULT (winerror.h)", "shelf": "Windows", "width": 32 },
+>     {
+>         "name": "win32_window_style",
+>         "title": "Window styles (winuser.h)",
+>         "shelf": "Windows",
+>         "width": 32
+>     },
+>     {
+>         "name": "macos_macho_flags",
+>         "title": "Mach-O header flags (mach-o/loader.h)",
+>         "shelf": "macOS",
+>         "width": 32
+>     },
+>     {
+>         "name": "macos_cpu_type",
+>         "title": "CPU types (mach/machine.h)",
+>         "shelf": "macOS",
+>         "width": 32
+>     },
+>     {
+>         "name": "linux_ioctl",
+>         "title": "ioctl numbers (asm-generic/ioctl.h)",
+>         "shelf": "Linux",
+>         "width": 32
+>     },
+>     {
+>         "name": "linux_epoll_events",
+>         "title": "epoll events (sys/epoll.h)",
+>         "shelf": "Linux",
+>         "width": 32
+>     },
+>     {
+>         "name": "linux_capabilities",
+>         "title": "Capabilities (linux/capability.h)",
+>         "shelf": "Linux",
+>         "width": 64
+>     },
+>     {
+>         "name": "freebsd_file_flags",
+>         "title": "File flags (sys/stat.h)",
+>         "shelf": "FreeBSD",
+>         "width": 32
+>     },
+>     {
+>         "name": "freebsd_kevent",
+>         "title": "kevent filters and flags (sys/event.h)",
+>         "shelf": "FreeBSD",
+>         "width": 16
+>     },
+>     {
+>         "name": "pci_config_header",
+>         "title": "PCI configuration header (512 bits)",
+>         "shelf": "Hardware",
+>         "width": 512
+>     },
+>     {
+>         "name": "win32_hresults",
+>         "title": "Every HRESULT in winerror.h (1,376 codes)",
+>         "shelf": "Large",
+>         "width": 32
+>     },
+>     {
+>         "name": "x86_cpuid",
+>         "title": "CPUID feature flags (320 bits)",
+>         "shelf": "Large",
+>         "width": 320
+>     }
+> ]

@@ -1,14 +1,17 @@
 # djinterp [parse]                                         expected_sections.txt
 #
-# How many sections the argument parser's suites run at each language level,
-# in the default configuration (testing mode, every knob at its default).
+# How many sections the argument parser's suites run in each build, in the
+# default configuration (testing mode, every knob at its default): the C
+# suites at each C level, the allocation sweep (`-sweep`) at the C floor,
+# the C++ suites at each C++ level, and the C++ suites without exceptions
+# (`-noexc`) at the lowest and the highest.
 #   A suite is a table of sections, and a section is the unit a configuration
 # knob removes. A section that silently stopped being compiled would
 # otherwise read as a smaller pass; these are the counts that make it a
 # failure instead.
 #   Both builds read this file -- CMakeLists.txt and run_arg_parser_tests.sh,
 # beside it -- so there is one place to change when a section is added. A
-# line is `<level> <sections>`; anything else is a comment.
+# line is `<build> <sections>`; anything else is a comment.
 #   A build under a configuration knob runs fewer sections, by design, and is
 # not held to these counts: see the matrix in run_arg_parser_tests.sh, and
 # DJINTERP_ARG_PARSER_EXPECT_COUNTS in CMakeLists.txt.
@@ -16,13 +19,34 @@
 # path:      /build/cmake/config/testing/djinterp/parse/cli/arg_parser/expected_sections.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-#                                                            revised: 2026.10.16
+#                                                            revised: 2026.10.22
 
-# the C suites: common 20, types 21, validators 26, extra checks 11, sets
-# and mappings 13, numbers with units 10, the file system 8, options 17,
-# commands 29, help 20, the parse 11, its processing 13, configuration
-# files 66, arguments from text 26, the parser 12, suggestions 5, smoke 19
-c99 327
-c11 327
-c17 327
-c23 327
+# the C suites: common 21, types 21, validators 26, extra checks 11, sets
+# and mappings 13, numbers with units 10, the file system 8, options 18,
+# commands 30, help 20, the parse 11, its processing 13, configuration
+# files 66, arguments from text 27, the parser 13, suggestions 5,
+# completion 19, smoke 19
+c99 351
+c11 351
+c17 351
+c23 351
+
+# the allocation sweep, where the linker wraps malloc: options, flags,
+# commands, validators, text
+c99-sweep 5
+
+# the C++ suites -- at C++98; at C++11 and C++14; from C++17 -- common 9,
+# 10, 11; types 11, 14, 16; validators 16, 21, 21; options 12, 13, 13;
+# commands 23, 24, 24; help 8; configuration files 9; arguments from text 8;
+# the parser 16, 18, 18; completion 3; the C boundary 6; CLI11's examples
+# none, 31, 31
+c++98 121
+c++11 165
+c++14 165
+c++17 168
+c++20 168
+c++23 168
+
+# without exceptions the C boundary keeps its results' section alone: 1 of 6
+c++98-noexc 116
+c++23-noexc 163

@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/config/dconfig.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_DCONFIG_H
@@ -32,6 +32,13 @@
 #include "djinterp/config/core/env/os/cfg_env_apple.h"  // env: Apple (env/os)
 #include "djinterp/config/core/env/os/cfg_env_linux.h"  // env: Linux (env/os)
 #include "djinterp/config/core/env/ui/cfg_env_qt.h"  // env: Qt (env/ui)
+#include "djinterp/config/core/env/net/tls/cfg_env_tls.h"  // env: TLS (env/net/tls)
+#include "djinterp/config/core/env/net/curl/cfg_env_curl.h"  // env: curl (env/net/curl)
+#include "djinterp/config/core/env/net/ssh/cfg_env_ssh.h"  // env: SSH (env/net/ssh)
+#include "djinterp/config/core/env/net/imap/cfg_env_imap.h"  // env: IMAP (env/net/imap)
+#include "djinterp/config/core/env/util/compress/cfg_env_compress.h"  // env: codecs
+#include "djinterp/config/core/env/util/compress/cfg_env_compress_link.h"  // env: auto-link
+#include "djinterp/config/core/env/util/archive/cfg_env_archive.h"  // env: archives
 // env/db: the database family's switches, then each database's
 #include "djinterp/config/core/env/db/cfg_env_db.h"
 #include "djinterp/config/core/env/db/arangodb/cfg_env_arangodb.h"
@@ -48,28 +55,17 @@
 #include "cfg_qualifiers.h"      // storage / linkage qualifiers
 #include "djinterp/config/core/container/table/cfg_table.h"  // the table DSL subframework
 #include "djinterp/config/parse/cfg_parse.h"        // the parse substrate
+#include "djinterp/config/parse/cli/arg_parser/cfg_arg_parser.h"  // the argument parser
+#include "djinterp/config/parse/cli/cfg_cli.h"      // the command-line kit
 #include "djinterp/config/parsegen/cfg_parsegen.h"  // parser generation (after parse)
 #include "djinterp/config/net/cfg_net.h"            // net foundation
 #include "djinterp/config/net/curl/cfg_curl.h"      // libcurl binding
 #include "djinterp/config/net/pop/cfg_pop.h"        // POP3 common kernel
 #include "djinterp/config/net/ssh/cfg_ssh.h"        // SSH common kernel
 #include "djinterp/config/net/ssl/cfg_ssl.h"        // SSL/TLS common kernel
+#include "djinterp/config/net/starttls/cfg_starttls.h"  // STARTTLS upgrade
 #include "djinterp/config/net/tcp/cfg_tcp.h"        // TCP transport
 #include "djinterp/config/net/http/cfg_http.h"      // HTTP
-// the SQLite layer, after env's SQLite config: resolving everything leaves
-// D_CFG_ENV_USING_SQLITE as env's config decided it, off unless set
-#include "djinterp/config/c/db/sqlite/cfg_sqlite_common.h"  // SQLite layer
-#include "djinterp/config/c/db/sqlite/cfg_sqlite_connection.h"  // its opens
-// the MariaDB/MySQL layer, likewise after env's MariaDB config, which leaves
-// D_CFG_ENV_USING_MARIADB off unless set
-#include "djinterp/config/c/db/mariadb/cfg_mariadb_common.h"  // MariaDB layer
-#include "djinterp/config/c/db/mariadb/cfg_mariadb_connection.h"  // connects
-// the PostgreSQL layer, likewise after env's PostgreSQL config, which leaves
-// D_CFG_ENV_USING_POSTGRESQL off unless set
-#include "djinterp/config/c/db/postgres/cfg_postgres_common.h"  // PostgreSQL
-#include "djinterp/config/c/db/postgres/cfg_postgres_connection.h"  // connects
-// the layers' C++ faces, which read nothing above
-#include "djinterp/config/c/db/cfg_db_face.h"  // the faces' format check
 // #include "core/<sub>/cfg_<sub>.h"  // <- add future subframeworks here
 
 

@@ -1,27 +1,42 @@
 ## Building from the djinterp tree
 
-Run the CMake presets from the bitwisedom build configuration directory
-(not the djinterp repository root):
+bitwis(e)dom is two builds, since its window is made with uxoxo, which the
+djinterp tree does not hold (2026.10.23):
+
+- **the command line** -- the model, `bitwisedom`, `bitwisedom-gen` and
+  their tests -- from `build/cmake/djinterp/tools/bitwisedom`, which needs
+  djinterp alone;
+- **the window** -- `bitwisedom-gui`, the module `bitwisedom gui` loads, and
+  the smoke test that drives it -- from `build/ui/bitwisedom`, which builds
+  the command line's build within it, then uxoxo, then the module beside the
+  program. The window's sources lie beside djinterp's, not in them:
+  `inc/ui/bitwisedom`, `src/ui/bitwisedom`, `tests/ui/bitwisedom`.
+
+Run the CMake presets from the build's directory (not the repository root);
+for everything:
 
 ```cmd
-cd build\cmake\djinterp\tools\bitwisedom
+cd build\ui\bitwisedom
 cmake --preset msvc
 cmake --build --preset msvc-release
 ctest --preset msvc-release
 ```
 
-Build intermediates remain in `out/msvc/` under this directory.
-Release binaries go to `<djinterp>/bin/tools/bitwisedom/`, and Debug
-binaries to `<djinterp>/bin/tools/bitwisedom/debug/`, each named with
-a platform tag (e.g. `bitwisedom-win64.exe`).
-`DJINTERP_ROOT` defaults to the containing djinterp checkout; `UXOXO_ROOT`
-still points to the separate uxoxo checkout and may be overridden.
+Build intermediates remain in `out/msvc/` under that directory. Release
+binaries go to `<djinterp>/bin/tools/bitwisedom/`, and Debug binaries to
+`<djinterp>/bin/tools/bitwisedom/debug/`, each named with a platform tag:
+`bitwisedom-win64.exe`, and beside it the window's module,
+`bitwisedom-gui-win64.dll`, where `bitwisedom gui` looks for it.
+`DJINTERP_ROOT` defaults to the containing djinterp checkout; `UXOXO_ROOT`,
+which only the window's build reads, to uxoxo two directories above it
+(the roots, below).
 
 # Building bitwis(e)dom
 
-A superbuild in vparse's shape: one CMake project at bitwis(e)dom's root that
-takes djinterp and uxoxo from their own roots by absolute path, and builds
-the model, the generator, the window and every test.
+Two CMake projects in vparse's shape. The command line's takes djinterp from
+its root by absolute path and builds the model, the generator, the command
+line and their tests; the window's includes it, takes uxoxo from its own
+root, and builds the window's module and the smoke test.
 
 It is written for the consolidated djinterp of 2026.10.07, with the owner's
 edits since, and the uxoxo of 2026.10.14 with **Dear ImGui's docking
@@ -41,7 +56,8 @@ a thousand rows is realized in linear time.
    `inc/imgui/imgui.h` defines `IMGUI_HAS_DOCK`, or configure refuses it by
    name. The uxoxo overlay of 2026.10.18 puts it there; nothing else of
    uxoxo changes, and uxoxo's own elements build on it as they did.
-   **uxoxo is otherwise the updated one, of 2026.10.11 or later.**
+   **uxoxo is otherwise the updated one, of 2026.10.11 or later.** (The
+   window's build alone reads uxoxo.)
    bitwis(e)dom's window uses
    uxoxo's number, combo, colour, tree, menu, section, table and splitter
    elements, element keys and targets, and uxoxo's own build at
@@ -63,53 +79,65 @@ a thousand rows is realized in linear time.
    name, with the files it is missing. Nothing else of djinterp is
    compiled, so the leftovers an unzip leaves in djinterp's tree do not
    concern it (vparse's `BUILD.md` has the two scripts that retire them).
-3. **Off Windows, GLFW 3.3 or later** (`libglfw3-dev`, `brew install glfw`,
-   `vcpkg install glfw3`). On Windows the window is Win32 + Direct3D 11 and
-   needs nothing beyond the Windows SDK. Without GLFW off Windows,
-   `-DBITWISEDOM_BUILD_APP=OFF` builds everything else.
+3. **Off Windows, GLFW 3.3 or later** for the window (`libglfw3-dev`,
+   `brew install glfw`, `vcpkg install glfw3`). On Windows the window is
+   Win32 + Direct3D 11 and needs nothing beyond the Windows SDK. Without
+   GLFW, or without uxoxo, build the command line alone, from
+   `build/cmake/djinterp/tools/bitwisedom`: it needs neither, and
+   `bitwisedom gui` then says the window is not installed, where it looked
+   for it.
 
 ---
 
 ## Quick start
 
-On Windows, from a Developer Command Prompt (so `cl` is on `PATH`):
+On Windows, from a Developer Command Prompt (so `cl` is on `PATH`), in
+`build\ui\bitwisedom`:
 
 ```
 cmake --preset msvc
 cmake --build --preset msvc-debug
 ctest --preset msvc-debug
-..\..\..\..\..\bin\tools\bitwisedom\debug\bitwisedom-win64.exe
+..\..\..\bin\tools\bitwisedom\debug\bitwisedom-win64.exe gui
 ```
 
 `vs2022` makes a solution for the IDE instead; `clang-cl` and `strict`
-(clang-cl, warnings as errors) are there too.
+(clang-cl, warnings as errors) are there too. The command line's build, in
+`build\cmake\djinterp\tools\bitwisedom`, has the same presets, and its
+programs are five directories down from the root rather than three.
 
-Elsewhere -- the defaults are Windows paths, so name the roots:
+Elsewhere, in `build/ui/bitwisedom` -- naming uxoxo's root only where it is
+not two directories above djinterp's:
 
 ```
-cmake --preset clang -DDJINTERP_ROOT=/path/to/djinterp \
-                     -DUXOXO_ROOT=/path/to/uxoxo
+cmake --preset clang -DUXOXO_ROOT=/path/to/uxoxo
 cmake --build --preset clang-debug
 ctest --preset clang-debug
-../../../../../bin/tools/bitwisedom/debug/bitwisedom-linux64
+../../../bin/tools/bitwisedom/debug/bitwisedom-linux64 gui
 ```
 
 `gcc` is the same with GCC; `clang-strict` is the loudest configuration;
-`mingw-cross` builds a Windows `bitwisedom.exe` on Linux (see below).
+`mingw-cross` builds a Windows `bitwisedom.exe`, and from the window's build
+its `bitwisedom-gui.dll`, on Linux (see below).
 
 ---
 
-## The three roots
+## The roots
 
 | variable | default | must contain |
 |---|---|---|
-| `DJINTERP_ROOT` | detected from the containing djinterp checkout | `inc/djinterp/djinterp.hpp` |
-| `UXOXO_ROOT` | `D:/sam/code/projects/frameworks/uxoxo/uxoxo-project` | `inc/uxoxo/element.hpp`, `build/cmake/CMakeLists.txt` |
-| `BITWISEDOM_ROOT` | djinterp repository root | |
+| `DJINTERP_ROOT` | the djinterp checkout the build is in | `inc/djinterp/djinterp.hpp` |
+| `UXOXO_ROOT` | the window's build only: two directories above djinterp's root, `uxoxo/uxoxo-project` there, else `uxoxo` | `inc/uxoxo/element.hpp`, `build/cmake/CMakeLists.txt` |
+| `BITWISEDOM_ROOT` | djinterp's root | |
 
-The djinterp root is detected from the relocated CMake directory; the uxoxo
-path is the existing project default. Each is checked at configure time, and a wrong
-one is one message naming the variable to set.
+The djinterp root is found from the build's own directory. uxoxo is looked
+for where a directory of projects keeps the two side by side: a djinterp at
+`D:/sam/code/projects/frameworks/djinterp/release` finds uxoxo at
+`D:/sam/code/projects/frameworks/uxoxo/uxoxo-project`, the path that was
+the default before; one not found there names the places it looked. Each
+root is checked at configure time (`build/ui/bitwisedom/cmake/UiRoots.cmake`
+for the window's), and a wrong one is one message naming the variable to
+set.
 
 ---
 
@@ -160,12 +188,29 @@ object past `cl`'s section limit), and `_CRT_SECURE_NO_WARNINGS` for
 |---|---|
 | `bitwisedom::core` | the model: sheets, resolution, expressions, operations, the C/C++ generator, the define environment (expansion and typed evaluation of C), the importer of C and C++, renames, the file format, undo -- no GUI |
 | `djinterp::lex` | djinterp's C and C++ lexer, compiled as C99 for the core |
-| `bitwisedom-gen` | the generator on the command line |
-| `bitwisedom` | the window: Win32 + Direct3D 11 on Windows, GLFW + OpenGL 3 elsewhere |
+| `djinterp::cli` | djinterp's command-line kit and the argument parser under it, compiled as C99 |
+| `bitwisedom::cli` | the command line's commands, on the kit |
+| `bitwisedom` | the command line (`inc/djinterp/parse/cli/GRAMMAR.md`, section 10) |
+| `bitwisedom-gen` | the generator's command line, as build scripts have always called it |
+| `bitwisedom-gui` | the window's build only: the module `bitwisedom gui` loads -- the window on Win32 + Direct3D 11 on Windows, GLFW + OpenGL 3 elsewhere -- named as the program looks for it, `bitwisedom-gui-<tag>`, beside it |
 
-`BITWISEDOM_HOST` (`auto`, `win32`, `glfw`) chooses the window's backend;
+`BITWISEDOM_HOST` (`auto`, `win32`, `glfw`) chooses the window's host;
 `auto` is `win32` on Windows. GLFW on Windows works too, where uxoxo's build
-finds it.
+finds it. The module is a shared object linking the model, the kit, uxoxo
+and Dear ImGui, so the window's build compiles everything
+position-independent; of its own, it exports its entry point alone, so its
+copy of the model never binds to the program's.
+
+`bitwisedom gui [SHEET]...` opens the window on the sheets named --
+`example:NAME`, or any file the window opens, a header to import among them
+-- or where it was left. Its operands are read by the commands' rules, so a
+name that is no example, or a file that cannot be read, is refused before
+any window opens, in the commands' words. `--size=WxH` and `--scale=S` set
+the window's size and the display's scale; `--do`, `--screenshot`,
+`--frames` (the GLFW host) and `--warp` (the Win32 host) are for building
+and testing, listed under their own heading in `bitwisedom gui --help`. On
+Windows, a console made for the run alone -- a shortcut's -- is let go when
+the window opens.
 
 The two fonts -- Roboto Medium for the interface, Cousine for values and code,
 both Apache 2.0 -- are compiled in, from the copies uxoxo's ImGui carries, as
@@ -182,7 +227,9 @@ limit (C2026).
 | `header_<example>_<level>_<form>` | each of the twenty-one examples' headers, written by `bitwisedom-gen` with a self-test, compiled at that level with `-Wall -Wextra -pedantic-errors -Werror`; the self-test does not compile unless every macro has the sheet's value and every `_GET`/`_SET` agrees with the named values. A sheet wider than an integer -- `pci_config_header`, `x86_cpuid`, and `tests/sheets/wide_mix`, a bitfield in JSON made to be hard: fields across every word size's boundaries, values in every encoding, a range no integer carries -- has its self-test linked and run as well, which checks its arrays and the macros that read and write them; and again, as `header_<sheet>_w<bits>_...`, with arrays of 8-, 16- and 64-bit words at C11 and C++17 |
 | `bitfield_<file>` | each large example's file in `res/djinterp/tools/bitwisedom/examples/large`, and `wide_mix`, read by `bitwisedom-gen` and written back as a bitfield: the same bytes, line ends aside -- nothing of it lost on the way in, and the script that made it laying it out as the writer does |
 | `platform_<example>` | the examples of the platform the build targets -- Windows, macOS, Linux or FreeBSD -- each generated and compiled beside the system's own headers (`tests/platform/<example>.c`), every value the system also defines compared at compile time; on Windows, `win32_hresults` too, its 1,376 codes and 41 facilities against `winerror.h`; on Linux, `pci_config_header`, against `linux/pci_regs.h`; and where GCC or Clang targets x86, `x86_cpuid`, each flag's mask against `<cpuid.h>` under every name GCC's and Clang's give it |
-| `ui_smoke` | the window through ImGui's null backend: every tab of every example, each arriving unchanged with its columns fitted to its names and values, every row in the inspector, every setting changed and undone, an operation applied and undone, a file saved and opened, and 600 frames of a mouse that wanders, clicks and drags; then, with the mouse and keyboard where the grid says it drew things, the context menus, renames in the grid, the tree, the inspector and a segment's heading, the columns' edges and the ruler's boundaries dragged and double-clicked, and code pasted, copied, imported and dropped; the grid filling its panel, the bottom panel shown every way, the theme and colour scheme, what a resting mouse shows, a sheet wider than 64 bits, the 1,424 rows of the HRESULT example with every group opened, rows selected across it and one renamed, its groups opened and closed all at once -- by the events the buttons and menus post, by both shortcuts and from a group's own menu -- and the JSON shapes written beside the sheet and read back, dropped and pasted; a new sheet and its add row's "Add new...", children named in the tree's "Add child..." fields, square cells, the menu bar's Help at its right end and its two pages, the buttons over the symbols column -- pressed, undone, fitted to, rested on, dragged from, narrowed and hidden -- the values written every way a press on value takes, lined up, the list a right-click on a button opens, and a macro with no bits written over its cells, and text that reads on every colour in every theme and scheme; and since 2026.10.18 the window around the sheets: the tool windows opened, closed by their x and docked, several sheets at once, workspaces added, switched, renamed and closed and a sheet moved between them, the sheets arranged tabbed, in columns, rows and a grid, each window zoomed, the session kept and opened again as it was -- in a second ImGui, as the next run -- the Options, every page, their search and the settings files exported, applied, forgotten and deleted; the grid's symbols column as the tree; the add control as a button and its menu and as a split button, driven by the mouse, and the colour new rows take; the rows sorted from the heading's menu and the sort made the sheet's own; and digits, names and colours shown in parts of the grid only, by rows, bits and a block, and the Display window; and since 2026.10.19 cells sized by hand and proportional rows, the probe and usage rows dragged by the mouse among the rows and into a group -- whose usage row then counts the group's -- pinned from their menu, added and removed, the Add child field fitted and filling, alone or with its +, the + opening the Add node window as a tab or a window and a range made and added there, the status bar and the console a click on its message opens, a definition file edited, and the sheet's tab over its bits, renamed by a double-click -- 44 sections, every frame checked for ImGui assertions, for ImGui's own errors, for clashing widget IDs, and for vertices a GPU may draw as stray pixels |
+| `cli_<transcript>` | the command line's transcripts (`tests/djinterp/tools/bitwisedom/cli/`), each command run as a user would type it, its output and exit status compared line by line |
+| `gui_help`, `gui_unknown_example` | the window's build: `bitwisedom gui --help`, and a SHEET it refuses -- the module found beside the program, loaded and run, with no window opened |
+| `ui_smoke` | the window's build: the window through ImGui's null backend: every tab of every example, each arriving unchanged with its columns fitted to its names and values, every row in the inspector, every setting changed and undone, an operation applied and undone, a file saved and opened, and 600 frames of a mouse that wanders, clicks and drags; then, with the mouse and keyboard where the grid says it drew things, the context menus, renames in the grid, the tree, the inspector and a segment's heading, the columns' edges and the ruler's boundaries dragged and double-clicked, and code pasted, copied, imported and dropped; the grid filling its panel, the bottom panel shown every way, the theme and colour scheme, what a resting mouse shows, a sheet wider than 64 bits, the 1,424 rows of the HRESULT example with every group opened, rows selected across it and one renamed, its groups opened and closed all at once -- by the events the buttons and menus post, by both shortcuts and from a group's own menu -- and the JSON shapes written beside the sheet and read back, dropped and pasted; a new sheet and its add row's "Add new...", children named in the tree's "Add child..." fields, square cells, the menu bar's Help at its right end and its two pages, the buttons over the symbols column -- pressed, undone, fitted to, rested on, dragged from, narrowed and hidden -- the values written every way a press on value takes, lined up, the list a right-click on a button opens, and a macro with no bits written over its cells, and text that reads on every colour in every theme and scheme; and since 2026.10.18 the window around the sheets: the tool windows opened, closed by their x and docked, several sheets at once, workspaces added, switched, renamed and closed and a sheet moved between them, the sheets arranged tabbed, in columns, rows and a grid, each window zoomed, the session kept and opened again as it was -- in a second ImGui, as the next run -- the Options, every page, their search and the settings files exported, applied, forgotten and deleted; the grid's symbols column as the tree; the add control as a button and its menu and as a split button, driven by the mouse, and the colour new rows take; the rows sorted from the heading's menu and the sort made the sheet's own; and digits, names and colours shown in parts of the grid only, by rows, bits and a block, and the Display window; and since 2026.10.19 cells sized by hand and proportional rows, the probe and usage rows dragged by the mouse among the rows and into a group -- whose usage row then counts the group's -- pinned from their menu, added and removed, the Add child field fitted and filling, alone or with its +, the + opening the Add node window as a tab or a window and a range made and added there, the status bar and the console a click on its message opens, a definition file edited, and the sheet's tab over its bits, renamed by a double-click; and since 2026.10.20 the tabs across the whole width by default, over the bits at their left and their right, and over the symbols column, a tab's menu opened by a right-click, a tab pinned before its row and without its x, the tabs to a tab's right closed, then every other but the pinned, then those to a tab's left, the tab unpinned, and a pinned tab pinned still in the next run; and later on 2026.10.20 the grid's keyboard, as Excel's: the arrows, Ctrl and Shift with them along a row's set bits and down a bit's rows, Home, Ctrl+Home and Ctrl+End past the frozen columns, End mode, Enter and Tab round a range and back to where a run of Tabs began, Ctrl+., Shift+Space, Ctrl+Space, Ctrl+A, Shift+Backspace, Extend mode, F2 renaming in place and Space flipping the probe's bit, Page Down, Ctrl+End and Ctrl+Home scrolling the 1,424 rows of HRESULTs with the cursor, and Ctrl+Page Up and Down from sheet to sheet -- 46 sections, every frame checked for ImGui assertions, for ImGui's own errors, for clashing widget IDs, and for vertices a GPU may draw as stray pixels |
 
 With GCC or Clang there are 379 header tests -- twenty-one examples and
 `wide_mix` at C99, C11, C17, C23, and C++98 to C++23 as macros and as
@@ -194,6 +241,15 @@ target -- C++98, which has no `long long`, cannot hold the 64-bit constants
 of two examples and of `wide_mix`, and those six tests are left out:
 MinGW-w64 runs 384. Under `cl`, which cannot select C99, C23, C++98 or
 C++11, there are 247 header tests and no CPUID check, and 257 in all.
+
+Those counts are of the single build before 2026.10.23, the smoke test among
+them. Since then the command line's build has the nine transcripts,
+`cli_*`, and not the smoke test, which is the window's build's with
+`gui_help` and `gui_unknown_example`: on x86 Linux, 399 tests in the command
+line's build and 402 in the window's; MinGW-w64's window build, 395 under
+Wine -- all run. Elsewhere the same arithmetic gives the command line's
+build eight more than the counts above, and the window's build three more
+again; those were counted, not run.
 
 The platform checks are compiled without `-Werror` or `/WX`, since the
 system's headers are not this project's to keep clean, and at `-std=gnu11`
@@ -222,10 +278,11 @@ old programs print the old one.
 
 So **configure after unzipping** -- `cmake --preset msvc`, as the quick
 start does -- and then build. Each configure keeps a hash of every source
-it watches, bitwisedom's and uxoxo's with its Dear ImGui, in the build tree
-(`bitwisedom_sources.sha1`), and touches each whose content changed since
-the last configure, so the build compiles it again
-(`cmake/Freshness.cmake`); it says how many it marked. A build tree
+it watches in the build tree -- bitwisedom's and the kit's in
+`bitwisedom_sources.sha1`, and in the window's build the window's and
+uxoxo's with its Dear ImGui in `bitwisedom_ui_sources.sha1` -- and touches
+each whose content changed since the last configure, so the build compiles
+it again (`cmake/Freshness.cmake`); it says how many it marked. A build tree
 configured before it kept any hashes has every source marked once, and
 compiles them all. Only the times of changed files are changed. Where a
 file cannot be touched, configure names it: build with `--clean-first`
@@ -236,7 +293,7 @@ any doubt can do as well.
 
 ## If the window draws stray pixels
 
-`bitwisedom-win64.exe --warp` draws with WARP, Microsoft's software
+`bitwisedom-win64.exe gui --warp` draws with WARP, Microsoft's software
 rasterizer, instead of the GPU, and says so in its title. Stray pixels on
 the GPU that WARP does not draw are the GPU driver's; pixels WARP draws too
 are the drawing's. `ui_smoke` checks every frame for what a GPU may draw as
@@ -249,31 +306,40 @@ pixels past it.
 
 ## How uxoxo is found
 
-`cmake/Uxoxo.cmake` adds `${UXOXO_ROOT}/build/cmake` as a subproject. uxoxo's
-build takes djinterp from the `djinterp::headers` target `cmake/Djinterp.cmake`
-defines, and gives back `uxoxo::uxoxo`, `uxoxo::imgui`, and whichever backends
-it can build: `uxoxo::imgui_win32_dx11` on Windows, and
-`uxoxo::imgui_glfw_opengl3` where it finds GLFW. uxoxo's own tests stay off
-unless `BITWISEDOM_BUILD_UXOXO_TESTS=ON`.
+Only the window's build reads uxoxo. `build/ui/bitwisedom/cmake/UiRoots.cmake`
+finds it (the roots, above), and `cmake/Uxoxo.cmake` beside it checks it
+and adds `${UXOXO_ROOT}/build/cmake` as a subproject, after the command
+line's build. uxoxo's build takes djinterp from the `djinterp::headers`
+target the command line's `cmake/Djinterp.cmake` defines, and gives back
+`uxoxo::uxoxo`, `uxoxo::imgui`, and whichever backends it can build:
+`uxoxo::imgui_win32_dx11` on Windows, and `uxoxo::imgui_glfw_opengl3` where
+it finds GLFW. uxoxo's own tests stay off unless
+`BITWISEDOM_BUILD_UXOXO_TESTS=ON`.
 
 uxoxo's Dear ImGui must be the docking branch (`IMGUI_HAS_DOCK`), or
 configure stops. Its `imgui.cpp` and `imgui_internal.h` carry, since
-2026.10.19, a patch of uxoxo's -- `ImGuiDockNode::TabBarInsetLeft`, a dock
-node's tab bar begun inset, marked `[uxoxo]` and announced by
-`IMGUI_DOCK_TAB_BAR_INSET` -- so a sheet's tabs can begin past its symbols
-column; without it, configure warns, and the tabs run across the whole
-width, as Dear ImGui's own do.
+2026.10.20, a patch of uxoxo's -- `ImGuiDockNode::TabBarInsetLeft`,
+`TabBarInsetRight` and `TabBarAlignRight`, a dock node's tab bar begun and
+ended inset and kept to its right, marked `[uxoxo]` and announced by
+`IMGUI_DOCK_TAB_BAR_INSET 2` -- so the Options can set a sheet's tabs over
+one of its columns, at its left or its right; without it, or with the
+patch's first form of 2026.10.19 (`1`), configure warns, and the tabs run
+across the whole width from the left, as Dear ImGui's own do and as they
+do by default.
 
 ---
 
 ## Cross-compiling for Windows
 
-`cmake/toolchains/mingw-w64-x86_64.cmake` builds a self-contained Windows
-`bitwisedom.exe` and `bitwisedom-gen.exe` on Linux with MinGW-w64 (the posix
-thread model):
+`cmake/toolchains/mingw-w64-x86_64.cmake`, in the command line's build,
+builds a self-contained Windows `bitwisedom.exe` and `bitwisedom-gen.exe` on
+Linux with MinGW-w64 (the posix thread model), and from the window's build,
+whose `mingw-cross` preset takes the same file, a self-contained
+`bitwisedom-gui.dll` beside them -- MinGW's runtime linked into each, so no
+DLL of it need ship:
 
 ```
-cmake --preset mingw-cross -DDJINTERP_ROOT=... -DUXOXO_ROOT=...
+cmake --preset mingw-cross
 cmake --build --preset mingw-cross-release
 ```
 
@@ -286,40 +352,148 @@ a Windows target.
 ## What is here
 
 ```
-CMakeLists.txt          the superbuild
-CMakePresets.json       the presets above
-cmake/                  ProjectRoots, CompilerSetup, Djinterp, Uxoxo,
-                        EmbedExamples (res/djinterp/tools/bitwisedom/examples/large, built in),
-                        toolchains/mingw-w64-x86_64
-inc/bitwisedom/         the model's headers, in inc/ as djinterp's and
-                        uxoxo's are
-src/                    the model's sources
-app/                    the window: the reducer (app), the interface as uxoxo
-                        templates (view), the shell of workspaces and tool
-                        windows (shell), the grid, flow and code views,
-                        the controls uxoxo has no element for -- the add
-                        control, the tree's "Add child..." fields, the
-                        menu bar's right end, the dock space and its
-                        windows (controls) -- the settings registries and
-                        settings files, the themes, the two hosts, and
-                        the compiled-in fonts
-tools/                  bitwisedom-gen; the scripts that made the large
-                        examples and their platform checks
-                        (winerror_to_bitfield.py, x86_cpuid_bitfield.py),
-                        and bitfield_json.py, the writer's layout for them
-tests/                  the suites, the header, bitfield and platform
-                        checks (platform/), and the sheet the wide header
-                        tests try the generator with (sheets/)
-examples/               the nineteen example sheets, and large/, the two
-                        large examples as bitfields
-docs/bitwisedom/         json.md, the JSON shapes key by key, and
-                        bitfield.schema.json; screenshots/, the README's
-                        pictures
+build/cmake/djinterp/tools/bitwisedom/
+    CMakeLists.txt        the command line's build
+    CMakePresets.json     the presets above
+    cmake/                ProjectRoots, OutputLayout, Freshness,
+                          CompilerSetup, Djinterp, EmbedExamples
+                          (res/djinterp/tools/bitwisedom/examples/large,
+                          built in), toolchains/mingw-w64-x86_64
+build/ui/bitwisedom/
+    CMakeLists.txt        the window's build, which includes the above
+    CMakePresets.json     the same presets
+    cmake/                UiRoots, Uxoxo
+inc/djinterp/tools/bitwisedom/
+                          the model's headers, and the command line's
+src/djinterp/tools/bitwisedom/
+                          the model's sources; cli/, the commands;
+                          tools/, the two programs' mains, the scripts
+                          that made the large examples and their platform
+                          checks (winerror_to_bitfield.py,
+                          x86_cpuid_bitfield.py), and bitfield_json.py,
+                          the writer's layout for them
+inc/ui/bitwisedom/        the window's headers; host.hpp, what a host is
+                          asked
+src/ui/bitwisedom/        the window: the reducer (app), the interface as
+                          uxoxo templates (view), the shell of workspaces
+                          and tool windows (shell), the grid, flow and
+                          code views, the controls uxoxo has no element
+                          for -- the add control, the tree's "Add
+                          child..." fields, the menu bar's right end, the
+                          dock space and its windows (controls) -- the
+                          settings registries and settings files, the
+                          themes, the two hosts, the module's run
+                          function (plugin), and the compiled-in fonts
+tests/djinterp/tools/bitwisedom/
+                          the suites, the header, bitfield and platform
+                          checks (platform/), the sheet the wide header
+                          tests try the generator with (sheets/), and the
+                          command line's transcripts (cli/)
+tests/ui/bitwisedom/      the smoke test
+res/djinterp/tools/bitwisedom/examples/
+                          the example sheets, and large/, the two large
+                          examples as bitfields
+docs/bitwisedom/          this file, LAYOUT.md, json.md, the JSON shapes
+                          key by key, bitfield.schema.json, and
+                          screenshots/, the README's pictures
 ```
 
 ---
 
 ## What was verified, and what was not
+
+On 2026.10.23, after the window was moved out of the djinterp tree -- its
+sources to `inc/ui`, `src/ui` and `tests/ui`, its hosts made the run
+function of the module `bitwisedom gui` loads, its build made
+`build/ui/bitwisedom` -- and with the command line of 2026.10.22: against
+the djinterp of that day and, the uxoxo overlays of 2026.10.18 and
+2026.10.20 not being to hand, a stand-in -- the uxoxo of 2026.10.14 with
+Dear ImGui 1.92.8's docking branch, from imgui-bundle 1.92.801, in its
+`inc/imgui`. The stand-in has no tab bar patch, and configure warned of it.
+
+| | result |
+|---|---|
+| GCC 13.3, Linux, Debug, the window's build | every target built, no warning; 402 of 402 tests, the smoke test's 46 sections among them, with no ID clash, ImGui error or stray vertex |
+| GCC 13.3, Linux, Debug, the command line's build alone | 399 of 399 tests |
+| `bitwisedom -v gui example:uart_cr --screenshot FILE` on a virtual display (Xvfb, Mesa) | the module found beside the program and run; the window drawn, `wrote FILE (1280x800)` |
+| `bitwisedom gui example:uart_cr --do app.quit`, the same display | the window opened, kept its settings and session, and closed; 0 |
+| `bitwisedom gui` with no display | `bitwisedom: error: cannot open the window: GLFW error 65544: X11: The DISPLAY environment variable is missing`; 2 |
+| MinGW-w64 GCC 13, cross, Debug, warnings as errors, the window's build | every target built, the Win32 host among them, no warning; 395 of 395 tests under Wine 9 -- the smoke test's 46 sections, the module found and run by `bitwisedom-win64.exe`, and the command line's nine transcripts among them; the module imports system DLLs alone and exports `d_cli_plugin_entry` alone |
+| `bitwisedom-win64.exe -v gui example:uart_cr --size 1280x800`, under Wine on the virtual display | the Win32 host's window, on Wine's Direct3D 11, drawn as on Linux -- photographed from outside -- and its settings and session kept in `%APPDATA%\bitwisedom`; with `--do app.quit`, closed, 0 |
+
+Not run: the window against uxoxo's own overlays; the window on Windows
+itself or on macOS; `cl` and clang-cl.
+
+Later still on 2026.10.20, a build under MSVC reported one section of the
+smoke test failed -- "code in and out", at the code a new sheet is made
+from -- and the rest passed. The section copies a row as code and, at once,
+puts other code on the clipboard to make a sheet from; and on Windows
+ImGui's clipboard is the system's, whose every copy a program watching it
+-- the clipboard history, a remote desktop, a password manager -- opens it
+to read, so a copy straight after another can fail without a word, and the
+section read the row's code instead. The smoke test now keeps a clipboard
+of its own, in memory, in every ImGui it makes, as ImGui itself does off
+Windows; it no longer touches the user's clipboard either.
+
+| | result |
+|---|---|
+| GCC 13.3, Linux, Debug, C++20, warnings as errors | every target built; 391 of 391 tests, the smoke test's 46 sections among them |
+| `ui_smoke.cpp` for Windows, MinGW-w64 GCC 13, `-Wall -Wextra` | compiled clean (`-fsyntax-only`); not run, with no Wine here |
+| fresh trees: the djinterp and uxoxo of the overlay before, built; then this overlay unzipped over them, configured and built, GCC 13.3, Debug | configure marked the one source that changed; 391 of 391 tests |
+
+Later on 2026.10.20, after the grid was given a cursor and Excel's keys --
+the arrows with Shift and Ctrl, Home, End and End mode, Page Up and Page
+Down with Alt and Ctrl, Enter and Tab round a range, Shift+Space,
+Ctrl+Space, Ctrl+A, Shift+Backspace, Ctrl+Backspace, Ctrl+., F8, F2 and
+Space -- against the same djinterp and uxoxo:
+
+| | result |
+|---|---|
+| GCC 13.3, Linux, Debug, C++20, warnings as errors | every target built; 391 of 391 tests, the model's 36 sections and the smoke test's 46 among them |
+| GCC 13.3, Debug, AddressSanitizer | every target built; 391 of 391 tests, with no error |
+| Clang 18.1, Release, warnings as errors | every target built, no warning; 391 of 391 tests |
+| GCC 13.3, Debug, libstdc++'s checked containers and iterators (`_GLIBCXX_DEBUG`) | the model's suite at every level, 36 of 36 sections; the smoke test, 46 of 46, no ImGui error, ID clash or stray vertex |
+| fresh trees: the djinterp and uxoxo of this morning's overlays, built; then this overlay unzipped over them, configured and built, GCC 13.3, Debug | configure marked the 8 sources that changed; the build compiled them and what includes them; 391 of 391 tests |
+| the window's sources against a Dear ImGui without the tab bar patch, and against its first form, GCC 13.3, warnings as errors | every unit compiled clean (`-fsyntax-only`) |
+| MinGW-w64 GCC 13, cross, Release, warnings as errors | every target built: `bitwisedom-win64.exe` and `bitwisedom-gen-win64.exe`; not run, with no Wine here |
+
+The smoke test presses the keys as a user would, through ImGui's own
+keyboard, and reads where the cursor went, what was selected and where the
+grid scrolled. The window was run on a virtual display and driven by real
+key presses -- a click, the arrows, Shift held across them, End mode,
+Enter -- and photographed, the README's picture of a range with the cursor
+inside it among those taken.
+
+On 2026.10.20, after a tab's menu was given **Close all other tabs**,
+**Close all tabs to the left** and **to the right**, and **Pin tab**, and
+where the sheets' tabs run was made an option -- along the whole top from
+the left, as before, by default; or over the bits, the symbols column or
+the value column, at its left or its right -- with the second form of
+uxoxo's tab bar patch; and after a fault was mended that arranging a
+workspace's sheets could meet, reading a dock node a merge had freed a
+moment before (AddressSanitizer found it: Dear ImGui's record of a dock
+space's middle outlives a merge until the next frame, and a split in the
+same frame read it):
+
+| | result |
+|---|---|
+| GCC 13.3, Linux, Debug, C++20, warnings as errors | every target built; 391 of 391 tests, the model's 36 sections and the smoke test's 45 among them |
+| GCC 13.3, Debug, AddressSanitizer | every target built; 391 of 391 tests, with no error |
+| Clang 18.1, Release, warnings as errors | every target built, no warning; 391 of 391 tests |
+| GCC 13.3, Debug, libstdc++'s checked containers and iterators (`_GLIBCXX_DEBUG`) | the model's suite at every level, 36 of 36 sections; the smoke test, 45 of 45, no ImGui error, ID clash or stray vertex |
+| fresh trees: the djinterp and uxoxo of 2026.10.19's last overlays, built; then this overlay and the patch's second form unzipped over them, configured and built, GCC 13.3, Debug | configure marked the 12 sources that changed, Dear ImGui's two among them, and gave no warning; the build compiled them and what includes them; 391 of 391 tests |
+| the window's sources against a Dear ImGui without the tab bar patch, and against its first form, GCC 13.3, warnings as errors | every unit compiled clean (`-fsyntax-only`): there the tabs run along the whole top, from the left |
+| MinGW-w64 GCC 13, cross, Release, warnings as errors | every target built: `bitwisedom-win64.exe` and `bitwisedom-gen-win64.exe`; not run, with no Wine here |
+
+The smoke test drives the tabs as a user would: the tab rows set over the
+bits, kept to the right, and over the symbols column, by the settings the
+Options and the menu post; a tab right-clicked by the mouse where the
+window drew it, its menu opened on it and its row's tabs known in order;
+a tab pinned, before its row and without its x; the tabs to a tab's right
+closed, then every other but the pinned, then those to another's left;
+the tab unpinned; and a pinned tab pinned still in the next run. The
+window was photographed on a virtual display with its tab menu opened by
+a right-click, and the README's picture of it added.
 
 Later still on 2026.10.19, after the cells were sized by hand and the
 rows made four fifths of a cell's width, the probe and usage rows moved

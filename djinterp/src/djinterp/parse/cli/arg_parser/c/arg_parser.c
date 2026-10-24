@@ -14,7 +14,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_parser.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_parser.h"  // corresponding header
 // std
@@ -36,13 +36,39 @@
 // 1.  FAILURES
 //==============================================================================
 
-// d_arg_internal_parser_message / d_arg_internal_parser_vfail
-//   declarations: the format attribute their definitions cannot carry, so
-// that every format passed through them is checked as a printf format.
+/**
+ * @brief Formats a failure's message onto the heap.
+ *
+ * @param[in] _format     the message's format string; NULL for none.
+ * @param[in] _arguments  the format's arguments.
+ * @return the message, which the caller frees; NULL for no format, or for one
+ *         that could not be expanded.
+ *
+ * Declared ahead of its definition for the format attribute, which the
+ * definition cannot carry, so that every format passed through it is checked
+ * as a printf format.
+ */
 D_STATIC char*
      d_arg_internal_parser_message(const char* _format,
                                    va_list     _arguments)
     D_FORMAT_PRINTF(1, 0);
+
+/**
+ * @brief Records a failure of the parse in place of whatever the parser's
+ *        error held.
+ *
+ * @param[in] _command    the command concerned; may be NULL.
+ * @param[in] _option     the option concerned; may be NULL.
+ * @param[in] _status     the d_arg_status to record.
+ * @param[in] _format     the message's format string; NULL for the status's
+ *                        own text.
+ * @param[in] _arguments  the format's arguments.
+ * @return `_status`.
+ *
+ * Declared ahead of its definition for the format attribute, which the
+ * definition cannot carry, so that every format passed through it is checked
+ * as a printf format.
+ */
 D_STATIC int
      d_arg_internal_parser_vfail(const struct d_arg_command* _command,
                                  const struct d_arg_option*  _option,
@@ -51,10 +77,15 @@ D_STATIC int
                                  va_list                     _arguments)
     D_FORMAT_PRINTF(4, 0);
 
-/*
-d_arg_internal_parser_for
-  The parser a failure belongs to: the command's, or else the option's.
-*/
+/**
+ * @brief Finds the parser a failure belongs to.
+ *
+ * @param[in] _command  the command concerned; may be NULL.
+ * @param[in] _option   the option concerned; may be NULL.
+ * @return the command's parser, or else the option's; NULL when there is none.
+ *
+ * The parser a failure belongs to: the command's, or else the option's.
+ */
 D_STATIC struct d_arg_parser*
 d_arg_internal_parser_for(
     const struct d_arg_command* _command,
@@ -103,12 +134,21 @@ d_arg_internal_parser_message(
            : d_arg_internal_copy_cstr("");
 }
 
-/*
-d_arg_internal_parser_store
-  A report replaced: its message taken over, the exit code the status's,
-and the record it arose in -- the option's command when no command is
-named.
-*/
+/**
+ * @brief Replaces an error report.
+ *
+ * @param[in,out] _report   the report, whose old message is freed.
+ * @param[in]     _command  the command the failure arose in; NULL for the
+ *                          option's.
+ * @param[in]     _option   the option concerned; may be NULL.
+ * @param[in]     _status   the status.
+ * @param[in]     _message  the message, which the report takes over; NULL for
+ *                          the status's own.
+ *
+ * A report replaced: its message taken over, the exit code the status's,
+ * and the record it arose in -- the option's command when no command is
+ * named.
+ */
 D_STATIC void
 d_arg_internal_parser_store(
     struct d_arg_error*         _report,
@@ -598,7 +638,9 @@ d_arg_internal_command_request(
  * into a subcommand when it is made, so that a change on a parent reaches
  * every command under it whenever it was made; and it is called with the
  * command the error is reported from, as CLI11 calls a subcommand's copy,
- * with the context of the command it was found on.
+ * with the context of the command it was found on. A caller's function
+ * that fails is followed by d_arg_failure_simple's message, so that no
+ * failed parse goes unreported (ISSUES 63).
  */
 D_STATIC void
 d_arg_internal_command_failure(
@@ -622,11 +664,20 @@ d_arg_internal_command_failure(
     void* const            context = (owner != NULL)
                                      ? owner->failure_context
                                      : NULL;
+    const int              written = write(_command,
+                                           _error,
+                                           _err,
+                                           context);
 
-    (void)write(_command,
-                _error,
-                _err,
-                context);
+    // a message that could not be written gives way to CLI11's default
+    if ( (written != D_ARG_OK) &&
+         (write != d_arg_failure_simple) )
+    {
+        (void)d_arg_failure_simple(_command,
+                                   _error,
+                                   _err,
+                                   NULL);
+    }
 
     return;
 }
@@ -745,12 +796,17 @@ d_arg_parser_exit(
            : (int)D_ARG_EXIT_BASE_CLASS;
 }
 
-/*
-d_arg_internal_parser_run_with
-  The line CLI11's simple message ends with: "Run with <help> for more
-information." -- the help-all flag joined with " or " -- when the command
-has either flag.
-*/
+/**
+ * @brief Appends the line CLI11's simple message ends with.
+ *
+ * @param[in]     _command  the command whose help flags are named.
+ * @param[in,out] _text     the buffer that gains the line.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The line CLI11's simple message ends with: "Run with <help> for more
+ * information." -- the help-all flag joined with " or " -- when the command
+ * has either flag.
+ */
 D_STATIC int
 d_arg_internal_parser_run_with(
     const struct d_arg_command* _command,
@@ -796,11 +852,18 @@ d_arg_internal_parser_run_with(
            : status;
 }
 
-/*
-d_arg_internal_parser_emit
-  A finished text written to a sink in one piece; a text that could not be
-built is reported as such.
-*/
+/**
+ * @brief Writes a finished text to a sink in one piece, and releases it.
+ *
+ * @param[in,out] _text    the text, released.
+ * @param[in]     _status  the status of its building.
+ * @param[in]     _sink    receives the text.
+ * @return `_status` when the text could not be built; otherwise D_ARG_OK, or
+ *         the sink's refusal.
+ *
+ * A finished text written to a sink in one piece; a text that could not be
+ * built is reported as such.
+ */
 D_STATIC int
 d_arg_internal_parser_emit(
     struct d_arg_buffer* _text,
@@ -1074,6 +1137,27 @@ d_arg_parser_set_suggestions(
 }
 
 #endif  // D_INTERNAL_ARG_PARSER_SUGGESTIONS
+
+/*
+d_arg_parser_set_empty_values
+  The switch.
+*/
+void
+d_arg_parser_set_empty_values(
+    struct d_arg_parser* _parser,
+    bool                 _enabled
+)
+{
+    // nothing to set without a parser
+    if (_parser != NULL)
+    {
+        _parser->flags = _enabled
+                         ? (_parser->flags | D_ARG_PARSER_EMPTY_VALUES)
+                         : (_parser->flags & ~D_ARG_PARSER_EMPTY_VALUES);
+    }
+
+    return;
+}
 
 //==============================================================================
 // 5.  ERRORS

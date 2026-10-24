@@ -18,7 +18,8 @@
 * D_THREAD_LOCAL, which is left undefined where the compiler has no
 * thread-local storage; D_THREAD_LOCAL_AVAILABLE says which.
 *   It requires env.h, for the D_ENV_LANG_* and D_ENV_COMPILER_* families it
-* reads, and includes it itself.
+* reads, and includes it itself; and, for GCC on MinGW, the runtime's
+* _mingw.h, which says what printf the C headers declare (1.2.1).
 *   It is opt-in: the framework root includes env_attributes.h, not this
 * header, so a file that uses one of these macros includes it itself
 * (decision 64 of the register, 2026.10.04).
@@ -27,7 +28,7 @@
 * path:      /inc/djinterp/env/c/env_vendor_attributes.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -37,6 +38,8 @@ TABLE OF CONTENTS
     ---------------
     1.  GCC-compatible compilers
          1.  D_INTERNAL_ENV_GCC_COMPAT
+    2.  MinGW's standard I/O
+         1.  D_INTERNAL_ENV_MINGW_C99_STDIO
 2.  FUNCTION PURITY AND OPTIMISATION
     --------------------------------
     1.  Purity
@@ -135,8 +138,9 @@ TABLE OF CONTENTS
 // 1.  COMPILER FAMILY
 //==============================================================================
 // Most attributes below have a GNU spelling, which GCC and Clang share, and
-// several also have an MSVC __declspec spelling. The helper here identifies the
-// GNU family; it is file-local, and #undef'd at the end of this header.
+// several also have an MSVC __declspec spelling. The helpers here identify the
+// GNU family, and the printf MinGW's headers chose; they are file-local, and
+// #undef'd at the end of this header.
 
 
 // 1.1    GCC-compatible compilers
@@ -150,6 +154,29 @@ TABLE OF CONTENTS
 #if ( (defined(D_INTERNAL_ENV_ATTR_GCC)) ||                                    \
       (defined(D_INTERNAL_ENV_ATTR_CLANG)) )
     #define D_INTERNAL_ENV_GCC_COMPAT 1
+#endif
+
+// 1.2    MinGW's standard I/O
+//------------------------------------------------------------------------------
+// 1.2.1
+// D_INTERNAL_ENV_MINGW_C99_STDIO
+//   macro (internal): defined, to 1, for GCC on MinGW when the printf and
+// scanf families the C headers declare are C99's -- MinGW's own, which
+// _mingw.h chooses for any C99 or C++11 build and any asking for POSIX, or
+// the UCRT's -- rather than the Microsoft runtime's, which knows no %zu,
+// %lld or %hhd. GCC reads the `printf` archetype on MinGW as the latter's
+// whatever the headers chose, which made every %zu in a djinterp format a
+// false warning; section 5 names the C99 archetype where this is defined,
+// as MinGW's own headers do. Clang reads `printf` as C99's, and is left be.
+#if ( (defined(D_INTERNAL_ENV_ATTR_GCC)) &&                                    \
+      (defined(__MINGW32__)) )
+    #include <_mingw.h>  // __USE_MINGW_ANSI_STDIO, _UCRT
+
+    #if ( (defined(_UCRT)) ||                                                  \
+          ( (defined(__USE_MINGW_ANSI_STDIO)) &&                               \
+            (__USE_MINGW_ANSI_STDIO) ) )
+        #define D_INTERNAL_ENV_MINGW_C99_STDIO 1
+    #endif
 #endif
 
 
@@ -464,13 +491,19 @@ TABLE OF CONTENTS
 //                     va_list     _args) D_FORMAT_PRINTF(1, 0);
 //
 //   resolution order:
-//     1. GCC / Clang - __attribute__((format(printf, …, …))).
-//     2. No-op fallback.
+//     1. GCC on MinGW, where the C headers declare C99's printf (see
+//        D_INTERNAL_ENV_MINGW_C99_STDIO) -
+//        __attribute__((format(gnu_printf, …, …))).
+//     2. GCC / Clang - __attribute__((format(printf, …, …))).
+//     3. No-op fallback.
 //
 //   note: in a C++ non-static member function the implicit `this` occupies
 // position 1, so each index is one higher than for a free function.
 #ifndef D_FORMAT_PRINTF
-    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
+    #if defined(D_INTERNAL_ENV_MINGW_C99_STDIO)
+        #define D_FORMAT_PRINTF(fmt_idx, first_arg)                            \
+            __attribute__((format(gnu_printf, fmt_idx, first_arg)))
+    #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_FORMAT_PRINTF(fmt_idx, first_arg)                            \
             __attribute__((format(printf, fmt_idx, first_arg)))
     #else
@@ -483,10 +516,16 @@ TABLE OF CONTENTS
 //   macro: as D_FORMAT_PRINTF, for a scanf-style format string.
 //
 //   resolution order:
-//     1. GCC / Clang - __attribute__((format(scanf, …, …))).
-//     2. No-op fallback.
+//     1. GCC on MinGW, where the C headers declare C99's scanf (see
+//        D_INTERNAL_ENV_MINGW_C99_STDIO) -
+//        __attribute__((format(gnu_scanf, …, …))).
+//     2. GCC / Clang - __attribute__((format(scanf, …, …))).
+//     3. No-op fallback.
 #ifndef D_FORMAT_SCANF
-    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
+    #if defined(D_INTERNAL_ENV_MINGW_C99_STDIO)
+        #define D_FORMAT_SCANF(fmt_idx, first_arg)                             \
+            __attribute__((format(gnu_scanf, fmt_idx, first_arg)))
+    #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_FORMAT_SCANF(fmt_idx, first_arg)                             \
             __attribute__((format(scanf, fmt_idx, first_arg)))
     #else
@@ -836,8 +875,10 @@ TABLE OF CONTENTS
 #endif  // D_NAKED
 
 
-// D_INTERNAL_ENV_GCC_COMPAT is file-local; see 1.1.1
+// D_INTERNAL_ENV_GCC_COMPAT and D_INTERNAL_ENV_MINGW_C99_STDIO are file-local;
+// see 1.1.1 and 1.2.1
 #undef D_INTERNAL_ENV_GCC_COMPAT
+#undef D_INTERNAL_ENV_MINGW_C99_STDIO
 
 
 #endif  // DJINTERP_ENV_C_ENV_VENDOR_ATTRIBUTES_H

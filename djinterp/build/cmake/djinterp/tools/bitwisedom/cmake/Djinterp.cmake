@@ -10,6 +10,10 @@
 #     djinterp::lex       the C/C++ scanner and literal decoder, compiled as
 #                         C at djinterp's C99 floor: bitwisedom reads macro
 #                         bodies, imported headers and environments with it
+#     djinterp::cli       the command-line kit, with the argument parser and
+#                         filesys under it, compiled as C at the same floor
+#                         (build/cmake/djinterp/parse/cli/DjinterpCli.cmake,
+#                         which also gives d_cli_add_plugin to build/ui)
 #
 #   The include directory is a SYSTEM one: djinterp is a dependency, and its
 # headers are not this project's to hold to the style guide's whole
@@ -24,7 +28,7 @@
 # path:      /build/cmake/djinterp/tools/bitwisedom/cmake/Djinterp.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.09
+#                                                            revised: 2026.10.22
 #*******************************************************************************
 include_guard(GLOBAL)
 
@@ -101,3 +105,20 @@ if(NOT TARGET djinterp::lex)
         endif()
     endif()
 endif()
+
+
+#-------------------------------------------------------------------------------
+# the command-line kit
+#-------------------------------------------------------------------------------
+set(_djinterp_cli_module
+    "${DJINTERP_ROOT}/build/cmake/djinterp/parse/cli/DjinterpCli.cmake")
+
+if(NOT EXISTS "${_djinterp_cli_module}")
+    message(FATAL_ERROR
+        "djinterp at ${DJINTERP_ROOT} has no command-line kit "
+        "(build/cmake/djinterp/parse/cli/DjinterpCli.cmake is missing). "
+        "bitwisedom's command line is made with it: extract the djinterp of "
+        "2026.10.22 or later over DJINTERP_ROOT.")
+endif()
+
+include("${_djinterp_cli_module}")

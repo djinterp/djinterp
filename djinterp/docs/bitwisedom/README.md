@@ -31,12 +31,15 @@ at the top, as tabs among the sheets; and below them Operations, Issues,
 Grid lines, Colours, Columns, Naming, Sheet, Display and Console. A tool
 window shows the sheet in front.
 
-The sheets' **tabs sit over the bits**, as Visual Studio's code tabs sit
-over the code: a sheet's symbols column runs up through the tab row, to
-the window's top, and its tabs begin past it. **Double-click a sheet's
-tab** to rename its file: the name is typed over the tab -- Enter, or a
-click away, keeps it; Escape does not -- and `.bitwisedom.json` is put
-after a name with no `.json` of its own. Nothing on the disk changes: the
+The sheets' **tabs run along the top**, from the left, as ImGui's own do.
+**Options > Environment** -- or **The sheets' tabs** in a tab's menu --
+sets them over one column instead: over **the bits**, as Visual Studio's
+code tabs sit over the code, the symbols column running up through the tab
+row to the window's top; over **the symbols column**; or over **the value
+column**. Wherever they run, they keep to its **left** or its **right**.
+**Double-click a sheet's tab** to rename its file: the name is typed over
+the tab -- Enter, or a click away, keeps it; Escape does not -- and
+`.bitwisedom.json` is put after a name with no `.json` of its own. Nothing on the disk changes: the
 sheet is marked changed, and Save writes it under its new name.
 
 The **status bar** runs along the window's foot: what the sheet in front
@@ -54,9 +57,19 @@ them; the console only lists them.
   own, floating. Drag the hairline between two windows to size them.
 * **A tab's x** closes its window. A tool window comes back from **View >
   Tool windows**, where it was; a sheet with unsaved changes asks first.
+* **Right-click a tab** for its menu: **Close**; **Close all other tabs**;
+  **Close all tabs to the left** or **to the right** of it, in its row;
+  **Pin tab**; renaming a sheet's file; and where the sheets' tabs run.
+  A **pinned** tab moves before the rest of its row, shows a pin before
+  its name and no x, and stays open when the others close -- until **Unpin tab**, or
+  its own Close. Its workspace keeps it pinned in the next run. Closing
+  the others leaves a definition file's tab open too: only its own Close,
+  or its x, takes the file from the sheet.
 * **Ctrl+J** puts the windows below the sheets away, and brings them back.
 * **Window > Reset the layout** puts every window back where a new
   workspace has it.
+
+![x86_eflags' tab right-clicked: its menu, uart_cr pinned before it, nothing to its left to close](screenshots/tab-menu.png)
 
 ![uart_cr and posix_mode side by side, in columns; Macros and Templates among the sheets' tabs](screenshots/windows-columns.png)
 
@@ -75,7 +88,8 @@ front, from half size to three times; View has them too, and puts every
 window back at its actual size at once.
 
 The window **opens where it was left**: its workspaces, every sheet in them
--- unsaved changes too -- the layout of its windows and their zoom. It
+-- unsaved changes too -- the layout of its windows, their zoom and the
+tabs pinned. It
 keeps them in `session.json` beside its settings file, as long as **Open
 where I left off** is on, in the Options.
 
@@ -83,9 +97,9 @@ where I left off** is on, in the Options.
 
 **Tools > Options** (**Ctrl+,**) is every setting in one place, as Visual
 Studio's are: the window's own on its first pages -- the theme and colour
-scheme, opening where it was left, how the symbols tree is shown, how rows
-are added, what ends a group's rows and how the Add node window opens --
-and then the sheet's, page by page. The search above the
+scheme, opening where it was left, where the sheets' tabs run, how the
+symbols tree is shown, how rows are added, what ends a group's rows and how
+the Add node window opens -- and then the sheet's, page by page. The search above the
 pages finds a setting by its name or what it does.
 
 **Settings files** keep a set of settings to use again: **Export** writes
@@ -351,6 +365,42 @@ field, and a range stretches to take it in. **Dragging** across a row's cells
 sets a range exactly, or paints a literal's bits. Rows can be dragged within
 the tree to move them.
 
+### The keyboard, as Excel's
+
+The grid has a **cursor**, as a spreadsheet has an active cell, outlined
+in the accent: a click puts it where it lands, and while the sheet's window
+is in front the grid takes Excel's keys. The **arrows** move it a cell;
+**Shift** with an arrow extends the range from it -- the cursor stays
+where it is -- and the range is the selection: its rows selected, its bits
+a block of cells, as a Shift+drag selects them, the cursor's cell left
+plain inside it. **Ctrl** with an arrow goes to the edge of what the row
+or column holds -- the end of a run of set bits, or the next bit set, or
+the end -- and Ctrl+Shift extends there. A row's name and value always hold
+something; a group's row holds every bit its rows do.
+
+The symbols and value columns are the grid's **frozen panes**: **Home** goes
+to the row's first bit, **Ctrl+Home** to the first row's, and **Ctrl+End**
+to the last cell anything is in; Shift extends to them. **End** is **End
+mode**, which the status bar shows: then an arrow goes as Ctrl's does, Home
+as Ctrl+End, and Enter to the row's last cell with anything in it.
+**Page Up** and **Page Down** move a screen of rows, the view with them,
+**Alt** with them a screen of columns, and **Ctrl** with them the sheet
+before or after in the tab row.
+
+**Enter** moves down and **Tab** right, Shift+Enter and Shift+Tab back;
+inside a range of more than one cell, round and round it, the range kept;
+and Enter after a run of Tabs goes down to the column the run began in.
+**Shift+Space** selects the range's rows whole, **Ctrl+Space** its columns,
+**Ctrl+A** everything; **Shift+Backspace** leaves the cursor's cell alone
+selected, **Ctrl+Backspace** scrolls back to it, and **Ctrl+.** moves it
+to the range's next corner, clockwise. **F8** is **Extend mode**, in which
+the arrows extend as with Shift; Esc ends it, and End mode. **F2** renames
+the cursor's row in place, and **Space** flips the cursor's bit as a click
+does -- the probe's too. A selection made elsewhere, in the tree, takes the
+cursor with it; the status bar says which bit it is on.
+
+![uart_cr: TXEN to LOOPBACK over bits 3 to 1 selected by the keyboard, the cursor on RXEN's bit 1 left plain inside the range](screenshots/keyboard-range.png)
+
 ### The probe and usage rows
 
 **The probe** is a scratch value: click its cells or type a value, and the
@@ -371,7 +421,7 @@ every probe row shows the one probe -- or removes it; the last of a kind
 is hidden instead, and keeps its place for when it is shown again. Where
 each is is the sheet's, saved with it, and every move a step to undo.
 
-![uart_cr: the probe pinned at the top, a usage row counting the Enables group's bits, another at the grid's foot; the sheet's tab over the bits, and the status bar](screenshots/special-rows.png)
+![uart_cr: the probe pinned at the top, a usage row counting the Enables group's bits, another at the grid's foot; the sheet's tab over the bits, as the Options can set it, and the status bar](screenshots/special-rows.png)
 
 ### Sorting
 
@@ -500,7 +550,8 @@ its name in the text's colour.
 ### Names, menus and widths
 
 **Renaming** happens where the name is: double-click a name in the tree or
-the grid, press **F2**, or choose **Rename** from the row's menu, and type
+the grid, press **F2** -- in the grid, it renames the cursor's row -- or
+choose **Rename** from the row's menu, and type
 over it. Enter renames; Escape, or a click elsewhere with nothing typed,
 gives up. The inspector's name field renames as well, once its edit is
 done. Whatever named the row follows it -- an expression's names, a macro's
@@ -864,7 +915,35 @@ skip them on Windows and 32-bit targets.
 
 ## The command line
 
-`bitwisedom-gen` is the generator without the window, for build scripts:
+`bitwisedom COMMAND ...` reads, writes and changes sheets without the
+window. It is made with djinterp's command-line kit, so its options, its
+help, its diagnostics and its exit statuses are every djinterp program's
+(`inc/djinterp/parse/cli/GRAMMAR.md`, whose section 10 is bitwisedom's).
+`bitwisedom --help` lists the commands, and `bitwisedom COMMAND --help`
+each one's options:
+
+| commands | do |
+|---|---|
+| `gen`, `check`, `show`, `decode`, `eval`, `convert`, `examples` | read a sheet: write its header, report its issues, list its rows, say what values hold, evaluate C expressions over it, write it in another shape; list the examples |
+| `new`, `import`, `add`, `change`, `duplicate`, `remove`, `rename`, `move`, `sort`, `set`, `get`, `op` | make or change one, written whole or not at all; a change that would give the sheet an error it did not have is refused unless forced (`-f`) |
+| `gui` | open the window on the sheets named, or where it was left |
+
+A SHEET is any of the three shapes of JSON -- a sheet file, a bitfield or
+an export -- `example:NAME` for a built-in example, or `-` for standard
+input. A command exits 0 when it did what was asked, 1 when the answer it
+was asked for is no, and 2 for trouble: the command line, a file, or the
+program.
+
+The window is a module of its own, `bitwisedom-gui`, which `bitwisedom gui`
+loads only when it is asked for: the program carries no window system, no
+GPU code and no fonts, and a system with no display can install it alone
+(`BUILD.md` builds the two apart). `bitwisedom gui` reads its SHEETs as the
+commands do -- any file the window opens, a header to import among them --
+and `bitwisedom gui --help` lists the window's own options.
+
+`bitwisedom-gen` is the generator's command line from before, kept so that
+build scripts written for it run unchanged: `bitwisedom gen`'s work, under
+the options it always took.
 
 ```
 bitwisedom-gen <sheet.json | --example NAME> [options]
@@ -911,7 +990,7 @@ holds, and names any that does not.
 | Ctrl+Shift+A | the Add node window, for the selected row's group |
 | Ctrl+D, Del | duplicate, delete the selected rows |
 | Alt+Up, Alt+Down | move the selected row |
-| F2 | rename the selected row |
+| F2 | rename the selected row -- in the grid, the cursor's, in place |
 | Ctrl+Shift+C, Ctrl+Shift+V | copy the selection as code, paste code |
 | Ctrl+J | put the windows below the sheets away, and bring them back |
 | Ctrl+=, Ctrl+-, Ctrl+0 | zoom the window in front in, out, to its actual size |
@@ -920,11 +999,29 @@ holds, and names any that does not.
 | Ctrl+Shift+Plus, Ctrl+Shift+Minus (or Ctrl with the keypad's + and -) | expand every group, collapse every group |
 | G | grid lines on and off |
 
+| in the grid, as Excel's | does |
+|---|---|
+| arrows; Shift+arrow | move the cursor a cell; extend the range |
+| Ctrl+arrow; Ctrl+Shift+arrow | to the edge of the bits set, the next one, or the end; extend there |
+| Home, Shift+Home | the row's first bit, past the frozen symbols and value columns; extend there |
+| Ctrl+Home, Ctrl+End (with Shift, extend) | the first row's first bit; the last cell anything is in |
+| End | End mode: then an arrow goes as with Ctrl, Home as Ctrl+End, Enter to the row's last cell with anything |
+| Page Up, Page Down (with Shift, extend) | a screen of rows |
+| Alt+Page Up, Alt+Page Down | a screen of columns |
+| Ctrl+Page Up, Ctrl+Page Down | the sheet before, after |
+| Enter, Shift+Enter; Tab, Shift+Tab | down, up; right, left -- round a range; after Tabs, Enter goes back to their first column |
+| Shift+Space, Ctrl+Space, Ctrl+A | select the range's rows, its columns, everything |
+| Shift+Backspace, Ctrl+Backspace | the cursor's cell alone; scroll back to it |
+| Ctrl+. | the cursor to the range's next corner |
+| F8, Esc | Extend mode on and off; Esc ends End mode too |
+| Space | flip the cursor's bit |
+
 | with the mouse | does |
 |---|---|
 | double-click a name | renames it, in the tree or the grid |
 | double-click a segment's heading | renames the segment |
 | double-click a sheet's tab | renames its file |
+| right-click a tab | its menu: close it, the others, those to its left or right; pin it |
 | drag a probe or usage row by its name | places it among the rows, or pins it |
 | click the status bar's message | the console: every action so far |
 | right-click | the menu for the row, segment, heading or sheet under the mouse |

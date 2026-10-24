@@ -8,8 +8,9 @@
 # take the objects of the files the overlay replaced for the files it
 # brought, and the tests would run the code of the overlay before -- and
 # fail on the section counts it changed. So each configure keeps a hash of
-# every source it watches -- bitwisedom's own, and uxoxo's with the Dear
-# ImGui in it -- in the build tree, and touches each whose content differs
+# every source it watches -- bitwisedom's own and the kit's here, and in
+# build/ui the window's and uxoxo's with the Dear ImGui in it -- in the build
+# tree, and touches each whose content differs
 # from the hash the last configure kept: the build then sees it as new, and
 # compiles it, and what includes it, again. A build tree configured before
 # it kept any hashes, but configured all the same, has every source touched
@@ -24,7 +25,7 @@
 # path:      /build/cmake/djinterp/tools/bitwisedom/cmake/Freshness.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.19
-#                                                            revised: 2026.10.19
+#                                                            revised: 2026.10.22
 #*******************************************************************************
 include_guard(GLOBAL)
 
