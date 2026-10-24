@@ -1,0 +1,278 @@
+# bitwisedom-gen: the generator's own program, as build scripts call it
+$ bitwisedom-gen --help
+> Usage: bitwisedom-gen [OPTION]... [SHEET]
+> Write a sheet's header, in C or C++: bitwisedom gen, as build scripts have
+> always called it.
+>
+> Arguments:
+>   SHEET                  the sheet: a sheet file, a bitfield or an export; - for
+>                          standard input
+>
+> Options:
+>   -q, --quiet            say nothing but errors
+>   -v, --verbose          say more; twice, more again
+>       --color[=WHEN]     colour diagnostics: auto (the default), always or never
+>       --example=NAME     a built-in example's sheet instead
+>   -o, --out=FILE         write the header to FILE; standard output by default
+>       --self-test=FILE   write the header's self-test to FILE: it compiles only
+>                          if every macro has the sheet's value
+>       --bitfield=FILE    write the sheet as a bitfield to FILE as well
+>       --export=FILE      write everything about the sheet to FILE as well
+>       --lang=LANG        the header's language: c or cpp (default: the sheet's)
+>       --form=FORM        macros, or C++ constants (default: the sheet's)
+>       --style=STYLE      the header's style: djinterp or plain (default: the
+>                          sheet's)
+>       --level=LEVEL      the language level: c99, c11, c17, c23, cpp98, cpp11,
+>                          cpp14, cpp17, cpp20 or cpp23 (default: the sheet's)
+>       --word=BITS        a wide sheet's array words: 8, 16, 32 or 64 bits
+>                          (default: the sheet's)
+>       --date=YYYY.MM.DD  the banner's date, so a build writes the same bytes
+>                          every day (default: today's)
+>       --check            report the sheet's issues; write nothing
+>   -h, --help             display this help and exit
+>       --version          output version information and exit
+>
+> Examples:
+>       --list-examples    list the built-in examples, and exit
+>       --save-example=NAME FILE
+>                          write the built-in example NAME to FILE as a sheet
+>                          file, and exit
+>
+> Exit status:
+>   0  if it did what was asked, and the answer, if one was asked, is yes
+>   1  if it did, and the answer is no
+>   2  if there was trouble: the command line, a file, or the program
+$ bitwisedom-gen
+! bitwisedom-gen: error: name one sheet: a file, or --example NAME
+! Try 'bitwisedom-gen --help' for more information.
+? 2
+$ bitwisedom-gen --list-examples
+> uart_cr
+> rv32i_itype
+> posix_mode
+> usb_request_type
+> lm75_temperature
+> x86_eflags
+> x86_64_pte
+> ieee754_single
+> rgb565
+> win32_hresult
+> win32_window_style
+> macos_macho_flags
+> macos_cpu_type
+> linux_ioctl
+> linux_epoll_events
+> linux_capabilities
+> freebsd_file_flags
+> freebsd_kevent
+> pci_config_header
+> win32_hresults
+> x86_cpuid
+$ bitwisedom-gen --example rgb565 --date 2026.01.01 --level c11
+> /*******************************************************************************
+> * bitwisedom [generated]                                                rgb565.h
+> *
+> * rgb565: 19 symbols in 16 bits, written by bitwis(e)dom.
+> *   Generated: edit the sheet, not this file. Writing it again replaces
+> * every line.
+> *
+> * path:      /rgb565.h
+> * link(s):   TBA
+> * author(s): bitwisedom                                      created: 2026.01.01
+> *                                                            revised: 2026.01.01
+> *******************************************************************************/
+>
+> /*
+> TABLE OF CONTENTS
+> =================
+> 1.  CHANNELS
+>     --------
+> 2.  LEVELS
+>     ------
+> 3.  COLOURS
+>     -------
+> 4.  PACKING
+>     -------
+> */
+>
+> #ifndef RGB565_H
+> #define RGB565_H 1
+>
+>
+> //==============================================================================
+> // 1.  CHANNELS
+> //==============================================================================
+> // The eye is most sensitive to green, so green gets the sixth bit.
+>
+>
+> // RGB565_R
+> //   constant: red, 0 to 31.
+> #define RGB565_R                0xF800u
+>
+> // RGB565_R_SHIFT
+> //   constant: the lowest bit of R.
+> #define RGB565_R_SHIFT          11
+>
+> // RGB565_R_WIDTH
+> //   constant: how many bits R spans.
+> #define RGB565_R_WIDTH          5
+>
+> // RGB565_R_GET
+> //   macro: the value of R in x.
+> #define RGB565_R_GET(x)         (((x) & RGB565_R) >> 11)
+>
+> // RGB565_R_SET
+> //   macro: x with R replaced by v.
+> #define RGB565_R_SET(x, v)      (((x) & ~RGB565_R) | (((v) << 11) & RGB565_R))
+>
+> // RGB565_G
+> //   constant: green, 0 to 63.
+> #define RGB565_G                0x07E0u
+>
+> // RGB565_G_SHIFT
+> //   constant: the lowest bit of G.
+> #define RGB565_G_SHIFT          5
+>
+> // RGB565_G_WIDTH
+> //   constant: how many bits G spans.
+> #define RGB565_G_WIDTH          6
+>
+> // RGB565_G_GET
+> //   macro: the value of G in x.
+> #define RGB565_G_GET(x)         (((x) & RGB565_G) >> 5)
+>
+> // RGB565_G_SET
+> //   macro: x with G replaced by v.
+> #define RGB565_G_SET(x, v)      (((x) & ~RGB565_G) | (((v) << 5) & RGB565_G))
+>
+> // RGB565_B
+> //   constant: blue, 0 to 31.
+> #define RGB565_B                0x001Fu
+>
+> // RGB565_B_SHIFT
+> //   constant: the lowest bit of B.
+> #define RGB565_B_SHIFT          0
+>
+> // RGB565_B_WIDTH
+> //   constant: how many bits B spans.
+> #define RGB565_B_WIDTH          5
+>
+> // RGB565_B_GET
+> //   macro: the value of B in x.
+> #define RGB565_B_GET(x)         (((x) & RGB565_B) >> 0)
+>
+> // RGB565_B_SET
+> //   macro: x with B replaced by v.
+> #define RGB565_B_SET(x, v)      (((x) & ~RGB565_B) | (((v) << 0) & RGB565_B))
+>
+>
+> //==============================================================================
+> // 2.  LEVELS
+> //==============================================================================
+>
+>
+> // RGB565_R_MAX
+> //   constant: red, full.
+> #define RGB565_R_MAX   0xF800u
+>
+> // RGB565_G_MAX
+> //   constant: green, full.
+> #define RGB565_G_MAX   0x07E0u
+>
+> // RGB565_B_MAX
+> //   constant: blue, full.
+> #define RGB565_B_MAX   0x001Fu
+>
+> // RGB565_R_HALF
+> //   constant: red, half.
+> #define RGB565_R_HALF  0x8000u
+>
+> // RGB565_G_HALF
+> //   constant: green, half.
+> #define RGB565_G_HALF  0x0400u
+>
+> // RGB565_B_HALF
+> //   constant: blue, half.
+> #define RGB565_B_HALF  0x0010u
+>
+>
+> //==============================================================================
+> // 3.  COLOURS
+> //==============================================================================
+>
+>
+> // RGB565_BLACK
+> //   constant: every channel off.
+> #define RGB565_BLACK    0x0000u
+>
+> // RGB565_WHITE
+> //   constant: every channel full.
+> #define RGB565_WHITE    (RGB565_R_MAX | RGB565_G_MAX | RGB565_B_MAX)
+>
+> // RGB565_RED
+> //   constant: red.
+> #define RGB565_RED      RGB565_R_MAX
+>
+> // RGB565_GREEN
+> //   constant: green.
+> #define RGB565_GREEN    RGB565_G_MAX
+>
+> // RGB565_BLUE
+> //   constant: blue.
+> #define RGB565_BLUE     RGB565_B_MAX
+>
+> // RGB565_YELLOW
+> //   constant: red and green.
+> #define RGB565_YELLOW   (RGB565_R_MAX | RGB565_G_MAX)
+>
+> // RGB565_CYAN
+> //   constant: green and blue.
+> #define RGB565_CYAN     (RGB565_G_MAX | RGB565_B_MAX)
+>
+> // RGB565_MAGENTA
+> //   constant: red and blue.
+> #define RGB565_MAGENTA  (RGB565_R_MAX | RGB565_B_MAX)
+>
+> // RGB565_GREY
+> //   constant: half of each.
+> #define RGB565_GREY     (RGB565_R_HALF | RGB565_G_HALF | RGB565_B_HALF)
+>
+>
+> //==============================================================================
+> // 4.  PACKING
+> //==============================================================================
+>
+>
+> // RGB565_PACK
+> //   macro: a pixel from 8-bit red, green and blue, their low bits dropped.
+> #define RGB565_PACK(r, g, b)                                                   \
+>     ((((r) & 0xF8u) << 8) | (((g) & 0xFCu) << 3) | (((b) & 0xF8u) >> 3))
+>
+>
+> #endif  // RGB565_H
+$ bitwisedom-gen --save-example rgb565 rgb.json -v
+$ bitwisedom-gen rgb.json --example rgb565
+! bitwisedom-gen: error: name one sheet: a file, or --example NAME
+! Try 'bitwisedom-gen --help' for more information.
+? 2
+$ bitwisedom-gen rgb.json --check
+$ bitwisedom-gen --example nope
+! bitwisedom-gen: error: 'nope' is not a built-in example
+! bitwisedom-gen: note: 'bitwisedom-gen --list-examples' lists them
+? 2
+$ bitwisedom-gen --save-example rgb565
+! bitwisedom-gen: error: --save-example takes a NAME and a FILE
+! Try 'bitwisedom-gen --help' for more information.
+? 2
+$ bitwisedom-gen --save-example rgb565 --list-examples
+! bitwisedom-gen: error: --list-examples and --save-example each do their work alone, without a sheet
+! Try 'bitwisedom-gen --help' for more information.
+? 2
+$ bitwisedom-gen --save-example rgb565 y.json z.json
+! bitwisedom-gen: error: --list-examples and --save-example each do their work alone, without a sheet
+! Try 'bitwisedom-gen --help' for more information.
+? 2
+$ bitwisedom-gen rgb.json --example=
+! bitwisedom-gen: error: name one sheet: a file, or --example NAME
+! Try 'bitwisedom-gen --help' for more information.
+? 2

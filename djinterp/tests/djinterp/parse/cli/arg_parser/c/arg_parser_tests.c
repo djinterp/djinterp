@@ -2,7 +2,7 @@
 * djinterp [parse]                                            arg_parser_tests.c
 *
 * The suite of the argument parser itself, declared in arg_parser_tests.h.
-*   Each section but the last is a table of steps (arg_tests_support.h):
+*   Each section but the nulls' is a table of steps (arg_tests_support.h):
 * each case makes its options and commands as CLI11's App("d", "prog")
 * would, on a run's parser of its own -- App("d") naming the root as the
 * names' cases need -- and writes what it does as the parser suite's CLI11
@@ -17,7 +17,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_parser_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 #include "./arg_parser_tests.h"  // corresponding header
 // std
@@ -125,12 +125,15 @@ static const char OWN_SINKS[] =
 // when the subcommand is added, and a null one writes nothing: its F03
 // writes the simple message the subcommand had when it was added, `--w not
 // found` and the line naming --help, and its F13 and F14 write nothing
-// with the same codes.
+// with the same codes. CLI11's failure message returns its text, so none
+// fails, where F15's does and gives way to the simple message (ISSUES 63).
 static const char DEPARTED_FAILURE[] =
     "F03 code=113 out=[] err=[s|OptionNotFound|--w not found\\n]\n"
     "F13 code=106 out=[] err=[--y is required\\nRun with --help for more "
     "information.\\n]\n"
-    "F14 code=106 out=[] err=[s|RequiredError|--y is required\\n]\n";
+    "F14 code=106 out=[] err=[s|RequiredError|--y is required\\n]\n"
+    "F15 code=106 out=[] err=[--y is required\\nRun with --help for more "
+    "information.\\n]\n";
 
 // ENDINGS
 //   constant: what the cases of d_tests_arg_parser_endings come to, as the
@@ -411,6 +414,42 @@ static const char STATE[] =
     "cmd app n=1 miss=[] subs=[] order=[--f]\n"
     "opt f n=1 res=[true]\n";
 
+// EMPTY_VALUES
+//   constant: what the cases of d_tests_arg_parser_empty_values come to: the
+// module's own where the switch is on, as CLI11 has no such switch; CLI11's
+// where it is off.
+static const char EMPTY_VALUES[] =
+    "V01 off: 0\n"
+    "V01 [--note= --title=x]\n"
+    "cmd app n=1 miss=[] subs=[] order=[--note]\n"
+    "opt note n=1 res=[--title=x]\n"
+    "opt title n=0 res=[]\n"
+    "V02 on: 1\n"
+    "V02 [--note= --title=x]\n"
+    "cmd app n=1 miss=[] subs=[] order=[--note|--title]\n"
+    "opt note n=1 res=[]\n"
+    "opt title n=1 res=[x]\n"
+    "V02 [--title=x --note=]\n"
+    "cmd app n=1 miss=[] subs=[] order=[--title|--note]\n"
+    "opt note n=1 res=[]\n"
+    "opt title n=1 res=[x]\n"
+    "V02 [--note=y --title z]\n"
+    "cmd app n=1 miss=[] subs=[] order=[--note|--title]\n"
+    "opt note n=1 res=[y]\n"
+    "opt title n=1 res=[z]\n"
+    "V03 [--flag= --colour=]\n"
+    "cmd app n=1 miss=[] subs=[] order=[--flag|--colour]\n"
+    "opt flag n=1 res=[true]\n"
+    "opt colour n=1 res=[always]\n"
+    "opt note n=0 res=[]\n"
+    "V03 off: 0\n"
+    "V03 [--note=]\n"
+    "ERR ArgumentMismatch 114: --note: 1 required  missing\n"
+    "cmd app n=1 miss=[] subs=[] order=[]\n"
+    "opt flag n=0 res=[]\n"
+    "opt colour n=0 res=[]\n"
+    "opt note n=0 res=[]\n";
+
 // STATUSES
 //   constant: what the cases of d_tests_arg_parser_statuses come to, the
 // module's own: CLI11's exit() is given an error, never a status, so
@@ -625,6 +664,33 @@ d_tests_arg_parser_custom(
                              d_arg_command_name(_command),
                              d_arg_status_name(_error->status),
                              d_arg_error_message(_error));
+}
+
+/**
+ * @brief A failure message that fails, as a function of the caller's that
+ *        throws comes to through the face: it writes nothing and reports a
+ *        conversion error.
+ *
+ * @param[in] _command  the command the error is reported from; unused.
+ * @param[in] _error    the error; unused.
+ * @param[in] _sink     where the message would be written; unused.
+ * @param[in] _context  unused.
+ * @return D_ARG_ERROR_CONVERSION.
+ */
+static int
+d_tests_arg_parser_failing(
+    const struct d_arg_command* _command,
+    const struct d_arg_error*   _error,
+    struct d_pack_sink          _sink,
+    void*                       _context
+)
+{
+    (void)_command;
+    (void)_error;
+    (void)_sink;
+    (void)_context;
+
+    return D_ARG_ERROR_CONVERSION;
 }
 
 /**
@@ -2484,13 +2550,40 @@ d_tests_arg_parser_f14(
     return;
 }
 
+/**
+ * @brief F15: a failure message that fails, which gives way to the simple
+ *        message.
+ *
+ * @param[in,out] _run  the case's run.
+ * @param[in,out] _app  the run's root.
+ */
+static void
+d_tests_arg_parser_f15(
+    struct d_tests_arg_run* _run,
+    struct d_arg_command*   _app
+)
+{
+    d_arg_command_set_failure_message(_app,
+                                      d_tests_arg_parser_failing,
+                                      NULL,
+                                      NULL);
+    d_tests_arg_parser_end_error(_run,
+                                 "F15",
+                                 _app,
+                                 D_ARG_ERROR_REQUIRED,
+                                 "--y is required");
+
+    return;
+}
+
 // FAILURE_LOOKUP_STEPS
 //   constant: the cases of d_tests_arg_parser_failure_lookup.
 static const d_tests_arg_define_fn FAILURE_LOOKUP_STEPS[] =
 {
     d_tests_arg_parser_f03,
     d_tests_arg_parser_f13,
-    d_tests_arg_parser_f14
+    d_tests_arg_parser_f14,
+    d_tests_arg_parser_f15
 };
 
 // FAILURE_LOOKUP_COUNT
@@ -2506,6 +2599,7 @@ up when the error is reported.
   - a failure message set on the parent after the subcommand was made
   - none set on the root, which is d_arg_failure_simple
   - none set on a subcommand, which is its parent's
+  - one that fails, which gives way to d_arg_failure_simple
 */
 bool
 d_tests_arg_parser_failure_lookup(void)
@@ -4444,7 +4538,171 @@ d_tests_arg_parser_nulls(void)
 }
 
 //==============================================================================
-// 13. THE SUITE
+// 13. EMPTY VALUES
+//==============================================================================
+
+/**
+ * @brief V01: `--name=` as CLI11 reads it, the parser's switch off as it
+ *        starts: the argument after it taken as the value.
+ *
+ * @param[in,out] _run  the case's run.
+ * @param[in,out] _app  the run's root.
+ */
+static void
+d_tests_arg_parser_v01(
+    struct d_tests_arg_run* _run,
+    struct d_arg_command*   _app
+)
+{
+    (void)d_tests_arg_make_option(_run,
+                                  "note",
+                                  _app,
+                                  "--note");
+    (void)d_tests_arg_make_option(_run,
+                                  "title",
+                                  _app,
+                                  "--title");
+    d_tests_arg_note(_run,
+                     "V01 off: %d",
+                     ((_run->parser.flags & D_ARG_PARSER_EMPTY_VALUES) != 0u)
+                         ? 1
+                         : 0);
+    d_tests_arg_parser_step(_run,
+                            "V01",
+                            "--note= --title=x");
+
+    return;
+}
+
+/**
+ * @brief V02: `--name=` as getopt_long reads it, the switch on: the empty
+ *        value, before another option and at the end, and a value after
+ *        `=` as it was.
+ *
+ * @param[in,out] _run  the case's run.
+ * @param[in,out] _app  the run's root.
+ */
+static void
+d_tests_arg_parser_v02(
+    struct d_tests_arg_run* _run,
+    struct d_arg_command*   _app
+)
+{
+    (void)d_tests_arg_make_option(_run,
+                                  "note",
+                                  _app,
+                                  "--note");
+    (void)d_tests_arg_make_option(_run,
+                                  "title",
+                                  _app,
+                                  "--title");
+    d_arg_parser_set_empty_values(&_run->parser,
+                                  true);
+    d_tests_arg_note(_run,
+                     "V02 on: %d",
+                     ((_run->parser.flags & D_ARG_PARSER_EMPTY_VALUES) != 0u)
+                         ? 1
+                         : 0);
+    d_tests_arg_parser_step(_run,
+                            "V02",
+                            "--note= --title=x");
+    d_tests_arg_parser_step(_run,
+                            "V02",
+                            "--title=x --note=");
+    d_tests_arg_parser_step(_run,
+                            "V02",
+                            "--note=y --title z");
+
+    return;
+}
+
+/**
+ * @brief V03: the switch on, a flag and a flag with a value: each given
+ *        `=` and nothing is the flag alone, as CLI11 has it; then the
+ *        switch off again.
+ *
+ * @param[in,out] _run  the case's run.
+ * @param[in,out] _app  the run's root.
+ */
+static void
+d_tests_arg_parser_v03(
+    struct d_tests_arg_run* _run,
+    struct d_arg_command*   _app
+)
+{
+    (void)d_tests_arg_make_flag(_run,
+                                "flag",
+                                _app,
+                                "--flag");
+    (void)d_tests_arg_make_flag(_run,
+                                "colour",
+                                _app,
+                                "--colour{always}");
+    (void)d_tests_arg_make_option(_run,
+                                  "note",
+                                  _app,
+                                  "--note");
+    d_arg_parser_set_empty_values(&_run->parser,
+                                  true);
+    d_tests_arg_parser_step(_run,
+                            "V03",
+                            "--flag= --colour=");
+    d_arg_parser_set_empty_values(&_run->parser,
+                                  false);
+    d_arg_parser_set_empty_values(NULL,
+                                  true);
+    d_tests_arg_note(_run,
+                     "V03 off: %d",
+                     ((_run->parser.flags & D_ARG_PARSER_EMPTY_VALUES) != 0u)
+                         ? 1
+                         : 0);
+    d_tests_arg_parser_step(_run,
+                            "V03",
+                            "--note=");
+
+    return;
+}
+
+// EMPTY_VALUES_STEPS
+//   constant: the cases of d_tests_arg_parser_empty_values.
+static const d_tests_arg_define_fn EMPTY_VALUES_STEPS[] =
+{
+    d_tests_arg_parser_v01,
+    d_tests_arg_parser_v02,
+    d_tests_arg_parser_v03
+};
+
+// EMPTY_VALUES_COUNT
+//   constant: how many cases EMPTY_VALUES_STEPS holds.
+static const size_t EMPTY_VALUES_COUNT =
+    sizeof(EMPTY_VALUES_STEPS) / sizeof(EMPTY_VALUES_STEPS[0]);
+
+/*
+d_tests_arg_parser_empty_values
+  `--name=`, which CLI11 reads as `--name` alone, read as getopt_long reads
+it where the parser is told to (d_arg_parser_set_empty_values): the empty
+value.
+  Tests the following:
+  - off as a parser starts: the argument after `--name=` taken as its value,
+    as CLI11 takes it
+  - on: the empty value, the argument after it left to be what it is; at the
+    line's end, the empty value rather than a value missing; `--name=value`
+    as it was
+  - on: a flag, and a flag with a value of its own, given `=` and nothing,
+    each the flag alone, as CLI11 has it
+  - off again; a NULL parser ignored
+*/
+bool
+d_tests_arg_parser_empty_values(void)
+{
+    return d_tests_arg_steps("EMPTY_VALUES",
+                             EMPTY_VALUES_STEPS,
+                             EMPTY_VALUES_COUNT,
+                             EMPTY_VALUES);
+}
+
+//==============================================================================
+// 14. THE SUITE
 //==============================================================================
 
 // d_tests_arg_parser
@@ -4474,7 +4732,9 @@ const struct d_tests_section d_tests_arg_parser[] =
     { "arg_parser_statuses",
       d_tests_arg_parser_statuses },
     { "arg_parser_nulls",
-      d_tests_arg_parser_nulls }
+      d_tests_arg_parser_nulls },
+    { "arg_parser_empty_values",
+      d_tests_arg_parser_empty_values }
 };
 
 // d_tests_arg_parser_count

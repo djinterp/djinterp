@@ -1,32 +1,35 @@
 #*******************************************************************************
 # bitwisedom [bitwisedom]                                         CMakeLists.txt
 #
-# bitwisedom: a bitfield manager on djinterp, with a window on uxoxo and Dear
-# ImGui.
-#   The build is vparse's shape: the three projects' roots are cache
-# variables (cmake/ProjectRoots.cmake), djinterp is consumed as headers and
-# its C/C++ lexer, compiled as C (cmake/Djinterp.cmake), uxoxo builds itself
-# and is added as a subproject
-# (cmake/Uxoxo.cmake), and this project's own sources are held to the style
-# guide's whole baseline (cmake/CompilerSetup.cmake). Each configure marks
-# the sources that changed since the last one to compile again, whatever
-# their times say (cmake/Freshness.cmake). Targets:
+# bitwisedom: a bitfield manager on djinterp -- the model and the command
+# line. The window is not built here: it is uxoxo's, and lives outside the
+# djinterp tree, in build/ui/bitwisedom, whose build includes this one.
+#   The build is vparse's shape: the repository's root is a cache variable
+# (cmake/ProjectRoots.cmake), djinterp is consumed as headers, its C/C++
+# lexer and its command-line kit, compiled as C (cmake/Djinterp.cmake), and
+# this project's own sources are held to the style guide's whole baseline
+# (cmake/CompilerSetup.cmake). Each configure marks the sources that changed
+# since the last one to compile again, whatever their times say
+# (cmake/Freshness.cmake). Targets:
 #
 #     bitwisedom::core   the model -- sheets, resolution, operations, the C/C++
-#                       generator, the C environment and importer, and the
-#                       file format -- with no GUI in it
-#     bitwisedom-gen     the generator on the command line
-#     bitwisedom         the window: Win32 + Direct3D 11 on Windows, GLFW +
-#                       OpenGL 3 elsewhere (BITWISEDOM_HOST chooses)
+#                       generator and its self-tests, the C environment and
+#                       importer, the settings and the edits, and the file
+#                       format -- with no window in it
+#     bitwisedom::cli    the command line's commands, on djinterp's kit
+#     bitwisedom         the command line (GRAMMAR.md, section 10); `gui`
+#                       loads the window's module, built in build/ui
+#     bitwisedom-gen     the generator's command line, as build scripts have
+#                       always called it
 #
 # and, under BITWISEDOM_BUILD_TESTS, the model's suite at every level from the
 # floor, the generated headers compiled at every C and C++ level the compiler
-# can select, and the window driven headless through ImGui's null backend.
+# can select, and the command line's transcripts.
 #
 # path:      /build/cmake/djinterp/tools/bitwisedom/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.19
+#                                                            revised: 2026.10.22
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.21)
 
@@ -35,14 +38,13 @@ project(bitwisedom
     DESCRIPTION "A bitfield manager: symbols mapped to values, as C/C++ macros"
     LANGUAGES   C CXX)
 
-option(BITWISEDOM_BUILD_APP          "Build the window (needs uxoxo)"   ON)
 option(BITWISEDOM_BUILD_TESTS        "Build the tests"                  ON)
-option(BITWISEDOM_BUILD_UXOXO_TESTS  "Build uxoxo's own tests too"      OFF)
 option(BITWISEDOM_WARNINGS_AS_ERRORS "Treat warnings as errors"         OFF)
 
-set(BITWISEDOM_HOST "auto" CACHE STRING
-    "The window's backend: auto (win32 on Windows, else glfw), win32, glfw")
-set_property(CACHE BITWISEDOM_HOST PROPERTY STRINGS auto win32 glfw)
+# the version every part is built at -- the command line's, and the one the
+# window's module must match -- for build/ui, which includes this build
+set(BITWISEDOM_VERSION "${PROJECT_VERSION}" CACHE INTERNAL
+    "bitwisedom's version, as the command line and its modules are built")
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/ProjectRoots.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/OutputLayout.cmake")
@@ -62,8 +64,8 @@ bitwisedom_freshen("${CMAKE_BINARY_DIR}/bitwisedom_sources.sha1"
                    "${BITWISEDOM_SOURCE_DIR}"
                    "${BITWISEDOM_ROOT}/inc/djinterp/tools/bitwisedom"
                    "${BITWISEDOM_TESTS_DIR}"
-                   "${UXOXO_ROOT}/inc"
-                   "${UXOXO_ROOT}/src")
+                   "${BITWISEDOM_ROOT}/inc/djinterp/parse/cli"
+                   "${BITWISEDOM_ROOT}/src/djinterp/parse/cli")
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CompilerSetup.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/Djinterp.cmake")
@@ -82,6 +84,7 @@ set(BITWISEDOM_CORE_SOURCES
     "${BITWISEDOM_SOURCE_DIR}/cimport.cpp"
     "${BITWISEDOM_SOURCE_DIR}/clex.cpp"
     "${BITWISEDOM_SOURCE_DIR}/codegen.cpp"
+    "${BITWISEDOM_SOURCE_DIR}/edit.cpp"
     "${BITWISEDOM_SOURCE_DIR}/examples.cpp"
     "${BITWISEDOM_SOURCE_DIR}/exchange.cpp"
     "${BITWISEDOM_SOURCE_DIR}/expr.cpp"
@@ -91,6 +94,8 @@ set(BITWISEDOM_CORE_SOURCES
     "${BITWISEDOM_SOURCE_DIR}/persist.cpp"
     "${BITWISEDOM_SOURCE_DIR}/rename.cpp"
     "${BITWISEDOM_SOURCE_DIR}/resolve.cpp"
+    "${BITWISEDOM_SOURCE_DIR}/selftest.cpp"
+    "${BITWISEDOM_SOURCE_DIR}/settings.cpp"
     "${BITWISEDOM_SOURCE_DIR}/sheet.cpp")
 
 # the large examples, as arrays of their bytes (cmake/EmbedExamples.cmake)
@@ -105,6 +110,8 @@ function(bitwisedom_add_core _name _level)
     target_include_directories(${_name} PUBLIC "${BITWISEDOM_ROOT}/inc")
     target_include_directories(${_name} PRIVATE "${BITWISEDOM_GENERATED_DIR}")
     target_link_libraries(${_name} PUBLIC djinterp::headers djinterp::lex)
+    target_compile_definitions(${_name} PUBLIC
+        "BITWISEDOM_VERSION=\"${BITWISEDOM_VERSION}\"")
     bitwisedom_apply_compiler_defaults(${_name} OWN CXX_STANDARD ${_level})
 endfunction()
 
@@ -113,83 +120,31 @@ add_library(bitwisedom::core ALIAS bitwisedom_core)
 
 
 #-------------------------------------------------------------------------------
-# the generator
+# the command line
 #-------------------------------------------------------------------------------
-add_executable(bitwisedom-gen "${BITWISEDOM_SOURCE_DIR}/tools/bitwisedom_gen.cpp")
+# the commands, on djinterp's kit; then the two programs over them
+add_library(bitwisedom_cli STATIC
+    "${BITWISEDOM_SOURCE_DIR}/cli/cli_common.cpp"
+    "${BITWISEDOM_SOURCE_DIR}/cli/cli_edit.cpp"
+    "${BITWISEDOM_SOURCE_DIR}/cli/cli_main.cpp"
+    "${BITWISEDOM_SOURCE_DIR}/cli/cli_read.cpp"
+    "${BITWISEDOM_SOURCE_DIR}/cli/cli_rows.cpp")
+add_library(bitwisedom::cli ALIAS bitwisedom_cli)
+bitwisedom_output(bitwisedom_cli)
+target_link_libraries(bitwisedom_cli PUBLIC bitwisedom::core djinterp::cli)
+bitwisedom_apply_compiler_defaults(bitwisedom_cli OWN)
+
+add_executable(bitwisedom
+    "${BITWISEDOM_SOURCE_DIR}/tools/bitwisedom_main.cpp")
+bitwisedom_output(bitwisedom)
+target_link_libraries(bitwisedom PRIVATE bitwisedom::cli)
+bitwisedom_apply_compiler_defaults(bitwisedom OWN)
+
+add_executable(bitwisedom-gen
+    "${BITWISEDOM_SOURCE_DIR}/tools/bitwisedom_gen.cpp")
 bitwisedom_output(bitwisedom-gen)
-target_link_libraries(bitwisedom-gen PRIVATE bitwisedom::core)
+target_link_libraries(bitwisedom-gen PRIVATE bitwisedom::cli)
 bitwisedom_apply_compiler_defaults(bitwisedom-gen OWN)
-
-
-#-------------------------------------------------------------------------------
-# the window
-#-------------------------------------------------------------------------------
-set(BITWISEDOM_APP_SOURCES
-    "${BITWISEDOM_SOURCE_DIR}/app/app.cpp"
-    "${BITWISEDOM_SOURCE_DIR}/app/code.cpp"
-    "${BITWISEDOM_SOURCE_DIR}/app/controls.cpp"
-    "${BITWISEDOM_SOURCE_DIR}/app/flow.cpp"
-    "${BITWISEDOM_SOURCE_DIR}/app/grid.cpp"
-    "${BITWISEDOM_SOURCE_DIR}/app/settings.cpp"
-    "${BITWISEDOM_SOURCE_DIR}/app/shell.cpp"
-    "${BITWISEDOM_SOURCE_DIR}/app/theme.cpp"
-    "${BITWISEDOM_SOURCE_DIR}/app/view.cpp"
-    "${BITWISEDOM_SOURCE_DIR}/app/fonts/fonts.cpp")
-
-if(BITWISEDOM_BUILD_APP)
-    include("${CMAKE_CURRENT_LIST_DIR}/cmake/Uxoxo.cmake")
-
-    set(_host "${BITWISEDOM_HOST}")
-
-    if(_host STREQUAL "auto")
-        if(WIN32)
-            set(_host "win32")
-        else()
-            set(_host "glfw")
-        endif()
-    endif()
-
-    if(_host STREQUAL "win32")
-        if(NOT TARGET uxoxo::imgui_win32_dx11)
-            message(FATAL_ERROR "BITWISEDOM_HOST is win32, but uxoxo has no "
-                                "Win32 + Direct3D 11 backend off Windows")
-        endif()
-
-        add_executable(bitwisedom WIN32
-            ${BITWISEDOM_APP_SOURCES}
-            "${BITWISEDOM_SOURCE_DIR}/app/host_win32.cpp")
-        # shell32: the files dropped on the window
-        target_link_libraries(bitwisedom PRIVATE
-            uxoxo::imgui_win32_dx11 shell32 comdlg32)
-    elseif(_host STREQUAL "glfw")
-        if(NOT TARGET uxoxo::imgui_glfw_opengl3)
-            message(FATAL_ERROR
-                "BITWISEDOM_HOST is glfw, but uxoxo found no GLFW. Install "
-                "GLFW 3.3 or later (libglfw3-dev, brew install glfw, or vcpkg "
-                "glfw3), or on Windows use BITWISEDOM_HOST=win32.")
-        endif()
-
-        find_package(OpenGL REQUIRED)
-
-        add_executable(bitwisedom
-            ${BITWISEDOM_APP_SOURCES}
-            "${BITWISEDOM_SOURCE_DIR}/app/host_glfw.cpp")
-        target_link_libraries(bitwisedom PRIVATE
-            uxoxo::imgui_glfw_opengl3 OpenGL::GL)
-    else()
-        message(FATAL_ERROR
-            "BITWISEDOM_HOST is '${BITWISEDOM_HOST}'; it must be auto, win32 "
-            "or glfw")
-    endif()
-
-    bitwisedom_output(bitwisedom)
-    target_link_libraries(bitwisedom PRIVATE bitwisedom::core uxoxo::uxoxo)
-    target_include_directories(bitwisedom SYSTEM PRIVATE
-        ${BITWISEDOM_UXOXO_INCLUDES})
-    bitwisedom_apply_compiler_defaults(bitwisedom OWN)
-
-    message(STATUS "bitwisedom: the window's host is ${_host}")
-endif()
 
 
 #-------------------------------------------------------------------------------

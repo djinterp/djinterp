@@ -1,0 +1,187 @@
+# the program and its commands: help, the grammar's usage errors, the
+# standard options
+$ bitwisedom
+! bitwisedom: error: a command is required
+! Usage: bitwisedom [OPTION]... COMMAND [ARGUMENT]...
+! Commands: gen, check, show, decode, eval, convert, examples, new, import, add, change, duplicate, remove, rename, move, sort, set, get, op, gui, help, completion
+! Try 'bitwisedom --help' for more information.
+? 2
+$ bitwisedom --help
+> Usage: bitwisedom [OPTION]... COMMAND [ARGUMENT]...
+> A bitfield manager: sheets of named bits, written out as C or C++ macros.
+>
+> Reading a sheet:
+>   gen                 write a sheet's header, in C or C++
+>   check               report every issue of every sheet; write nothing else
+>   show                list every row as it resolves: name, kind, bits and value
+>   decode              say what values hold: each bit set, each field's value and
+>                       its name
+>   eval                evaluate C expressions over a sheet's symbols, every way
+>   convert             write a sheet in another shape: a sheet file, a bitfield
+>                       or an export
+>   examples            list the built-in examples, by shelf
+>
+> Making and changing a sheet:
+>   new                 write a new sheet, as File > New makes one
+>   import              make a sheet from C: each #define a row, read as the
+>                       preprocessor reads it
+>   add                 add a row, defined as a bitfield's row is
+>   change              change a row: its definition, or anything else the
+>                       inspector shows
+>   duplicate           copy rows, each just after itself, named as it is with
+>                       _COPY after
+>   remove              remove rows, and everything in them
+>   rename              rename a row; every expression that names it follows
+>   move                move a row: up, down, beside another, or into a group
+>   sort                put each group's rows in order, for the header to follow
+>   set                 change settings, by the paths the window's Options show
+>   get                 print settings; every one, without a KEY
+>   op                  preview an operation over rows -- a shift, a rotation, a
+>                       byte swap, arithmetic; --apply applies it
+>
+> The window:
+>   gui                 open the window on the sheets named, or where it was left
+>
+> Commands:
+>   help                display help for a command
+>   completion          print a completion script for a shell
+>
+> Options:
+>   -q, --quiet         say nothing but errors
+>   -v, --verbose       say more; twice, more again
+>       --color[=WHEN]  colour diagnostics: auto (the default), always or never
+>   -h, --help          display this help and exit
+>       --version       output version information and exit
+>
+> Exit status:
+>   0  if it did what was asked, and the answer, if one was asked, is yes
+>   1  if it did, and the answer is no
+>   2  if there was trouble: the command line, a file, or the program
+$ bitwisedom help add
+> Usage: bitwisedom add [OPTION]... SHEET NAME
+> Add a row, defined as a bitfield's row is.
+>
+> Arguments:
+>   SHEET                    the sheet, written back where it was read; - for
+>                            standard input, written to standard output
+>   NAME                     its own name, without the affixes around it
+>
+> Options:
+>       --in=ROW             the group or range it goes in, last (default: the
+>                            sheet's own rows)
+>       --note=TEXT          its brief, in the header
+>       --short=TEXT         the abbreviation the grid may show
+>       --prefix=TEXT        what its name, and its rows', begin with
+>       --suffix=TEXT        what its name, and its rows', end with
+>       --colour=COLOUR      its colour: #RRGGBB, #RRGGBBAA, auto or none
+>       --emit, --no-emit    put it in the header, or keep it out
+>       --isolate, --no-isolate
+>                            a group's or a range's: ignore the affixes of the
+>                            groups around it, or not
+>       --name-children, --no-name-children
+>                            a group's or a range's: begin its rows' names with
+>                            its own, or not
+>       --exclusive, --no-exclusive
+>                            a group's or a range's: warn when its rows' bits
+>                            overlap, or not
+>       --radix=RADIX        how its literal is written: inherit, hex, dec, oct,
+>                            bin or shift
+>       --int-suffix=SUFFIX  its literal's suffix: inherit, none, u, ul or ull
+>       --digits=N           the fewest digits its literal is written with
+>   -o, --out=FILE           write the sheet to FILE, - for standard output, and
+>                            leave the one read as it was
+>   -n, --dry-run            write nothing; say what would change
+>   -f, --force              write it even if the change gives the sheet errors
+>   -h, --help               display this help and exit
+>
+> Definitions:
+>       --bit[=N]            a bit: bit N, or the next free
+>       --bits=RANGE         a range: 4..7, 7..4, or one bit
+>       --lsb[=N]            a range from bit N, or the next free
+>       --width=N            the range's width, with --lsb (default: 1)
+>       --field=ROW          a value in the range ROW
+>       --number=N           the value's number (default: 0)
+>       --encoding=ENCODING  how the number is held: unsigned, twos_complement,
+>                            ones_complement, sign_magnitude or offset_binary
+>                            (default: unsigned)
+>       --bias=N             offset binary's bias (default: half the field's
+>                            range)
+>       --value=N            a literal
+>       --expr=TEXT          an expression over the sheet's symbols
+>       --expr-file=FILE     the expression, read from FILE
+>       --body=TEXT          a macro's body
+>       --body-file=FILE     the body, read from FILE
+>       --params=TEXT        the macro's parameters: "x, v"
+>       --callable, --no-callable
+>                            a function-like macro, even with no parameters; or
+>                            not
+>       --group              a group
+>
+> Global options:
+>   -q, --quiet              say nothing but errors
+>   -v, --verbose            say more; twice, more again
+>       --color[=WHEN]       colour diagnostics: auto (the default), always or
+>                            never
+$ bitwisedom examples --help
+> Usage: bitwisedom examples [OPTION]...
+> List the built-in examples, by shelf.
+>
+> Options:
+>       --format=FORMAT  the answer as text or as json (default: text)
+>   -h, --help           display this help and exit
+>
+> Global options:
+>   -q, --quiet          say nothing but errors
+>   -v, --verbose        say more; twice, more again
+>       --color[=WHEN]   colour diagnostics: auto (the default), always or never
+$ bitwisedom genn example:uart_cr
+! bitwisedom: error: 'genn' is not a command
+! bitwisedom: note: did you mean 'gen' for 'genn'?
+! Try 'bitwisedom --help' for more information.
+? 2
+$ bitwisedom -- gen example:uart_cr
+! bitwisedom: error: 'gen' follows '--': a command comes before it
+! Try 'bitwisedom --help' for more information.
+? 2
+$ bitwisedom gen example:uart_cr example:rgb565
+! bitwisedom: error: gen: the following argument was not expected: example:rgb565
+! Try 'bitwisedom gen --help' for more information.
+? 2
+$ bitwisedom gen example:uart_cr --levl=c11
+! bitwisedom: error: gen: the following argument was not expected: --levl=c11
+! bitwisedom: note: did you mean '--level'?
+! Try 'bitwisedom gen --help' for more information.
+? 2
+$ bitwisedom gen example:uart_cr --level=c13
+! bitwisedom: error: gen: --level: 'c13' is not c99, c11, c17, c23, cpp98, cpp11, cpp14, cpp17, cpp20 or cpp23; did you mean 'c11'?
+! Try 'bitwisedom gen --help' for more information.
+? 2
+$ bitwisedom gen example:uart_cr --level=c11 --level=cpp17 --date=2026.01.01 -o out.hpp -v
+$ bitwisedom gen example:uart_cr --date=2026.1.1
+! bitwisedom: error: gen: --date: '2026.1.1' is not a date written YYYY.MM.DD
+! Try 'bitwisedom gen --help' for more information.
+? 2
+$ bitwisedom gen example:uart_crr
+! bitwisedom: error: 'uart_crr' is not a built-in example
+! bitwisedom: note: did you mean 'example:uart_cr'?
+! bitwisedom: note: 'bitwisedom examples' lists them
+? 2
+$ bitwisedom gen missing.json
+! bitwisedom: error: cannot read 'missing.json': No such file or directory
+? 2
+$ bitwisedom examples --format=yaml
+! bitwisedom: error: examples: --format: 'yaml' is not text or json
+! Try 'bitwisedom examples --help' for more information.
+? 2
+$ bitwisedom examples --colour=never --format=yaml
+! bitwisedom: error: examples: --format: 'yaml' is not text or json
+! Try 'bitwisedom examples --help' for more information.
+? 2
+$ bitwisedom examples --color=sometimes
+! bitwisedom: error: --color: 'sometimes' is not auto, always or never
+! Try 'bitwisedom --help' for more information.
+? 2
+$ bitwisedom -q examples --format=yaml
+! bitwisedom: error: examples: --format: 'yaml' is not text or json
+! Try 'bitwisedom examples --help' for more information.
+? 2

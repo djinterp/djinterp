@@ -16,7 +16,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_process.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -35,11 +35,17 @@
 // 1.  CALLBACKS
 //==============================================================================
 
-/*
-d_arg_internal_process_call
-  A command's callback, if it has one, watched, so that a failure it
-returns without describing is recorded against the command.
-*/
+/**
+ * @brief Runs a command's callback, if it has one, watched.
+ *
+ * @param[in,out] _command   the command.
+ * @param[in]     _function  the callback; NULL for none.
+ * @param[in]     _context   its context.
+ * @return D_ARG_OK, or the failure the callback returned, recorded.
+ *
+ * A command's callback, if it has one, watched, so that a failure it
+ * returns without describing is recorded against the command.
+ */
 D_STATIC int
 d_arg_internal_process_call(
     struct d_arg_command* _command,
@@ -67,13 +73,19 @@ d_arg_internal_process_call(
                                       status);
 }
 
-/*
-d_arg_internal_process_run_subcommands
-  The middle of CLI11's run_callback: the callbacks of each subcommand the
-command received -- once for each time it is listed, and only those it is
-the parent of, an option group running its own -- then of each option
-group that was used.
-*/
+/**
+ * @brief Runs the callbacks of the subcommands a command received and of its
+ *        option groups used, as the middle of CLI11's run_callback.
+ *
+ * @param[in,out] _command         the command.
+ * @param[in]     _suppress_final  whether the final callbacks are suppressed.
+ * @return D_ARG_OK, or the failure of a callback, recorded.
+ *
+ * The middle of CLI11's run_callback: the callbacks of each subcommand the
+ * command received -- once for each time it is listed, and only those it is
+ * the parent of, an option group running its own -- then of each option
+ * group that was used.
+ */
 D_STATIC int
 d_arg_internal_process_run_subcommands(
     struct d_arg_command* _command,
@@ -171,19 +183,33 @@ d_arg_internal_run_callback(
 // 2.  OPTION CALLBACKS
 //==============================================================================
 
-// d_arg_internal_process_callbacks
-//   declaration: CLI11's _process_callbacks, defined after the steps it
-// takes, one of which -- an option group's turn -- calls it again.
+/**
+ * @brief Runs the callbacks at a priority, as CLI11's _process_callbacks.
+ *
+ * @param[in,out] _command   the command.
+ * @param[in]     _priority  the d_arg_callback_priority.
+ * @return D_ARG_OK, or the failure of a callback or of a step, recorded.
+ *
+ * Declared ahead of its definition, which follows the steps it takes, one of
+ * which -- an option group's turn -- calls it again.
+ */
 D_STATIC int
      d_arg_internal_process_callbacks(struct d_arg_command* _command,
                                       int                   _priority);
 
-/*
-d_arg_internal_process_groups_first
-  The first part of CLI11's _process_callbacks: each option group with a
-parse-complete callback that was used has its callbacks at the priority
-run, and, at the normal priority, its own.
-*/
+/**
+ * @brief Runs the callbacks of a command's used option groups that have
+ *        parse-complete callbacks, as the first part of CLI11's
+ *        _process_callbacks.
+ *
+ * @param[in,out] _command   the command.
+ * @param[in]     _priority  the d_arg_callback_priority.
+ * @return D_ARG_OK, or the failure of a callback, recorded.
+ *
+ * The first part of CLI11's _process_callbacks: each option group with a
+ * parse-complete callback that was used has its callbacks at the priority
+ * run, and, at the normal priority, its own.
+ */
 D_STATIC int
 d_arg_internal_process_groups_first(
     struct d_arg_command* _command,
@@ -217,12 +243,19 @@ d_arg_internal_process_groups_first(
     return status;
 }
 
-/*
-d_arg_internal_process_version
-  CLI11's version trigger in _process_callbacks: the version flag at the
-priority, given and not yet called back, whose first value reads as true,
-asks for the version, the text it gives the report's message.
-*/
+/**
+ * @brief Asks for the version when the version flag was given at a priority, as
+ *        CLI11's version trigger.
+ *
+ * @param[in] _command   the command.
+ * @param[in] _priority  the d_arg_callback_priority.
+ * @return D_ARG_OK when the flag does not ask; D_ARG_CALL_FOR_VERSION, recorded
+ *         with the version as its message; or the failure, recorded.
+ *
+ * CLI11's version trigger in _process_callbacks: the version flag at the
+ * priority, given and not yet called back, whose first value reads as true,
+ * asks for the version, the text it gives the report's message.
+ */
 D_STATIC int
 d_arg_internal_process_version(
     const struct d_arg_command* _command,
@@ -250,6 +283,9 @@ d_arg_internal_process_version(
                                      _command,
                                      d_arg_buffer_sink(&text));
 
+    // a buffer that could not grow refuses what is written to it: the
+    // refusal is the memory's, not a file's
+    status = (text.failed) ? D_ARG_ERROR_OUT_OF_MEMORY : status;
     status = (status == D_ARG_OK)
              ? d_arg_internal_fail_text(_command,
                                         version,
@@ -264,11 +300,17 @@ d_arg_internal_process_version(
     return status;
 }
 
-/*
-d_arg_internal_process_options
-  The options' part of CLI11's _process_callbacks: each option at the
-priority that was given -- or is forced -- and has not been called back.
-*/
+/**
+ * @brief Runs the callbacks of a command's options given at a priority, as
+ *        CLI11's _process_callbacks does.
+ *
+ * @param[in,out] _command   the command.
+ * @param[in]     _priority  the d_arg_callback_priority.
+ * @return D_ARG_OK, or the failure of a callback, recorded.
+ *
+ * The options' part of CLI11's _process_callbacks: each option at the
+ * priority that was given -- or is forced -- and has not been called back.
+ */
 D_STATIC int
 d_arg_internal_process_options(
     struct d_arg_command* _command,
@@ -342,11 +384,17 @@ d_arg_internal_process_callbacks(
 // 3.  HELP
 //==============================================================================
 
-/*
-d_arg_internal_process_asks
-  Whether a help flag asks for help at a priority: it exists, was given,
-and calls back at that priority.
-*/
+/**
+ * @brief Tells whether a help flag asks for help at a priority.
+ *
+ * @param[in] _flag      the flag; may be NULL.
+ * @param[in] _priority  the d_arg_callback_priority.
+ * @return `true` for a flag given that calls back at the priority; `false`
+ *         otherwise.
+ *
+ * Whether a help flag asks for help at a priority: it exists, was given,
+ * and calls back at that priority.
+ */
 D_STATIC bool
 d_arg_internal_process_asks(
     const struct d_arg_option* _flag,
@@ -358,13 +406,22 @@ d_arg_internal_process_asks(
              (_flag->callback_priority == _priority) );
 }
 
-/*
-d_arg_internal_process_help
-  CLI11's _process_help_flags for a priority: the command's help flags
-given at the priority ask for help, or for all help, which wins; a command
-that received subcommands passes the request down, each in turn deciding,
-the first to ask winning, so the last command named answers.
-*/
+/**
+ * @brief Asks for help when a help flag asks for it, as CLI11's
+ *        _process_help_flags.
+ *
+ * @param[in] _command   the command.
+ * @param[in] _priority  the d_arg_callback_priority.
+ * @param[in] _help      whether a command above asked for help.
+ * @param[in] _all       whether a command above asked for all help.
+ * @return D_ARG_OK when none asks; D_ARG_CALL_FOR_HELP or
+ *         D_ARG_CALL_FOR_ALL_HELP, recorded, when one does.
+ *
+ * CLI11's _process_help_flags for a priority: the command's help flags
+ * given at the priority ask for help, or for all help, which wins; a command
+ * that received subcommands passes the request down, each in turn deciding,
+ * the first to ask winning, so the last command named answers.
+ */
 D_STATIC int
 d_arg_internal_process_help(
     const struct d_arg_command* _command,
@@ -420,13 +477,19 @@ d_arg_internal_process_help(
 
 #if (D_INTERNAL_ARG_PARSER_ENVIRONMENT == 1)
 
-/*
-d_arg_internal_process_env_option
-  CLI11's step of _process_env for one option: one not given whose
-environment variable holds a value takes it, as given, unless its
-validators reject it -- when it is passed over without a word. A validator
-that stops with another error ends the parse with it.
-*/
+/**
+ * @brief Gives an option not given the value of its environment variable, as
+ *        CLI11's step of _process_env.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in,out] _option   the option.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * CLI11's step of _process_env for one option: one not given whose
+ * environment variable holds a value takes it, as given, unless its
+ * validators reject it -- when it is passed over without a word. A validator
+ * that stops with another error ends the parse with it.
+ */
 D_STATIC int
 d_arg_internal_process_env_option(
     struct d_arg_command* _command,
@@ -471,10 +534,16 @@ d_arg_internal_process_env_option(
 
 #else
 
-/*
-d_arg_internal_process_env_option
-  Without the environment built in, nothing to read.
-*/
+/**
+ * @brief Gives an option not given the value of its environment variable, as
+ *        CLI11's step of _process_env.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in,out] _option   the option.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * Without the environment built in, nothing to read.
+ */
 D_STATIC int
 d_arg_internal_process_env_option(
     struct d_arg_command* _command,
@@ -489,12 +558,17 @@ d_arg_internal_process_env_option(
 
 #endif  // D_INTERNAL_ARG_PARSER_ENVIRONMENT
 
-/*
-d_arg_internal_process_env
-  CLI11's _process_env: each option of the command, then, in turn, its
-option groups and each subcommand used that has no parse-complete
-callback, whose environment is read as its own parse ends.
-*/
+/**
+ * @brief Reads the environment for a command's options, as CLI11's
+ *        _process_env.
+ *
+ * @param[in,out] _command  the command.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * CLI11's _process_env: each option of the command, then, in turn, its
+ * option groups and each subcommand used that has no parse-complete
+ * callback, whose environment is read as its own parse ends.
+ */
 D_STATIC int
 d_arg_internal_process_env(
     struct d_arg_command* _command
@@ -543,17 +617,29 @@ struct d_arg_internal_process_named
     const struct d_arg_option*  option;
 };
 
-// d_arg_internal_process_requirements
-//   declaration: CLI11's _process_requirements, defined after the steps it
-// takes, the last of which -- a subcommand's own -- calls it again.
+/**
+ * @brief Checks a command's requirements, as CLI11's _process_requirements.
+ *
+ * @param[in,out] _command  the command.
+ * @return D_ARG_OK, or the requirement not met, recorded as CLI11's error.
+ *
+ * Declared ahead of its definition, which follows the steps it takes, the
+ * last of which -- a subcommand's own -- calls it again.
+ */
 D_STATIC int
      d_arg_internal_process_requirements(struct d_arg_command* _command);
 
-/*
-d_arg_internal_process_name
-  What CLI11 calls a record in a requirement's message: an option's name, a
-command's display name, or nothing.
-*/
+/**
+ * @brief Writes the name of a record in a requirement's message, as CLI11 calls
+ *        it.
+ *
+ * @param[in]     _named  the record: an option, a command, or neither.
+ * @param[in,out] _out    the buffer that gains the name.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * What CLI11 calls a record in a requirement's message: an option's name, a
+ * command's display name, or nothing.
+ */
 D_STATIC int
 d_arg_internal_process_name(
     struct d_arg_internal_process_named _named,
@@ -575,12 +661,22 @@ d_arg_internal_process_name(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_process_refuse
-  A requirement not met, recorded against the command where it was checked
-and the first option named: "<first> <verb>", then " <second>" when there
-is a second -- CLI11's RequiredError, RequiresError and ExcludesError.
-*/
+/**
+ * @brief Records a requirement not met, as CLI11's RequiredError, RequiresError
+ *        and ExcludesError.
+ *
+ * @param[in] _command  the command where it was checked.
+ * @param[in] _status   the failure.
+ * @param[in] _first    the record named first.
+ * @param[in] _verb     the words after it.
+ * @param[in] _second   the record named after them; neither for none.
+ * @return `_status`, or D_ARG_ERROR_OUT_OF_MEMORY when the message could not be
+ *         written; either recorded.
+ *
+ * A requirement not met, recorded against the command where it was checked
+ * and the first option named: "<first> <verb>", then " <second>" when there
+ * is a second -- CLI11's RequiredError, RequiresError and ExcludesError.
+ */
 D_STATIC int
 d_arg_internal_process_refuse(
     const struct d_arg_command*         _command,
@@ -625,14 +721,21 @@ d_arg_internal_process_refuse(
     return status;
 }
 
-/*
-d_arg_internal_process_excluded
-  CLI11's first check in _process_requirements: of the options and the
-subcommands the command excludes, the last used names what excludes it, a
-subcommand before any option. A command so excluded is refused when it was
-used itself -- CLI11's ExcludesError -- and otherwise spared every other
-check, `_excluded` telling the caller.
-*/
+/**
+ * @brief Checks what a command excludes, as CLI11's first check in
+ *        _process_requirements.
+ *
+ * @param[in]  _command   the command.
+ * @param[out] _excluded  receives whether something it excludes was used.
+ * @return D_ARG_OK; D_ARG_ERROR_EXCLUDES, recorded, for an excluded command
+ *         that was used; or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * CLI11's first check in _process_requirements: of the options and the
+ * subcommands the command excludes, the last used names what excludes it, a
+ * subcommand before any option. A command so excluded is refused when it was
+ * used itself -- CLI11's ExcludesError -- and otherwise spared every other
+ * check, `_excluded` telling the caller.
+ */
 D_STATIC int
 d_arg_internal_process_excluded(
     const struct d_arg_command* _command,
@@ -679,13 +782,20 @@ d_arg_internal_process_excluded(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_process_needed
-  CLI11's second check: of the options and the subcommands the command
-needs, the last not used names what it misses, a subcommand before any
-option. A command so missing what it needs is refused when it was used
-itself -- CLI11's RequiresError -- and otherwise spared every other check.
-*/
+/**
+ * @brief Checks what a command needs, as CLI11's second check in
+ *        _process_requirements.
+ *
+ * @param[in]  _command  the command.
+ * @param[out] _missing  receives whether something it needs was not used.
+ * @return D_ARG_OK; D_ARG_ERROR_REQUIRES, recorded, for a command used without
+ *         what it needs; or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * CLI11's second check: of the options and the subcommands the command
+ * needs, the last not used names what it misses, a subcommand before any
+ * option. A command so missing what it needs is refused when it was used
+ * itself -- CLI11's RequiresError -- and otherwise spared every other check.
+ */
 D_STATIC int
 d_arg_internal_process_needed(
     const struct d_arg_command* _command,
@@ -730,11 +840,17 @@ d_arg_internal_process_needed(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_process_links
-  CLI11's checks of a given option's links: the first option it needs that
-was not given, then the first it excludes that was, refused.
-*/
+/**
+ * @brief Checks a given option's needs and excludes, as CLI11 does.
+ *
+ * @param[in] _command  the command where it is checked.
+ * @param[in] _option   the option.
+ * @return D_ARG_OK; D_ARG_ERROR_REQUIRES or D_ARG_ERROR_EXCLUDES, recorded; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * CLI11's checks of a given option's links: the first option it needs that
+ * was not given, then the first it excludes that was, refused.
+ */
 D_STATIC int
 d_arg_internal_process_links(
     const struct d_arg_command* _command,
@@ -781,11 +897,18 @@ d_arg_internal_process_links(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_process_option_rules
-  CLI11's checks of each option in turn: a required one not given, then a
-given one's links; the options given counted in `_used`.
-*/
+/**
+ * @brief Checks each of a command's options in turn, as CLI11 does.
+ *
+ * @param[in]     _command  the command.
+ * @param[in,out] _used     the count of options given, increased.
+ * @return D_ARG_OK; D_ARG_ERROR_REQUIRED, D_ARG_ERROR_REQUIRES or
+ *         D_ARG_ERROR_EXCLUDES, recorded; or D_ARG_ERROR_OUT_OF_MEMORY,
+ *         recorded.
+ *
+ * CLI11's checks of each option in turn: a required one not given, then a
+ * given one's links; the options given counted in `_used`.
+ */
 D_STATIC int
 d_arg_internal_process_option_rules(
     const struct d_arg_command* _command,
@@ -830,11 +953,15 @@ d_arg_internal_process_option_rules(
     return status;
 }
 
-/*
-d_arg_internal_process_subcommand_minimum
-  CLI11's check of the fewest subcommands a command needs: RequiredError's
-"A subcommand is required", or its "Requires at least <n> subcommands".
-*/
+/**
+ * @brief Checks the fewest subcommands a command needs, as CLI11 does.
+ *
+ * @param[in] _command  the command.
+ * @return D_ARG_OK, or D_ARG_ERROR_REQUIRED, recorded.
+ *
+ * CLI11's check of the fewest subcommands a command needs: RequiredError's
+ * "A subcommand is required", or its "Requires at least <n> subcommands".
+ */
 D_STATIC int
 d_arg_internal_process_subcommand_minimum(
     const struct d_arg_command* _command
@@ -861,11 +988,15 @@ d_arg_internal_process_subcommand_minimum(
                                  minimum);
 }
 
-/*
-d_arg_internal_process_groups_used
-  How many of the command's enabled option groups were used, each counting
-as one option toward its option requirement.
-*/
+/**
+ * @brief Counts a command's enabled option groups that were used.
+ *
+ * @param[in] _command  the command.
+ * @return the count.
+ *
+ * How many of the command's enabled option groups were used, each counting
+ * as one option toward its option requirement.
+ */
 D_STATIC size_t
 d_arg_internal_process_groups_used(
     const struct d_arg_command* _command
@@ -891,12 +1022,18 @@ d_arg_internal_process_groups_used(
     return used;
 }
 
-/*
-d_arg_internal_process_join_step
-  The comma CLI11's detail::join with a function writes before an element:
-only when something was written since the last comma's place, so that an
-empty element at the start leaves nothing, and a later one two commas.
-*/
+/**
+ * @brief Appends the comma CLI11's detail::join with a function writes before
+ *        an element.
+ *
+ * @param[in,out] _out   the buffer that gains the comma.
+ * @param[in,out] _mark  the place of the last comma, moved to the new one.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The comma CLI11's detail::join with a function writes before an element:
+ * only when something was written since the last comma's place, so that an
+ * empty element at the start leaves nothing, and a later one two commas.
+ */
 D_STATIC int
 d_arg_internal_process_join_step(
     struct d_arg_buffer* _out,
@@ -917,12 +1054,18 @@ d_arg_internal_process_join_step(
                                     ',');
 }
 
-/*
-d_arg_internal_process_group_list
-  The end of CLI11's list for an option requirement: a comma, then the
-display names of the command's enabled option groups, joined as before --
-nothing at all when it has none.
-*/
+/**
+ * @brief Appends the display names of a command's enabled option groups to the
+ *        list for an option requirement.
+ *
+ * @param[in]     _command  the command.
+ * @param[in,out] _out      the buffer that gains them.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The end of CLI11's list for an option requirement: a comma, then the
+ * display names of the command's enabled option groups, joined as before --
+ * nothing at all when it has none.
+ */
 D_STATIC int
 d_arg_internal_process_group_list(
     const struct d_arg_command* _command,
@@ -969,12 +1112,17 @@ d_arg_internal_process_group_list(
     return status;
 }
 
-/*
-d_arg_internal_process_option_list
-  CLI11's list for an option requirement: each option's names, the help
-flags' as nothing, joined as its detail::join with a function joins them,
-then the option groups.
-*/
+/**
+ * @brief Writes CLI11's list for an option requirement.
+ *
+ * @param[in]     _command  the command.
+ * @param[in,out] _out      the buffer that gains the list.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's list for an option requirement: each option's names, the help
+ * flags' as nothing, joined as its detail::join with a function joins them,
+ * then the option groups.
+ */
 D_STATIC int
 d_arg_internal_process_option_list(
     const struct d_arg_command* _command,
@@ -1011,12 +1159,19 @@ d_arg_internal_process_option_list(
            : status;
 }
 
-/*
-d_arg_internal_process_option_bound
-  The rest of CLI11's RequiredError::Option wordings, for a requirement
-other than exactly one option: at least one when none was given, at least
-n when too few were, at most one, or at most n.
-*/
+/**
+ * @brief Records CLI11's RequiredError::Option for a requirement other than
+ *        exactly one option.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _used     how many options were used.
+ * @param[in] _names    the list of the options.
+ * @return D_ARG_ERROR_REQUIRED, recorded.
+ *
+ * The rest of CLI11's RequiredError::Option wordings, for a requirement
+ * other than exactly one option: at least one when none was given, at least
+ * n when too few were, at most one, or at most n.
+ */
 D_STATIC int
 d_arg_internal_process_option_bound(
     const struct d_arg_command* _command,
@@ -1068,11 +1223,18 @@ d_arg_internal_process_option_bound(
                                  _names);
 }
 
-/*
-d_arg_internal_process_option_count
-  CLI11's RequiredError::Option, in its words, for an option requirement
-not met: exactly one, at least one, at least n, at most one, at most n.
-*/
+/**
+ * @brief Records CLI11's RequiredError::Option for an option requirement not
+ *        met.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _used     how many options were used.
+ * @return D_ARG_ERROR_REQUIRED, or D_ARG_ERROR_OUT_OF_MEMORY when the list
+ *         could not be written; either recorded.
+ *
+ * CLI11's RequiredError::Option, in its words, for an option requirement
+ * not met: exactly one, at least one, at least n, at most one, at most n.
+ */
 D_STATIC int
 d_arg_internal_process_option_count(
     const struct d_arg_command* _command,
@@ -1122,11 +1284,18 @@ d_arg_internal_process_option_count(
     return status;
 }
 
-/*
-d_arg_internal_process_option_minimum
-  CLI11's check of a command's option requirement, each option given and
-each option group used counting one.
-*/
+/**
+ * @brief Checks a command's option requirement, as CLI11 does.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _used     how many options were used, each option group used
+ *                      counting one.
+ * @return D_ARG_OK; D_ARG_ERROR_REQUIRED, recorded, for a requirement not met;
+ *         or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * CLI11's check of a command's option requirement, each option given and
+ * each option group used counting one.
+ */
 D_STATIC int
 d_arg_internal_process_option_minimum(
     const struct d_arg_command* _command,
@@ -1144,11 +1313,19 @@ d_arg_internal_process_option_minimum(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_process_skipped
-  CLI11's pass over an option group in the requirements: one not required
-and unused, when the command's option requirement is met without it.
-*/
+/**
+ * @brief Tells whether an option group is passed over in the requirements, as
+ *        CLI11 passes one over.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _group    the subcommand.
+ * @param[in] _used     how many options were used.
+ * @return `true` for an option group not required and unused when the option
+ *         requirement is met without it; `false` otherwise.
+ *
+ * CLI11's pass over an option group in the requirements: one not required
+ * and unused, when the command's option requirement is met without it.
+ */
 D_STATIC bool
 d_arg_internal_process_skipped(
     const struct d_arg_command* _command,
@@ -1169,12 +1346,18 @@ d_arg_internal_process_skipped(
                  (_used >= min) ) ) );
 }
 
-/*
-d_arg_internal_process_sub_requirements
-  The end of CLI11's _process_requirements: each enabled subcommand not
-passed over has its own requirements checked -- one used, or an option
-group -- and a required one that was not used is refused.
-*/
+/**
+ * @brief Checks the requirements of a command's subcommands, as the end of
+ *        CLI11's _process_requirements.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _used     how many options were used.
+ * @return D_ARG_OK, or the requirement not met, recorded.
+ *
+ * The end of CLI11's _process_requirements: each enabled subcommand not
+ * passed over has its own requirements checked -- one used, or an option
+ * group -- and a required one that was not used is refused.
+ */
 D_STATIC int
 d_arg_internal_process_sub_requirements(
     struct d_arg_command* _command,
@@ -1272,11 +1455,17 @@ d_arg_internal_process_requirements(
 // 6.  PROCESSING
 //==============================================================================
 
-/*
-d_arg_internal_process_tier
-  One tier of CLI11's processing: the callbacks before help at the tier's
-priority, the help flags where asked, then the callbacks after help.
-*/
+/**
+ * @brief Takes one tier of CLI11's processing.
+ *
+ * @param[in,out] _command    the command.
+ * @param[in]     _priority   the tier's d_arg_callback_priority.
+ * @param[in]     _with_help  whether the help flags are processed at the tier.
+ * @return D_ARG_OK, or the failure, recorded.
+ *
+ * One tier of CLI11's processing: the callbacks before help at the tier's
+ * priority, the help flags where asked, then the callbacks after help.
+ */
 D_STATIC int
 d_arg_internal_process_tier(
     struct d_arg_command* _command,
@@ -1301,12 +1490,20 @@ d_arg_internal_process_tier(
            : status;
 }
 
-/*
-d_arg_internal_process_sources
-  The configuration files, then the environment, as CLI11's _process reads
-them; a file's failure set aside in `_deferred`, report and all, to be
-raised once the normal callbacks have run.
-*/
+/**
+ * @brief Reads the configuration files, then the environment, as CLI11's
+ *        _process does.
+ *
+ * @param[in,out] _command   the command.
+ * @param[out]    _deferred  receives a file's failure, report and all, to be
+ *                           raised once the normal callbacks have run;
+ *                           untouched otherwise.
+ * @return D_ARG_OK, or a failure other than a file's, recorded.
+ *
+ * The configuration files, then the environment, as CLI11's _process reads
+ * them; a file's failure set aside in `_deferred`, report and all, to be
+ * raised once the normal callbacks have run.
+ */
 D_STATIC int
 d_arg_internal_process_sources(
     struct d_arg_command* _command,
@@ -1332,11 +1529,19 @@ d_arg_internal_process_sources(
     return status;
 }
 
-/*
-d_arg_internal_process_rethrow
-  CLI11's rethrow of a file's failure set aside: raised now, unless another
-failure came first, which stands, the one set aside dropped.
-*/
+/**
+ * @brief Raises a file's failure set aside, as CLI11 rethrows it.
+ *
+ * @param[in,out] _command   the command, whose parser's report takes the
+ *                           failure.
+ * @param[in,out] _deferred  the failure set aside, released or moved.
+ * @param[in]     _status    the status the processing came to.
+ * @return `_status` when it is a failure or nothing was set aside; otherwise
+ *         the status of the failure raised.
+ *
+ * CLI11's rethrow of a file's failure set aside: raised now, unless another
+ * failure came first, which stands, the one set aside dropped.
+ */
 D_STATIC int
 d_arg_internal_process_rethrow(
     struct d_arg_command* _command,
@@ -1468,22 +1673,22 @@ one held back while the parse goes on.
 int
 d_arg_internal_process_completion_callbacks(
     struct d_arg_command* _command,
-    bool                  _with_help_flags
+    bool                  _full
 )
 {
     int status = d_arg_internal_process_tier(_command,
                                              (int)D_ARG_PRIORITY_FIRST,
-                                             _with_help_flags);
+                                             _full);
 
     status = ( (status == D_ARG_OK) &&
-               (_with_help_flags) )
+               (_full) )
              ? d_arg_internal_process_env(_command)
              : status;
     status = (status == D_ARG_OK)
              ? d_arg_internal_process_tier(
                    _command,
                    (int)D_ARG_PRIORITY_PRE_REQUIREMENTS,
-                   _with_help_flags)
+                   _full)
              : status;
     status = (status == D_ARG_OK)
              ? d_arg_internal_process_requirements(_command)
@@ -1491,17 +1696,17 @@ d_arg_internal_process_completion_callbacks(
     status = (status == D_ARG_OK)
              ? d_arg_internal_process_tier(_command,
                                            (int)D_ARG_PRIORITY_NORMAL,
-                                           _with_help_flags)
+                                           _full)
              : status;
     status = (status == D_ARG_OK)
              ? d_arg_internal_process_tier(_command,
                                            (int)D_ARG_PRIORITY_LAST,
-                                           _with_help_flags)
+                                           _full)
              : status;
 
     return (status == D_ARG_OK)
            ? d_arg_internal_run_callback(_command,
                                          false,
-                                         _with_help_flags)
+                                         _full)
            : status;
 }

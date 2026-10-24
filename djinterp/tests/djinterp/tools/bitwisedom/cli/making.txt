@@ -1,0 +1,289 @@
+# new, add and change: rows made and defined as a bitfield's rows are, and
+# refused as the window refuses them
+$ bitwisedom new --width=16 --title=regs -o s.json
+$ bitwisedom add s.json FLAG_A --bit=1 -v
+! bitwisedom: note: FLAG_A added, at bit 1
+$ bitwisedom add s.json FLAG_B --bit -v
+! bitwisedom: note: FLAG_B added, at bit 0
+$ bitwisedom add s.json MODE --lsb=4 --width=3 --note=the_mode -v
+! bitwisedom: note: MODE added, at bits 4..6
+$ bitwisedom add s.json MODE_FAST --field=MODE --number=2 -v
+! bitwisedom: note: MODE_FAST added
+$ bitwisedom add s.json BOTH --expr='FLAG_A | FLAG_B' -v
+! bitwisedom: note: BOTH added
+$ bitwisedom add s.json SIXTEEN --value=0x10 -v
+! bitwisedom: note: SIXTEEN added
+$ bitwisedom add s.json SQUARE --body='((x) * (x))' --params=x -v
+! bitwisedom: note: SQUARE added
+$ bitwisedom add s.json Ctrl --group --prefix=CTRL_ -v
+! bitwisedom: note: Ctrl added
+$ bitwisedom add s.json EN --in=Ctrl --bit=8 -v
+! bitwisedom: note: CTRL_EN added, at bit 8
+$ bitwisedom show s.json
+> root       range       bits 0..15  0xFFFF
+>   FLAG     bit         bit 0       0x0001
+> FLAG_A     bit         bit 1       0x0002
+> FLAG_B     bit         bit 0       0x0001
+> MODE       range       bits 4..6   0x0070
+> MODE_FAST  value       bits 4..6   0x0020
+> BOTH       expression  bits 0..1   0x0003
+> SIXTEEN    literal     bit 4       0x0010
+> SQUARE     macro       -           -
+> Ctrl       group       -           -
+>   CTRL_EN  bit         bit 8       0x0100
+# what add refuses
+$ bitwisedom add s.json 9LIVES --bit=2
+! bitwisedom: error: '9LIVES' is not a C identifier
+? 2
+$ bitwisedom add s.json FLAG_A --bit=2
+! bitwisedom: error: FLAG_A is already another symbol's name
+? 2
+$ bitwisedom add s.json X
+! bitwisedom: error: add: give one definition: --bit, --bits or --lsb, --field, --value, --expr, --body, or --group
+! Try 'bitwisedom add --help' for more information.
+? 2
+$ bitwisedom add s.json X --bit=1 --value=2
+! bitwisedom: error: add: give one definition: --bit, --bits or --lsb, --field, --value, --expr, --body, or --group
+! Try 'bitwisedom add --help' for more information.
+? 2
+$ bitwisedom add s.json X --bit=99
+! bitwisedom: error: add: --bit: '99' is not a bit of the sheet's 16
+! Try 'bitwisedom add --help' for more information.
+? 2
+$ bitwisedom add s.json X --bits=9..3x
+! bitwisedom: error: add: --bits: '9..3x' is not a range of bits, such as 4..7
+! Try 'bitwisedom add --help' for more information.
+? 2
+$ bitwisedom add s.json X --field=FLAG_A
+! bitwisedom: error: add: --field: FLAG_A is not a range
+! Try 'bitwisedom add --help' for more information.
+? 2
+$ bitwisedom add s.json X --field=NOPE
+! bitwisedom: error: add: --field: no row is named 'NOPE'
+! Try 'bitwisedom add --help' for more information.
+? 2
+$ bitwisedom add s.json X --bit=1 --number=3
+! bitwisedom: error: add: --number goes with --field
+! Try 'bitwisedom add --help' for more information.
+? 2
+$ bitwisedom add s.json X --field=MODE --encoding=twos
+! bitwisedom: error: add: --encoding: 'twos' is not unsigned, twos_complement, ones_complement, sign_magnitude or offset_binary; did you mean 'twos_complement'?
+! Try 'bitwisedom add --help' for more information.
+? 2
+$ bitwisedom add s.json X --group --width=2
+! bitwisedom: error: add: --width goes with --lsb
+! Try 'bitwisedom add --help' for more information.
+? 2
+$ bitwisedom add s.json X --in=FLAG_A --bit=2
+! bitwisedom: error: add: --in: FLAG_A holds no rows: name a group or a range
+! Try 'bitwisedom add --help' for more information.
+? 2
+$ bitwisedom add s.json X --colour=red --bit=2
+! bitwisedom: error: add: --colour: 'red' is not #RRGGBB, #RRGGBBAA, auto or none
+! Try 'bitwisedom add --help' for more information.
+? 2
+$ bitwisedom add s.json X --group --radix=hex
+! bitwisedom: error: add: --radix: X is a group, which has no value to write
+! Try 'bitwisedom add --help' for more information.
+? 2
+$ bitwisedom add s.json X --bit=2 --isolate
+! bitwisedom: error: add: --isolate is a group's or a range's, and X holds no rows
+! Try 'bitwisedom add --help' for more information.
+? 2
+# a row that would give the sheet an error: refused, then forced
+$ bitwisedom add s.json X --expr='FLAG_A | NOPE'
+! s.json: error: X: unknown name 'NOPE'
+! bitwisedom: error: nothing was written: it would give the sheet 1 new error; --force writes it anyway
+? 2
+$ bitwisedom add s.json X --expr='FLAG_A | NOPE' -n
+! s.json: error: X: unknown name 'NOPE'
+! bitwisedom: error: nothing was written: it would give the sheet 1 new error; --force writes it anyway
+? 2
+$ bitwisedom add s.json X --expr='FLAG_A | NOPE' -f -v
+! s.json: error: X: unknown name 'NOPE'
+! bitwisedom: note: X added
+$ bitwisedom check s.json
+> s.json: 1 error, 0 warnings, 0 notes
+! s.json: error: X: unknown name 'NOPE'
+? 1
+# change: a definition, the parts of one, and the rest
+$ bitwisedom change s.json X --expr=FLAG_A -v
+! bitwisedom: note: X changed
+$ bitwisedom change s.json MODE --width=4 -v
+! bitwisedom: note: MODE changed, at bits 4..7
+$ bitwisedom change s.json MODE_FAST --number=3 -v
+! bitwisedom: note: MODE_FAST changed
+$ bitwisedom change s.json MODE_FAST --encoding=offset_binary -v
+! bitwisedom: note: MODE_FAST changed
+$ bitwisedom change s.json FLAG_A --colour=#FF0000 --short=A --no-emit -v
+! bitwisedom: note: FLAG_A changed, at bit 1
+$ bitwisedom change s.json MODE --note= -v
+! bitwisedom: note: MODE changed, at bits 4..7
+$ bitwisedom change s.json Ctrl --isolate -v
+! bitwisedom: note: Ctrl changed
+$ bitwisedom show s.json
+> root       range       bits 0..15  0xFFFF
+>   FLAG     bit         bit 0       0x0001
+> FLAG_A     bit         bit 1       0x0002
+> FLAG_B     bit         bit 0       0x0001
+> MODE       range       bits 4..7   0x00F0
+> MODE_FAST  value       bits 4..7   0x00B0
+> BOTH       expression  bits 0..1   0x0003
+> SIXTEEN    literal     bit 4       0x0010
+> SQUARE     macro       -           -
+> Ctrl       group       -           -
+>   CTRL_EN  bit         bit 8       0x0100
+> X          expression  bit 1       0x0002
+# what change refuses
+$ bitwisedom change s.json FLAG_A
+! bitwisedom: error: change: say what to change: a definition, a part of one, --note, --colour ...
+! Try 'bitwisedom change --help' for more information.
+? 2
+$ bitwisedom change s.json FLAG_A --bit=5 --lsb=3
+! bitwisedom: error: change: give one definition at most: --bit, --bits or --lsb, --field, --value, --expr, --body
+! Try 'bitwisedom change --help' for more information.
+? 2
+$ bitwisedom change s.json MODE_FAST --width=2
+! bitwisedom: error: change: --width is a range's, and MODE_FAST is a value
+! Try 'bitwisedom change --help' for more information.
+? 2
+$ bitwisedom change s.json FLAG_A --isolate
+! bitwisedom: error: change: --isolate is a group's or a range's, and FLAG_A holds no rows
+! Try 'bitwisedom change --help' for more information.
+? 2
+$ bitwisedom change s.json Ctrl --bit=3
+! bitwisedom: error: change: Ctrl is a group: it has no definition
+! Try 'bitwisedom change --help' for more information.
+? 2
+$ bitwisedom change s.json Ctrl --radix=hex
+! bitwisedom: error: change: --radix: Ctrl is a group, which has no value to write
+! Try 'bitwisedom change --help' for more information.
+? 2
+$ bitwisedom change s.json MODE --bit=2
+! s.json: error: MODE_FAST: its field is not a range symbol
+! bitwisedom: error: nothing was written: it would give the sheet 1 new error; --force writes it anyway
+? 2
+$ bitwisedom change s.json MODE_FAST --field=MODE_FAST
+! bitwisedom: error: change: --field: MODE_FAST is not a range of its own
+! Try 'bitwisedom change --help' for more information.
+? 2
+$ bitwisedom change s.json FLAG_B --colour=#12345
+! bitwisedom: error: change: --colour: '#12345' is not #RRGGBB, #RRGGBBAA, auto or none
+! Try 'bitwisedom change --help' for more information.
+? 2
+$ bitwisedom change s.json NOPE --note=x
+! bitwisedom: error: change: no row is named 'NOPE'
+! Try 'bitwisedom change --help' for more information.
+? 2
+$ bitwisedom gen s.json --date=2026.01.01
+> /*******************************************************************************
+> * bitwisedom [generated]                                                  regs.h
+> *
+> * regs: 11 symbols in 16 bits, written by bitwis(e)dom.
+> *   Generated: edit the sheet, not this file. Writing it again replaces
+> * every line.
+> *
+> * path:      /regs.h
+> * link(s):   TBA
+> * author(s): bitwisedom                                      created: 2026.01.01
+> *                                                            revised: 2026.01.01
+> *******************************************************************************/
+>
+> /*
+> TABLE OF CONTENTS
+> =================
+> 1.  REGS
+>     ----
+> 2.  CTRL
+>     ----
+> */
+>
+> #ifndef REGS_H
+> #define REGS_H 1
+>
+>
+> //==============================================================================
+> // 1.  REGS
+> //==============================================================================
+>
+>
+> // root
+> //   constant: bits 0..15, as a mask.
+> #define root                0xFFFFu
+>
+> // root_SHIFT
+> //   constant: the lowest bit of root.
+> #define root_SHIFT          0
+>
+> // root_WIDTH
+> //   constant: how many bits root spans.
+> #define root_WIDTH          16
+>
+> // root_GET
+> //   macro: the value of root in x.
+> #define root_GET(x)         (((x) & root) >> 0)
+>
+> // root_SET
+> //   macro: x with root replaced by v.
+> #define root_SET(x, v)      (((x) & ~root) | (((v) << 0) & root))
+>
+> // FLAG_B
+> //   constant: bit 0.
+> #define FLAG_B              0x0001u
+>
+> // MODE
+> //   constant: bits 4..7, as a mask.
+> #define MODE                0x00F0u
+>
+> // MODE_SHIFT
+> //   constant: the lowest bit of MODE.
+> #define MODE_SHIFT          4
+>
+> // MODE_WIDTH
+> //   constant: how many bits MODE spans.
+> #define MODE_WIDTH          4
+>
+> // MODE_GET
+> //   macro: the value of MODE in x.
+> #define MODE_GET(x)         (((x) & MODE) >> 4)
+>
+> // MODE_SET
+> //   macro: x with MODE replaced by v.
+> #define MODE_SET(x, v)      (((x) & ~MODE) | (((v) << 4) & MODE))
+>
+> // MODE_FAST
+> //   constant: MODE = 3 (offset binary, bits 4..7).
+> #define MODE_FAST           0x00B0u
+>
+> // BOTH
+> //   constant: FLAG_A | FLAG_B.
+> #define BOTH                (FLAG_A | FLAG_B)
+>
+> // SIXTEEN
+> //   constant: the value 16.
+> #define SIXTEEN             0x0010u
+>
+> // SQUARE
+> //   macro:
+> #define SQUARE(x)           ((x) * (x))
+>
+> // X
+> //   constant: FLAG_A.
+> #define X                   FLAG_A
+>
+> // FLAG
+> //   constant: bit 0.
+> #define FLAG  0x0001u
+>
+>
+> //==============================================================================
+> // 2.  CTRL
+> //==============================================================================
+>
+>
+> // CTRL_EN
+> //   constant: bit 8.
+> #define CTRL_EN  0x0100u
+>
+>
+> #endif  // REGS_H

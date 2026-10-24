@@ -2,16 +2,24 @@
 #*******************************************************************************
 # djinterp [parse]                                       run_arg_parser_tests.sh
 #
-# Builds the argument parser and runs its suites at every C level, from
-# anywhere, with a compiler and nothing else: the script twin of the CMake
-# leaf beside it.
+# Builds the argument parser and runs its suites at every C and C++ level,
+# from anywhere, with a compiler and nothing else: the script twin of the
+# CMake leaf beside it.
 #   The parser's C sources are compiled as C, at the C floor, into one
 # archive, and the C suites link against it at each level from the floor
-# (C99) up. A level the compiler cannot select is left out, and said so.
-#   A suite is a table of sections, and a section is what a knob removes, so
-# the number run differs by configuration, by design. Each run in the
-# default configuration must print the count expected_sections.txt gives its
-# level: a section that silently stopped being compiled is a failure, not a
+# (C99) up; then the C++ suites -- the C++ face, called from C++ across a
+# real language boundary -- at each C++ level from the face's floor (C++98,
+# in the framework's strict ISO mode) up, and again without exceptions at
+# the lowest and the highest C++ level. Where the linker wraps symbols
+# (--wrap), an allocation sweep runs the C API's scenarios with every
+# allocation refused in turn, at the C floor. A level the compiler cannot
+# select is left out, and said so; so are the C++ suites when there is no
+# C++ compiler, and the sweep when the linker cannot wrap.
+#   A suite is a table of sections, and a section is what a knob removes --
+# or a language level, or exceptions turned off -- so the number run
+# differs by configuration, by design. Each run in the default
+# configuration must print the count expected_sections.txt gives its build:
+# a section that silently stopped being compiled is a failure, not a
 # smaller pass.
 #   Every compile takes the ladder's flags (-pedantic-errors -Werror=undef
 # -D_XOPEN_SOURCE=700) with -Wall -Wextra beside them, in testing mode, with
@@ -21,18 +29,24 @@
 # UndefinedBehaviorSanitizer, the latter ending a run at its first finding;
 # a leak found at exit fails the run.
 #   --matrix then rebuilds everything under each configuration knob, at the
-# C floor and the highest level. A knob removes sections, by design, so a
-# matrix run is held to "built, ran, nothing failed, something ran" rather
-# than to a count, and prints what it ran.
+# C floor and the highest C level, the C++ floor and the highest C++ level,
+# and the sweep. A knob removes sections, by design, so a matrix run is
+# held to "built, ran, nothing failed, something ran" rather than to a
+# count, and prints what it ran.
 #
 #   usage:  run_arg_parser_tests.sh [--matrix] [--sanitize] [--verbose]
 #             --matrix    also every configuration knob
 #             --sanitize  AddressSanitizer and UndefinedBehaviorSanitizer
 #             --verbose   print each section as it runs, not only the totals
-#   env:    CC          the compiler           (default: gcc)
+#   env:    CC          the C compiler         (default: gcc)
+#           CXX         the C++ compiler       (default: g++; one that is
+#                       not found leaves the C++ suites out)
 #           AR          the archiver           (default: ar)
-#           CFLAGS      more compile flags     (default: none)
+#           CFLAGS      more C compile flags   (default: none)
+#           CXXFLAGS    more C++ compile flags (default: none)
 #           C_LEVELS    C levels               (default: c99 c11 c17 c23)
+#           CXX_LEVELS  C++ levels             (default: c++98 c++11 c++14
+#                                               c++17 c++20 c++23)
 #           RUN_PREFIX  what runs a test       (default: nothing; e.g.
 #                       `env LC_ALL=C.UTF-8 wine` for a Windows build: the
 #                       script runs in the C locale, under which Wine cannot
@@ -45,7 +59,7 @@
 # path:      /build/cmake/config/testing/djinterp/parse/cli/arg_parser/run_arg_parser_tests.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-#                                                            revised: 2026.10.16
+#                                                            revised: 2026.10.23
 #*******************************************************************************
 set -uo pipefail
 export LC_ALL=C
@@ -53,9 +67,11 @@ export LC_ALL=C
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "${HERE}/../../../../../../../.." && pwd)"
 CC="${CC:-gcc}"
+CXX="${CXX:-g++}"
 AR="${AR:-ar}"
 C_LEVELS="${C_LEVELS:-c99 c11 c17 c23}"
 C_FLOOR="c99"
+CXX_LEVELS="${CXX_LEVELS:-c++98 c++11 c++14 c++17 c++20 c++23}"
 RUN_PREFIX="${RUN_PREFIX:-}"
 EXE_SUFFIX="${EXE_SUFFIX:-}"
 
@@ -90,14 +106,38 @@ COMMON=( -O1 -Wall -Wextra -pedantic-errors -Werror=undef
          -D_XOPEN_SOURCE=700 -DD_TESTING=1 -DRE_STD_CFG_TESTING=1
          -I"${ROOT}/inc" )
 
-# CFLAGS is flags, split deliberately
-# shellcheck disable=SC2206
-COMMON+=( ${CFLAGS:-} )
-
 if [[ "${sanitize}" -eq 1 ]]; then
     COMMON+=( -g -fsanitize=address,undefined -fno-sanitize-recover=undefined
               -fno-omit-frame-pointer )
 fi
+
+# the C++ suites take the same, and their own extra flags; C++98 without
+# extensions is the framework's strict ISO mode, in which its variadic
+# macros, an extension there, give way to ISO forms
+CXX_COMMON=( "${COMMON[@]}" )
+STRICT_ISO=( -DD_CFG_ENV_ISO_STRICT=1 -DRE_STD_CFG_ISO_STRICT=1 )
+
+# CFLAGS and CXXFLAGS are flags, split deliberately
+# shellcheck disable=SC2206
+COMMON+=( ${CFLAGS:-} )
+# shellcheck disable=SC2206
+CXX_COMMON+=( ${CXXFLAGS:-} )
+
+# a C++ compiler that is not there leaves the C++ suites out, as the CMake
+# leaf leaves them out without one
+cxx_found=1
+
+if ! command -v "${CXX}" >/dev/null 2>&1; then
+    cxx_found=0
+fi
+
+# a Windows C++ suite is linked whole -- libstdc++, libgcc, winpthreads --
+# so that it runs where those DLLs are not, as under Wine they are not
+CXX_STATIC=()
+
+case "$("${CC}" -dumpmachine 2>/dev/null)" in
+    *mingw*|*windows*|*cygwin*|*msys*) CXX_STATIC=( -static ) ;;
+esac
 
 # the parser's sources, the sinks it writes through, and re_std's one C
 # source, which is what the fixed-width integer header declares
@@ -124,8 +164,27 @@ C_SUITES=( "${SUITES_DIR}/arg_tests_support.c"
            "${SUITES_DIR}/arg_argv_tests.c"
            "${SUITES_DIR}/arg_parser_tests.c"
            "${SUITES_DIR}/arg_suggest_tests.c"
+           "${SUITES_DIR}/arg_completion_tests.c"
            "${SUITES_DIR}/arg_smoke_tests.c"
            "${HERE}/arg_parser_c_tests_runner.c" )
+
+# the C++ suites; the scratch directories their cases make files in are C,
+# compiled with the library
+CXX_DIR="${ROOT}/tests/djinterp/parse/cli/arg_parser"
+CXX_SUITES=( "${CXX_DIR}/arg_tests_support.cpp"
+             "${CXX_DIR}/arg_common_tests.cpp"
+             "${CXX_DIR}/arg_type_tests.cpp"
+             "${CXX_DIR}/arg_validator_tests.cpp"
+             "${CXX_DIR}/arg_option_tests.cpp"
+             "${CXX_DIR}/arg_command_tests.cpp"
+             "${CXX_DIR}/arg_formatter_tests.cpp"
+             "${CXX_DIR}/arg_config_tests.cpp"
+             "${CXX_DIR}/arg_argv_tests.cpp"
+             "${CXX_DIR}/arg_parser_tests.cpp"
+             "${CXX_DIR}/arg_completion_tests.cpp"
+             "${CXX_DIR}/arg_boundary_tests.cpp"
+             "${CXX_DIR}/arg_examples_tests.cpp"
+             "${HERE}/arg_parser_cpp_tests_runner.cpp" )
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/djinterp-arg-parser.XXXXXX")"
 trap 'rm -rf "${WORK}"' EXIT
@@ -136,22 +195,31 @@ totals=""
 details=""
 
 # std_flag <compiler> <level>
-#   Prints the -std= spelling a compiler takes for a C level: its final name,
-# or the draft name a compiler that predates the standard knows it by.
-# Prints nothing when the compiler takes neither.
+#   Prints the -std= spelling a compiler takes for a C or C++ level: its
+# final name, or the draft name a compiler that predates the standard knows
+# it by. Prints nothing when the compiler takes neither.
 std_flag()
 {
-    local compiler="$1" level="$2" name=""
+    local compiler="$1" level="$2" name="" language="c"
     local -a names=( "$2" )
 
     case "${level}" in
-        c23) names+=( "c2x" ) ;;
-        c17) names+=( "c18" ) ;;
+        c23)   names+=( "c2x" ) ;;
+        c17)   names+=( "c18" ) ;;
+        c++23) names+=( "c++2b" ) ;;
+        c++20) names+=( "c++2a" ) ;;
+        c++17) names+=( "c++1z" ) ;;
+        c++14) names+=( "c++1y" ) ;;
+        c++11) names+=( "c++0x" ) ;;
+    esac
+
+    case "${level}" in
+        c++*) language="c++" ;;
     esac
 
     for name in "${names[@]}"; do
         if echo 'int main(void) { return 0; }' |
-           "${compiler}" -std="${name}" -x c -fsyntax-only - \
+           "${compiler}" -std="${name}" -x "${language}" -fsyntax-only - \
                >/dev/null 2>&1; then
             echo "-std=${name}"
             return 0
@@ -161,8 +229,9 @@ std_flag()
     return 0
 }
 
-# expected <level>
-#   Prints the section count expected_sections.txt gives a level, or nothing.
+# expected <build>
+#   Prints the section count expected_sections.txt gives a build -- a level,
+# and `-noexc` after a C++ one without exceptions -- or nothing.
 expected()
 {
     awk -v level="$1" '$1 == level { print $2 }' \
@@ -206,6 +275,19 @@ build_library()
     done
 
     "${AR}" rcs "${out}/arg_parser.a" "${out}"/*.o
+
+    # the C++ suites' one C source, beside the archive rather than in it
+    if [[ "${cxx_found}" -eq 1 ]]; then
+        mkdir -p "${out}/cxx"
+
+        if ! "${CC}" ${floor} "${COMMON[@]}" "$@" \
+                -c "${CXX_DIR}/c/arg_tests_files.c" \
+                -o "${out}/cxx/arg_tests_files.o" 2>>"${out}/log"; then
+            details="$(grep -m 5 'error' "${out}/log" | sed 's/^/      /')"$'\n'
+            return 1
+        fi
+    fi
+
     note_warnings "${out}/log"
 }
 
@@ -232,6 +314,124 @@ run_suites()
 
     if ! "${CC}" ${flag} "${COMMON[@]}" "$@" "${C_SUITES[@]}" \
             "${out}/arg_parser.a" -o "${binary}" 2>"${binary}.log"; then
+        totals="BUILD FAILED"
+        details="$(grep -m 5 'error' "${binary}.log" | sed 's/^/      /')"$'\n'
+        return 1
+    fi
+
+    note_warnings "${binary}.log"
+
+    # RUN_PREFIX is a command and its arguments, split deliberately
+    # shellcheck disable=SC2086
+    if ! ${RUN_PREFIX} "${binary}" 2>&1 | tr -d '\r' >"${binary}.out"; then
+        totals="$(tail -n 1 "${binary}.out")"
+        details+="$(grep -v '^  \[PASS\]' "${binary}.out" | sed '1d' |
+                    sed 's/^/    /')"$'\n'
+        return 1
+    fi
+
+    totals="$(tail -n 1 "${binary}.out")"
+
+    if [[ "${verbose}" -eq 1 ]]; then
+        details+="$(sed '1d;$d' "${binary}.out" | sed 's/^/    /')"$'\n'
+    fi
+}
+
+# run_cxx_suites <level> <out directory> [flags...]
+#   Builds the C++ suites at one C++ level against the library in <out> --
+# the C++98 floor in strict ISO -- and runs them, leaving `totals` and
+# `details` as run_suites does. The flags are the knob's, or the switch
+# that turns exceptions off. Returns as run_suites does.
+run_cxx_suites()
+{
+    local level="$1" out="$2" flag="" binary="" tag=""
+    local -a strict=()
+    shift 2
+
+    totals=""
+    details=""
+    flag="$(std_flag "${CXX}" "${level}")"
+    tag="${level}"
+
+    case " $* " in
+        *" -fno-exceptions "*) tag="${level}-noexc" ;;
+    esac
+
+    binary="${out}/cxx/suites-${tag}${EXE_SUFFIX}"
+
+    if [[ -z "${flag}" ]]; then
+        totals="left out"
+        return 2
+    fi
+
+    if [[ "${level}" == "c++98" ]]; then
+        strict=( "${STRICT_ISO[@]}" )
+    fi
+
+    if ! "${CXX}" ${flag} "${CXX_COMMON[@]}" "${strict[@]+"${strict[@]}"}" \
+            "$@" "${CXX_SUITES[@]}" "${out}/cxx/arg_tests_files.o" \
+            "${out}/arg_parser.a" "${CXX_STATIC[@]+"${CXX_STATIC[@]}"}" \
+            -o "${binary}" 2>"${binary}.log"; then
+        totals="BUILD FAILED"
+        details="$(grep -m 5 'error' "${binary}.log" | sed 's/^/      /')"$'\n'
+        return 1
+    fi
+
+    note_warnings "${binary}.log"
+
+    # RUN_PREFIX is a command and its arguments, split deliberately
+    # shellcheck disable=SC2086
+    if ! ${RUN_PREFIX} "${binary}" 2>&1 | tr -d '\r' >"${binary}.out"; then
+        totals="$(tail -n 1 "${binary}.out")"
+        totals="${totals:-nothing printed: it did not start, or died at once}"
+        details+="$(grep -v '^  \[PASS\]' "${binary}.out" | sed '1d' |
+                    sed 's/^/    /')"$'\n'
+        return 1
+    fi
+
+    totals="$(tail -n 1 "${binary}.out")"
+
+    if [[ "${verbose}" -eq 1 ]]; then
+        details+="$(sed '1d;$d' "${binary}.out" | sed 's/^/    /')"$'\n'
+    fi
+}
+
+# wraps_symbols
+#   Whether the C compiler's linker wraps a symbol, as GNU ld's and lld's
+# --wrap do, which the allocation sweep needs.
+wraps_symbols()
+{
+    local probe="${WORK}/wrap"
+
+    mkdir -p "${probe}"
+    printf '%s\n' '#include <stddef.h>' \
+        'void* __real_malloc(size_t _size);' \
+        'void* __wrap_malloc(size_t _size) { return __real_malloc(_size); }' \
+        'int main(void) { return 0; }' >"${probe}/wrap.c"
+
+    "${CC}" "${probe}/wrap.c" -Wl,--wrap=malloc \
+        -o "${probe}/wrap${EXE_SUFFIX}" >/dev/null 2>&1
+}
+
+# run_sweep <out directory> [knob flags...]
+#   Builds the allocation sweep at the C floor against the library in
+# <out>, malloc, calloc, realloc and free wrapped, and runs it, leaving
+# `totals` and `details` as run_suites does. Returns as run_suites does.
+run_sweep()
+{
+    local out="$1" flag="" binary=""
+    shift
+
+    totals=""
+    details=""
+    flag="$(std_flag "${CC}" "${C_FLOOR}")"
+    binary="${out}/sweep${EXE_SUFFIX}"
+
+    if ! "${CC}" ${flag} "${COMMON[@]}" "$@" \
+            "${SUITES_DIR}/arg_sweep_tests.c" \
+            "${HERE}/arg_parser_c_sweep_runner.c" "${out}/arg_parser.a" \
+            -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc \
+            -Wl,--wrap=free -o "${binary}" 2>"${binary}.log"; then
         totals="BUILD FAILED"
         details="$(grep -m 5 'error' "${binary}.log" | sed 's/^/      /')"$'\n'
         return 1
@@ -283,14 +483,52 @@ check_level()
     fi
 }
 
+# check_cxx <build> <level> <out directory> [flags...]
+#   One C++ build of the default configuration -- a level, or a level
+# without exceptions -- held as check_level holds a C level, to the count
+# expected_sections.txt gives the build.
+check_cxx()
+{
+    local build="$1" verdict=0 want=""
+    shift
+
+    run_cxx_suites "$@"
+    verdict=$?
+    want="$(expected "${build}")"
+
+    if [[ ${verdict} -eq 2 ]]; then
+        printf "  %-13s left out -- %s cannot select it\n" "${build}" "${CXX}"
+        return 0
+    fi
+
+    printf "  %-13s %s\n" "${build}" "${totals}"
+    printf "%s" "${details}"
+
+    if [[ ${verdict} -ne 0 ]]; then
+        failures=$((failures + 1))
+    elif [[ "${totals}" != "passed: ${want}   failed: 0" ]]; then
+        printf "                expected %s sections: see " \
+               "${want:-a count that file does not give}"
+        printf "expected_sections.txt\n"
+        failures=$((failures + 1))
+    fi
+}
+
 # knob_level <level> <out directory> <knob flags...>
-#   One level under a knob: built, ran, nothing failed, something ran.
-# Prints the level and how many sections it ran, on the matrix's line.
+#   One level under a knob, C or C++, or `sweep` for the allocation sweep:
+# built, ran, nothing failed, something ran. Prints the level and how many
+# sections it ran, on the matrix's line.
 knob_level()
 {
     local level="$1" verdict=0 ran=""
 
-    run_suites "$@"
+    case "${level}" in
+        c++*)  run_cxx_suites "$@" ;;
+        sweep) shift
+               run_sweep "$@" ;;
+        *)     run_suites "$@" ;;
+    esac
+
     verdict=$?
     ran="$(sed -n 's/^passed: \([0-9][0-9]*\)   failed: 0$/\1/p' \
                <<<"${totals}")"
@@ -328,11 +566,70 @@ for level in ${C_LEVELS}; do
     check_level "${level}" "${WORK}/default"
 done
 
+echo
+echo "== default configuration: the allocation sweep =="
+
+sweeps=0
+
+if ! wraps_symbols; then
+    echo "  left out -- the linker of ${CC} has no --wrap"
+else
+    sweeps=1
+    run_sweep "${WORK}/default"
+    verdict=$?
+    want="$(expected "${C_FLOOR}-sweep")"
+    printf "  %-13s %s\n" "${C_FLOOR}-sweep" "${totals}"
+    printf "%s" "${details}"
+
+    if [[ ${verdict} -ne 0 ]]; then
+        failures=$((failures + 1))
+    elif [[ "${totals}" != "passed: ${want}   failed: 0" ]]; then
+        printf "                expected %s sections: see " \
+               "${want:-a count that file does not give}"
+        printf "expected_sections.txt\n"
+        failures=$((failures + 1))
+    fi
+fi
+
+echo
+echo "== default configuration: every C++ level =="
+
+if [[ "${cxx_found}" -eq 0 ]]; then
+    echo "  left out -- ${CXX} not found"
+else
+    echo "  $("${CXX}" --version | head -n 1)"
+    cxx_lowest=""
+    cxx_highest=""
+
+    for level in ${CXX_LEVELS}; do
+        check_cxx "${level}" "${level}" "${WORK}/default"
+
+        # the levels the compiler selects, for the builds without exceptions
+        if [[ -n "$(std_flag "${CXX}" "${level}")" ]]; then
+            cxx_lowest="${cxx_lowest:-${level}}"
+            cxx_highest="${level}"
+        fi
+    done
+
+    for level in ${cxx_lowest} ${cxx_highest}; do
+        # one level selected is one build without exceptions
+        if [[ "${level}" == "${cxx_lowest}" && "${level}" == "${cxx_highest}" &&
+              -n "${noexc_done:-}" ]]; then
+            continue
+        fi
+
+        noexc_done=1
+        check_cxx "${level}-noexc" "${level}" "${WORK}/default" -fno-exceptions
+    done
+fi
+
 if [[ "${matrix}" -eq 1 ]]; then
     echo
     echo "== configuration matrix: sections run under each knob =="
 
     highest="${C_LEVELS##* }"
+    cxx_floor="${cxx_lowest:-}"
+    cxx_top="${cxx_highest:-}"
     knobs=( "-DD_CFG_ARG_PARSER_ALL=0"
             "-DD_CFG_ARG_PARSER_CONFIG_FILES=0"
             "-DD_CFG_ARG_PARSER_ENVIRONMENT=0"
@@ -357,6 +654,23 @@ if [[ "${matrix}" -eq 1 ]]; then
             if [[ "${highest}" != "${C_FLOOR}" ]]; then
                 # shellcheck disable=SC2086
                 knob_level "${highest}" "${WORK}/knob" ${knob} || verdict=1
+            fi
+
+            # the C++ suites, at their floor and their highest level
+            if [[ -n "${cxx_floor}" ]]; then
+                # shellcheck disable=SC2086
+                knob_level "${cxx_floor}" "${WORK}/knob" ${knob} || verdict=1
+            fi
+
+            if [[ -n "${cxx_top}" && "${cxx_top}" != "${cxx_floor}" ]]; then
+                # shellcheck disable=SC2086
+                knob_level "${cxx_top}" "${WORK}/knob" ${knob} || verdict=1
+            fi
+
+            # the allocation sweep, where the linker wraps
+            if [[ "${sweeps}" -eq 1 ]]; then
+                # shellcheck disable=SC2086
+                knob_level sweep "${WORK}/knob" ${knob} || verdict=1
             fi
         else
             printf " the library did not build"

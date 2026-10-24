@@ -2,17 +2,20 @@
 # bitwisedom [cmake]                                      mingw-w64-x86_64.cmake
 #
 # Cross-compiling for 64-bit Windows from Linux with MinGW-w64 (the posix
-# thread model, for std::thread and the rest of the library). The window
-# gets the Win32 + Direct3D 11 host; nothing else needs installing.
+# thread model, for std::thread and the rest of the library). The window's
+# module, which build/ui/bitwisedom makes with this file too, gets the
+# Win32 + Direct3D 11 host; nothing else needs installing.
 #
 #     cmake -S . -B build/mingw -G Ninja \
-#           -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/mingw-w64-x86_64.cmake \
-#           -DDJINTERP_ROOT=... -DUXOXO_ROOT=...
+#           -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/mingw-w64-x86_64.cmake
+#
+#   The programs and the module carry MinGW's runtime in them, so that
+# neither needs a DLL of it beside it.
 #
 # path:      /build/cmake/djinterp/tools/bitwisedom/cmake/toolchains/mingw-w64-x86_64.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.04
+#                                                            revised: 2026.10.23
 #*******************************************************************************
 set(CMAKE_SYSTEM_NAME      Windows)
 set(CMAKE_SYSTEM_PROCESSOR x86_64)
@@ -32,5 +35,8 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 set(ENV{PKG_CONFIG_LIBDIR} "${CMAKE_FIND_ROOT_PATH}/lib/pkgconfig")
 set(ENV{PKG_CONFIG_PATH}   "")
 
-# one self-contained .exe: no MinGW runtime DLLs to ship beside it
-set(CMAKE_EXE_LINKER_FLAGS_INIT "-static -static-libgcc -static-libstdc++")
+# one self-contained .exe, and one self-contained module: no MinGW runtime
+# DLLs to ship beside either
+set(CMAKE_EXE_LINKER_FLAGS_INIT    "-static -static-libgcc -static-libstdc++")
+set(CMAKE_MODULE_LINKER_FLAGS_INIT "-static -static-libgcc -static-libstdc++")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "-static -static-libgcc -static-libstdc++")

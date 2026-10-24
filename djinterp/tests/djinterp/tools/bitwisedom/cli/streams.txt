@@ -1,0 +1,101 @@
+# standard input and output, and where a changed sheet goes
+$ bitwisedom new --width=8 --to=bitfield
+> {
+>     "format": "bitwisedom.bitfield",
+>     "version": 1,
+>     "title": "untitled",
+>     "width": 8,
+>     "rows": [
+>         {
+>             "name": "root",
+>             "bits": "0..7",
+>             "transparent": true,
+>             "rows": [{ "name": "FLAG", "bit": 0 }]
+>         }
+>     ]
+> }
+# a sheet read from standard input goes back to standard output, in the
+# shape it came in
+$ bitwisedom add - X --bit=3 -v
+< { "format": "bitwisedom.bitfield", "version": 1, "title": "t", "width": 8,
+<   "rows": [ { "name": "A", "bit": 0 } ] }
+> {
+>     "format": "bitwisedom.bitfield",
+>     "version": 1,
+>     "title": "t",
+>     "width": 8,
+>     "rows": [{ "name": "A", "bit": 0 }, { "name": "X", "bit": 3 }]
+> }
+! bitwisedom: note: X added, at bit 3
+$ bitwisedom show -
+< { "format": "bitwisedom.bitfield", "version": 1, "title": "t", "width": 8,
+<   "rows": [ { "name": "A", "bit": 0 } ] }
+> A  bit  bit 0  0x01
+$ bitwisedom convert - --to=bitfield -o -
+< { "format": "bitwisedom.bitfield", "version": 1, "title": "t", "width": 8,
+<   "rows": [ { "name": "A", "bit": 0 } ] }
+> {
+>     "format": "bitwisedom.bitfield",
+>     "version": 1,
+>     "title": "t",
+>     "width": 8,
+>     "rows": [{ "name": "A", "bit": 0 }]
+> }
+$ bitwisedom show -
+< not json
+! -:1:1: error: expected 'null'
+? 2
++ bad.json
+| { "format": "bitwisedom.bitfield", "version": 1, "width": 8,
+|   "rows": [ }
+$ bitwisedom show bad.json
+! bad.json:2:13: error: unexpected character '}'
+? 2
+# a built-in example has nowhere to go back to
+$ bitwisedom add example:rgb565 X --bit=0
+! bitwisedom: error: add: example:rgb565 is built in: give -o FILE to write it, changed
+! Try 'bitwisedom add --help' for more information.
+? 2
+$ bitwisedom add example:rgb565 X --expr=RGB565_RED -o copy.json -v
+! bitwisedom: note: RGB565_X added
+$ bitwisedom show copy.json
+> Channels          group       -                     -
+>   RGB565_R        range       bits 11..15           0xF800
+>   RGB565_G        range       bits 5..10            0x07E0
+>   RGB565_B        range       bits 0..4             0x001F
+> Levels            group       -                     -
+>   RGB565_R_MAX    value       bits 11..15           0xF800
+>   RGB565_G_MAX    value       bits 5..10            0x07E0
+>   RGB565_B_MAX    value       bits 0..4             0x001F
+>   RGB565_R_HALF   value       bits 11..15           0x8000
+>   RGB565_G_HALF   value       bits 5..10            0x0400
+>   RGB565_B_HALF   value       bits 0..4             0x0010
+> Colours           group       -                     -
+>   RGB565_BLACK    literal     no bits               0x0000
+>   RGB565_WHITE    expression  bits 0..15            0xFFFF
+>   RGB565_RED      expression  bits 11..15           0xF800
+>   RGB565_GREEN    expression  bits 5..10            0x07E0
+>   RGB565_BLUE     expression  bits 0..4             0x001F
+>   RGB565_YELLOW   expression  bits 5..15            0xFFE0
+>   RGB565_CYAN     expression  bits 0..10            0x07FF
+>   RGB565_MAGENTA  expression  bits 0..4 and 11..15  0xF81F
+>   RGB565_GREY     expression  bits 4, 10 and 15     0x8410
+> Packing           group       -                     -
+>   RGB565_PACK     macro       -                     -
+> RGB565_X          expression  bits 11..15           0xF800
+# where a file cannot be written
++ dir/kept.txt
+| a file, so that dir is a directory
+$ bitwisedom new --width=8 -o dir
+! bitwisedom: error: cannot write 'dir': Is a directory
+? 2
+$ bitwisedom new --width=8 -o nodir/x.json
+! bitwisedom: error: cannot write 'nodir/x.json': No such file or directory
+? 2
+$ bitwisedom gen example:rgb565 --out=
+! bitwisedom: error: cannot write '': No such file or directory
+? 2
+$ bitwisedom gen example:rgb565 --date=
+! bitwisedom: error: gen: --date: '' is not a date written YYYY.MM.DD
+! Try 'bitwisedom gen --help' for more information.
+? 2

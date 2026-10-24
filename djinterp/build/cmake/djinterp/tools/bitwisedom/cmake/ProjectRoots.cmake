@@ -1,15 +1,16 @@
 #*******************************************************************************
 # bitwisedom [cmake]                                          ProjectRoots.cmake
 #
-# The two repositories: djinterp (which contains bitwisedom), and uxoxo.
+# The repository: djinterp, which contains bitwisedom.
 #   DJINTERP_ROOT defaults to the containing repository, derived from this
-# file's own location. UXOXO_ROOT is the existing external dependency.
-# Paths are validated here rather than at first use.
+# file's own location, and is validated here rather than at first use.
+# uxoxo, which only the window needs, is build/ui's to find: the window
+# lives outside the djinterp tree.
 #
 # path:      /build/cmake/djinterp/tools/bitwisedom/cmake/ProjectRoots.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.04
+#                                                            revised: 2026.10.22
 #*******************************************************************************
 include_guard(GLOBAL)
 
@@ -19,15 +20,12 @@ get_filename_component(_bitwisedom_djinterp_root
 set(DJINTERP_ROOT "${_bitwisedom_djinterp_root}"
     CACHE PATH "djinterp's repository root: the directory with inc/ and src/")
 
-set(UXOXO_ROOT "D:/sam/code/projects/frameworks/uxoxo/uxoxo-project"
-    CACHE PATH "uxoxo's project root: the directory with inc/, src/, build/")
-
 set(BITWISEDOM_ROOT "${_bitwisedom_djinterp_root}"
     CACHE PATH "Containing djinterp repository root")
 
 # CMake wants forward slashes everywhere, including in a -D the shell handed
 # us with backslashes.
-foreach(_root DJINTERP_ROOT UXOXO_ROOT BITWISEDOM_ROOT)
+foreach(_root DJINTERP_ROOT BITWISEDOM_ROOT)
     file(TO_CMAKE_PATH "${${_root}}" _normalized)
     set(${_root} "${_normalized}" CACHE PATH "" FORCE)
 endforeach()
@@ -56,6 +54,3 @@ endfunction()
 bitwisedom_require_root(DJINTERP_ROOT "${DJINTERP_ROOT}"
                        "inc/djinterp/djinterp.hpp" "djinterp's repository root")
 
-# uxoxo is only needed for the window, so it is checked where it is used
-# (Uxoxo.cmake) rather than here: the library, the generator and the model
-# tests build without it.

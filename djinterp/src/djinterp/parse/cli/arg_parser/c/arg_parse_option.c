@@ -15,7 +15,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_parse_option.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -37,8 +37,10 @@
 // d_arg_internal_parse_split
 //   struct: an option argument as CLI11's _parse_arg splits it: the whole
 // argument; the name, without its dashes or slash; the value after `=` or
-// `:`; what follows a short name; and the class it was recognized as. Each
-// part is a span of the argument, or of the parser's pool.
+// `:`; what follows a short name; the class it was recognized as; and
+// whether a long or Windows-style name was followed by `=` or `:`, which
+// tells `--name=` from `--name`. Each part is a span of the argument, or of
+// the parser's pool.
 struct d_arg_internal_parse_split
 {
     struct d_pack_text argument;
@@ -46,18 +48,30 @@ struct d_arg_internal_parse_split
     struct d_pack_text value;
     struct d_pack_text rest;
     int                classifier;
+    bool               separated;
 };
 
 // SPLIT_NONE
 //   constant: a split of nothing, from which an argument's is made.
 static const struct d_arg_internal_parse_split SPLIT_NONE;
 
-/*
-d_arg_internal_parse_split_arg
-  The argument on top of the stack split as its class splits it, the value
-and the rest starting empty at its end; CLI11's HorribleError when it does
-not split, which recognizing never lets happen.
-*/
+/**
+ * @brief Splits the option argument on top of the stack as its class splits it.
+ *
+ * @param[in]  _command  the command whose stack it is on.
+ * @param[in]  _class    its d_arg_classifier value: long, short or
+ *                       Windows-style.
+ * @param[out] _split    receives the argument, its class, and its name, value
+ *                       and rest; the value and the rest empty at the
+ *                       argument's end until split.
+ * @return D_ARG_OK; D_ARG_ERROR_HORRIBLE, recorded as CLI11's HorribleError,
+ *         for an argument that does not split, which recognizing never lets
+ *         happen.
+ *
+ * The argument on top of the stack split as its class splits it, the value
+ * and the rest starting empty at its end; CLI11's HorribleError when it does
+ * not split, which recognizing never lets happen.
+ */
 D_STATIC int
 d_arg_internal_parse_split_arg(
     const struct d_arg_command*        _command,
@@ -90,35 +104,54 @@ d_arg_internal_parse_split_arg(
     // `--name` and its value
     if (_class == (int)D_ARG_CLASS_LONG)
     {
-        return d_arg_internal_parse_split_long(argument,
-                                               &_split->name,
-                                               &_split->value)
-               ? D_ARG_OK
-               : d_arg_internal_fail(_command,
-                                     NULL,
-                                     D_ARG_ERROR_HORRIBLE,
-                                     "Long parsed but missing (you should "
-                                     "not see this):%.*s",
-                                     d_arg_internal_print_length(argument),
-                                     argument.data);
+        if (!d_arg_internal_parse_split_long(argument,
+                                             &_split->name,
+                                             &_split->value))
+        {
+            return d_arg_internal_fail(_command,
+                                       NULL,
+                                       D_ARG_ERROR_HORRIBLE,
+                                       "Long parsed but missing (you should "
+                                       "not see this):%.*s",
+                                       d_arg_internal_print_length(argument),
+                                       argument.data);
+        }
+
+        // `--` and the name, and anything after them is `=` and the value
+        _split->separated = (_split->name.length + 2u < argument.length);
+
+        return D_ARG_OK;
     }
 
-    return d_arg_internal_parse_split_windows(argument,
-                                              &_split->name,
-                                              &_split->value)
-           ? D_ARG_OK
-           : d_arg_internal_fail(_command,
-                                 NULL,
-                                 D_ARG_ERROR_HORRIBLE,
-                                 "windows option parsed but missing! You "
-                                 "should not see this");
+    if (!d_arg_internal_parse_split_windows(argument,
+                                            &_split->name,
+                                            &_split->value))
+    {
+        return d_arg_internal_fail(_command,
+                                   NULL,
+                                   D_ARG_ERROR_HORRIBLE,
+                                   "windows option parsed but missing! You "
+                                   "should not see this");
+    }
+
+    // `/` and the name, and anything after them is `:` and the value
+    _split->separated = (_split->name.length + 1u < argument.length);
+
+    return D_ARG_OK;
 }
 
-/*
-d_arg_internal_parse_answers
-  CLI11's match of an option to a split name: by its long names for a long
-argument, its short names for a short one, either for a Windows-style one.
-*/
+/**
+ * @brief Tells whether an option answers to a split name, as CLI11 matches one.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _class   the argument's d_arg_classifier value.
+ * @param[in] _name    the name.
+ * @return `true` when a long name matches for a long argument, a short name for
+ *         a short one, or either for a Windows-style one; `false` otherwise.
+ *
+ * CLI11's match of an option to a split name: by its long names for a long
+ * argument, its short names for a short one, either for a Windows-style one.
+ */
 D_STATIC bool
 d_arg_internal_parse_answers(
     const struct d_arg_option* _option,
@@ -146,10 +179,15 @@ d_arg_internal_parse_answers(
                                             _name)) );
 }
 
-/*
-d_arg_internal_parse_own_option
-  The command's own option, the first that answers to the split name.
-*/
+/**
+ * @brief Finds the command's own option that answers to a split name.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _split    the split argument.
+ * @return the first option that answers to it; NULL when none does.
+ *
+ * The command's own option, the first that answers to the split name.
+ */
 D_STATIC struct d_arg_option*
 d_arg_internal_parse_own_option(
     const struct d_arg_command*              _command,
@@ -174,12 +212,20 @@ d_arg_internal_parse_own_option(
 // 2.  SEARCHING
 //==============================================================================
 
-/*
-d_arg_internal_parse_group_arg
-  CLI11's offer of an option argument to the command's option groups, each
-enabled one in turn, until one takes it; the one that does has its
-pre-parse step.
-*/
+/**
+ * @brief Offers an option argument to a command's option groups, as CLI11 does.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _class    the argument's d_arg_classifier value.
+ * @param[in]     _local    whether the search is local, as CLI11's dot notation
+ *                          makes it.
+ * @param[out]    _taken    receives whether a group took it.
+ * @return D_ARG_OK, or the error a step raised, recorded.
+ *
+ * CLI11's offer of an option argument to the command's option groups, each
+ * enabled one in turn, until one takes it; the one that does has its
+ * pre-parse step.
+ */
 D_STATIC int
 d_arg_internal_parse_group_arg(
     struct d_arg_command* _command,
@@ -216,12 +262,20 @@ d_arg_internal_parse_group_arg(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_parse_non_standard
-  CLI11's second look at a short argument longer than its name, where
-non-standard option names are allowed: read as `-name=value`, an option
-with `name` among its short names takes it, the split made over to match.
-*/
+/**
+ * @brief Looks again at a short argument longer than its name, as
+ *        `-name=value`, where non-standard option names are allowed.
+ *
+ * @param[in]     _command  the command.
+ * @param[in,out] _split    the split argument, made over to match an option
+ *                          found.
+ * @return the first option with the name among its short names; NULL when none
+ *         has it, or the look does not apply.
+ *
+ * CLI11's second look at a short argument longer than its name, where
+ * non-standard option names are allowed: read as `-name=value`, an option
+ * with `name` among its short names takes it, the split made over to match.
+ */
 D_STATIC struct d_arg_option*
 d_arg_internal_parse_non_standard(
     const struct d_arg_command*        _command,
@@ -264,14 +318,22 @@ d_arg_internal_parse_non_standard(
     return NULL;
 }
 
-/*
-d_arg_internal_parse_dotted_sub
-  The subcommand CLI11's dot notation names: in `sub.name`, cut at the first
-dot past the first character and before the last, `sub` among the
-command's subcommands, used ones included -- unless the command has met its
-maximum of subcommands and `sub` is not among them. `_name` receives what
-follows the dot.
-*/
+/**
+ * @brief Finds the subcommand CLI11's dot notation names in `sub.name`.
+ *
+ * @param[in]  _command  the command.
+ * @param[in]  _whole    the name after the dashes: `sub.name`.
+ * @param[out] _name     receives what follows the dot; untouched when there is
+ *                       no dot with something after it.
+ * @return the subcommand `sub` names; NULL when none does, or when the command
+ *         has met its maximum and `sub` is not among those it took.
+ *
+ * The subcommand CLI11's dot notation names: in `sub.name`, cut at the first
+ * dot past the first character and before the last, `sub` among the
+ * command's subcommands, used ones included -- unless the command has met its
+ * maximum of subcommands and `sub` is not among them. `_name` receives what
+ * follows the dot.
+ */
 D_STATIC struct d_arg_command*
 d_arg_internal_parse_dotted_sub(
     const struct d_arg_command* _command,
@@ -315,13 +377,21 @@ d_arg_internal_parse_dotted_sub(
     return sub;
 }
 
-/*
-d_arg_internal_parse_dotted_push
-  The option of CLI11's dot notation rebuilt from the split for the
-subcommand, so that `/` works as `--` does: `--name=value`, or, for a
-one-character name, `-n` above its value as an argument of its own, as
-`=` cannot follow a short name. `_class` receives the rebuilt one's class.
-*/
+/**
+ * @brief Pushes the option of CLI11's dot notation, rebuilt for the subcommand,
+ *        onto the stack.
+ *
+ * @param[in]  _command  the command whose stack gains it.
+ * @param[in]  _name     the option's name.
+ * @param[in]  _value    its value; empty for none.
+ * @param[out] _class    receives the rebuilt option's d_arg_classifier value.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * The option of CLI11's dot notation rebuilt from the split for the
+ * subcommand, so that `/` works as `--` does: `--name=value`, or, for a
+ * one-character name, `-n` above its value as an argument of its own, as
+ * `=` cannot follow a short name. `_class` receives the rebuilt one's class.
+ */
 D_STATIC int
 d_arg_internal_parse_dotted_push(
     const struct d_arg_command* _command,
@@ -364,14 +434,22 @@ d_arg_internal_parse_dotted_push(
            : status;
 }
 
-/*
-d_arg_internal_parse_dotted_taken
-  What follows CLI11's dot notation once the subcommand took the option:
-the subcommand listed as parsed unless silent -- again, should it be
-listed already; the command, not the subcommand, counted once more with
-its pre-parse step, as CLI11 has it; then the subcommand's parse-complete
-callback.
-*/
+/**
+ * @brief Takes what follows CLI11's dot notation once the subcommand took the
+ *        option.
+ *
+ * @param[in,out] _command  the command, counted once more with its pre-parse
+ *                          step.
+ * @param[in,out] _sub      the subcommand, listed as parsed and its
+ *                          parse-complete callback run.
+ * @return D_ARG_OK, or the error a step raised, recorded.
+ *
+ * What follows CLI11's dot notation once the subcommand took the option:
+ * the subcommand listed as parsed unless silent -- again, should it be
+ * listed already; the command, not the subcommand, counted once more with
+ * its pre-parse step, as CLI11 has it; then the subcommand's parse-complete
+ * callback.
+ */
 D_STATIC int
 d_arg_internal_parse_dotted_taken(
     struct d_arg_command* _command,
@@ -397,13 +475,20 @@ d_arg_internal_parse_dotted_taken(
            : status;
 }
 
-/*
-d_arg_internal_parse_dotted_arg
-  CLI11's dot notation for an option, `--sub.name[=value]`: the option,
-rebuilt, offered to `sub` alone, as a local search; not taken, the argument
-is put back as it was. A name no option form could take is never offered,
-as CLI11's check before its offer refuses it.
-*/
+/**
+ * @brief Offers an option argument in CLI11's dot notation to the subcommand it
+ *        names.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _split    the split argument.
+ * @param[out]    _taken    receives whether the subcommand took it.
+ * @return D_ARG_OK, or the error a step raised, recorded.
+ *
+ * CLI11's dot notation for an option, `--sub.name[=value]`: the option,
+ * rebuilt, offered to `sub` alone, as a local search; not taken, the argument
+ * is put back as it was. A name no option form could take is never offered,
+ * as CLI11's check before its offer refuses it.
+ */
 D_STATIC int
 d_arg_internal_parse_dotted_arg(
     struct d_arg_command*                    _command,
@@ -457,12 +542,18 @@ d_arg_internal_parse_dotted_arg(
            : status;
 }
 
-/*
-d_arg_internal_parse_allowance
-  How many of the positionals following an unused option CLI11 keeps with
-it: the next one under assume-single, every one under assume-multiple,
-none otherwise.
-*/
+/**
+ * @brief Tells how many positionals following an unused option CLI11 keeps with
+ *        it.
+ *
+ * @param[in] _command  the command.
+ * @return 1 under assume-single; all that are left under assume-multiple; 0
+ *         otherwise.
+ *
+ * How many of the positionals following an unused option CLI11 keeps with
+ * it: the next one under assume-single, every one under assume-multiple,
+ * none otherwise.
+ */
 D_STATIC size_t
 d_arg_internal_parse_allowance(
     const struct d_arg_command* _command
@@ -479,12 +570,16 @@ d_arg_internal_parse_allowance(
            : 0u;
 }
 
-/*
-d_arg_internal_parse_followers
-  What CLI11 keeps after an unused option: everything that follows, for a
-prefix command that stops at anything unrecognized; else as many of the
-positionals that follow as the extras mode keeps, each an unused argument.
-*/
+/**
+ * @brief Keeps what follows an unused option as CLI11 keeps it.
+ *
+ * @param[in,out] _command  the command.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * What CLI11 keeps after an unused option: everything that follows, for a
+ * prefix command that stops at anything unrecognized; else as many of the
+ * positionals that follow as the extras mode keeps, each an unused argument.
+ */
 D_STATIC int
 d_arg_internal_parse_followers(
     struct d_arg_command* _command
@@ -519,13 +614,23 @@ d_arg_internal_parse_followers(
     return status;
 }
 
-/*
-d_arg_internal_parse_unclaimed
-  The end of CLI11's search for an option: a local search gives up; a
-command that falls through hands the argument to its fallthrough parent's
-search; anywhere else it is unused, with what follows it as the command
-keeps that.
-*/
+/**
+ * @brief Ends CLI11's search for an option no one has.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _split    the split argument.
+ * @param[in]     _local    whether the search is local, as CLI11's dot notation
+ *                          makes it.
+ * @param[out]    _go_on    receives `false` when a local search gives up, and
+ *                          the fallthrough parent's result when it searches;
+ *                          untouched otherwise.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * The end of CLI11's search for an option: a local search gives up; a
+ * command that falls through hands the argument to its fallthrough parent's
+ * search; anywhere else it is unused, with what follows it as the command
+ * keeps that.
+ */
 D_STATIC int
 d_arg_internal_parse_unclaimed(
     struct d_arg_command*                    _command,
@@ -565,14 +670,26 @@ d_arg_internal_parse_unclaimed(
            : status;
 }
 
-/*
-d_arg_internal_parse_unknown
-  CLI11's search for an option the command does not have, in its order:
-the command's option groups; a non-standard short name, which finds an
-option for the caller to go on with; an option group stops there, leaving
-the argument to its parent; then CLI11's dot notation; then the parents,
-or the unused arguments.
-*/
+/**
+ * @brief Searches for an option a command does not have, as CLI11 does.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in,out] _split    the split argument, made over for a non-standard
+ *                          short name.
+ * @param[in]     _local    whether the search is local, as CLI11's dot notation
+ *                          makes it.
+ * @param[out]    _option   receives an option found by a non-standard short
+ *                          name, for the caller to go on with.
+ * @param[out]    _go_on    receives `false` when the argument is left to a
+ *                          parent.
+ * @return D_ARG_OK, or the error a step raised, recorded.
+ *
+ * CLI11's search for an option the command does not have, in its order:
+ * the command's option groups; a non-standard short name, which finds an
+ * option for the caller to go on with; an option group stops there, leaving
+ * the argument to its parent; then CLI11's dot notation; then the parents,
+ * or the unused arguments.
+ */
 D_STATIC int
 d_arg_internal_parse_unknown(
     struct d_arg_command*              _command,
@@ -690,11 +807,15 @@ d_arg_internal_parse_max(
            : (int)D_ARG_EXPECTED_UNLIMITED;
 }
 
-/*
-d_arg_internal_parse_order
-  The option in the command's parse order once more, as CLI11 lists it for
-each value it takes.
-*/
+/**
+ * @brief Lists an option in its command's parse order once more.
+ *
+ * @param[in] _take  the taking: the command and the option.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * The option in the command's parse order once more, as CLI11 lists it for
+ * each value it takes.
+ */
 D_STATIC int
 d_arg_internal_parse_order(
     const struct d_arg_internal_parse_take* _take
@@ -706,12 +827,19 @@ d_arg_internal_parse_order(
                                           _take->option));
 }
 
-/*
-d_arg_internal_parse_collect
-  A value the option takes from the arguments, as CLI11's add_result(value,
-count) adds it -- split, perhaps -- the values it made counted, and the
-option in the parse order.
-*/
+/**
+ * @brief Adds a value an option takes from the arguments, as CLI11's
+ *        add_result(value, count).
+ *
+ * @param[in,out] _take   the taking, whose count of values gains those the
+ *                        value made.
+ * @param[in]     _value  the value.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * A value the option takes from the arguments, as CLI11's add_result(value,
+ * count) adds it -- split, perhaps -- the values it made counted, and the
+ * option in the parse order.
+ */
 D_STATIC int
 d_arg_internal_parse_collect(
     struct d_arg_internal_parse_take* _take,
@@ -730,12 +858,19 @@ d_arg_internal_parse_collect(
            : status;
 }
 
-/*
-d_arg_internal_parse_flag
-  CLI11's get_flag_value for the name given with an input, added as the
-option's value as its add_result(value) adds it -- the value's storage
-becoming the option's own -- and the option in the parse order.
-*/
+/**
+ * @brief Adds the value a flag name given with an input stands for, as CLI11's
+ *        get_flag_value.
+ *
+ * @param[in,out] _take   the taking: the command, the option, and the split
+ *                        name.
+ * @param[in]     _input  the input.
+ * @return D_ARG_OK, or the failure, recorded.
+ *
+ * CLI11's get_flag_value for the name given with an input, added as the
+ * option's value as its add_result(value) adds it -- the value's storage
+ * becoming the option's own -- and the option in the parse order.
+ */
 D_STATIC int
 d_arg_internal_parse_flag(
     struct d_arg_internal_parse_take* _take,
@@ -774,12 +909,18 @@ d_arg_internal_parse_flag(
            : status;
 }
 
-/*
-d_arg_internal_parse_first
-  CLI11's first value of an option argument: a flag's value for an option
-that takes none; else the value after `=`; else what follows a short name,
-which is then used up.
-*/
+/**
+ * @brief Takes the first value of an option argument, as CLI11 does.
+ *
+ * @param[in,out] _take  the taking, whose split's rest is used up when it is
+ *                       the value.
+ * @return D_ARG_OK, or the failure, recorded.
+ *
+ * CLI11's first value of an option argument: a flag's value for an option
+ * that takes none; else the value after `=` -- an empty one too, where the
+ * parser takes `--name=` as one (d_arg_parser_set_empty_values); else what
+ * follows a short name, which is then used up.
+ */
 D_STATIC int
 d_arg_internal_parse_first(
     struct d_arg_internal_parse_take* _take
@@ -794,8 +935,11 @@ d_arg_internal_parse_first(
                                          split->value);
     }
 
-    // `--name=value`
-    if (split->value.length > 0u)
+    // `--name=value`; `--name=`, an empty value, where the parser says so
+    if ( (split->value.length > 0u) ||
+         ( (split->separated) &&
+           ( (_take->command->parser->flags &
+              D_ARG_PARSER_EMPTY_VALUES) != 0u ) ) )
     {
         return d_arg_internal_parse_collect(_take,
                                             split->value);
@@ -812,12 +956,20 @@ d_arg_internal_parse_first(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_parse_mismatch
-  CLI11's ArgumentMismatch for an option's values: TypedAtLeast, "<name>:
-<count> required <type> missing", or PartialType, "<name>: <type> only
-partially specified: <count> required for each element".
-*/
+/**
+ * @brief Records CLI11's TypedAtLeast or PartialType mismatch for an option's
+ *        values.
+ *
+ * @param[in] _take     the taking: the command and the option.
+ * @param[in] _count    the count the message names.
+ * @param[in] _partial  whether it is PartialType, not TypedAtLeast.
+ * @return D_ARG_ERROR_ARGUMENT_MISMATCH, or D_ARG_ERROR_OUT_OF_MEMORY when the
+ *         name or the type could not be written; either recorded.
+ *
+ * CLI11's ArgumentMismatch for an option's values: TypedAtLeast, "<name>:
+ * <count> required <type> missing", or PartialType, "<name>: <type> only
+ * partially specified: <count> required for each element".
+ */
 D_STATIC int
 d_arg_internal_parse_mismatch(
     const struct d_arg_internal_parse_take* _take,
@@ -872,11 +1024,17 @@ d_arg_internal_parse_mismatch(
     return status;
 }
 
-/*
-d_arg_internal_parse_minimum
-  CLI11's gathering of the fewest values an option takes, whatever the
-arguments look like; too few left is its TypedAtLeast mismatch.
-*/
+/**
+ * @brief Gathers the fewest values an option takes, whatever the arguments look
+ *        like.
+ *
+ * @param[in,out] _take  the taking.
+ * @return D_ARG_OK; D_ARG_ERROR_ARGUMENT_MISMATCH, recorded, when too few are
+ *         left; or another failure, recorded.
+ *
+ * CLI11's gathering of the fewest values an option takes, whatever the
+ * arguments look like; too few left is its TypedAtLeast mismatch.
+ */
 D_STATIC int
 d_arg_internal_parse_minimum(
     struct d_arg_internal_parse_take* _take
@@ -905,13 +1063,19 @@ d_arg_internal_parse_minimum(
            : status;
 }
 
-/*
-d_arg_internal_parse_wants
-  Whether CLI11's optional gathering takes the next argument: room left or
-extra arguments taken, an argument that is a positional, more arguments
-left than the required positionals still need, and -- where the command
-validates optional arguments -- validators that accept it.
-*/
+/**
+ * @brief Tells whether CLI11's optional gathering takes the next argument.
+ *
+ * @param[in]  _take     the taking.
+ * @param[in]  _waiting  how many arguments the required positionals still need.
+ * @param[out] _wants    receives whether it takes the argument.
+ * @return D_ARG_OK, or the error a validator stopped with, recorded.
+ *
+ * Whether CLI11's optional gathering takes the next argument: room left or
+ * extra arguments taken, an argument that is a positional, more arguments
+ * left than the required positionals still need, and -- where the command
+ * validates optional arguments -- validators that accept it.
+ */
 D_STATIC int
 d_arg_internal_parse_wants(
     const struct d_arg_internal_parse_take* _take,
@@ -953,12 +1117,16 @@ d_arg_internal_parse_wants(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_parse_optional
-  CLI11's gathering of the values an option takes past its fewest, while it
-wants them; then a `--` that ends them is eaten, and an option that takes a
-value only when given one, given none, takes its flag value.
-*/
+/**
+ * @brief Gathers the values an option takes past its fewest, as CLI11 does.
+ *
+ * @param[in,out] _take  the taking.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * CLI11's gathering of the values an option takes past its fewest, while it
+ * wants them; then a `--` that ends them is eaten, and an option that takes a
+ * value only when given one, given none, takes its flag value.
+ */
 D_STATIC int
 d_arg_internal_parse_optional(
     struct d_arg_internal_parse_take* _take
@@ -1015,13 +1183,19 @@ d_arg_internal_parse_optional(
            : status;
 }
 
-/*
-d_arg_internal_parse_partial
-  CLI11's check that each item was given whole: a count of values that is
-no multiple of the type's largest size is marked with an empty value where
-the size may vary, and refused -- its PartialType mismatch -- where it may
-not.
-*/
+/**
+ * @brief Checks that each item of an option's values was given whole, as CLI11
+ *        does.
+ *
+ * @param[in] _take  the taking.
+ * @return D_ARG_OK; D_ARG_ERROR_ARGUMENT_MISMATCH, recorded as CLI11's
+ *         PartialType; or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * CLI11's check that each item was given whole: a count of values that is
+ * no multiple of the type's largest size is marked with an empty value where
+ * the size may vary, and refused -- its PartialType mismatch -- where it may
+ * not.
+ */
 D_STATIC int
 d_arg_internal_parse_partial(
     struct d_arg_internal_parse_take* _take
@@ -1047,12 +1221,16 @@ d_arg_internal_parse_partial(
                                            true);
 }
 
-/*
-d_arg_internal_parse_gather
-  CLI11's gathering of an option's values: the first from the argument
-itself, the fewest it needs whatever follows, as many more as it takes,
-then an item given in part marked or refused.
-*/
+/**
+ * @brief Gathers an option's values, as CLI11 does.
+ *
+ * @param[in,out] _take  the taking.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * CLI11's gathering of an option's values: the first from the argument
+ * itself, the fewest it needs whatever follows, as many more as it takes,
+ * then an item given in part marked or refused.
+ */
 D_STATIC int
 d_arg_internal_parse_gather(
     struct d_arg_internal_parse_take* _take
@@ -1072,13 +1250,20 @@ d_arg_internal_parse_gather(
            : status;
 }
 
-/*
-d_arg_internal_parse_values
-  The rest of CLI11's _parse_arg once an option takes the argument: a
-separator before its values where asked, a trigger whose callback ran
-started afresh, the values gathered, the trigger's callback, and what
-followed a short name back on the stack as an argument of its own.
-*/
+/**
+ * @brief Takes the rest of CLI11's _parse_arg once an option takes the
+ *        argument.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in,out] _option   the option.
+ * @param[in]     _split    the split argument.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * The rest of CLI11's _parse_arg once an option takes the argument: a
+ * separator before its values where asked, a trigger whose callback ran
+ * started afresh, the values gathered, the trigger's callback, and what
+ * followed a short name back on the stack as an argument of its own.
+ */
 D_STATIC int
 d_arg_internal_parse_values(
     struct d_arg_command*              _command,

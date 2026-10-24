@@ -1,0 +1,113 @@
+# duplicate, remove, rename, move and sort
+$ bitwisedom new --width=8 -o s.json
+$ bitwisedom add s.json ZETA --bit=5
+$ bitwisedom add s.json ALPHA --bit=3
+$ bitwisedom add s.json MID --bit=4
+$ bitwisedom add s.json PAIR --expr='ALPHA | ZETA'
+$ bitwisedom show s.json
+> root    range       bits 0..7     0xFF
+>   FLAG  bit         bit 0         0x01
+> ZETA    bit         bit 5         0x20
+> ALPHA   bit         bit 3         0x08
+> MID     bit         bit 4         0x10
+> PAIR    expression  bits 3 and 5  0x28
+$ bitwisedom duplicate s.json ALPHA MID -v
+! s.json: warning: ALPHA: shares bits 0x8 with ALPHA_COPY
+! s.json: warning: ALPHA_COPY: shares bits 0x8 with ALPHA
+! s.json: warning: MID: shares bits 0x10 with MID_COPY
+! s.json: warning: MID_COPY: shares bits 0x10 with MID
+! bitwisedom: note: ALPHA, MID duplicated as ALPHA_COPY, MID_COPY
+$ bitwisedom duplicate s.json ALPHA ALPHA -v
+! s.json: warning: ALPHA: shares bits 0x8 with ALPHA_COPY_2
+! s.json: warning: ALPHA_COPY_2: shares bits 0x8 with ALPHA
+! s.json: warning: ALPHA_COPY_2: shares bits 0x8 with ALPHA_COPY
+! s.json: warning: ALPHA_COPY: shares bits 0x8 with ALPHA_COPY_2
+! bitwisedom: note: ALPHA duplicated as ALPHA_COPY_2
+$ bitwisedom show s.json
+> root          range       bits 0..7     0xFF
+>   FLAG        bit         bit 0         0x01
+> ZETA          bit         bit 5         0x20
+> ALPHA         bit         bit 3         0x08
+> ALPHA_COPY_2  bit         bit 3         0x08
+> ALPHA_COPY    bit         bit 3         0x08
+> MID           bit         bit 4         0x10
+> MID_COPY      bit         bit 4         0x10
+> PAIR          expression  bits 3 and 5  0x28
+$ bitwisedom remove s.json ALPHA
+! s.json: error: PAIR: unknown name 'ALPHA'
+! bitwisedom: error: nothing was written: it would give the sheet 1 new error; --force writes it anyway
+? 2
+$ bitwisedom remove s.json ALPHA -n -f
+! s.json: error: PAIR: unknown name 'ALPHA'
+! bitwisedom: note: ALPHA removed (a dry run: nothing was written)
+$ bitwisedom remove s.json ALPHA_COPY ALPHA_COPY_2 MID_COPY -v
+! bitwisedom: note: ALPHA_COPY, ALPHA_COPY_2, MID_COPY removed
+$ bitwisedom rename s.json ALPHA FIRST -v
+! bitwisedom: note: ALPHA renamed FIRST; 1 reference rewritten
+$ bitwisedom rename s.json FIRST 2ND
+! bitwisedom: error: '2ND' is not a C identifier
+? 2
+$ bitwisedom rename s.json FIRST ZETA
+! bitwisedom: error: ZETA is already another symbol's name
+? 2
+$ bitwisedom show s.json
+> root    range       bits 0..7     0xFF
+>   FLAG  bit         bit 0         0x01
+> ZETA    bit         bit 5         0x20
+> FIRST   bit         bit 3         0x08
+> MID     bit         bit 4         0x10
+> PAIR    expression  bits 3 and 5  0x28
+$ bitwisedom move s.json PAIR --up -v
+! bitwisedom: note: PAIR moved up
+$ bitwisedom move s.json ZETA --up
+$ bitwisedom move s.json ZETA --before=MID -v
+! bitwisedom: note: ZETA moved before MID
+$ bitwisedom move s.json ZETA --into=root -v
+! bitwisedom: note: ZETA moved into root
+$ bitwisedom move s.json ZETA --into=FIRST
+! bitwisedom: error: ZETA cannot go there: FIRST holds no rows, or is it or in it
+? 2
+$ bitwisedom move s.json ZETA
+! bitwisedom: error: move: say where, once: --up, --down, --before, --after or --into
+! Try 'bitwisedom move --help' for more information.
+? 2
+$ bitwisedom move s.json ZETA --up --down
+! bitwisedom: error: move: say where, once: --up, --down, --before, --after or --into
+! Try 'bitwisedom move --help' for more information.
+? 2
+$ bitwisedom show s.json
+> root    range       bits 0..7     0xFF
+>   FLAG  bit         bit 0         0x01
+>   ZETA  bit         bit 5         0x20
+> FIRST   bit         bit 3         0x08
+> PAIR    expression  bits 3 and 5  0x28
+> MID     bit         bit 4         0x10
+$ bitwisedom sort s.json
+! bitwisedom: error: sort: the sheet shows its rows in its own order: name a KEY (symbol, name, short_name, value, lowest, width, kind or note)
+! Try 'bitwisedom sort --help' for more information.
+? 2
+$ bitwisedom sort s.json name -v
+! bitwisedom: note: rows sorted by name
+$ bitwisedom show s.json
+> FIRST   bit         bit 3         0x08
+> MID     bit         bit 4         0x10
+> PAIR    expression  bits 3 and 5  0x28
+> root    range       bits 0..7     0xFF
+>   FLAG  bit         bit 0         0x01
+>   ZETA  bit         bit 5         0x20
+$ bitwisedom sort s.json lowest --descending -v
+! bitwisedom: note: rows sorted by lowest, descending
+$ bitwisedom show s.json
+> MID     bit         bit 4         0x10
+> FIRST   bit         bit 3         0x08
+> PAIR    expression  bits 3 and 5  0x28
+> root    range       bits 0..7     0xFF
+>   ZETA  bit         bit 5         0x20
+>   FLAG  bit         bit 0         0x01
+$ bitwisedom sort s.json nme
+! bitwisedom: error: sort: KEY: 'nme' is not symbol, name, short_name, value, lowest, width, kind or note; did you mean 'name'?
+! Try 'bitwisedom sort --help' for more information.
+? 2
+$ bitwisedom set s.json grid.sort_by=value
+$ bitwisedom sort s.json -v
+! bitwisedom: note: rows sorted by value

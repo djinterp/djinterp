@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_parser.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 
 /*
@@ -33,6 +33,7 @@ TABLE OF CONTENTS
     1.  Parser flags
          1.  D_ARG_PARSER_RESPONSE_FILES
          2.  D_ARG_PARSER_SUGGESTIONS
+         3.  D_ARG_PARSER_EMPTY_VALUES
     2.  Argument flags
          1.  D_ARG_ARGS_REVERSED
          2.  D_ARG_ARGS_COPY
@@ -81,6 +82,7 @@ TABLE OF CONTENTS
     2.  Extensions
          1.  d_arg_parser_set_response_files
          2.  d_arg_parser_set_suggestions
+         3.  d_arg_parser_set_empty_values
 7.  ERRORS
     ------
     1.  The last parse
@@ -135,6 +137,12 @@ TABLE OF CONTENTS
 // likely meant; see d_arg_parser_set_suggestions. Set by default, and read
 // only with D_INTERNAL_ARG_PARSER_SUGGESTIONS.
 #define D_ARG_PARSER_SUGGESTIONS    0x00000002u
+
+// 1.1.3
+// D_ARG_PARSER_EMPTY_VALUES
+//   constant: `--name=` gives its option an empty value, as getopt_long
+// gives one; see d_arg_parser_set_empty_values.
+#define D_ARG_PARSER_EMPTY_VALUES   0x00000004u
 
 // 1.2    Argument flags
 //------------------------------------------------------------------------------
@@ -724,8 +732,8 @@ void    d_arg_parser_set_output(struct d_arg_parser* _parser,
 // 6.2.1
 // d_arg_parser_set_response_files
 /**
- * @brief Makes an `@file` argument stand for the arguments its file holds,
- *        as GCC's and MSVC's do.
+ * @brief Makes an `\@file` argument stand for the arguments its file
+ *        holds, as GCC's and MSVC's do.
  *
  * @note Before parsing, an argument starting with `@` -- unless it follows
  *       `--` -- is replaced by the words of its file, split as
@@ -738,7 +746,7 @@ void    d_arg_parser_set_output(struct d_arg_parser* _parser,
  *       d_arg_parser_parse_line. Off at first.
  *
  * @param[in,out] _parser   the parser.
- * @param[in]     _enabled  whether `@file` is replaced.
+ * @param[in]     _enabled  whether `\@file` is replaced.
  * @param[in]     _quoting  a d_arg_quoting value, the rules a file is split
  *                          by; D_ARG_QUOTING_NATIVE_RESPONSE for the
  *                          platform's.
@@ -769,6 +777,26 @@ void    d_arg_parser_set_suggestions(struct d_arg_parser* _parser,
                                      bool                 _enabled);
 
 #endif  // D_INTERNAL_ARG_PARSER_SUGGESTIONS
+
+// 6.2.3
+// d_arg_parser_set_empty_values
+/**
+ * @brief Makes `--name=` give its option an empty value, as getopt_long
+ *        and every GNU program give one.
+ *
+ * @note CLI11 reads `--name=` as `--name` alone, so an option that takes a
+ *       value takes the argument after it: `--note= --title=x` sets the
+ *       note to "--title=x". With this on, the `=` is the end of the value,
+ *       which is empty, and the argument after it is left to be read as
+ *       what it is; `/name:` is read alike. A flag is not changed: given an
+ *       empty value, it takes the value a flag given none takes, as CLI11
+ *       gives it. Off at first, as CLI11 has it.
+ *
+ * @param[in,out] _parser   the parser.
+ * @param[in]     _enabled  whether `--name=` is an empty value.
+ */
+void    d_arg_parser_set_empty_values(struct d_arg_parser* _parser,
+                                      bool                 _enabled);
 
 
 //==============================================================================

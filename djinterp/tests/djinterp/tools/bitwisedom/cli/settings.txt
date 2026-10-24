@@ -1,0 +1,39 @@
+# set and get: the settings by the paths the window's Options show
+$ bitwisedom new --width=16 -o s.json
+$ bitwisedom get s.json gen.level
+> c99
+$ bitwisedom get s.json gen.level gen.form grid.lines
+> gen.level=c99
+> gen.form=macros
+> grid.lines=true
+$ bitwisedom get s.json gen.level --format=json
+> { "gen.level": "c99" }
+$ bitwisedom set s.json gen.level=c11 grid.lines=false -v
+! bitwisedom: note: set gen.level=c11, grid.lines=false
+$ bitwisedom get s.json gen.level grid.lines
+> gen.level=c11
+> grid.lines=false
+$ bitwisedom set s.json gen.levle=c11
+! bitwisedom: error: set: 'gen.levle' is not a setting; did you mean 'gen.level'?
+! Try 'bitwisedom set --help' for more information.
+? 2
+$ bitwisedom set s.json gen.level=c13
+! bitwisedom: error: set: gen.level: 'c13' is not c99, c11, c17, c23, cpp98, cpp11, cpp14, cpp17, cpp20 or cpp23; did you mean 'c11'?
+! Try 'bitwisedom set --help' for more information.
+? 2
+$ bitwisedom set s.json gen.level
+! bitwisedom: error: set: 'gen.level' is not KEY=VALUE
+! Try 'bitwisedom set --help' for more information.
+? 2
+$ bitwisedom set s.json grid.major_every=99
+! bitwisedom: error: set: grid.major_every: '99' is not an integer from 2 to 32
+! Try 'bitwisedom set --help' for more information.
+? 2
+$ bitwisedom set s.json gen.level=c17 -n
+! bitwisedom: note: set gen.level=c17 (a dry run: nothing was written)
+$ bitwisedom get s.json gen.level
+> c11
+$ bitwisedom get s.json nothing.here
+! bitwisedom: error: get: 'nothing.here' is not a setting; 'bitwisedom get' lists them
+! Try 'bitwisedom get --help' for more information.
+? 2
