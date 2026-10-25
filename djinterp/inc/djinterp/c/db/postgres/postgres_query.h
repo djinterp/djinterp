@@ -23,8 +23,9 @@
 *   ROWS. The server sends values as text, which the layer reads by the
 * column's type: boolean as an INTEGER, 1 or 0; smallint, integer, bigint
 * and oid as INTEGER; real and double precision as REAL, NaN and the
-* infinities included, read exactly from the shortest text servers from 12
-* write (before 12, extra_float_digits decides how many digits come); bytea
+* infinities included, read exactly: every connection the layer makes sets
+* extra_float_digits to 3, unless options of the caller's set it, so that a
+* server before 12 writes every digit, and from 12 the shortest exact; bytea
 * as a BLOB, decoded from the text, hex or escaped; and every other value --
 * numeric among them, which a double cannot hold exactly -- as TEXT. A
 * column's type is read from its type's OID, and type_name is the type's
@@ -51,7 +52,7 @@
 * path:      /inc/djinterp/c/db/postgres/postgres_query.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -79,9 +80,10 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict
-// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
-// ruling of 2026.10.03 on round 3's question 1, (a)).
+// declares only where the build can spell one. Below it -- ISO strict C++98
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
+// question 1, (a)).
 #if defined(INT64_MAX)
 
 

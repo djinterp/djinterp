@@ -17,7 +17,7 @@
 * path:      /tests/djinterp/c/db/mariadb/t_mariadb_stubs.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // std
 #include <stdio.h>   // printf
@@ -112,7 +112,7 @@ d_tests_mariadb_stubs_common(
         !d_mariadb_server_at_least(db, D_MARIADB_FLAVOR_MARIADB, 0u, 0u, 0u));
 
     for (int f = D_MARIADB_FEATURE_CTE;
-         f <= D_MARIADB_FEATURE_SYSTEM_VERSIONING;
+         f <= D_MARIADB_FEATURE_QUERY_ATTRIBUTES;
          ++f)
     {
         D_TESTS_MARIADB_STUBS_CHECK(
@@ -146,7 +146,8 @@ d_tests_mariadb_stubs_connection
   Tests the following:
   - connect and adopt fail, leaving NULL behind, connect_with's reason too
   - close accepts NULL, and refuses anything else, which no build made
-  - ping fails; ids, counts and warnings are 0
+  - changing user, resetting and ping fail; ids, counts and warnings are 0;
+    no option reads back
 */
 static void
 d_tests_mariadb_stubs_connection(
@@ -160,6 +161,7 @@ d_tests_mariadb_stubs_connection(
     const struct d_mariadb_setting setting = { D_MARIADB_SETTING_COMPRESS, 1ul,
                                                NULL, NULL };
     char*                          status  = (char*)(void*)&g_marker;
+    unsigned int                   number  = 0u;
 
     printf("mariadb_connection\n");
 
@@ -184,6 +186,8 @@ d_tests_mariadb_stubs_connection(
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_close(db));
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(
         d_mariadb_change_user(db, "user", "password", NULL));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_reset_connection(db));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_reset_connection(NULL));
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_ping(db));
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_connection_id(db) == 0ul);
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_server_status(db, &status));
@@ -191,17 +195,19 @@ d_tests_mariadb_stubs_connection(
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_last_insert_id(db) == 0u);
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_changes(db) == 0);
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_warning_count(db) == 0u);
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_get_option(db, 0, &number));
 
     return;
 }
 
 /*
 d_tests_mariadb_stubs_query
-  Statements, counts, values, rows and quoting.
+  Statements, counts, values, rows, quoting and query attributes.
   Tests the following:
   - every statement and query is D_DB_UNSUPPORTED, its count, value or rows
     untouched
   - quoting gives NULL
+  - setting and clearing query attributes are D_DB_UNSUPPORTED
 */
 static void
 d_tests_mariadb_stubs_query(
@@ -247,6 +253,9 @@ d_tests_mariadb_stubs_query(
                                  (rows.row_count == 7u) );
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_quote_identifier("x") == NULL);
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_quote_literal(db, "x") == NULL);
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+        d_mariadb_set_query_attribute(db, "name", "value"));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_clear_query_attributes(db));
 
     return;
 }
@@ -259,7 +268,7 @@ d_tests_mariadb_stubs_statement
     prepare does
   - finalizing succeeds; the describers answer 0 and NULL
   - every bind, clear and run is D_DB_UNSUPPORTED, the count and the rows
-    untouched
+    untouched; so is every cursor call
 */
 static void
 d_tests_mariadb_stubs_statement(
@@ -305,6 +314,10 @@ d_tests_mariadb_stubs_statement(
         d_mariadb_execute_update(statement, &changes));
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(
         d_mariadb_execute_query(statement, &rows));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_open_cursor(statement));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+        d_mariadb_fetch_rows(statement, 2u, &rows));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_close_cursor(statement));
     D_TESTS_MARIADB_STUBS_CHECK(changes == 7);
     D_TESTS_MARIADB_STUBS_CHECK( (rows.column_count == 7u) &&
                                  (rows.row_count == 7u) );
@@ -362,7 +375,7 @@ d_tests_mariadb_stubs_tables(
 {
     struct d_mariadb* const  db      = (struct d_mariadb*)(void*)&g_marker;
     const struct d_db_column column  = { "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u,
-                                         0u, NULL };
+                                         0u, NULL, 0u };
     struct d_db_name_list    names   = { 3u, NULL };
     struct d_db_column_list  columns = { 3u, NULL };
     int64_t                  count   = 7;
@@ -497,10 +510,11 @@ d_tests_mariadb_stubs_transaction(
 
 /*
 d_tests_mariadb_stubs_settings
-  Session settings.
+  Session settings, and the session's changes.
   Tests the following:
   - every setter and getter is D_DB_UNSUPPORTED, the getters' outputs
     untouched
+  - the session's changes are D_DB_UNSUPPORTED, the list untouched
 */
 static void
 d_tests_mariadb_stubs_settings(
@@ -512,6 +526,7 @@ d_tests_mariadb_stubs_settings(
     enum d_mariadb_isolation level   = D_MARIADB_ISOLATION_SERIALIZABLE;
     unsigned                 seconds = 7u;
     char*                    text    = (char*)(void*)&g_marker;
+    struct d_db_name_list    entries = { 7u, NULL };
 
     printf("mariadb_settings\n");
 
@@ -537,10 +552,14 @@ d_tests_mariadb_stubs_settings(
         d_mariadb_set_variable(db, "wait_timeout", "10"));
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(
         d_mariadb_get_variable(db, "wait_timeout", &text));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+        d_mariadb_session_track(db, D_MARIADB_TRACK_SCHEMA, &entries));
     D_TESTS_MARIADB_STUBS_CHECK(enabled);
     D_TESTS_MARIADB_STUBS_CHECK(level == D_MARIADB_ISOLATION_SERIALIZABLE);
     D_TESTS_MARIADB_STUBS_CHECK(seconds == 7u);
     D_TESTS_MARIADB_STUBS_CHECK(text == (char*)(void*)&g_marker);
+    D_TESTS_MARIADB_STUBS_CHECK( (entries.count == 7u) &&
+                                 (entries.names == NULL) );
 
     return;
 }

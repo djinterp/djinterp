@@ -11,25 +11,36 @@
 * typed as mariadb_query.h describes, so that a value reads the same whether
 * it came through a statement or a query. Each run reads every result the
 * statement produced, so the connection is ready for the next statement
-* whatever the run did; the values stay bound. d_mariadb_finalize releases
-* the statement.
+* whatever the run did; the values stay bound. d_mariadb_open_cursor runs a
+* statement whose rows d_mariadb_fetch_rows then reads a few at a time, as
+* the server sends them, until a fetch comes back short or
+* d_mariadb_close_cursor ends the run. d_mariadb_finalize releases the
+* statement.
 *   RESULTS. As every module's (mariadb_common.h): 0, or the client's error
 * number for a failure -- a server error, such as 1062 (a duplicate key),
 * which d_mariadb_error_message on the statement's connection then
 * describes; CR_INVALID_PARAMETER_NO (2034) for a parameter the statement
-* does not have; CR_OUT_OF_MEMORY (2008); D_DB_INVALID_ARGUMENT for an
-* argument that cannot be right.
+* does not have; CR_OUT_OF_MEMORY (2008); CR_COMMANDS_OUT_OF_SYNC (2014)
+* while another statement's run holds the connection; D_DB_INVALID_ARGUMENT
+* for an argument that cannot be right.
 *   The binary protocol sends what the client asks for; the layer asks for
 * each value as text, the protocol's text, and reads it as a query's.
-*   A statement belongs to its connection. Finalize it before closing the
-* connection, which the client otherwise leaves the statement unable to do
-* anything but be finalized.
+*   A RUN A FEW ROWS AT A TIME holds its connection until it ends, the server
+* still sending its rows: every function on the connection that would send it
+* anything -- another statement's prepare or run, a query, a ping -- is
+* CR_COMMANDS_OUT_OF_SYNC (2014) meanwhile, having sent nothing. Running the
+* statement again, or finalizing it, ends its run first, reading the rest of
+* its rows away. Another statement finalized meanwhile is released at once;
+* the server is told when the connection is next free.
+*   A statement belongs to its connection. Closing the connection leaves its
+* statements unable to run -- each run is then D_DB_INVALID_ARGUMENT -- and
+* only to be finalized; a run still open ends with it.
 *
 *
 * path:      /inc/djinterp/c/db/mariadb/mariadb_statement.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -48,6 +59,7 @@ TABLE OF CONTENTS
     -------
     1.  Rows changed
     2.  Rows
+    3.  Rows a few at a time
 */
 
 #ifndef DJINTERP_C_DB_MARIADB_MARIADB_STATEMENT_H
@@ -63,9 +75,10 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict
-// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
-// ruling of 2026.10.03 on round 3's question 1, (a)).
+// declares only where the build can spell one. Below it -- ISO strict C++98
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
+// question 1, (a)).
 #if defined(INT64_MAX)
 
 
@@ -89,7 +102,8 @@ D_EXTERN_C_BEGIN
  *                         prepare.
  * @return 0; the client's error number for the failure, which
  *         d_mariadb_error_message describes; CR_OUT_OF_MEMORY (2008);
- *         D_DB_INVALID_ARGUMENT for a `NULL` argument.
+ *         CR_COMMANDS_OUT_OF_SYNC (2014) while a statement's run holds the
+ *         connection; D_DB_INVALID_ARGUMENT for a `NULL` argument.
  * @post On success the caller releases `*_statement` with
  *       d_mariadb_finalize.
  */
@@ -120,6 +134,11 @@ int    d_mariadb_preparef(struct d_mariadb*            _db,
 /**
  * @brief Releases a statement, and the server's copy of it.
  *
+ * @note A run of its own ends first, read to its end. While another
+ *       statement's run holds the connection, the server is told once the
+ *       connection is free -- before the layer's next command on it, or at
+ *       its close.
+ *
  * @param[in] _statement  the statement; may be `NULL`.
  * @return 0, or the client's error number when the server could not be told,
  *         the statement released all the same.
@@ -131,7 +150,7 @@ int    d_mariadb_finalize(struct d_mariadb_statement* _statement) D_NOTHROW;
 //------------------------------------------------------------------------------
 // describing -- _parameter_count is the number of `?` the statement has, 0
 // for NULL; _statement_connection is the connection it belongs to, NULL for
-// NULL
+// NULL or once that connection is closed
 size_t d_mariadb_parameter_count(const struct d_mariadb_statement* _statement)
        D_NOTHROW;
 struct d_mariadb*
@@ -150,10 +169,11 @@ struct d_mariadb*
 // until another is bound or the values are cleared: NULL; a boolean, as 1 or
 // 0; an integer; a real number; text, copied, NULL binding NULL; bytes,
 // `_size` of them copied, NULL binding NULL and a pointer to none the empty
-// string of bytes. Each returns 0; CR_INVALID_PARAMETER_NO (2034) for a
-// parameter the statement does not have; CR_OUT_OF_MEMORY (2008); or
-// D_DB_INVALID_ARGUMENT for a NULL statement, or text or bytes longer than
-// the client can send.
+// string of bytes. A run already begun keeps the values it began with; those
+// bound meanwhile serve the next. Each returns 0; CR_INVALID_PARAMETER_NO
+// (2034) for a parameter the statement does not have; CR_OUT_OF_MEMORY
+// (2008); or D_DB_INVALID_ARGUMENT for a NULL statement, or text or bytes
+// longer than the client can send.
 int    d_mariadb_bind_null(struct d_mariadb_statement* _statement,
                            size_t                      _index) D_NOTHROW;
 int    d_mariadb_bind_bool(struct d_mariadb_statement* _statement,
@@ -197,9 +217,11 @@ int    d_mariadb_clear_bindings(struct d_mariadb_statement* _statement)
  *                         matched), or the rows it returned; 0 for a
  *                         statement that counts none; may be `NULL`.
  * @return 0; the client's error number for the failure; CR_OUT_OF_MEMORY
- *         (2008); D_DB_INVALID_ARGUMENT for a `NULL` statement.
- * @post Every result the statement produced has been read; its values stay
- *       bound.
+ *         (2008); CR_COMMANDS_OUT_OF_SYNC (2014) while another statement's
+ *         run holds the connection; D_DB_INVALID_ARGUMENT for a `NULL`
+ *         statement, or one whose connection is closed.
+ * @post A run of its own that was open has ended, read to its end. Every
+ *       result the statement produced has been read; its values stay bound.
  */
 int    d_mariadb_execute_update(struct d_mariadb_statement* _statement,
                                 int64_t*                    _changes)
@@ -214,14 +236,66 @@ int    d_mariadb_execute_update(struct d_mariadb_statement* _statement,
  * @param[out] _rows       receives the rows, typed as mariadb_query.h
  *                         describes; written only on success.
  * @return 0; the client's error number for the failure; CR_OUT_OF_MEMORY
- *         (2008) when the rows could not be built; D_DB_INVALID_ARGUMENT for
- *         a `NULL` argument.
- * @post Every result the statement produced has been read, the rows of the
- *       first kept; its values stay bound. On success the caller releases
- *       `_rows` with d_db_rows_free.
+ *         (2008) when the rows could not be built; CR_COMMANDS_OUT_OF_SYNC
+ *         (2014) while another statement's run holds the connection;
+ *         D_DB_INVALID_ARGUMENT for a `NULL` argument, or a statement whose
+ *         connection is closed.
+ * @post A run of its own that was open has ended, read to its end. Every
+ *       result the statement produced has been read, the rows of the first
+ *       kept; its values stay bound. On success the caller releases `_rows`
+ *       with d_db_rows_free.
  */
 int    d_mariadb_execute_query(struct d_mariadb_statement* _statement,
                                struct d_db_rows*           _rows) D_NOTHROW;
+
+// 3.3    Rows a few at a time
+//------------------------------------------------------------------------------
+/**
+ * @brief Runs a statement whose rows d_mariadb_fetch_rows then reads a few
+ *        at a time, as the server sends them, rather than all at once.
+ *
+ * @note The run holds the connection until it ends, as the banner describes;
+ *       a run of the statement's own that was open ends first, read to its
+ *       end.
+ *
+ * @param[in] _statement  the statement, its values bound.
+ * @return 0; the client's error number for the failure, the run not begun;
+ *         CR_OUT_OF_MEMORY (2008); CR_COMMANDS_OUT_OF_SYNC (2014) while
+ *         another statement's run holds the connection;
+ *         D_DB_INVALID_ARGUMENT for a `NULL` statement, or one whose
+ *         connection is closed.
+ */
+int    d_mariadb_open_cursor(struct d_mariadb_statement* _statement)
+       D_NOTHROW;
+/**
+ * @brief Reads the next rows of the run d_mariadb_open_cursor began.
+ *
+ * @param[in]  _statement  the statement.
+ * @param[in]  _max        the most rows to read; 1 or more.
+ * @param[out] _rows       receives the columns and up to `_max` rows, typed
+ *                         as mariadb_query.h describes; fewer -- none among
+ *                         them -- once the run has none left, which ends it,
+ *                         every result after the first read and discarded,
+ *                         as d_mariadb_execute_query reads them. A statement
+ *                         that returns no rows has no columns either, and
+ *                         its first fetch ends its run. Written only on
+ *                         success.
+ * @return 0; the client's error number for a failure, which ends the run;
+ *         CR_OUT_OF_MEMORY (2008) when the rows could not be built, which
+ *         ends it too, read to its end; D_DB_INVALID_ARGUMENT for a `NULL`
+ *         argument, no rows asked for, or no run open.
+ * @post On success the caller releases `_rows` with d_db_rows_free.
+ */
+int    d_mariadb_fetch_rows(struct d_mariadb_statement* _statement,
+                            size_t                      _max,
+                            struct d_db_rows*           _rows) D_NOTHROW;
+// ending a run -- _close_cursor ends the run d_mariadb_open_cursor began,
+// reading away whatever rows and results it had left, so that the
+// connection is free again: 0, or the client's error number for a result
+// after the first that failed, the run ended all the same; 0 for a statement
+// with no run open; D_DB_INVALID_ARGUMENT for NULL
+int    d_mariadb_close_cursor(struct d_mariadb_statement* _statement)
+       D_NOTHROW;
 
 
 D_EXTERN_C_END

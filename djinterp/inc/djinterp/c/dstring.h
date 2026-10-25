@@ -11,7 +11,7 @@
 * path:      /inc/djinterp/c/dstring.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 
 /*
@@ -1154,7 +1154,7 @@ bool             d_string_append_formatted(struct d_string* _string,
  *
  * @param[in,out] _string  the string to modify.
  * @param[in]     _other   the string to prepend.
- * @pre    `_other` is not `_string` itself.
+ * @note   `_other` may be `_string` itself (decision 121 of the register).
  * @post   pointers previously obtained into `_string`'s buffer may be
  *         invalidated.
  * @return `true` on success, or `false` if either argument is `NULL` or
@@ -1287,7 +1287,8 @@ void             d_string_clear(struct d_string* _string);
  * @param[in]     _index        starting index of replacement.
  * @param[in]     _count        number of characters to replace.
  * @param[in]     _replacement  the string to insert.
- * @pre    `_replacement` is not `_string` itself.
+ * @note   `_replacement` may be `_string` itself (decision 121 of the
+ *         register).
  * @post   pointers previously obtained into `_string`'s buffer may be
  *         invalidated.
  * @return `true` on success, or `false` if either argument is `NULL`, `_index`
@@ -1306,8 +1307,8 @@ bool             d_string_replace(struct d_string*       _string,
  * @param[in]     _index        starting index of replacement.
  * @param[in]     _count        number of characters to replace.
  * @param[in]     _replacement  the C string to insert.
- * @pre    `_replacement` does not point into `_string`'s own buffer, which
- *         growing may free.
+ * @note   `_replacement` may point into `_string`'s own text (decision 121
+ *         of the register).
  * @post   pointers previously obtained into `_string`'s buffer may be
  *         invalidated.
  * @return `true` on success, or `false` if either argument is `NULL`, `_index`
@@ -1427,6 +1428,9 @@ struct d_string* d_string_reversed(const struct d_string* _string);
 /**
  * @brief Removes leading and trailing whitespace in place.
  *
+ * @note White space is ASCII only (' ' and \\t to \\r): a byte above 0x7F
+ *       is never one, whatever the locale (decision 123 of the register).
+ *
  * @param[in,out] _string  the string to trim.
  * @return `true` on success, or `false` if `_string` is `NULL`.
  */
@@ -1434,12 +1438,18 @@ bool             d_string_trim(struct d_string* _string);
 /**
  * @brief Removes leading whitespace in place.
  *
+ * @note White space is ASCII only (' ' and \\t to \\r): a byte above 0x7F
+ *       is never one, whatever the locale (decision 123 of the register).
+ *
  * @param[in,out] _string  the string to trim.
  * @return `true` on success, or `false` if `_string` is `NULL`.
  */
 bool             d_string_trim_left(struct d_string* _string);
 /**
  * @brief Removes trailing whitespace in place.
+ *
+ * @note White space is ASCII only (' ' and \\t to \\r): a byte above 0x7F
+ *       is never one, whatever the locale (decision 123 of the register).
  *
  * @param[in,out] _string  the string to trim.
  * @return `true` on success, or `false` if `_string` is `NULL`.
@@ -1457,6 +1467,9 @@ bool             d_string_trim_chars(struct d_string* _string,
 /**
  * @brief Returns a copy with leading and trailing whitespace removed.
  *
+ * @note White space is ASCII only, as d_string_trim() reads it (decision
+ *       123 of the register).
+ *
  * @param[in] _string  the string to copy and trim.
  * @post   on success the caller owns the result and releases it with
  *         d_string_free().
@@ -1467,6 +1480,9 @@ struct d_string* d_string_trimmed(const struct d_string* _string);
 /**
  * @brief Returns a copy with leading whitespace removed.
  *
+ * @note White space is ASCII only, as d_string_trim() reads it (decision
+ *       123 of the register).
+ *
  * @param[in] _string  the string to copy and trim.
  * @post   on success the caller owns the result and releases it with
  *         d_string_free().
@@ -1476,6 +1492,9 @@ struct d_string* d_string_trimmed(const struct d_string* _string);
 struct d_string* d_string_trimmed_left(const struct d_string* _string);
 /**
  * @brief Returns a copy with trailing whitespace removed.
+ *
+ * @note White space is ASCII only, as d_string_trim() reads it (decision
+ *       123 of the register).
  *
  * @param[in] _string  the string to copy and trim.
  * @post   on success the caller owns the result and releases it with

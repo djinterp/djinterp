@@ -12,7 +12,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_command_util.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_command.h"  // corresponding header
 // std
@@ -42,11 +42,17 @@ struct d_arg_internal_command_trigger
     bool                   enable;
 };
 
-/*
-d_arg_internal_command_trigger_fn
-  The callback CLI11's TriggerOn and TriggerOff install: each target
-enabled, or disabled, as the trigger is met.
-*/
+/**
+ * @brief Enables or disables a trigger's targets.
+ *
+ * @param[in] _command    the trigger command; unused.
+ * @param[in] _remaining  the arguments left; unused.
+ * @param[in] _context    the d_arg_internal_command_trigger.
+ * @return D_ARG_OK.
+ *
+ * The callback CLI11's TriggerOn and TriggerOff install: each target
+ * enabled, or disabled, as the trigger is met.
+ */
 D_STATIC int
 d_arg_internal_command_trigger_fn(
     struct d_arg_command* _command,
@@ -70,11 +76,19 @@ d_arg_internal_command_trigger_fn(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_command_check_targets
-  The targets a trigger may take: none NULL, and every one of the
-trigger's parser, another parser's being refused and recorded.
-*/
+/**
+ * @brief Checks the targets a trigger may take.
+ *
+ * @param[in] _trigger  the trigger command.
+ * @param[in] _targets  the targets.
+ * @param[in] _count    how many.
+ * @return D_ARG_OK; D_ARG_ERROR_BAD_ARGUMENT for no list, or a NULL target;
+ *         D_ARG_ERROR_INCORRECT_CONSTRUCTION, recorded as a definition error,
+ *         for another parser's target.
+ *
+ * The targets a trigger may take: none NULL, and every one of the
+ * trigger's parser, another parser's being refused and recorded.
+ */
 D_STATIC int
 d_arg_internal_command_check_targets(
     const struct d_arg_command*  _trigger,
@@ -110,13 +124,26 @@ d_arg_internal_command_check_targets(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_command_install_trigger
-  CLI11's TriggerOn and TriggerOff: the targets checked and copied first,
-so that a refusal changes nothing; then each target's startup -- disabled
-for TriggerOn, enabled for TriggerOff -- and the trigger's pre-parse
-callback, replacing any it had.
-*/
+/**
+ * @brief Installs CLI11's TriggerOn or TriggerOff.
+ *
+ * @param[in,out] _trigger  the trigger command, whose pre-parse callback is
+ *                          replaced.
+ * @param[in]     _targets  the targets, each then starting disabled for
+ *                          TriggerOn and enabled for TriggerOff.
+ * @param[in]     _count    how many.
+ * @param[in]     _enable   whether the trigger enables its targets, as
+ *                          TriggerOn.
+ * @return D_ARG_OK; D_ARG_ERROR_BAD_ARGUMENT for no trigger, no list, or a NULL
+ *         target; otherwise D_ARG_ERROR_INCORRECT_CONSTRUCTION or
+ *         D_ARG_ERROR_OUT_OF_MEMORY, recorded as a definition error; nothing
+ *         changed on failure.
+ *
+ * CLI11's TriggerOn and TriggerOff: the targets checked and copied first,
+ * so that a refusal changes nothing; then each target's startup -- disabled
+ * for TriggerOn, enabled for TriggerOff -- and the trigger's pre-parse
+ * callback, replacing any it had.
+ */
 D_STATIC int
 d_arg_internal_command_install_trigger(
     struct d_arg_command*        _trigger,
@@ -253,11 +280,16 @@ d_arg_internal_command_untrigger(
 // 2.  LIFE CYCLE OF OPTIONS
 //==============================================================================
 
-/*
-d_arg_internal_command_warn
-  Writes one warning about the option a validation runs for, where its
-parser writes help; nothing without a parser.
-*/
+/**
+ * @brief Writes a warning about an option where its parser writes help.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _before  the words before its name.
+ * @param[in] _after   the words after it.
+ *
+ * Writes one warning about the option a validation runs for, where its
+ * parser writes help; nothing without a parser.
+ */
 D_STATIC void
 d_arg_internal_command_warn(
     const struct d_arg_option* _option,
@@ -287,11 +319,16 @@ d_arg_internal_command_warn(
     return;
 }
 
-/*
-d_arg_internal_command_deprecated
-  CLI11's deprecation warning: "<name> is deprecated please use
-'<replacement>' instead", the value passing.
-*/
+/**
+ * @brief Warns that a deprecated option was used, as CLI11 does.
+ *
+ * @param[in] _validator   the validator, whose data is the replacement's name.
+ * @param[in] _validation  the validation, whose value passes.
+ * @return D_ARG_OK.
+ *
+ * CLI11's deprecation warning: "<name> is deprecated please use
+ * '<replacement>' instead", the value passing.
+ */
 D_STATIC int
 d_arg_internal_command_deprecated(
     const struct d_arg_validator* _validator,
@@ -317,10 +354,15 @@ d_arg_internal_command_deprecated(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_command_copy_context
-  The deprecation validator's context, copied with it.
-*/
+/**
+ * @brief Copies the deprecation validator's context.
+ *
+ * @param[in] _context  the replacement's name.
+ * @return the copy, which the caller frees; NULL when it could not be
+ *         allocated.
+ *
+ * The deprecation validator's context, copied with it.
+ */
 D_STATIC void*
 d_arg_internal_command_copy_context(
     const void* _context
@@ -329,12 +371,21 @@ d_arg_internal_command_copy_context(
     return d_arg_internal_copy_cstr((const char*)_context);
 }
 
-/*
-d_arg_internal_command_warning
-  A check made of a warning function, applying to the first value only, as
-CLI11's application_index(0) makes it, with the context it owns; a check
-that could not be made frees the context and is recorded.
-*/
+/**
+ * @brief Adds a check made of a warning function to an option.
+ *
+ * @param[in,out] _option       the option.
+ * @param[in]     _warn         the warning function.
+ * @param[in]     _context      its context, a string the check owns from the
+ *                              call on; NULL for none.
+ * @param[in]     _description  the check's description; NULL for none.
+ * @return D_ARG_OK; otherwise the failure, recorded as a definition error,
+ *         `_context` freed when the check could not be made.
+ *
+ * A check made of a warning function, applying to the first value only, as
+ * CLI11's application_index(0) makes it, with the context it owns; a check
+ * that could not be made frees the context and is recorded.
+ */
 D_STATIC int
 d_arg_internal_command_warning(
     struct d_arg_option* _option,
@@ -374,11 +425,17 @@ d_arg_internal_command_warning(
                               NULL);
 }
 
-/*
-d_arg_internal_command_deprecate_text
-  The description CLI11 gives a deprecated option with a replacement: its
-own, then " DEPRECATED: please use '<replacement>' instead".
-*/
+/**
+ * @brief Gives a deprecated option CLI11's description naming its replacement.
+ *
+ * @param[in,out] _option       the option.
+ * @param[in]     _replacement  the replacement's name.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded as a definition
+ *         error.
+ *
+ * The description CLI11 gives a deprecated option with a replacement: its
+ * own, then " DEPRECATED: please use '<replacement>' instead".
+ */
 D_STATIC int
 d_arg_internal_command_deprecate_text(
     struct d_arg_option* _option,
@@ -450,10 +507,51 @@ d_arg_command_deprecate_option(
 }
 
 /*
-d_arg_internal_command_retired
-  CLI11's retirement warning: "WARNING <name> is retired and has no
-effect", the value passing.
+d_arg_command_deprecate_option_name
+  CLI11's deprecate_option(app, name): its get_option, whose failure is the
+OptionNotFound it throws, then deprecate_option on what it found.
 */
+int
+d_arg_command_deprecate_option_name(
+    struct d_arg_command* _command,
+    const char*           _name,
+    const char*           _replacement
+)
+{
+    // validate the parameters
+    if ( (!_command) ||
+         (!_name) )
+    {
+        return D_ARG_ERROR_BAD_ARGUMENT;
+    }
+
+    struct d_arg_option* const found = d_arg_command_option(_command,
+                                                            _name);
+
+    // no option of the name: CLI11's OptionNotFound
+    if (!found)
+    {
+        return d_arg_internal_fail_definition(_command,
+                                              NULL,
+                                              D_ARG_ERROR_OPTION_NOT_FOUND,
+                                              "%s not found",
+                                              _name);
+    }
+
+    return d_arg_command_deprecate_option(found,
+                                          _replacement);
+}
+
+/**
+ * @brief Warns that a retired option was used, as CLI11 does.
+ *
+ * @param[in] _validator   the validator; unused.
+ * @param[in] _validation  the validation, whose value passes.
+ * @return D_ARG_OK.
+ *
+ * CLI11's retirement warning: "WARNING <name> is retired and has no
+ * effect", the value passing.
+ */
 D_STATIC int
 d_arg_internal_command_retired(
     const struct d_arg_validator* _validator,
@@ -469,12 +567,19 @@ d_arg_internal_command_retired(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_command_try_names
-  The temporary App CLI11's retire_option adds the names to first: a root
-of the same parser with CLI11's help flag, refusing what CLI11's would --
-a flag's `{value}`, a non-standard short name, `-h` -- and recording it.
-*/
+/**
+ * @brief Tries an option's names on a temporary root, as CLI11's retire_option
+ *        does first.
+ *
+ * @param[in] _command  the command whose parser the temporary root shares.
+ * @param[in] _names    the names.
+ * @return `true` when a root with CLI11's help flag takes the names; `false`
+ *         otherwise, the refusal recorded as a definition error.
+ *
+ * The temporary App CLI11's retire_option adds the names to first: a root
+ * of the same parser with CLI11's help flag, refusing what CLI11's would --
+ * a flag's `{value}`, a non-standard short name, `-h` -- and recording it.
+ */
 D_STATIC bool
 d_arg_internal_command_try_names(
     struct d_arg_command* _command,
@@ -517,12 +622,18 @@ struct d_arg_internal_command_shape
     bool extra;
 };
 
-/*
-d_arg_internal_command_retire_shape
-  What CLI11's retire_option gives the retired option, in its order: the
-type name and default "RETIRED", the old option's item sizes, count and
-extra-argument switch, then the warning.
-*/
+/**
+ * @brief Gives a retired option what CLI11's retire_option gives it.
+ *
+ * @param[in,out] _retired  the retired option.
+ * @param[in]     _shape    the old option's item sizes, count and
+ *                          extra-argument switch.
+ * @return D_ARG_OK; otherwise the failure, recorded as a definition error.
+ *
+ * What CLI11's retire_option gives the retired option, in its order: the
+ * type name and default "RETIRED", the old option's item sizes, count and
+ * extra-argument switch, then the warning.
+ */
 D_STATIC int
 d_arg_internal_command_retire_shape(
     struct d_arg_option*                       _retired,
@@ -558,11 +669,61 @@ d_arg_internal_command_retire_shape(
            : status;
 }
 
+/**
+ * @brief Puts a retired option in an option's place: the option removed,
+ *        when the command owns it, and one under the same names, given the
+ *        old option's shape, added.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in,out] _option   the option retired, removed and released when the
+ *                          command owns it.
+ * @param[in]     _names    the option's names, as a definition gives them.
+ * @param[in]     _shape    the old option's item sizes, count and
+ *                          extra-argument switch.
+ * @return the retired option; NULL, the failure recorded, when it cannot be
+ *         made or given its shape -- none is then left in its place.
+ *
+ * A retired option that cannot be given its shape is refused whole, as any
+ * refused definition is, leaving nothing behind.
+ */
+D_STATIC struct d_arg_option*
+d_arg_internal_command_retire_in_place(
+    struct d_arg_command*                      _command,
+    struct d_arg_option*                       _option,
+    const char*                                _names,
+    const struct d_arg_internal_command_shape* _shape
+)
+{
+    (void)d_arg_command_remove_option(_command,
+                                      _option);
+
+    struct d_arg_option* const retired =
+        d_arg_command_add_option(_command,
+                                 _names,
+                                 "option has been retired and has no effect");
+
+    // refused, recorded
+    if (!retired)
+    {
+        return NULL;
+    }
+
+    const int shaped = d_arg_internal_command_retire_shape(retired,
+                                                           _shape);
+
+    return (shaped == D_ARG_OK)
+           ? retired
+           : d_arg_internal_command_refuse_option(_command,
+                                                  retired,
+                                                  shaped);
+}
+
 /*
 d_arg_command_retire_option
   CLI11's retire_option(app, opt): the names tried on a temporary command,
 the shape kept, the option removed -- when the command owns it -- and one
-taking the same values, doing nothing, added in its place.
+taking the same values, doing nothing, added in its place; a retired option
+that cannot be given its shape is refused whole.
 */
 struct d_arg_option*
 d_arg_command_retire_option(
@@ -586,10 +747,11 @@ d_arg_command_retire_option(
         d_arg_option_has_flag(_option,
                               D_ARG_OPTION_ALLOW_EXTRA_ARGS)
     };
-    struct d_arg_buffer names  = D_ARG_BUFFER_INIT;
-    const int           status = d_arg_option_name(_option,
-                                                   D_ARG_NAME_ALL,
-                                                   &names);
+    struct d_arg_buffer  names   = D_ARG_BUFFER_INIT;
+    const int            status  = d_arg_option_name(_option,
+                                                     D_ARG_NAME_ALL,
+                                                     &names);
+    struct d_arg_option* retired = NULL;
 
     // the names, written and tried
     if (status != D_ARG_OK)
@@ -602,33 +764,23 @@ d_arg_command_retire_option(
     else if (d_arg_internal_command_try_names(_command,
                                               d_arg_buffer_text(&names).data))
     {
-        (void)d_arg_command_remove_option(_command,
-                                          _option);
-
-        struct d_arg_option* const retired =
-            d_arg_command_add_option(
-                _command,
-                d_arg_buffer_text(&names).data,
-                "option has been retired and has no effect");
-
-        d_arg_buffer_release(&names);
-
-        return ( (retired != NULL) &&
-                 (d_arg_internal_command_retire_shape(retired,
-                                                      &shape) == D_ARG_OK) )
-               ? retired
-               : NULL;
+        retired = d_arg_internal_command_retire_in_place(
+                      _command,
+                      _option,
+                      d_arg_buffer_text(&names).data,
+                      &shape);
     }
 
     d_arg_buffer_release(&names);
 
-    return NULL;
+    return retired;
 }
 
 /*
 d_arg_command_retire_option_name
   CLI11's retire_option(app, name): an option the name finds is retired;
-otherwise a retired option is added, taking at most one value.
+otherwise a retired option is added, taking at most one value; one that
+cannot be finished is refused whole.
 */
 struct d_arg_option*
 d_arg_command_retire_option_name(
@@ -677,13 +829,18 @@ d_arg_command_retire_option_name(
                                                "RETIRED");
     }
 
-    return ( (status == D_ARG_OK) &&
-             (d_arg_internal_command_warning(retired,
-                                             d_arg_internal_command_retired,
-                                             NULL,
-                                             NULL) == D_ARG_OK) )
+    status = (status == D_ARG_OK)
+             ? d_arg_internal_command_warning(retired,
+                                              d_arg_internal_command_retired,
+                                              NULL,
+                                              NULL)
+             : status;
+
+    return (status == D_ARG_OK)
            ? retired
-           : NULL;
+           : d_arg_internal_command_refuse_option(_command,
+                                                  retired,
+                                                  status);
 }
 
 //==============================================================================

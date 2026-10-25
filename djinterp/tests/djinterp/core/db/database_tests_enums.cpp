@@ -5,8 +5,12 @@
 * path:      /tests/djinterp/core/db/database_tests_enums.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.23
 *******************************************************************************/
+#include "../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
 // djinterp
 // tests for db/database.hpp section II (enumerations + type aliases)
 #include "database_tests.hpp"
@@ -19,7 +23,7 @@ namespace testing
       Verifies database_type's fixed underlying type, its exact enumerator
       values, and that distinct vendors compare unequal.
       Tests the following:
-      - underlying type is std::uint16_t
+      - underlying type is re_std::uint16_t
       - unknown is 0 and each vendor has its documented value
       - representative enumerators are mutually distinct
     */
@@ -27,23 +31,23 @@ namespace testing
     tests_database_type_enum()
     {
         D_DB_CHECK((std::is_same<std::underlying_type_t<database_type>,
-                                 std::uint16_t>::value));
+                                 re_std::uint16_t>::value));
 
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::unknown)    == 0x00);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::mariadb)    == 0x01);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::mysql)      == 0x02);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::postgresql) == 0x03);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::sqlite)     == 0x04);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::mongodb)    == 0x05);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::redis)      == 0x06);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::arangodb)   == 0x07);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::oracle)     == 0x08);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::mssql)      == 0x09);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::db2)        == 0x0A);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::firebase)   == 0x0B);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::cassandra)  == 0x0C);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::couchdb)    == 0x0D);
-        D_DB_CHECK(static_cast<std::uint16_t>(database_type::neo4j)      == 0x0E);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::unknown)    == 0x00);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::mariadb)    == 0x01);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::mysql)      == 0x02);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::postgresql) == 0x03);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::sqlite)     == 0x04);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::mongodb)    == 0x05);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::redis)      == 0x06);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::arangodb)   == 0x07);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::oracle)     == 0x08);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::mssql)      == 0x09);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::db2)        == 0x0A);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::firebase)   == 0x0B);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::cassandra)  == 0x0C);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::couchdb)    == 0x0D);
+        D_DB_CHECK(static_cast<re_std::uint16_t>(database_type::neo4j)      == 0x0E);
 
         D_DB_CHECK(database_type::mysql != database_type::mariadb);
         D_DB_CHECK(database_type::unknown != database_type::sqlite);
@@ -151,13 +155,13 @@ namespace testing
         D_DB_CHECK(std::holds_alternative<bool>(v));
         D_DB_CHECK(std::get<bool>(v) == true);
 
-        v = static_cast<std::int32_t>(-7);
-        D_DB_CHECK(std::holds_alternative<std::int32_t>(v));
-        D_DB_CHECK(std::get<std::int32_t>(v) == -7);
+        v = static_cast<re_std::int32_t>(-7);
+        D_DB_CHECK(std::holds_alternative<re_std::int32_t>(v));
+        D_DB_CHECK(std::get<re_std::int32_t>(v) == -7);
 
-        v = static_cast<std::int64_t>(9000000000LL);
-        D_DB_CHECK(std::holds_alternative<std::int64_t>(v));
-        D_DB_CHECK(std::get<std::int64_t>(v) == 9000000000LL);
+        v = static_cast<re_std::int64_t>(9000000000LL);
+        D_DB_CHECK(std::holds_alternative<re_std::int64_t>(v));
+        D_DB_CHECK(std::get<re_std::int64_t>(v) == 9000000000LL);
 
         v = 3.14;
         D_DB_CHECK(std::holds_alternative<double>(v));
@@ -167,10 +171,10 @@ namespace testing
         D_DB_CHECK(std::holds_alternative<std::string>(v));
         D_DB_CHECK(std::get<std::string>(v) == "hello");
 
-        v = std::vector<std::uint8_t>{ 0xDE, 0xAD, 0xBE, 0xEF };
-        D_DB_CHECK(std::holds_alternative<std::vector<std::uint8_t>>(v));
-        D_DB_CHECK(std::get<std::vector<std::uint8_t>>(v).size() == 4);
-        D_DB_CHECK(std::get<std::vector<std::uint8_t>>(v)[0] == 0xDE);
+        v = std::vector<re_std::uint8_t>{ 0xDE, 0xAD, 0xBE, 0xEF };
+        D_DB_CHECK(std::holds_alternative<std::vector<re_std::uint8_t>>(v));
+        D_DB_CHECK(std::get<std::vector<re_std::uint8_t>>(v).size() == 4);
+        D_DB_CHECK(std::get<std::vector<re_std::uint8_t>>(v)[0] == 0xDE);
 
         const auto now = std::chrono::system_clock::now();
         v = now;
@@ -192,11 +196,11 @@ namespace testing
     tests_type_aliases()
     {
         parameter_map params;
-        params["id"]   = static_cast<std::int32_t>(42);
+        params["id"]   = static_cast<re_std::int32_t>(42);
         params["name"] = std::string("widget");
 
         D_DB_CHECK(params.size() == 2);
-        D_DB_CHECK(std::get<std::int32_t>(params.at("id")) == 42);
+        D_DB_CHECK(std::get<re_std::int32_t>(params.at("id")) == 42);
         D_DB_CHECK(std::get<std::string>(params.at("name")) == "widget");
 
         row r;
@@ -216,3 +220,5 @@ namespace testing
 
 }   // namespace testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

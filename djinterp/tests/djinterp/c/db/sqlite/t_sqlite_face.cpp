@@ -26,7 +26,7 @@
 * path:      /tests/djinterp/c/db/sqlite/t_sqlite_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // std
 #include <cstdio>   // std::printf, std::remove
@@ -314,9 +314,9 @@ d_tests_sqlite_face_conversions(
     static const struct d_db_column people[] =
     {
         { "id",   D_DB_TYPE_BIG_INTEGER, D_DB_COLUMN_PRIMARY_KEY, 0, 0u, 0u,
-          0 },
+          0, 0u },
         { "name", D_DB_TYPE_STRING,      D_DB_COLUMN_NOT_NULL, "'?'", 20u,
-          0u, 0 }
+          0u, 0, 0u }
     };
     const std::string        notes("notes");
     face::name_list          names;
@@ -491,7 +491,8 @@ d_tests_sqlite_face_cpp20(
 {
     static const struct d_db_column columns[] =
     {
-        { "id", D_DB_TYPE_BIG_INTEGER, D_DB_COLUMN_PRIMARY_KEY, 0, 0u, 0u, 0 }
+        { "id", D_DB_TYPE_BIG_INTEGER, D_DB_COLUMN_PRIMARY_KEY,
+          0, 0u, 0u, 0, 0u }
     };
     re_std::int64_t count = -1;
 
@@ -797,6 +798,68 @@ d_tests_sqlite_face_statements(
         }
     }
 #endif  // D_INTERNAL_DB_FACE_EXPECTED
+
+    return;
+}
+
+/*
+d_tests_sqlite_face_cursors
+  Rows a few at a time through the statement face: pages no longer than asked
+for, and a short one ending the run; the connection free meanwhile, and a fetch
+after the end beginning another run; a run closed part-way; from C++23 a page
+returned.
+*/
+void
+d_tests_sqlite_face_cursors(
+    face::sqlite& _db
+)
+{
+    face::sqlite_statement select;
+    face::rows             page;
+
+    std::printf("rows a few at a time\n");
+
+    D_TESTS_SQLITE_FACE_CHECK(
+        _db.prepare(select,
+                    "SELECT 1 UNION ALL SELECT 2 "
+                    "UNION ALL SELECT 3") == RESULT_OK);
+    D_TESTS_SQLITE_FACE_CHECK(select.open_cursor() == RESULT_OK);
+    D_TESTS_SQLITE_FACE_CHECK(select.fetch_rows(2u, page) == RESULT_OK);
+    D_TESTS_SQLITE_FACE_CHECK( (page.row_count() == 2u) &&
+                               (page.column_count() == 1u) );
+    D_TESTS_SQLITE_FACE_CHECK(_db.exec("SELECT 1") == RESULT_OK);
+    D_TESTS_SQLITE_FACE_CHECK(select.fetch_rows(2u, page) == RESULT_OK);
+    D_TESTS_SQLITE_FACE_CHECK( (page.row_count() == 1u) &&
+                               (page.value(0u, 0u)->as.integer == 3) );
+    D_TESTS_SQLITE_FACE_CHECK(select.fetch_rows(2u, page) == RESULT_OK);
+    D_TESTS_SQLITE_FACE_CHECK(page.row_count() == 2u);
+    D_TESTS_SQLITE_FACE_CHECK(select.close_cursor() == RESULT_OK);
+    D_TESTS_SQLITE_FACE_CHECK(_db.exec("SELECT 1") == RESULT_OK);
+
+    // closed part-way, and again
+    D_TESTS_SQLITE_FACE_CHECK(select.open_cursor() == RESULT_OK);
+    D_TESTS_SQLITE_FACE_CHECK(select.fetch_rows(1u, page) == RESULT_OK);
+    D_TESTS_SQLITE_FACE_CHECK(select.close_cursor() == RESULT_OK);
+    D_TESTS_SQLITE_FACE_CHECK(_db.exec("SELECT 1") == RESULT_OK);
+    D_TESTS_SQLITE_FACE_CHECK(select.close_cursor() == RESULT_OK);
+
+#if D_INTERNAL_DB_FACE_EXPECTED
+    // a page returned: three rows fill the first exactly, and the next is
+    // empty, its columns still described
+    D_TESTS_SQLITE_FACE_CHECK(select.open_cursor() == RESULT_OK);
+    {
+        const auto full = select.fetch_rows(3u);
+        const auto rest = select.fetch_rows(3u);
+
+        D_TESTS_SQLITE_FACE_CHECK( (full.has_value()) &&
+                                   (full->row_count() == 3u) );
+        D_TESTS_SQLITE_FACE_CHECK( (rest.has_value())           &&
+                                   (rest->row_count() == 0u)    &&
+                                   (rest->column_count() == 1u) );
+    }
+#endif  // D_INTERNAL_DB_FACE_EXPECTED
+
+    D_TESTS_SQLITE_FACE_CHECK(select.finalize() == RESULT_OK);
 
     return;
 }
@@ -1124,6 +1187,10 @@ d_tests_sqlite_face_stubs(
     D_TESTS_SQLITE_FACE_CHECK(db.prepare(statement, "SELECT 1") ==
                               D_DB_UNSUPPORTED);
     D_TESTS_SQLITE_FACE_CHECK(!statement.is_prepared());
+    D_TESTS_SQLITE_FACE_CHECK(statement.open_cursor() == D_DB_UNSUPPORTED);
+    D_TESTS_SQLITE_FACE_CHECK(statement.fetch_rows(1u, found) ==
+                              D_DB_UNSUPPORTED);
+    D_TESTS_SQLITE_FACE_CHECK(statement.close_cursor() == D_DB_UNSUPPORTED);
     D_TESTS_SQLITE_FACE_CHECK(db.query_rows(found, "SELECT 1") ==
                               D_DB_UNSUPPORTED);
     D_TESTS_SQLITE_FACE_CHECK(found.empty());
@@ -1197,6 +1264,7 @@ main(
         d_tests_sqlite_face_cpp23(db);
 #endif  // D_INTERNAL_DB_FACE_EXPECTED
         d_tests_sqlite_face_statements(db);
+    d_tests_sqlite_face_cursors(db);
         d_tests_sqlite_face_modules(db);
         d_tests_sqlite_face_guards(db);
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER

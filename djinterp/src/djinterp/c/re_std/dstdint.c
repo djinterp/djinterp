@@ -40,7 +40,7 @@
 * path:      /src/djinterp/c/re_std/dstdint.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/re_std/cstdint/dstdint.h"  // the header verified
 // re_std
@@ -334,7 +334,7 @@ library's row to dstdint.h, 2.4.2; or pin the header's own backend
 /*
 Presence
   A family is present or absent as a whole: its limit macro is defined exactly
-when all of its names are, which is what makes `#ifdef INT64_MAX` a sufficient
+when all of its names are, which is what makes `#if RE_STD_HAS_INT64` a sufficient
 test. An exact-width family also implies the minimum-width family of its
 width. The 8-bit families' scanf formats are required only where the language
 has their `hh` modifier.
@@ -370,7 +370,7 @@ has their `hh` modifier.
     #error "dstdint.h: the int32_t family is incomplete"
 #endif
 
-#if ( (defined(INT64_MAX))                                  &&                \
+#if ( (RE_STD_HAS_INT64)                                  &&                \
       ( (!defined(INT64_MIN))  || (!defined(UINT64_MAX))    ||                \
         (!defined(PRId64))     || (!defined(PRIi64))        ||                \
         (!defined(PRIo64))     || (!defined(PRIu64))        ||                \
@@ -555,7 +555,7 @@ right and one that tests any other name wrong.
     #error "dstdint.h: the int32_t family is defined in part"
 #endif
 
-#if ( (!defined(INT64_MAX))                                 &&                \
+#if ( (!RE_STD_HAS_INT64)                                 &&                \
       ( (defined(INT64_MIN))  || (defined(UINT64_MAX)) ||                     \
         (defined(PRId64))     || (defined(PRIi64))     ||                     \
         (defined(PRIo64))     || (defined(PRIu64))     ||                     \
@@ -713,7 +713,7 @@ not preprocess at all.
     #endif
 #endif  // INT32_MAX
 
-#ifdef INT64_MAX
+#if RE_STD_HAS_INT64
     #if ( ((INT64_MAX >> 62)  != 1)              ||                           \
           (((INT64_MAX >> 31) >> 31) != 1)        ||                          \
           (INT64_MIN != -INT64_MAX - 1)           ||                          \
@@ -721,7 +721,7 @@ not preprocess at all.
           ((UINT64_MAX & 0xffffffffU) != 0xffffffffU) )
         #error "dstdint.h: a 64-bit limit is wrong in #if"
     #endif
-#endif  // INT64_MAX
+#endif  // RE_STD_HAS_INT64
 
 #ifdef INT_LEAST8_MAX
     #if ( (INT8_C(127)   != 127)  ||                                          \
@@ -794,11 +794,11 @@ Exact-width families
     D_INTERNAL_STDINT_VERIFY_EXACT(int32, 32, int32_t, UINT32_MAX);
 #endif  // INT32_MAX
 
-#ifdef INT64_MAX
+#if RE_STD_HAS_INT64
     D_INTERNAL_STDINT_VERIFY_FAMILY(int64, int64_t, uint64_t,
                                     INT64_MIN, INT64_MAX, UINT64_MAX);
     D_INTERNAL_STDINT_VERIFY_EXACT(int64, 64, int64_t, UINT64_MAX);
-#endif  // INT64_MAX
+#endif  // RE_STD_HAS_INT64
 
 
 /*
@@ -871,10 +871,10 @@ exists, the minimum-width type is its size.
                               (int_least64_t)(UINT64_C(18446744073709551615)
                                               >> 1)));
 
-    #ifdef INT64_MAX
+    #if RE_STD_HAS_INT64
         D_INTERNAL_STDINT_VERIFY(least64_narrowest,
                                  sizeof(int_least64_t) == sizeof(int64_t));
-    #endif  // INT64_MAX
+    #endif  // RE_STD_HAS_INT64
 #endif  // INT_LEAST64_MAX
 
 
@@ -1178,11 +1178,11 @@ relies on the checks above.
                 D_INTERNAL_STDINT_SAME(uint32_t, __UINT32_TYPE__));
         #endif  // INT32_MAX
 
-        #ifdef INT64_MAX
+        #if RE_STD_HAS_INT64
             D_INTERNAL_STDINT_VERIFY(int64_identity,
                 D_INTERNAL_STDINT_SAME(int64_t, __INT64_TYPE__) &&
                 D_INTERNAL_STDINT_SAME(uint64_t, __UINT64_TYPE__));
-        #endif  // INT64_MAX
+        #endif  // RE_STD_HAS_INT64
 
         #ifdef INT_LEAST8_MAX
             #ifdef INT8_MAX
@@ -1227,7 +1227,7 @@ relies on the checks above.
         #endif  // INT_LEAST32_MAX
 
         #ifdef INT_LEAST64_MAX
-            #ifdef INT64_MAX
+            #if RE_STD_HAS_INT64
                 D_INTERNAL_STDINT_VERIFY(least64_identity,
                     D_INTERNAL_STDINT_SAME(int_least64_t, int64_t) &&
                     D_INTERNAL_STDINT_SAME(uint_least64_t, uint64_t));
@@ -1237,7 +1237,7 @@ relies on the checks above.
                                            __INT_LEAST64_TYPE__) &&
                     D_INTERNAL_STDINT_SAME(uint_least64_t,
                                            __UINT_LEAST64_TYPE__));
-            #endif  // INT64_MAX
+            #endif  // RE_STD_HAS_INT64
         #endif  // INT_LEAST64_MAX
 
         //   but where the compiler is overruled by the platform's choice
@@ -1429,7 +1429,7 @@ types are Clang's own choice.
                                          __INT32_, __UINT32_);
     #endif
 
-    #if ( (defined(INT64_MAX)) &&                                             \
+    #if ( (RE_STD_HAS_INT64) &&                                             \
           (defined(__INT64_FMTd__)) )
         D_INTERNAL_STDINT_VERIFY_FORMATS(int64, 64, int64_t,
                                          __INT64_, __UINT64_);
@@ -1469,7 +1469,7 @@ types are Clang's own choice.
     #endif  // INT_LEAST32_MAX
 
     #ifdef INT_LEAST64_MAX
-        #if ( (defined(INT64_MAX)) &&                                         \
+        #if ( (RE_STD_HAS_INT64) &&                                         \
               (defined(__INT64_FMTd__)) )
             D_INTERNAL_STDINT_VERIFY_FORMATS(least64, LEAST64, int_least64_t,
                                              __INT64_, __UINT64_);
@@ -1531,7 +1531,7 @@ types are Clang's own choice.
         #endif  // INT_FAST32_MAX
 
         #ifdef INT_FAST64_MAX
-            #if ( (defined(INT64_MAX)) &&                                     \
+            #if ( (RE_STD_HAS_INT64) &&                                     \
                   (defined(__INT64_FMTd__)) )
                 D_INTERNAL_STDINT_VERIFY_FORMATS(fast64, FAST64, int_fast64_t,
                                                  __INT64_, __UINT64_);

@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/env/util/compress/env_compress_link.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.04
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -44,22 +44,14 @@ TABLE OF CONTENTS
 =================
 1.  CONFIGURATION
     -------------
-    1.  Master switch
-         1.  D_CFG_ENV_AUTOLINK
-    2.  MSVC gate and link-request helper
+    1.  MSVC gate and link-request helper
          1.  D_INTERNAL_ENV_AUTOLINK_LIB
-2.  LIBRARY NAME DEFAULTS
-    ---------------------
-    1.  Debug builds
-         1.  D_CFG_ENV_AUTOLINK_*_LIB (debug)
-    2.  Release builds
-         1.  D_CFG_ENV_AUTOLINK_*_LIB (release)
-3.  CODEC LINK REQUESTS
+2.  CODEC LINK REQUESTS
     -------------------
     1.  Codec libraries
-         1.  D_CFG_ENV_AUTOLINK_LZMA_STATIC
+         1.  LZMA_API_STATIC
          2.  Codec link requests
-4.  ARCHIVE LINK REQUESTS
+3.  ARCHIVE LINK REQUESTS
     ---------------------
     1.  Archive libraries
          1.  Archive link requests
@@ -69,7 +61,8 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_UTIL_COMPRESS_ENV_COMPRESS_LINK_H 1
 
 // djinterp
-#include "../../env.h"  // D_ENV_BUILD_DEBUG
+#include "../../../config/core/env/util/compress/cfg_env_compress_link.h"
+                // D_CFG_ENV_AUTOLINK, its library names, its liblzma switch
 
 
 //==============================================================================
@@ -77,18 +70,11 @@ TABLE OF CONTENTS
 //==============================================================================
 
 
-// 1.1    Master switch
-//------------------------------------------------------------------------------
-// 1.1.1
-// D_CFG_ENV_AUTOLINK
-//   configuration: master toggle for pragma-based auto-linking. defaults to 1;
-// define to 0 from the build system to route every third-party link through
-// the build system instead.
-#ifndef D_CFG_ENV_AUTOLINK
-    #define D_CFG_ENV_AUTOLINK 1
-#endif  // D_CFG_ENV_AUTOLINK
+// The knobs -- the master switch, each library's name and liblzma's static
+// switch -- are cfg_env_compress_link.h's (decision 105 of the register).
 
-// 1.2    MSVC gate and link-request helper
+
+// 1.1    MSVC gate and link-request helper
 //------------------------------------------------------------------------------
 //   the rest of this header is a no-op unless the compiler is MSVC-family (cl
 // or clang-cl, which define _MSC_VER and accept `#pragma comment(lib, ...)`)
@@ -99,7 +85,7 @@ TABLE OF CONTENTS
 #if ( (defined(_MSC_VER)) &&                                                   \
       (D_CFG_ENV_AUTOLINK) )
 
-    // 1.2.1
+    // 1.1.1
     // D_INTERNAL_ENV_AUTOLINK_LIB
     //   macro: emit a link request for the library named by `name`, a string
     // literal (or a macro expanding to one). __pragma is used, not #pragma, so
@@ -108,122 +94,28 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 2.  LIBRARY NAME DEFAULTS
-//==============================================================================
-// Each name is a single string literal, so it can be handed straight to the
-// comment pragma. Each default is guarded with #ifndef, so a build-system
-// override (a -D of any D_CFG_ENV_AUTOLINK_*_LIB macro) wins. Debug names
-// follow vcpkg's "d"-suffixed layout; adjust through the override macros
-// where a library deviates.
-
-
-    #if defined(D_ENV_BUILD_DEBUG)
-
-// 2.1    Debug builds
-//------------------------------------------------------------------------------
-        // 2.1.1
-        // D_CFG_ENV_AUTOLINK_*_LIB (debug)
-        //   configuration: the library file each link request names: ZLIB,
-        // LZMA, BZIP2, ZSTD, LZ4, the three BROTLI libraries, LIBARCHIVE, and
-        // LIBZIP.
-        #ifndef D_CFG_ENV_AUTOLINK_ZLIB_LIB
-            #define D_CFG_ENV_AUTOLINK_ZLIB_LIB          "zlibd.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_ZLIB_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_LZMA_LIB
-            #define D_CFG_ENV_AUTOLINK_LZMA_LIB          "lzmad.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_LZMA_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_BZIP2_LIB
-            #define D_CFG_ENV_AUTOLINK_BZIP2_LIB         "bz2d.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_BZIP2_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_ZSTD_LIB
-            #define D_CFG_ENV_AUTOLINK_ZSTD_LIB          "zstd.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_ZSTD_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_LZ4_LIB
-            #define D_CFG_ENV_AUTOLINK_LZ4_LIB           "lz4d.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_LZ4_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_BROTLIENC_LIB
-            #define D_CFG_ENV_AUTOLINK_BROTLIENC_LIB     "brotliencd.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_BROTLIENC_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_BROTLIDEC_LIB
-            #define D_CFG_ENV_AUTOLINK_BROTLIDEC_LIB     "brotlidecd.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_BROTLIDEC_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_BROTLICOMMON_LIB
-            #define D_CFG_ENV_AUTOLINK_BROTLICOMMON_LIB  "brotlicommond.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_BROTLICOMMON_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_LIBARCHIVE_LIB
-            #define D_CFG_ENV_AUTOLINK_LIBARCHIVE_LIB    "archive.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_LIBARCHIVE_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_LIBZIP_LIB
-            #define D_CFG_ENV_AUTOLINK_LIBZIP_LIB        "zip.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_LIBZIP_LIB
-
-    #else
-
-// 2.2    Release builds
-//------------------------------------------------------------------------------
-        // 2.2.1
-        // D_CFG_ENV_AUTOLINK_*_LIB (release)
-        //   configuration: as 2.1.1's debug names, without the "d" suffix.
-        #ifndef D_CFG_ENV_AUTOLINK_ZLIB_LIB
-            #define D_CFG_ENV_AUTOLINK_ZLIB_LIB          "zlib.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_ZLIB_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_LZMA_LIB
-            #define D_CFG_ENV_AUTOLINK_LZMA_LIB          "lzma.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_LZMA_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_BZIP2_LIB
-            #define D_CFG_ENV_AUTOLINK_BZIP2_LIB         "bz2.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_BZIP2_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_ZSTD_LIB
-            #define D_CFG_ENV_AUTOLINK_ZSTD_LIB          "zstd.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_ZSTD_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_LZ4_LIB
-            #define D_CFG_ENV_AUTOLINK_LZ4_LIB           "lz4.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_LZ4_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_BROTLIENC_LIB
-            #define D_CFG_ENV_AUTOLINK_BROTLIENC_LIB     "brotlienc.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_BROTLIENC_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_BROTLIDEC_LIB
-            #define D_CFG_ENV_AUTOLINK_BROTLIDEC_LIB     "brotlidec.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_BROTLIDEC_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_BROTLICOMMON_LIB
-            #define D_CFG_ENV_AUTOLINK_BROTLICOMMON_LIB  "brotlicommon.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_BROTLICOMMON_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_LIBARCHIVE_LIB
-            #define D_CFG_ENV_AUTOLINK_LIBARCHIVE_LIB    "archive.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_LIBARCHIVE_LIB
-        #ifndef D_CFG_ENV_AUTOLINK_LIBZIP_LIB
-            #define D_CFG_ENV_AUTOLINK_LIBZIP_LIB        "zip.lib"
-        #endif  // D_CFG_ENV_AUTOLINK_LIBZIP_LIB
-
-    #endif  // D_ENV_BUILD_DEBUG
-
-
-//==============================================================================
-// 3.  CODEC LINK REQUESTS
+// 2.  CODEC LINK REQUESTS
 //==============================================================================
 // Emitted only when env_compress.h has been included by this translation
 // unit, and then only for codecs that were detected.
 
 
-// 3.1    Codec libraries
+// 2.1    Codec libraries
 //------------------------------------------------------------------------------
     #ifdef DJINTERP_ENV_UTIL_COMPRESS_ENV_COMPRESS_H
 
-        // 3.1.1
-        // D_CFG_ENV_AUTOLINK_LZMA_STATIC
-        //   configuration: liblzma's static switch. When static linking is
-        // requested, LZMA_API_STATIC must be defined before <lzma.h> is
-        // included, so the API is not decorated __declspec(dllimport); include
-        // this header ahead of <lzma.h> for the definition to take effect.
-        #ifndef D_CFG_ENV_AUTOLINK_LZMA_STATIC
-            #define D_CFG_ENV_AUTOLINK_LZMA_STATIC 0
-        #endif  // D_CFG_ENV_AUTOLINK_LZMA_STATIC
+        // 2.1.1
+        // LZMA_API_STATIC
+        //   macro: liblzma's static switch, defined when
+        // D_CFG_ENV_AUTOLINK_LZMA_STATIC (cfg_env_compress_link.h) asks for
+        // static linking. It must precede <lzma.h>: include this header
+        // ahead of it.
         #if ( (D_CFG_ENV_AUTOLINK_LZMA_STATIC) &&                              \
               (!defined(LZMA_API_STATIC)) )
             #define LZMA_API_STATIC 1
         #endif
 
-        // 3.1.2
+        // 2.1.2
         // Codec link requests
         //   one D_INTERNAL_ENV_AUTOLINK_LIB per detected codec.
         #if D_ENV_COMPRESSION_HAVE_ZLIB
@@ -258,7 +150,7 @@ TABLE OF CONTENTS
 
 
 //==============================================================================
-// 4.  ARCHIVE LINK REQUESTS
+// 3.  ARCHIVE LINK REQUESTS
 //==============================================================================
 // Emitted only when env_archive.h has been included by this translation unit,
 // and then only for backends that were detected. minizip, libtar, and the
@@ -267,11 +159,11 @@ TABLE OF CONTENTS
 // a build needs them.
 
 
-// 4.1    Archive libraries
+// 3.1    Archive libraries
 //------------------------------------------------------------------------------
     #ifdef DJINTERP_ENV_UTIL_ARCHIVE_ENV_ARCHIVE_H
 
-        // 4.1.1
+        // 3.1.1
         // Archive link requests
         //   one D_INTERNAL_ENV_AUTOLINK_LIB per detected archive backend.
         #if D_ENV_ARCHIVE_HAVE_LIBARCHIVE

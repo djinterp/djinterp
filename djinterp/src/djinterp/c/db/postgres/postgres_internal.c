@@ -15,7 +15,7 @@
 * path:      /src/djinterp/c/db/postgres/postgres_internal.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -31,6 +31,7 @@
 #include <string.h>  // memcpy, strchr, strcmp, strlen
 // djinterp
 #include "../../../../../inc/djinterp/c/db/db_common.h"  // D_DB_*, the lists
+#include "../../../../../inc/djinterp/env/c/env_vendor_attributes.h"  // D_THREAD_LOCAL
 #include "../db_internal.h"  // buffers, builders, formatting, numbers
 // re_std
 #include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
@@ -162,6 +163,26 @@ d_internal_postgres_abandon_copy(
 }
 
 /*
+d_internal_postgres_pipelined
+  PQpipelineStatus is libpq 14's: the header must declare it and the library
+loaded have it.
+*/
+bool
+d_internal_postgres_pipelined(
+    const PGconn* _db
+)
+{
+#if defined(LIBPQ_HAS_PIPELINING)
+    return ( (d_postgres_client_supports(D_POSTGRES_CLIENT_PIPELINE)) &&
+             (PQpipelineStatus(_db) != PQ_PIPELINE_OFF) );
+#else
+    (void)_db;
+
+    return false;
+#endif  // LIBPQ_HAS_PIPELINING
+}
+
+/*
 d_internal_postgres_end_copy
   Every COPY the SQL starts is abandoned, and every result after them read,
 until libpq has none left and the connection takes a statement again.
@@ -208,7 +229,8 @@ d_internal_postgres_end_copy(
  * @param[in]  _db      the connection.
  * @param[in]  _sql     the SQL.
  * @param[out] _result  receives the result on success; `NULL` to discard it.
- * @return 0, a failure as postgres_internal.h's section 4 says, or
+ * @return 0, a failure as postgres_internal.h's section 4 says, 08000
+ *         while a run holds the connection (d_internal_postgres_ready), or
  *         D_DB_UNSUPPORTED for a COPY with the client, ended.
  * @post On success with `_result`, the caller frees `*_result` with PQclear.
  */
@@ -219,6 +241,14 @@ d_internal_postgres_execute(
     PGresult**  _result
 )
 {
+    const int ready = d_internal_postgres_ready(_db);
+
+    // a run holds the connection
+    if (ready != 0)
+    {
+        return ready;
+    }
+
     return d_internal_postgres_take(_db, PQexec(_db, _sql), _result);
 }
 
@@ -607,9 +637,10 @@ d_internal_postgres_settle(
 //------------------------------------------------------------------------------
 /*
 d_internal_postgres_result
-  libpq answers no result only when memory runs out or the connection cannot
-carry the statement; a failure it detects itself, a lost connection among
-them, carries no SQLSTATE, so the connection's state says which.
+  libpq answers no result only when memory runs out, the connection cannot
+carry the statement, or pipeline mode refuses a call that waits; a failure
+it detects itself, a lost connection among them, carries no SQLSTATE, so the
+connection's state says which.
 */
 int
 d_internal_postgres_result(
@@ -619,11 +650,17 @@ d_internal_postgres_result(
 {
     const bool lost = (PQstatus(_db) == CONNECTION_BAD);
 
+    // libpq has answered: a mark of the layer's own is about an older call
+    d_internal_postgres_heard(_db);
+
     // nothing came back
     if (!_result)
     {
-        return (lost) ? D_POSTGRES_SQLSTATE_CONNECTION_FAILURE
-                      : D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
+        return (lost)                             ?
+                   D_POSTGRES_SQLSTATE_CONNECTION_FAILURE  :
+               (d_internal_postgres_pipelined(_db)) ?
+                   D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION :
+                   D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
     }
 
     switch (PQresultStatus(_result))
@@ -631,6 +668,10 @@ d_internal_postgres_result(
         case PGRES_COMMAND_OK:
         case PGRES_TUPLES_OK:
         case PGRES_EMPTY_QUERY:
+        case PGRES_SINGLE_TUPLE:
+#if defined(LIBPQ_HAS_CHUNK_MODE)
+        case PGRES_TUPLES_CHUNK:
+#endif  // LIBPQ_HAS_CHUNK_MODE
             return 0;
 
         default:
@@ -715,6 +756,138 @@ d_internal_postgres_format_result(
 
     return D_DB_INVALID_ARGUMENT;
 }
+
+// 2.2    Answers of the layer's own
+//------------------------------------------------------------------------------
+#if D_THREAD_LOCAL_AVAILABLE
+
+// d_internal_postgres_own_db, d_internal_postgres_own_result
+//   variables: the layer's latest answer of its own on this thread -- the
+// connection, and the result -- until libpq answers on that connection.
+static D_THREAD_LOCAL const PGconn* d_internal_postgres_own_db     = NULL;
+static D_THREAD_LOCAL int           d_internal_postgres_own_result = 0;
+
+/*
+d_internal_postgres_answer
+  One mark a thread: a connection is used by one thread at a time, and its
+next call either marks again or is heard.
+*/
+int
+d_internal_postgres_answer(
+    const PGconn* _db,
+    int           _result
+)
+{
+    d_internal_postgres_own_db     = _db;
+    d_internal_postgres_own_result = _result;
+
+    return _result;
+}
+
+void
+d_internal_postgres_heard(
+    const PGconn* _db
+)
+{
+    // only this connection's mark is about an older call
+    if (d_internal_postgres_own_db == _db)
+    {
+        d_internal_postgres_own_db     = NULL;
+        d_internal_postgres_own_result = 0;
+    }
+
+    return;
+}
+
+bool
+d_internal_postgres_answered(
+    const PGconn* _db,
+    int           _result
+)
+{
+    return ( (_db)                                    &&
+             (d_internal_postgres_own_db == _db)       &&
+             (d_internal_postgres_own_result == _result) );
+}
+
+#else
+
+/*
+d_internal_postgres_answer
+  Without thread-local storage there is nowhere to keep a mark.
+*/
+int
+d_internal_postgres_answer(
+    const PGconn* _db,
+    int           _result
+)
+{
+    (void)_db;
+
+    return _result;
+}
+
+void
+d_internal_postgres_heard(
+    const PGconn* _db
+)
+{
+    (void)_db;
+
+    return;
+}
+
+/*
+d_internal_postgres_answered
+  Without a mark, each code the layer may give is taken for its own, the
+connection's message being possibly older.
+*/
+bool
+d_internal_postgres_answered(
+    const PGconn* _db,
+    int           _result
+)
+{
+    (void)_db;
+
+    return ( (_result == D_POSTGRES_SQLSTATE_ACTIVE_SQL_TRANSACTION)    ||
+             (_result == D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION) ||
+             (_result == D_POSTGRES_SQLSTATE_INVALID_SCHEMA_NAME)       ||
+             (_result == D_POSTGRES_SQLSTATE_UNDEFINED_PARAMETER)       ||
+             (_result == D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION)       ||
+             (_result == D_POSTGRES_SQLSTATE_IO_ERROR) );
+}
+
+#endif  // D_THREAD_LOCAL_AVAILABLE
+
+// 2.3    The connection held
+//------------------------------------------------------------------------------
+/*
+d_internal_postgres_ready
+  libpq's own state says whether a run holds the connection: its transaction
+status is PQTRANS_ACTIVE from a send until the send's results have been read
+to their end, whatever sent it. PQexecStart, which every synchronous call
+begins with, would read such results away without a word; the layer answers
+first. libpq reports PQTRANS_UNKNOWN for a lost connection, which the call
+then finds out for itself.
+*/
+int
+d_internal_postgres_ready(
+    const PGconn* _db
+)
+{
+    // a run holds it, outside pipeline mode, which libpq polices itself
+    if ( (PQtransactionStatus(_db) == PQTRANS_ACTIVE) &&
+         (!d_internal_postgres_pipelined(_db)) )
+    {
+        return d_internal_postgres_answer(
+                   _db,
+                   D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    }
+
+    return 0;
+}
+
 
 //==============================================================================
 // 3.  NAMES
@@ -889,7 +1062,9 @@ d_internal_postgres_target(
 
     if (!name)
     {
-        return D_POSTGRES_SQLSTATE_INVALID_SCHEMA_NAME;
+        return d_internal_postgres_answer(
+                   _db,
+                   D_POSTGRES_SQLSTATE_INVALID_SCHEMA_NAME);
     }
 
     *_use   = name;
@@ -1283,6 +1458,8 @@ d_internal_postgres_vchanges(
 
 // 4.3    Rows
 //------------------------------------------------------------------------------
+// 4.3.1
+// Whole results
 /*
 d_internal_postgres_oid_type
   The OIDs are fixed: the built-in types' have never changed, and every
@@ -1517,7 +1694,9 @@ d_internal_postgres_rows_value(
 /*
 d_internal_postgres_collect_rows
   The whole result is in memory already, so each value is read straight from
-it, and the result freed once every value is copied.
+it, and the result freed once every value is copied. Rows a few at a time
+come as results of their own -- one row's, or a chunk's (libpq 17) -- each
+described as the whole result would be.
 */
 int
 d_internal_postgres_collect_rows(
@@ -1529,40 +1708,10 @@ d_internal_postgres_collect_rows(
     {
         { NULL, 0u, 0u }, { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u, 0u
     };
-    bool kept = true;
 
-    // a command's result has no columns
-    if (PQresultStatus(_result) == PGRES_TUPLES_OK)
-    {
-        const int columns = PQnfields(_result);
-        const int count   = PQntuples(_result);
-
-        // each column, described once
-        for (int c = 0; ( (kept) && (c < columns) ); ++c)
-        {
-            const Oid oid = PQftype(_result, c);
-
-            kept = d_internal_db_rows_column(&builder,
-                                             PQfname(_result, c),
-                                             d_internal_postgres_oid_type(oid),
-                                             d_internal_postgres_oid_name(oid));
-        }
-
-        // each row, value by value
-        for (int r = 0; ( (kept) && (r < count) ); ++r)
-        {
-            for (int c = 0; ( (kept) && (c < columns) ); ++c)
-            {
-                kept = d_internal_postgres_rows_value(
-                           &builder,
-                           PQftype(_result, c),
-                           (PQgetisnull(_result, r, c))
-                               ? NULL
-                               : PQgetvalue(_result, r, c),
-                           (size_t)PQgetlength(_result, r, c));
-            }
-        }
-    }
+    const bool kept =
+        ( (d_internal_postgres_describe_columns(_result, &builder)) &&
+          (d_internal_postgres_keep_rows(_result, &builder)) );
 
     PQclear(_result);
 
@@ -1577,6 +1726,99 @@ d_internal_postgres_collect_rows(
     return (d_internal_db_rows_finish(&builder, _rows))
                ? 0
                : D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
+}
+
+/*
+d_internal_postgres_holds_rows
+  Whether a result's status is one of rows -- all of them, one, or a chunk --
+rather than a command's, which has no columns.
+*/
+static bool
+d_internal_postgres_holds_rows(
+    const PGresult* _result
+)
+{
+    const ExecStatusType status = PQresultStatus(_result);
+
+    return ( (status == PGRES_TUPLES_OK)    ||
+#if defined(LIBPQ_HAS_CHUNK_MODE)
+             (status == PGRES_TUPLES_CHUNK) ||
+#endif  // LIBPQ_HAS_CHUNK_MODE
+             (status == PGRES_SINGLE_TUPLE) );
+}
+
+// 4.3.2
+// Rows a few at a time
+/*
+d_internal_postgres_describe_columns
+  Each column, described once, from the result's own description, which a
+single row's result and the zero-row result that ends a run both carry.
+*/
+bool
+d_internal_postgres_describe_columns(
+    const PGresult*            _result,
+    struct d_internal_db_rows* _builder
+)
+{
+    // a command's result has no columns
+    if (!d_internal_postgres_holds_rows(_result))
+    {
+        return true;
+    }
+
+    const int columns = PQnfields(_result);
+    bool      kept    = true;
+
+    // each column, in order
+    for (int c = 0; ( (kept) && (c < columns) ); ++c)
+    {
+        const Oid oid = PQftype(_result, c);
+
+        kept = d_internal_db_rows_column(_builder,
+                                         PQfname(_result, c),
+                                         d_internal_postgres_oid_type(oid),
+                                         d_internal_postgres_oid_name(oid));
+    }
+
+    return kept;
+}
+
+/*
+d_internal_postgres_keep_rows
+  Each row, value by value, as the builder's columns describe them.
+*/
+bool
+d_internal_postgres_keep_rows(
+    const PGresult*            _result,
+    struct d_internal_db_rows* _builder
+)
+{
+    // a command's result has no rows
+    if (!d_internal_postgres_holds_rows(_result))
+    {
+        return true;
+    }
+
+    const int columns = PQnfields(_result);
+    const int count   = PQntuples(_result);
+    bool      kept    = true;
+
+    // each row, value by value
+    for (int r = 0; ( (kept) && (r < count) ); ++r)
+    {
+        for (int c = 0; ( (kept) && (c < columns) ); ++c)
+        {
+            kept = d_internal_postgres_rows_value(
+                       _builder,
+                       PQftype(_result, c),
+                       (PQgetisnull(_result, r, c))
+                           ? NULL
+                           : PQgetvalue(_result, r, c),
+                       (size_t)PQgetlength(_result, r, c));
+        }
+    }
+
+    return kept;
 }
 
 // 4.4    Settling IF NOT EXISTS

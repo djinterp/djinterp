@@ -5,8 +5,12 @@
 * path:      /tests/djinterp/core/db/database_tests_exceptions.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.21
 *******************************************************************************/
+#include "../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
 // std
 #include <cstring>
 #include <stdexcept>
@@ -236,3 +240,5 @@ namespace testing
 
 }   // namespace testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

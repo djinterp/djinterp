@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                     dlex.c
+* djinterp [tools]                                                        dlex.c
 *
 *   Definitions for the non-inline declarations in dlex.h.
 *     The scanner keeps one bit of history: whether the previous token can end
@@ -11,7 +11,7 @@
 * path:      /src/djinterp/tools/dawk/dlex.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dlex.h"  // corresponding header
 // std
@@ -88,7 +88,7 @@ static const char* const g_builtins[] =
 {
     "length", "substr", "index", "split", "sub", "gsub", "match", "sprintf",
     "sin", "cos", "atan2", "exp", "log", "sqrt", "int", "rand", "srand",
-    "tolower", "toupper", "system", "close"
+    "tolower", "toupper", "system", "close", "fflush"
 };
 
 
@@ -262,9 +262,9 @@ d_internal_scan_string(
 {
     (void)d_internal_advance(_lexer);  // consume the opening quote
 
-    size_t used = 0;
+    const size_t start = _lexer->at;
 
-    // consume until the closing quote, unescaping as we go
+    // find the closing quote, stepping over each escape whole
     while (true)
     {
         const int byte = d_internal_peek(_lexer, 0);
@@ -273,10 +273,9 @@ d_internal_scan_string(
         if ((byte < 0) || (byte == '\n'))
         {
             d_internal_fail(_lexer, "unterminated string literal");
+
             return false;
         }
-
-        (void)d_internal_advance(_lexer);
 
         // the closing quote ends the literal
         if (byte == '"')
@@ -284,72 +283,34 @@ d_internal_scan_string(
             break;
         }
 
-        int value = byte;
+        (void)d_internal_advance(_lexer);
 
-        // a backslash introduces an escape
-        if (byte == '\\')
+        // a backslash takes the byte after it, a newline included
+        if ( (byte == '\\') &&
+             (d_internal_advance(_lexer) < 0) )
         {
-            const int next = d_internal_advance(_lexer);
+            d_internal_fail(_lexer, "unterminated escape");
 
-            // a trailing backslash is an error
-            if (next < 0)
-            {
-                d_internal_fail(_lexer, "unterminated escape");
-                return false;
-            }
-
-            switch (next)
-            {
-                case 'n':  value = '\n'; break;
-                case 't':  value = '\t'; break;
-                case 'r':  value = '\r'; break;
-                case '\\': value = '\\'; break;
-                case '"':  value = '"';  break;
-                case '/':  value = '/';  break;
-                case 'a':  value = '\a'; break;
-                case 'b':  value = '\b'; break;
-                case 'f':  value = '\f'; break;
-                case 'v':  value = '\v'; break;
-                default:   value = next; break;
-            }
-
-            // an octal escape takes up to three digits
-            if ((next >= '0') && (next <= '7'))
-            {
-                value = next - '0';
-
-                for (int taken = 0; taken < 2; ++taken)
-                {
-                    const int digit = d_internal_peek(_lexer, 0);
-
-                    // stop at the first byte that is not an octal digit
-                    if ((digit < '0') || (digit > '7'))
-                    {
-                        break;
-                    }
-
-                    value = (value * 8) + (digit - '0');
-                    (void)d_internal_advance(_lexer);
-                }
-            }
-        }
-
-        // report the failure rather than truncating the literal
-        if (!d_internal_reserve(_lexer, used + 1u))
-        {
-            d_internal_fail(_lexer, "out of memory");
             return false;
         }
-
-        _lexer->scratch[used++] = (char)value;
     }
 
-    // report the failure rather than returning an unterminated buffer
-    if (!d_internal_reserve(_lexer, used))
+    const size_t raw_length = _lexer->at - start;
+
+    (void)d_internal_advance(_lexer);  // consume the closing quote
+
+    // an escape never decodes longer than it is written, so the raw length
+    // bounds the decoded one
+    if (!d_internal_reserve(_lexer, raw_length))
     {
         d_internal_fail(_lexer, "out of memory");
+
         return false;
     }
+
+    const size_t used = d_awk_unescape(&_lexer->source[start],
+                                       raw_length,
+                                       _lexer->scratch);
 
     _lexer->scratch[used] = '\0';
     _out_token->kind      = D_AWK_TOK_STRING;
@@ -1097,4 +1058,99 @@ d_awk_token_name(
     return (index < (sizeof(names) / sizeof(names[0])))
          ? names[index]
          : "unknown";
+}
+
+
+/*
+d_internal_escape_of
+  Maps the byte after a backslash to the byte its escape stands for.  A byte
+that names no escape stands for itself, which is what awk has always done with
+"\q": POSIX leaves it undefined.
+*/
+static char
+d_internal_escape_of(
+    char _letter
+)
+{
+    switch (_letter)
+    {
+        case 'n':  return '\n';
+        case 't':  return '\t';
+        case 'r':  return '\r';
+        case 'a':  return '\a';
+        case 'b':  return '\b';
+        case 'f':  return '\f';
+        case 'v':  return '\v';
+        default:   return _letter;
+    }
+}
+
+
+/*
+d_awk_unescape
+  One decoder for every place awk reads a STRING: the scanner hands it a
+literal's raw text, and the interpreter a command-line assignment's value,
+which POSIX has read "as if it appeared in the awk program" between quotes.
+Two decoders would drift, and an operand `x='a\nz'` would then mean one thing
+and `"a\nz"` another.
+  A backslash before a newline is a line continuation and stands for nothing.
+A backslash that ends the text is kept, since only the scanner can call that
+an error.
+*/
+size_t
+d_awk_unescape(
+    const char* _text,
+    size_t      _length,
+    char*       _out
+)
+{
+    size_t used = 0;
+
+    for (size_t at = 0; at < _length; ++at)
+    {
+        // a byte that is not a backslash, or a backslash ending the text, is
+        // copied as it stands
+        if ( (_text[at] != '\\')      ||
+             ((at + 1u) >= _length) )
+        {
+            _out[used++] = _text[at];
+            continue;
+        }
+
+        const char next = _text[++at];
+
+        // an escaped newline continues the line
+        if (next == '\n')
+        {
+            continue;
+        }
+
+        // anything but an octal escape is one byte for one letter
+        if ( (next < '0') ||
+             (next > '7') )
+        {
+            _out[used++] = d_internal_escape_of(next);
+            continue;
+        }
+
+        int value = next - '0';
+
+        // an octal escape takes up to two digits after its first
+        for (int taken = 0; taken < 2; ++taken)
+        {
+            // stop at the end of the text or at a byte that is not octal
+            if ( ((at + 1u) >= _length)  ||
+                 (_text[at + 1u] < '0')  ||
+                 (_text[at + 1u] > '7') )
+            {
+                break;
+            }
+
+            value = (value * 8) + (_text[++at] - '0');
+        }
+
+        _out[used++] = (char)value;
+    }
+
+    return used;
 }

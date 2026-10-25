@@ -3,26 +3,18 @@
 *
 * The TCP transport's standalone test runner.
 *   Runs every test, reports each, and counts tests and assertions. A
-* watchdog alarm ends a run that hangs -- a blocked accept that never woke --
+* watchdog ends a run that hangs -- a blocked accept that never woke --
 * instead of letting it wait forever.
 *
 *
 * path:      /tests/djinterp/net/tcp/tcp_tests_sa_main.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.18
 *******************************************************************************/
-// enable POSIX.1-2008 (alarm) under a strict C compiler; a feature-test
-// macro must precede every include, so it sits ahead of the suite's header
-#ifndef _POSIX_C_SOURCE
-    #define _POSIX_C_SOURCE 200809L
-#endif  // _POSIX_C_SOURCE
-
 #include "./tcp_tests_sa.h"  // the suite
 // std
 #include <stdio.h>   // printf
-// posix
-#include <unistd.h>  // alarm
 
 
 /*
@@ -47,6 +39,7 @@ d_tests_sa_tcp_run_all(
         { "adopt and release",   d_tests_sa_tcp_adopt },
         { "adopting as UDP",     d_tests_sa_tcp_adopt_udp },
         { "non-blocking reads",  d_tests_sa_tcp_would_block },
+        { "Nagle at both ends",  d_tests_sa_tcp_nagle },
         { "native helpers",      d_tests_sa_tcp_native },
         { "listener errors",     d_tests_sa_tcp_listener_errors },
         { "unix-domain",         d_tests_sa_tcp_unix },
@@ -54,7 +47,13 @@ d_tests_sa_tcp_run_all(
         { "accept wake",         d_tests_sa_tcp_accept_wake },
         { "bulk transfers",      d_tests_sa_tcp_bulk },
         { "frames",              d_tests_sa_tcp_frames },
-        { "pumping",             d_tests_sa_tcp_pump }
+        { "pumping",             d_tests_sa_tcp_pump },
+        { "read timeouts",       d_tests_sa_tcp_read_timeout },
+        { "limit values",        d_tests_sa_tcp_limit_values },
+        { "write timeouts",      d_tests_sa_tcp_write_timeout },
+        { "limited accepts",     d_tests_sa_tcp_accept_wait },
+        { "waiting bytes",       d_tests_sa_tcp_available },
+        { "the host name",       d_tests_sa_tcp_host_name }
     };
     bool all = true;
 
@@ -84,8 +83,8 @@ main(void)
 {
     struct d_test_counter counter = { .assertions_passed = 0u };
 
-    (void)alarm(60u);
-    d_test_counter_reset(&counter);
+    d_tests_tcp_watchdog(60u);
+    d_tests_net_counter_reset(&counter);
     printf("djinterp [net] tcp standalone tests\n");
 
     const bool passed = d_tests_sa_tcp_run_all(&counter);

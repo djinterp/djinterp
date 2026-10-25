@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/env/db/mysql/env_mysql_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -167,9 +167,11 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_ENV_MARIADB_HEADER_INCLUDED
 //   detection: 1 once the MariaDB C client header is included, and 0 when
-// D_CFG_ENV_USING_MARIADB is off. D_CFG_ENV_MARIADB_C_PATH is tried first, then
-// <mariadb/mysql.h>, <mysql/mysql.h> and <mysql.h>; without __has_include, the
-// configured path is included as is, and with none found, #error.
+// D_CFG_ENV_USING_MARIADB is off. D_CFG_ENV_MARIADB_C_PATH, <mysql.h> unless
+// the build names another, is tried first -- the header in the directory the
+// linked client's own flags name -- then <mariadb/mysql.h>, <mysql/mysql.h>
+// and <mysql.h>; without __has_include, the configured path is included as
+// is, and with none found, #error.
 // D_ENV_DB_HAS_MARIADB_CONNECTOR_C follows it unless pre-defined.
 #if D_CFG_IS_ON(D_CFG_ENV_USING_MARIADB)
 
@@ -254,9 +256,10 @@ TABLE OF CONTENTS
 // 1.2.1
 // D_ENV_MYSQL_HEADER_INCLUDED
 //   detection: 1 once the MySQL C client header is included, and 0 when
-// D_CFG_ENV_USING_MYSQL is off. D_CFG_ENV_MYSQL_C_PATH is tried first, then
-// <mysql/mysql.h> and <mysql.h>; without __has_include, the configured path
-// is included as is, and with none found, #error.
+// D_CFG_ENV_USING_MYSQL is off. D_CFG_ENV_MYSQL_C_PATH, <mysql.h> unless the
+// build names another, is tried first, then <mysql/mysql.h> and <mysql.h>;
+// without __has_include, the configured path is included as is, and with
+// none found, #error.
 // D_ENV_DB_HAS_MYSQL_CONNECTOR_C follows it unless pre-defined.
 #if D_CFG_IS_ON(D_CFG_ENV_USING_MYSQL)
 

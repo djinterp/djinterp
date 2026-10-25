@@ -8,14 +8,15 @@
 * completes as; and the checks run inside a parse. The sets and mappings are
 * in arg_validator_member_tests.h, and the numbers with units in
 * arg_validator_unit_tests.h.
-*   Everything here is compiled only with D_INTERNAL_ARG_PARSER_EXTRA_
-* VALIDATORS; without it there is no suite, and the runner runs none.
+*   Everything here is compiled only with
+* D_INTERNAL_ARG_PARSER_EXTRA_VALIDATORS; without it there is no suite, and
+* the runner runs none.
 *
 *
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_validator_extra_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_CLI_ARG_PARSER_C_ARG_VALIDATOR_EXTRA_TESTS_H

@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/test/sync/test_thread_tests_thread.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 // std
@@ -123,7 +123,8 @@ bool tests_thread_set_worker_before_start()
 {
     ht_worker_ran sink;
 
-    dt::test_thread t(1);
+    // an id, and no worker until set_worker gives it one
+    dt::test_thread t(1, dt::test_thread::worker_fn());
     t.set_worker(ht_make_stamp(sink));
 
     t.start();

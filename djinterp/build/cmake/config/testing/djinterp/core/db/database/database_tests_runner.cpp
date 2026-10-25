@@ -3,6 +3,8 @@
 // djinterp
 #include "database_tests.hpp"
 
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
 namespace
 {
     int g_passed = 0;
@@ -123,3 +125,15 @@ main()
 }
 
 #undef D_DB_RUN
+
+#else
+
+// below C++17, core/db's floor, core/db is absent, and so is the suite
+int
+main()
+{
+    std::printf("database.hpp unit tests: core/db is absent below C++17\n");
+    return 0;
+}
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

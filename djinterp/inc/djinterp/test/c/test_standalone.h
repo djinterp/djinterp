@@ -9,7 +9,7 @@
 * path:      /inc/djinterp/test/c/test_standalone.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.24
-*                                                            revised: 2026.09.30
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 #ifndef DJINTERP_TEST_C_TEST_STANDALONE_H
@@ -36,33 +36,28 @@
 
 // D_ASSERT_TRUE
 //   macro: creates a leaf test object asserting that a condition is true.
-// expands to a call commented out below: commented out with it (2026.09.30)
-// #define D_ASSERT_TRUE(_name, _condition, _message)
-//     d_test_object_new_leaf(_name, _message, (_condition))
+#define D_ASSERT_TRUE(_name, _condition, _message)                            \
+    d_test_object_new_leaf(_name, _message, (_condition))
 
 // D_ASSERT_FALSE
 //   macro: creates a leaf test object asserting that a condition is false.
-// expands to a call commented out below: commented out with it (2026.09.30)
-// #define D_ASSERT_FALSE(_name, _condition, _message)
-//     d_test_object_new_leaf(_name, _message, !(_condition))
+#define D_ASSERT_FALSE(_name, _condition, _message)                           \
+    d_test_object_new_leaf(_name, _message, !(_condition))
 
 // D_ASSERT_NULL
 //   macro: creates a leaf test object asserting that a pointer is NULL.
-// expands to a call commented out below: commented out with it (2026.09.30)
-// #define D_ASSERT_NULL(_name, _ptr, _message)
-//     d_test_object_new_leaf(_name, _message, (_ptr) == NULL)
+#define D_ASSERT_NULL(_name, _ptr, _message)                                  \
+    d_test_object_new_leaf(_name, _message, (_ptr) == NULL)
 
 // D_ASSERT_NOT_NULL
 //   macro: creates a leaf test object asserting that a pointer is not NULL.
-// expands to a call commented out below: commented out with it (2026.09.30)
-// #define D_ASSERT_NOT_NULL(_name, _ptr, _message)
-//     d_test_object_new_leaf(_name, _message, (_ptr) != NULL)
+#define D_ASSERT_NOT_NULL(_name, _ptr, _message)                              \
+    d_test_object_new_leaf(_name, _message, (_ptr) != NULL)
 
 // D_ASSERT_EQUAL
 //   macro: creates a leaf test object asserting two values are equal.
-// expands to a call commented out below: commented out with it (2026.09.30)
-// #define D_ASSERT_EQUAL(_name, _val1, _val2, _message)
-//     d_test_object_new_leaf(_name, _message, (_val1) == (_val2))
+#define D_ASSERT_EQUAL(_name, _val1, _val2, _message)                         \
+    d_test_object_new_leaf(_name, _message, (_val1) == (_val2))
 
 // d_test_str_equal
 //   function: NULL-tolerant string equality, for D_ASSERT_STR_EQUAL.
@@ -91,10 +86,9 @@ d_test_str_equal
 
 // D_ASSERT_STR_EQUAL
 //   macro: creates a leaf test object asserting two strings are equal.
-// expands to a call commented out below: commented out with it (2026.09.30)
-// #define D_ASSERT_STR_EQUAL(_name, _str1, _str2, _message)
-//     d_test_object_new_leaf(_name, _message,
-//         d_test_str_equal((_str1), (_str2)))
+#define D_ASSERT_STR_EQUAL(_name, _str1, _str2, _message)                     \
+    d_test_object_new_leaf(_name, _message,                                   \
+        d_test_str_equal((_str1), (_str2)))
 
 
 /*******************************************************************************
@@ -352,16 +346,17 @@ typedef void (*fn_print_object_file)(FILE*                       _file,
  *****************************************************************************/
 
 // I.    test object creation and destruction
-// declared but never defined: commented out until implemented (2026.09.30)
-// struct d_test_object* d_test_object_new_leaf(const char* _name,
-//                                              const char* _message,
-//                                              bool        _result);
-// struct d_test_object* d_test_object_new_interior(const char* _name,
-//                                                  size_t      _child_count);
-// void                  d_test_object_free(struct d_test_object* _obj);
-// void                  d_test_object_add_child(struct d_test_object* _parent,
-//                                               struct d_test_object* _child,
-//                                               size_t                _index);
+// restored 2026.10.20: defined by the standalone driver, test_standalone_min.c
+// (test_standalone.c, which also defines them, does not build at present)
+struct d_test_object* d_test_object_new_leaf(const char* _name,
+                                             const char* _message,
+                                             bool        _result);
+struct d_test_object* d_test_object_new_interior(const char* _name,
+                                                 size_t      _child_count);
+void                  d_test_object_free(struct d_test_object* _obj);
+void                  d_test_object_add_child(struct d_test_object* _parent,
+                                              struct d_test_object* _child,
+                                              size_t                _index);
 
 
 /*******************************************************************************

@@ -12,7 +12,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_option_set.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_option.h"  // corresponding header
 // std
@@ -483,10 +483,15 @@ d_arg_option_set_integer_rule(
     return;
 }
 
-/*
-d_arg_internal_option_switch
-  Sets or clears one D_ARG_OPTION_* flag.
-*/
+/**
+ * @brief Sets or clears one D_ARG_OPTION_* flag of an option.
+ *
+ * @param[in,out] _option  the option; NULL is ignored.
+ * @param[in]     _flag    the flag.
+ * @param[in]     _value   whether it is set.
+ *
+ * Sets or clears one D_ARG_OPTION_* flag.
+ */
 D_STATIC void
 d_arg_internal_option_switch(
     struct d_arg_option* _option,
@@ -666,13 +671,23 @@ d_arg_option_set_inject_separator(
     return;
 }
 
-/*
-d_arg_internal_option_fold
-  CLI11's ignore_case and ignore_underscore, which share their shape: turning
-the switch on is tried against every other option of the command -- each
-asked whether it now matches this one -- and undone, with CLI11's error, at
-the first that does. Turning it off, or on again, cannot conflict.
-*/
+/**
+ * @brief Turns an option's ignore-case or ignore-underscore switch on or off.
+ *
+ * @param[in,out] _option  the option.
+ * @param[in]     _flag    the switch: D_ARG_OPTION_IGNORE_CASE or
+ *                         D_ARG_OPTION_IGNORE_UNDERSCORE.
+ * @param[in]     _value   whether it is turned on.
+ * @param[in]     _what    the switch's words in CLI11's message.
+ * @return D_ARG_OK; D_ARG_ERROR_OPTION_ALREADY_ADDED, recorded as a definition
+ *         error with the switch left off, when another option of the command
+ *         would then match this one.
+ *
+ * CLI11's ignore_case and ignore_underscore, which share their shape: turning
+ * the switch on is tried against every other option of the command -- each
+ * asked whether it now matches this one -- and undone, with CLI11's error, at
+ * the first that does. Turning it off, or on again, cannot conflict.
+ */
 D_STATIC int
 d_arg_internal_option_fold(
     struct d_arg_option* _option,
@@ -805,11 +820,16 @@ struct d_arg_internal_option_trial
     int                    state;
 };
 
-/*
-d_arg_internal_option_trial_begin
-  Sets the report and the values aside, leaving a clean report and no
-values for the trial.
-*/
+/**
+ * @brief Sets an option's values and its parser's report aside for a trial.
+ *
+ * @param[in,out] _option  the option, left with no values.
+ * @param[in,out] _parser  its parser, left with a clean report; NULL for none.
+ * @param[out]    _trial   receives what was set aside.
+ *
+ * Sets the report and the values aside, leaving a clean report and no
+ * values for the trial.
+ */
 D_STATIC void
 d_arg_internal_option_trial_begin(
     struct d_arg_option*                _option,
@@ -836,10 +856,15 @@ d_arg_internal_option_trial_begin(
     return;
 }
 
-/*
-d_arg_internal_option_flip
-  Reverses the strings of a list from `_from` up to `_to`.
-*/
+/**
+ * @brief Reverses a run of strings in place.
+ *
+ * @param[in,out] _items  the strings.
+ * @param[in]     _from   the first of the run.
+ * @param[in]     _to     one past its last.
+ *
+ * Reverses the strings of a list from `_from` up to `_to`.
+ */
 D_STATIC void
 d_arg_internal_option_flip(
     char** _items,
@@ -864,13 +889,18 @@ d_arg_internal_option_flip(
     return;
 }
 
-/*
-d_arg_internal_option_keep
-  Moves the copies a trial made -- `owned` from `_first` on -- to just after
-those kept already, where clearing leaves them, so that a variable bound to
-text keeps pointing at its default: three reversals rotate them past the
-copies the values made, without allocating.
-*/
+/**
+ * @brief Moves the copies a trial made to just after those kept already.
+ *
+ * @param[in,out] _option  the option, whose copies in `owned` from `_first` on
+ *                         are kept.
+ * @param[in]     _first   the first copy the trial made.
+ *
+ * Moves the copies a trial made -- `owned` from `_first` on -- to just after
+ * those kept already, where clearing leaves them, so that a variable bound to
+ * text keeps pointing at its default: three reversals rotate them past the
+ * copies the values made, without allocating.
+ */
 D_STATIC void
 d_arg_internal_option_keep(
     struct d_arg_option* _option,
@@ -902,13 +932,22 @@ d_arg_internal_option_keep(
     return;
 }
 
-/*
-d_arg_internal_option_trial_end
-  Copies the trial's message when it failed, then puts the report and the
-values back, with the state CLI11 leaves: PARSING after a callback, the
-old state otherwise. The trial's copies are kept, whether it passed or not,
-since its callback may have bound a variable to them.
-*/
+/**
+ * @brief Ends a trial, putting back what was set aside.
+ *
+ * @param[in,out] _option    the option, whose values and state are put back.
+ * @param[in,out] _parser    its parser, whose report is put back; NULL for
+ *                           none.
+ * @param[in]     _trial     what was set aside.
+ * @param[in]     _callback  whether the trial ran the option's callback.
+ * @param[in,out] _message   the buffer that gains the trial's message, when it
+ *                           failed.
+ *
+ * Copies the trial's message when it failed, then puts the report and the
+ * values back, with the state CLI11 leaves: PARSING after a callback, the
+ * old state otherwise. The trial's copies are kept, whether it passed or not,
+ * since its callback may have bound a variable to them.
+ */
 D_STATIC void
 d_arg_internal_option_trial_end(
     struct d_arg_option*                _option,
@@ -943,12 +982,19 @@ d_arg_internal_option_trial_end(
     return;
 }
 
-/*
-d_arg_internal_option_try_default
-  The trial of CLI11's default_val: the default added alone, then the
-callback -- when it sets defaults and does not already run on every result
--- else the validators alone, as CLI11's _validate_results.
-*/
+/**
+ * @brief Tries a default as CLI11's default_val does.
+ *
+ * @param[in,out] _option   the option.
+ * @param[in]     _text     the default.
+ * @param[in,out] _message  the buffer that gains the message of a failure.
+ * @return D_ARG_OK when the default passed; otherwise the failure, unrecorded,
+ *         its message in `_message`.
+ *
+ * The trial of CLI11's default_val: the default added alone, then the
+ * callback -- when it sets defaults and does not already run on every result
+ * -- else the validators alone, as CLI11's _validate_results.
+ */
 D_STATIC int
 d_arg_internal_option_try_default(
     struct d_arg_option* _option,
@@ -1059,6 +1105,54 @@ d_arg_option_set_default_value(
 
     d_arg_buffer_release(&name);
     d_arg_buffer_release(&message);
+
+    return status;
+}
+
+/*
+d_arg_option_set_default_typed
+  CLI11's default_val given a value: the value written into a buffer -- a
+full buffer is a refused allocation -- then set as text; a value that could
+not be written -- its type has no text form, or its writer failed -- is
+recorded as the definition error and the default kept, where CLI11 writes a
+value it cannot write as nothing and sets that as the default.
+*/
+int
+d_arg_option_set_default_typed(
+    struct d_arg_option*     _option,
+    const struct d_arg_type* _type,
+    const void*              _value
+)
+{
+    // validate the parameters
+    if ( (!_option) ||
+         (!_type)   ||
+         (!_value) )
+    {
+        return D_ARG_ERROR_BAD_ARGUMENT;
+    }
+
+    struct d_arg_buffer text   = D_ARG_BUFFER_INIT;
+    int                 status = d_arg_format(_type,
+                                              _value,
+                                              d_arg_buffer_sink(&text));
+
+    status = ( (status == D_ARG_OK) &&
+               (text.failed) )
+             ? D_ARG_ERROR_OUT_OF_MEMORY
+             : status;
+
+    // the text set as a default value, or the failure recorded
+    status = (status == D_ARG_OK)
+             ? d_arg_option_set_default_value(_option,
+                                              (text.data != NULL)
+                                              ? text.data
+                                              : "")
+             : d_arg_internal_fail_definition(NULL,
+                                              _option,
+                                              status,
+                                              NULL);
+    d_arg_buffer_release(&text);
 
     return status;
 }

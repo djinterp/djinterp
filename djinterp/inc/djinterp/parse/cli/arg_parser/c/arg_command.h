@@ -23,7 +23,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_command.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -150,7 +150,8 @@ TABLE OF CONTENTS
          1.  d_arg_command_trigger_on / d_arg_command_trigger_off
     2.  Life cycle of options
          1.  d_arg_command_deprecate_option
-         2.  d_arg_command_retire_option / d_arg_command_retire_option_name
+         2.  d_arg_command_deprecate_option_name
+         3.  d_arg_command_retire_option / d_arg_command_retire_option_name
     3.  Parse state
          1.  d_arg_command_clear
 */
@@ -1164,7 +1165,9 @@ void d_arg_command_set_pre_callback(struct d_arg_command* _command,
 // of the caller's. NULL -- what every command starts with -- uses the
 // parent's, and at the root d_arg_failure_simple, CLI11's default; so a
 // subcommand follows its parent's later changes, where CLI11's keeps a copy
-// of the message its parent had when it was made.
+// of the message its parent had when it was made. A function that fails --
+// returns anything but D_ARG_OK -- is followed by d_arg_failure_simple's
+// message, so that no failed parse goes unreported.
 void d_arg_command_set_failure_message(struct d_arg_command* _command,
                                        d_arg_failure_fn      _write,
                                        void*                 _context,
@@ -1507,6 +1510,30 @@ int         d_arg_command_deprecate_option(struct d_arg_option* _option,
                                            const char*          _replacement);
 
 // 7.2.2
+// d_arg_command_deprecate_option_name
+/**
+ * @brief Marks deprecated the option a command finds by name; CLI11's
+ *        deprecate_option(app, name, replacement).
+ *
+ * @note The option is found as d_arg_command_option finds it -- CLI11's
+ *       get_option -- and deprecated as d_arg_command_deprecate_option
+ *       deprecates it.
+ *
+ * @param[in,out] _command      the command.
+ * @param[in]     _name         the option's name.
+ * @param[in]     _replacement  what to use instead, copied; NULL or "" for
+ *                              nothing named.
+ * @return D_ARG_OK; D_ARG_ERROR_OPTION_NOT_FOUND, recorded as CLI11's
+ *         OptionNotFound -- "<name> not found" -- for a name no option has;
+ *         D_ARG_ERROR_OUT_OF_MEMORY, recorded; D_ARG_ERROR_BAD_ARGUMENT,
+ *         nothing recorded, for a NULL command or name.
+ */
+int
+     d_arg_command_deprecate_option_name(struct d_arg_command* _command,
+                                         const char*           _name,
+                                         const char*           _replacement);
+
+// 7.2.3
 // d_arg_command_retire_option / d_arg_command_retire_option_name
 /**
  * @brief Replaces an option with one that takes the same values and does

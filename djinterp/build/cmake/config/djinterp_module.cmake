@@ -233,6 +233,18 @@ function(djinterp_add_test_executable _target)
         "SOURCES;DEFINES;LIBRARIES;INCLUDES"
         ${ARGN})
 
+    # a name two leaves give: the configure step names both, rather than
+    # CMake's "target already exists", which names neither
+    get_property(_first GLOBAL PROPERTY "DJINTERP_TEST_TARGET_DIR_${_target}")
+    if (_first)
+        message(FATAL_ERROR
+            "djinterp: the test target '${_target}' is made by two leaves:\n"
+            "  ${_first}\n  ${CMAKE_CURRENT_SOURCE_DIR}\n"
+            "Give one of them a name of its own.")
+    endif()
+    set_property(GLOBAL PROPERTY "DJINTERP_TEST_TARGET_DIR_${_target}"
+                 "${CMAKE_CURRENT_SOURCE_DIR}")
+
     #   D_TESTING marks the test build.  D_TEST_OUTPUT_DIR hands the target's
     # own output directory to the sources as a string literal, so a runner that
     # wants an ABSOLUTE report path can set

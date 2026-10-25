@@ -17,7 +17,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_argv.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_argv.h"  // corresponding header
 // std
@@ -43,11 +43,16 @@
 static const char OPENERS[] = "\"'`[(<{";
 static const char CLOSERS[] = "\"'`])>}";
 
-/*
-d_arg_internal_bracket_index
-  The position of a character among the openers or the closers, or -1; NUL
-is neither, though strchr would find it.
-*/
+/**
+ * @brief Finds a character among the openers or the closers.
+ *
+ * @param[in] _table  the openers or the closers.
+ * @param[in] _c      the character.
+ * @return its position in the table; -1 when it is not there, NUL among them.
+ *
+ * The position of a character among the openers or the closers, or -1; NUL
+ * is neither, though strchr would find it.
+ */
 D_STATIC int
 d_arg_internal_bracket_index(
     const char* _table,
@@ -64,12 +69,20 @@ d_arg_internal_bracket_index(
            : -1;
 }
 
-/*
-d_arg_internal_close_quote
-  CLI11's close_string_quote: the position of the quote closing the one
-opened at `_start`, each character after a backslash skipped -- past the
-end, by one, when a backslash is last -- or the length.
-*/
+/**
+ * @brief Finds the quote that closes one, as CLI11's close_string_quote.
+ *
+ * @param[in] _text     the text.
+ * @param[in] _start    where the opening quote is.
+ * @param[in] _closure  the quote that closes it.
+ * @return the closing quote's position, each character after a backslash
+ *         skipped; the length, or one past it for a backslash that is last,
+ *         when there is none.
+ *
+ * CLI11's close_string_quote: the position of the quote closing the one
+ * opened at `_start`, each character after a backslash skipped -- past the
+ * end, by one, when a backslash is last -- or the length.
+ */
 D_STATIC size_t
 d_arg_internal_close_quote(
     struct d_pack_text _text,
@@ -94,12 +107,19 @@ d_arg_internal_close_quote(
     return at;
 }
 
-/*
-d_arg_internal_close_literal
-  CLI11's close_literal_quote: the next `_closure` after `_start`, or the
-length. `_start` is the opening quote's position, within the text, so that
-the search -- of nothing, after a quote that is last -- stays within it.
-*/
+/**
+ * @brief Finds the quote that closes one, as CLI11's close_literal_quote.
+ *
+ * @param[in] _text     the text.
+ * @param[in] _start    where the opening quote is, within the text.
+ * @param[in] _closure  the quote that closes it.
+ * @return the position of the next `_closure` after `_start`; the length when
+ *         there is none.
+ *
+ * CLI11's close_literal_quote: the next `_closure` after `_start`, or the
+ * length. `_start` is the opening quote's position, within the text, so that
+ * the search -- of nothing, after a quote that is last -- stays within it.
+ */
 D_STATIC size_t
 d_arg_internal_close_literal(
     struct d_pack_text _text,
@@ -117,13 +137,21 @@ d_arg_internal_close_literal(
            : _text.length;
 }
 
-/*
-d_arg_internal_skip_inner
-  One character inside a bracketed sequence, as CLI11's close_sequence
-treats it: a quote skips to where it closes, and a bracket pushes its
-closer onto the closers awaited. Returns the position of the last character
-taken.
-*/
+/**
+ * @brief Takes one character inside a bracketed sequence, as CLI11's
+ *        close_sequence treats it.
+ *
+ * @param[in]     _text     the text.
+ * @param[in]     _at       the character's place.
+ * @param[in,out] _awaited  the closers awaited, which gain a bracket's; its
+ *                          failure kept in it.
+ * @return the position of the last character taken: a quote's closing one.
+ *
+ * One character inside a bracketed sequence, as CLI11's close_sequence
+ * treats it: a quote skips to where it closes, and a bracket pushes its
+ * closer onto the closers awaited. Returns the position of the last character
+ * taken.
+ */
 D_STATIC size_t
 d_arg_internal_skip_inner(
     struct d_pack_text   _text,
@@ -161,12 +189,21 @@ d_arg_internal_skip_inner(
     return _at;
 }
 
-/*
-d_arg_internal_close_brackets
-  CLI11's close_sequence for a bracket: the closers awaited kept on a
-stack, innermost last, the sequence closing where the stack empties; the
-length when it never does.
-*/
+/**
+ * @brief Finds the closer of a bracket, as CLI11's close_sequence.
+ *
+ * @param[in]  _text     the text.
+ * @param[in]  _start    where the bracket is.
+ * @param[in]  _closure  its closer.
+ * @param[out] _end      receives where the sequence closes; the length when it
+ *                       never does.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when the stack of closers
+ *         could not grow.
+ *
+ * CLI11's close_sequence for a bracket: the closers awaited kept on a
+ * stack, innermost last, the sequence closing where the stack empties; the
+ * length when it never does.
+ */
 D_STATIC int
 d_arg_internal_close_brackets(
     struct d_pack_text _text,
@@ -257,11 +294,17 @@ d_arg_internal_close_sequence(
                                          _end);
 }
 
-/*
-d_arg_internal_is_split_point
-  CLI11's find_ws in split_up: whitespace when the delimiter is NUL, the
-delimiter otherwise.
-*/
+/**
+ * @brief Tells whether a byte splits pieces, as CLI11's find_ws in split_up.
+ *
+ * @param[in] _c          the byte.
+ * @param[in] _delimiter  the delimiter; NUL for whitespace.
+ * @return `true` for whitespace when the delimiter is NUL, the delimiter
+ *         otherwise; `false` for anything else.
+ *
+ * CLI11's find_ws in split_up: whitespace when the delimiter is NUL, the
+ * delimiter otherwise.
+ */
 D_STATIC bool
 d_arg_internal_is_split_point(
     char _c,
@@ -273,13 +316,23 @@ d_arg_internal_is_split_point(
            : (_c == _delimiter);
 }
 
-/*
-d_arg_internal_split_sequence
-  A word that opens with a quote or a bracket: up to and with its closer --
-the rest of the text when it never closes -- and the character after the
-closer taken too when it is a split point or an opener, which would start a
-sequence of its own.
-*/
+/**
+ * @brief Takes a piece that opens with a quote or a bracket.
+ *
+ * @param[in]  _text       the text, opening with the quote or the bracket.
+ * @param[in]  _delimiter  the delimiter; NUL for whitespace.
+ * @param[out] _word       receives the piece, its closer with it; the rest of
+ *                         the text when it never closes.
+ * @param[out] _taken      receives how many bytes the piece takes: the byte
+ *                         after the closer too when it is a split point or an
+ *                         opener.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * A word that opens with a quote or a bracket: up to and with its closer --
+ * the rest of the text when it never closes -- and the character after the
+ * closer taken too when it is a split point or an opener, which would start a
+ * sequence of its own.
+ */
 D_STATIC int
 d_arg_internal_split_sequence(
     struct d_pack_text  _text,
@@ -324,10 +377,17 @@ d_arg_internal_split_sequence(
     return status;
 }
 
-/*
-d_arg_internal_split_plain
-  Any other word: up to the next split point, which is taken with it.
-*/
+/**
+ * @brief Takes a piece up to the next split point.
+ *
+ * @param[in]  _text       the text.
+ * @param[in]  _delimiter  the delimiter; NUL for whitespace.
+ * @param[out] _word       receives the piece.
+ * @param[out] _taken      receives how many bytes it takes, the split point
+ *                         among them.
+ *
+ * Any other word: up to the next split point, which is taken with it.
+ */
 D_STATIC void
 d_arg_internal_split_plain(
     struct d_pack_text  _text,
@@ -467,11 +527,15 @@ struct d_arg_internal_split_word
     bool                               begun;
 };
 
-/*
-d_arg_internal_split_take
-  One byte of the word under way, which begins it. A refused byte leaves the
-bytes failed, which ending the word reports.
-*/
+/**
+ * @brief Takes one byte into the word under way, which it begins.
+ *
+ * @param[in,out] _word  the word, whose failed bytes the word's end reports.
+ * @param[in]     _c     the byte.
+ *
+ * One byte of the word under way, which begins it. A refused byte leaves the
+ * bytes failed, which ending the word reports.
+ */
 D_STATIC void
 d_arg_internal_split_take(
     struct d_arg_internal_split_word* _word,
@@ -485,10 +549,14 @@ d_arg_internal_split_take(
     return;
 }
 
-/*
-d_arg_internal_split_take_text
-  Bytes of the word under way, which begin it, as d_arg_internal_split_take.
-*/
+/**
+ * @brief Takes bytes into the word under way, which they begin.
+ *
+ * @param[in,out] _word  the word, whose failed bytes the word's end reports.
+ * @param[in]     _text  the bytes.
+ *
+ * Bytes of the word under way, which begin it, as d_arg_internal_split_take.
+ */
 D_STATIC void
 d_arg_internal_split_take_text(
     struct d_arg_internal_split_word* _word,
@@ -502,10 +570,15 @@ d_arg_internal_split_take_text(
     return;
 }
 
-/*
-d_arg_internal_split_repeat
-  A byte taken `_count` times.
-*/
+/**
+ * @brief Takes a byte a number of times into the word under way.
+ *
+ * @param[in,out] _word   the word.
+ * @param[in]     _c      the byte.
+ * @param[in]     _count  how many times.
+ *
+ * A byte taken `_count` times.
+ */
 D_STATIC void
 d_arg_internal_split_repeat(
     struct d_arg_internal_split_word* _word,
@@ -523,11 +596,17 @@ d_arg_internal_split_repeat(
     return;
 }
 
-/*
-d_arg_internal_split_end
-  The word under way, once it has begun, stored where the words go; the
-bytes then emptied for the next. A byte refused on the way is the failure.
-*/
+/**
+ * @brief Stores the word under way, once it has begun, and empties it for the
+ *        next.
+ *
+ * @param[in,out] _word  the word, and where the words go.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when a byte was refused on the
+ *         way or the word could not be stored.
+ *
+ * The word under way, once it has begun, stored where the words go; the
+ * bytes then emptied for the next. A byte refused on the way is the failure.
+ */
 D_STATIC int
 d_arg_internal_split_end(
     struct d_arg_internal_split_word* _word
@@ -551,10 +630,16 @@ d_arg_internal_split_end(
     return status;
 }
 
-/*
-d_arg_internal_split_refuse
-  Text that breaks the rules: described, where there is a buffer for it.
-*/
+/**
+ * @brief Refuses text that breaks the rules, describing why.
+ *
+ * @param[in,out] _error        the buffer that gains the description; NULL for
+ *                              none.
+ * @param[in]     _description  the description.
+ * @return D_ARG_ERROR_INVALID.
+ *
+ * Text that breaks the rules: described, where there is a buffer for it.
+ */
 D_STATIC int
 d_arg_internal_split_refuse(
     struct d_arg_buffer* _error,
@@ -571,11 +656,17 @@ d_arg_internal_split_refuse(
     return D_ARG_ERROR_INVALID;
 }
 
-/*
-d_arg_internal_split_find
-  The position of the first `_c` at or after `_from`, which is within the
-line or at its end, or the length.
-*/
+/**
+ * @brief Finds the first of a byte at or after a place.
+ *
+ * @param[in] _line  the line.
+ * @param[in] _from  the place, within the line or at its end.
+ * @param[in] _c     the byte.
+ * @return its position; the length when there is none.
+ *
+ * The position of the first `_c` at or after `_from`, which is within the
+ * line or at its end, or the length.
+ */
 D_STATIC size_t
 d_arg_internal_split_find(
     struct d_pack_text _line,
@@ -592,10 +683,16 @@ d_arg_internal_split_find(
            : _line.length;
 }
 
-/*
-d_arg_internal_split_run
-  How many `_c` in a row start at `_from`.
-*/
+/**
+ * @brief Counts how many of a byte in a row start at a place.
+ *
+ * @param[in] _line  the line.
+ * @param[in] _from  the place.
+ * @param[in] _c     the byte.
+ * @return the count.
+ *
+ * How many `_c` in a row start at `_from`.
+ */
 D_STATIC size_t
 d_arg_internal_split_run(
     struct d_pack_text _line,
@@ -619,12 +716,17 @@ d_arg_internal_split_run(
 // 3.  A POSIX SHELL'S RULES
 //==============================================================================
 
-/*
-d_arg_internal_split_posix_escape
-  A backslash outside quotes: the byte after it taken as it is, or, a line
-break, dropped with it; with nothing after it, the backslash itself, as dash
-and bash take one.
-*/
+/**
+ * @brief Reads a backslash outside quotes, as a POSIX shell does.
+ *
+ * @param[in]     _line  the line.
+ * @param[in,out] _at    the backslash's place, moved past what it governs.
+ * @param[in,out] _word  the word under way.
+ *
+ * A backslash outside quotes: the byte after it taken as it is, or, a line
+ * break, dropped with it; with nothing after it, the backslash itself, as dash
+ * and bash take one.
+ */
 D_STATIC void
 d_arg_internal_split_posix_escape(
     struct d_pack_text                _line,
@@ -656,10 +758,18 @@ d_arg_internal_split_posix_escape(
     return;
 }
 
-/*
-d_arg_internal_split_posix_single
-  Single quotes: every byte up to the next one, as it is.
-*/
+/**
+ * @brief Reads single quotes, as a POSIX shell does.
+ *
+ * @param[in]     _line   the line.
+ * @param[in,out] _at     the opening quote's place, moved past the closing one.
+ * @param[in,out] _word   the word under way.
+ * @param[in,out] _error  the buffer that gains the description of a refusal;
+ *                        NULL for none.
+ * @return D_ARG_OK, or D_ARG_ERROR_INVALID for a quote that is not closed.
+ *
+ * Single quotes: every byte up to the next one, as it is.
+ */
 D_STATIC int
 d_arg_internal_split_posix_single(
     struct d_pack_text                _line,
@@ -688,11 +798,17 @@ d_arg_internal_split_posix_single(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_split_posix_special
-  Whether a backslash within double quotes escapes the byte after it: `$`, a
-backquote, `"`, a backslash or a line break.
-*/
+/**
+ * @brief Tells whether a backslash within double quotes escapes a byte, as a
+ *        POSIX shell reads one.
+ *
+ * @param[in] _c  the byte after the backslash.
+ * @return `true` for `$`, a backquote, `"`, a backslash or a line break;
+ *         `false` otherwise.
+ *
+ * Whether a backslash within double quotes escapes the byte after it: `$`, a
+ * backquote, `"`, a backslash or a line break.
+ */
 D_STATIC bool
 d_arg_internal_split_posix_special(
     char _c
@@ -705,12 +821,20 @@ d_arg_internal_split_posix_special(
              (_c == '\n') );
 }
 
-/*
-d_arg_internal_split_posix_double
-  Double quotes: every byte up to the next unescaped one, a backslash before
-`$`, a backquote, `"` or a backslash dropped and the byte kept, one before a
-line break dropped with it, and any other kept.
-*/
+/**
+ * @brief Reads double quotes, as a POSIX shell does.
+ *
+ * @param[in]     _line   the line.
+ * @param[in,out] _at     the opening quote's place, moved past the closing one.
+ * @param[in,out] _word   the word under way.
+ * @param[in,out] _error  the buffer that gains the description of a refusal;
+ *                        NULL for none.
+ * @return D_ARG_OK, or D_ARG_ERROR_INVALID for a quote that is not closed.
+ *
+ * Double quotes: every byte up to the next unescaped one, a backslash before
+ * `$`, a backquote, `"` or a backslash dropped and the byte kept, one before a
+ * line break dropped with it, and any other kept.
+ */
 D_STATIC int
 d_arg_internal_split_posix_double(
     struct d_pack_text                _line,
@@ -764,12 +888,16 @@ d_arg_internal_split_posix_double(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_split_posix_blank
-  Whether a byte separates a POSIX shell's words: a space, a tab or a line
-feed; a carriage return, a vertical tab or a form feed is an ordinary byte,
-as the shells read one.
-*/
+/**
+ * @brief Tells whether a byte separates a POSIX shell's words.
+ *
+ * @param[in] _c  the byte.
+ * @return `true` for a space, a tab or a line feed; `false` otherwise.
+ *
+ * Whether a byte separates a POSIX shell's words: a space, a tab or a line
+ * feed; a carriage return, a vertical tab or a form feed is an ordinary byte,
+ * as the shells read one.
+ */
 D_STATIC bool
 d_arg_internal_split_posix_blank(
     char _c
@@ -780,12 +908,21 @@ d_arg_internal_split_posix_blank(
              (_c == '\n') );
 }
 
-/*
-d_arg_internal_split_posix_step
-  One step of a POSIX shell's split at `*_at`: a blank ends the word under
-way; a backslash, a single quote or a double quote reads what it governs;
-any other byte is taken.
-*/
+/**
+ * @brief Takes one step of a POSIX shell's split.
+ *
+ * @param[in]     _line   the line.
+ * @param[in,out] _at     the place of the step, moved past it.
+ * @param[in,out] _word   the word under way.
+ * @param[in,out] _error  the buffer that gains the description of a refusal;
+ *                        NULL for none.
+ * @return D_ARG_OK; D_ARG_ERROR_INVALID for a quote that is not closed; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * One step of a POSIX shell's split at `*_at`: a blank ends the word under
+ * way; a backslash, a single quote or a double quote reads what it governs;
+ * any other byte is taken.
+ */
 D_STATIC int
 d_arg_internal_split_posix_step(
     struct d_pack_text                _line,
@@ -838,11 +975,19 @@ d_arg_internal_split_posix_step(
     return status;
 }
 
-/*
-d_arg_internal_split_posix
-  A POSIX shell's words, without expansions: a step at a time, then the last
-word.
-*/
+/**
+ * @brief Splits a line into a POSIX shell's words, without expansions.
+ *
+ * @param[in]     _line   the line.
+ * @param[in,out] _word   the word under way, and where the words go.
+ * @param[in,out] _error  the buffer that gains the description of a refusal;
+ *                        NULL for none.
+ * @return D_ARG_OK; D_ARG_ERROR_INVALID for a quote that is not closed; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * A POSIX shell's words, without expansions: a step at a time, then the last
+ * word.
+ */
 D_STATIC int
 d_arg_internal_split_posix(
     struct d_pack_text                _line,
@@ -872,11 +1017,18 @@ d_arg_internal_split_posix(
 // 4.  THE C RUNTIME'S RULES
 //==============================================================================
 
-/*
-d_arg_internal_split_windows_separates
-  Whether a byte outside quotes separates arguments: a space or a tab, and,
-with line breaks asked for, `\n` and `\r`.
-*/
+/**
+ * @brief Tells whether a byte outside quotes separates the C runtime's
+ *        arguments.
+ *
+ * @param[in] _c            the byte.
+ * @param[in] _line_breaks  whether line breaks separate too.
+ * @return `true` for a space or a tab, and with line breaks for `\\n` and
+ *         `\\r`; `false` otherwise.
+ *
+ * Whether a byte outside quotes separates arguments: a space or a tab, and,
+ * with line breaks asked for, `\\n` and `\\r`.
+ */
 D_STATIC bool
 d_arg_internal_split_windows_separates(
     char _c,
@@ -890,12 +1042,20 @@ d_arg_internal_split_windows_separates(
                  (_c == '\r') ) ) );
 }
 
-/*
-d_arg_internal_split_windows_name
-  The runtime's rule for a program's name: quotes open and close and are
-dropped, nothing is escaped, and a separator outside quotes ends the name
-and is taken with it. The name is a word even when empty.
-*/
+/**
+ * @brief Reads a program's name by the C runtime's rule.
+ *
+ * @param[in]     _line         the line.
+ * @param[in]     _line_breaks  whether line breaks separate too.
+ * @param[out]    _at           receives the place after the name and the
+ *                              separator that ends it.
+ * @param[in,out] _word         the word under way, and where the words go.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The runtime's rule for a program's name: quotes open and close and are
+ * dropped, nothing is escaped, and a separator outside quotes ends the name
+ * and is taken with it. The name is a word even when empty.
+ */
 D_STATIC int
 d_arg_internal_split_windows_name(
     struct d_pack_text                _line,
@@ -939,12 +1099,19 @@ d_arg_internal_split_windows_name(
     return d_arg_internal_split_end(_word);
 }
 
-/*
-d_arg_internal_split_windows_quote
-  A double quote after an even run of backslashes, within an argument:
-within quotes, a second quote right after it makes the two one literal
-quote; otherwise it opens or closes a quote and is dropped.
-*/
+/**
+ * @brief Reads a double quote after an even run of backslashes, within an
+ *        argument, by the C runtime's rules.
+ *
+ * @param[in]     _line       the line.
+ * @param[in,out] _at         the quote's place, moved past it.
+ * @param[in,out] _in_quotes  whether a quote is open; updated.
+ * @param[in,out] _word       the word under way.
+ *
+ * A double quote after an even run of backslashes, within an argument:
+ * within quotes, a second quote right after it makes the two one literal
+ * quote; otherwise it opens or closes a quote and is dropped.
+ */
 D_STATIC void
 d_arg_internal_split_windows_quote(
     struct d_pack_text                _line,
@@ -973,13 +1140,20 @@ d_arg_internal_split_windows_quote(
     return;
 }
 
-/*
-d_arg_internal_split_windows_argument
-  One argument by the runtime's rules: a run of backslashes gives itself,
-but half of it before a double quote, where an even run leaves the quote to
-open or close and an odd one makes it literal; a separator outside quotes
-ends the argument. An argument is a word even when empty.
-*/
+/**
+ * @brief Reads one argument by the C runtime's rules.
+ *
+ * @param[in]     _line         the line.
+ * @param[in]     _line_breaks  whether line breaks separate too.
+ * @param[in,out] _at           the argument's place, moved to its end.
+ * @param[in,out] _word         the word under way, and where the words go.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * One argument by the runtime's rules: a run of backslashes gives itself,
+ * but half of it before a double quote, where an even run leaves the quote to
+ * open or close and an odd one makes it literal; a separator outside quotes
+ * ends the argument. An argument is a word even when empty.
+ */
 D_STATIC int
 d_arg_internal_split_windows_argument(
     struct d_pack_text                _line,
@@ -1037,11 +1211,18 @@ d_arg_internal_split_windows_argument(
     return d_arg_internal_split_end(_word);
 }
 
-/*
-d_arg_internal_split_windows
-  The C runtime's arguments: the program's name first when the line holds
-one, then each argument after the separators before it.
-*/
+/**
+ * @brief Splits a line into the C runtime's arguments.
+ *
+ * @param[in]     _line   the line.
+ * @param[in]     _flags  the D_ARG_SPLIT_* switches: whether the line holds the
+ *                        program's name, and whether line breaks separate.
+ * @param[in,out] _word   the word under way, and where the words go.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The C runtime's arguments: the program's name first when the line holds
+ * one, then each argument after the separators before it.
+ */
 D_STATIC int
 d_arg_internal_split_windows(
     struct d_pack_text                _line,
@@ -1083,13 +1264,19 @@ d_arg_internal_split_windows(
 // 5.  GNU'S RULES
 //==============================================================================
 
-/*
-d_arg_internal_split_gnu_byte
-  One byte of an argument by buildargv's rules, but a backslash: a quote
-opens when none is open, and closes the one it matches; any other byte is
-taken -- a NUL byte too, which the NUL standing for no quote must not
-close. Returns the quote open after it, or NUL.
-*/
+/**
+ * @brief Takes one byte of an argument by buildargv's rules, but a backslash.
+ *
+ * @param[in,out] _word   the word under way.
+ * @param[in]     _c      the byte.
+ * @param[in]     _quote  the quote open; NUL for none.
+ * @return the quote open after the byte; NUL for none.
+ *
+ * One byte of an argument by buildargv's rules, but a backslash: a quote
+ * opens when none is open, and closes the one it matches; any other byte is
+ * taken -- a NUL byte too, which the NUL standing for no quote must not
+ * close. Returns the quote open after it, or NUL.
+ */
 D_STATIC char
 d_arg_internal_split_gnu_byte(
     struct d_arg_internal_split_word* _word,
@@ -1118,14 +1305,20 @@ d_arg_internal_split_gnu_byte(
     return _quote;
 }
 
-/*
-d_arg_internal_split_gnu_argument
-  One argument by libiberty's buildargv, which GCC reads response files
-with: a backslash takes the byte after it as it is, within quotes as
-outside, and is dropped when nothing follows; single and double quotes keep
-everything to their match, an unclosed one running to the end; whitespace
-outside quotes ends the argument. An argument is a word even when empty.
-*/
+/**
+ * @brief Reads one argument by libiberty's buildargv.
+ *
+ * @param[in]     _line  the line.
+ * @param[in,out] _at    the argument's place, moved to its end.
+ * @param[in,out] _word  the word under way, and where the words go.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * One argument by libiberty's buildargv, which GCC reads response files
+ * with: a backslash takes the byte after it as it is, within quotes as
+ * outside, and is dropped when nothing follows; single and double quotes keep
+ * everything to their match, an unclosed one running to the end; whitespace
+ * outside quotes ends the argument. An argument is a word even when empty.
+ */
 D_STATIC int
 d_arg_internal_split_gnu_argument(
     struct d_pack_text                _line,
@@ -1168,11 +1361,16 @@ d_arg_internal_split_gnu_argument(
     return d_arg_internal_split_end(_word);
 }
 
-/*
-d_arg_internal_split_gnu
-  GNU's arguments, each after the whitespace before it; text of whitespace
-alone holds none, as expandargv reads a response file.
-*/
+/**
+ * @brief Splits text into GNU's arguments, as expandargv reads a response file.
+ *
+ * @param[in]     _line  the text.
+ * @param[in,out] _word  the word under way, and where the words go.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * GNU's arguments, each after the whitespace before it; text of whitespace
+ * alone holds none, as expandargv reads a response file.
+ */
 D_STATIC int
 d_arg_internal_split_gnu(
     struct d_pack_text                _line,
@@ -1205,10 +1403,15 @@ d_arg_internal_split_gnu(
 // 6.  CLI11'S RULES
 //==============================================================================
 
-/*
-d_arg_internal_split_cli11_quote
-  Whether a byte is one of the quotes CLI11's escape_detect looks for.
-*/
+/**
+ * @brief Tells whether a byte is one of the quotes CLI11's escape_detect looks
+ *        for.
+ *
+ * @param[in] _c  the byte.
+ * @return `true` for `"`, `'` and a backquote; `false` otherwise.
+ *
+ * Whether a byte is one of the quotes CLI11's escape_detect looks for.
+ */
 D_STATIC bool
 d_arg_internal_split_cli11_quote(
     char _c
@@ -1219,11 +1422,18 @@ d_arg_internal_split_cli11_quote(
              (_c == '`') );
 }
 
-/*
-d_arg_internal_split_cli11_lead
-  CLI11's find_last_of("-/ \"'`", offset - 1) in escape_detect: the last of
-those bytes before `_at`, or NUL when there is none.
-*/
+/**
+ * @brief Finds the last of the bytes CLI11's escape_detect looks back for
+ *        before a place.
+ *
+ * @param[in] _text  the text.
+ * @param[in] _at    the place.
+ * @return the last dash, slash, space or quote before `_at`; NUL when there is
+ *         none.
+ *
+ * CLI11's find_last_of("-/ \\"'`", offset - 1) in escape_detect: the last of
+ * those bytes before `_at`, or NUL when there is none.
+ */
 D_STATIC char
 d_arg_internal_split_cli11_lead(
     const struct d_arg_buffer* _text,
@@ -1247,14 +1457,20 @@ d_arg_internal_split_cli11_lead(
     return '\0';
 }
 
-/*
-d_arg_internal_split_cli11_detect
-  CLI11's find_and_modify with escape_detect, for one trigger, `=` or `:`:
-in order, each trigger after the first byte that a quote follows becomes a
-space when the last dash, slash, space or quote before it is the option's
-lead -- `-` for `=`, `/` for `:` -- so that the quoted value is a word of
-its own.
-*/
+/**
+ * @brief Rewrites a trigger's places as CLI11's find_and_modify with
+ *        escape_detect does.
+ *
+ * @param[in,out] _text     the text, each trigger that is the option's lead's
+ *                          made a space.
+ * @param[in]     _trigger  the trigger: `=`, or `:` for Windows-style options.
+ *
+ * CLI11's find_and_modify with escape_detect, for one trigger, `=` or `:`:
+ * in order, each trigger after the first byte that a quote follows becomes a
+ * space when the last dash, slash, space or quote before it is the option's
+ * lead -- `-` for `=`, `/` for `:` -- so that the quoted value is a word of
+ * its own.
+ */
 D_STATIC void
 d_arg_internal_split_cli11_detect(
     struct d_arg_buffer* _text,
@@ -1282,11 +1498,16 @@ d_arg_internal_split_cli11_detect(
     return;
 }
 
-/*
-d_arg_internal_quotes_inner
-  What CLI11's remove_quotes keeps of a word: the inside of a pair of the
-same quote around it, or the word itself.
-*/
+/**
+ * @brief Gives what CLI11's remove_quotes keeps of a word.
+ *
+ * @param[in] _word  the word.
+ * @return the inside of a pair of the same quote around it; the word itself
+ *         otherwise.
+ *
+ * What CLI11's remove_quotes keeps of a word: the inside of a pair of the
+ * same quote around it, or the word itself.
+ */
 D_STATIC struct d_pack_text
 d_arg_internal_quotes_inner(
     struct d_pack_text _word
@@ -1303,11 +1524,15 @@ d_arg_internal_quotes_inner(
            : _word;
 }
 
-/*
-d_arg_internal_quotes_double
-  Whether a word starts and ends with a double quote, so that CLI11's
-remove_quotes resolves its escapes once the quotes are gone.
-*/
+/**
+ * @brief Tells whether a word starts and ends with a double quote.
+ *
+ * @param[in] _word  the word.
+ * @return `true` when it does; `false` otherwise.
+ *
+ * Whether a word starts and ends with a double quote, so that CLI11's
+ * remove_quotes resolves its escapes once the quotes are gone.
+ */
 D_STATIC bool
 d_arg_internal_quotes_double(
     struct d_pack_text _word
@@ -1390,15 +1615,25 @@ d_arg_internal_remove_quotes(
     return status;
 }
 
-/*
-d_arg_internal_split_cli11
-  CLI11's split of a command line in parse(string): the trimmed line's
-triggers rewritten -- `=`, and `:` for Windows-style options -- then split
-up a piece at a time, each piece losing its quotes as it comes. The pieces
-stay spans of the line, so that a NUL byte in one is the piece's, as it is
-a std::string's: a copy would end the piece there before its quotes are
-found.
-*/
+/**
+ * @brief Splits a command line as CLI11's parse(string) does.
+ *
+ * @param[in]     _line   the line.
+ * @param[in]     _flags  the D_ARG_SPLIT_* switches: whether options are
+ *                        Windows-style.
+ * @param[in]     _out    where the words go.
+ * @param[in,out] _error  the buffer that gains the description of a refusal;
+ *                        NULL for none.
+ * @return D_ARG_OK; D_ARG_ERROR_INVALID for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's split of a command line in parse(string): the trimmed line's
+ * triggers rewritten -- `=`, and `:` for Windows-style options -- then split
+ * up a piece at a time, each piece losing its quotes as it comes. The pieces
+ * stay spans of the line, so that a NUL byte in one is the piece's, as it is
+ * a std::string's: a copy would end the piece there before its quotes are
+ * found.
+ */
 D_STATIC int
 d_arg_internal_split_cli11(
     struct d_pack_text                 _line,
@@ -1470,10 +1705,19 @@ d_arg_internal_quoting_known(
              (_quoting == (int)D_ARG_QUOTING_GNU) );
 }
 
-/*
-d_arg_internal_split_by
-  The split by one set of rules.
-*/
+/**
+ * @brief Splits a line by one set of rules.
+ *
+ * @param[in]     _line     the line.
+ * @param[in]     _quoting  the d_arg_quoting value.
+ * @param[in]     _flags    the D_ARG_SPLIT_* switches.
+ * @param[in,out] _word     the word under way, and where the words go.
+ * @param[in,out] _error    the buffer that gains the description of a refusal;
+ *                          NULL for none.
+ * @return a status, as the rules' split returns.
+ *
+ * The split by one set of rules.
+ */
 D_STATIC int
 d_arg_internal_split_by(
     struct d_pack_text                _line,
@@ -1616,14 +1860,20 @@ static const char CLI11_ESCAPE_CODES[] = "btnfr\"\\";
 // these, letters and digits as it is.
 static const char POSIX_SAFE[] = "@%+=:,./-_";
 
-/*
-d_arg_internal_quote_special
-  Whether a byte is one a set of rules reads specially anywhere in a word:
-for POSIX's, any byte but a letter, a digit or a safe one, so that a real
-shell, with its expansions and operators, also gives the word back; for
-GNU's, whitespace, a quote or a backslash; for the C runtime's, a space, a
-tab, a line break or a double quote; for CLI11's, whitespace.
-*/
+/**
+ * @brief Tells whether a set of rules reads a byte specially anywhere in a
+ *        word.
+ *
+ * @param[in] _c        the byte.
+ * @param[in] _quoting  the d_arg_quoting value.
+ * @return `true` when it does; `false` otherwise.
+ *
+ * Whether a byte is one a set of rules reads specially anywhere in a word:
+ * for POSIX's, any byte but a letter, a digit or a safe one, so that a real
+ * shell, with its expansions and operators, also gives the word back; for
+ * GNU's, whitespace, a quote or a backslash; for the C runtime's, a space, a
+ * tab, a line break or a double quote; for CLI11's, whitespace.
+ */
 D_STATIC bool
 d_arg_internal_quote_special(
     char _c,
@@ -1660,12 +1910,19 @@ d_arg_internal_quote_special(
              (_c == '\\') );
 }
 
-/*
-d_arg_internal_quote_cli11_trigger
-  Whether the byte at `_at` is a `=` or `:` that a quote follows, or that
-ends the word -- where a closing quote will follow it -- which CLI11's
-escape_detect would turn into a space.
-*/
+/**
+ * @brief Tells whether a byte is a trigger CLI11's escape_detect would turn
+ *        into a space.
+ *
+ * @param[in] _word  the word.
+ * @param[in] _at    the byte's place.
+ * @return `true` for a `=` or `:` that a quote follows or that ends the word;
+ *         `false` otherwise.
+ *
+ * Whether the byte at `_at` is a `=` or `:` that a quote follows, or that
+ * ends the word -- where a closing quote will follow it -- which CLI11's
+ * escape_detect would turn into a space.
+ */
 D_STATIC bool
 d_arg_internal_quote_cli11_trigger(
     struct d_pack_text _word,
@@ -1680,12 +1937,17 @@ d_arg_internal_quote_cli11_trigger(
                (d_arg_internal_split_cli11_quote(_word.data[next])) ) );
 }
 
-/*
-d_arg_internal_quote_needed
-  Whether a word must be quoted to come back whole: an empty word always; a
-word holding a byte its rules read specially; and, for CLI11's, a word
-opening with a quote or a bracket, or holding a `=` or `:` before a quote.
-*/
+/**
+ * @brief Tells whether a word must be quoted to come back whole.
+ *
+ * @param[in] _word     the word.
+ * @param[in] _quoting  the d_arg_quoting value.
+ * @return `true` when it must; `false` otherwise.
+ *
+ * Whether a word must be quoted to come back whole: an empty word always; a
+ * word holding a byte its rules read specially; and, for CLI11's, a word
+ * opening with a quote or a bracket, or holding a `=` or `:` before a quote.
+ */
 D_STATIC bool
 d_arg_internal_quote_needed(
     struct d_pack_text _word,
@@ -1720,10 +1982,15 @@ d_arg_internal_quote_needed(
     return false;
 }
 
-/*
-d_arg_internal_quote_repeat
-  A byte written `_count` times.
-*/
+/**
+ * @brief Appends a byte a number of times.
+ *
+ * @param[in,out] _out    the buffer that gains them, its failure kept in it.
+ * @param[in]     _c      the byte.
+ * @param[in]     _count  how many times.
+ *
+ * A byte written `_count` times.
+ */
 D_STATIC void
 d_arg_internal_quote_repeat(
     struct d_arg_buffer* _out,
@@ -1741,11 +2008,15 @@ d_arg_internal_quote_repeat(
     return;
 }
 
-/*
-d_arg_internal_quote_posix
-  POSIX's quoting: the word in single quotes, each single quote in it
-written `'\''`, closing the quotes around an escaped one.
-*/
+/**
+ * @brief Appends a word in POSIX's quoting.
+ *
+ * @param[in]     _word  the word.
+ * @param[in,out] _out   the buffer that gains it, its failure kept in it.
+ *
+ * POSIX's quoting: the word in single quotes, each single quote in it
+ * written `'\''`, closing the quotes around an escaped one.
+ */
 D_STATIC void
 d_arg_internal_quote_posix(
     struct d_pack_text   _word,
@@ -1776,12 +2047,16 @@ d_arg_internal_quote_posix(
     return;
 }
 
-/*
-d_arg_internal_quote_windows
-  The C runtime's quoting: the word in double quotes, a run of backslashes
-doubled before a double quote, which is then escaped, and before the
-closing quote; any other run left as it is.
-*/
+/**
+ * @brief Appends a word in the C runtime's quoting.
+ *
+ * @param[in]     _word  the word.
+ * @param[in,out] _out   the buffer that gains it, its failure kept in it.
+ *
+ * The C runtime's quoting: the word in double quotes, a run of backslashes
+ * doubled before a double quote, which is then escaped, and before the
+ * closing quote; any other run left as it is.
+ */
 D_STATIC void
 d_arg_internal_quote_windows(
     struct d_pack_text   _word,
@@ -1834,13 +2109,18 @@ d_arg_internal_quote_windows(
     return;
 }
 
-/*
-d_arg_internal_quote_cli11_byte
-  One byte of a word in CLI11's double quotes: one of add_escaped_characters'
--- backspace, tab, line feed, form feed, carriage return, `"` and the
-backslash -- after a backslash, by its letter; a `=` or `:` before a quote,
-or last, as a `\u` escape; any other as it is.
-*/
+/**
+ * @brief Appends one byte of a word in CLI11's double quotes.
+ *
+ * @param[in]     _word  the word.
+ * @param[in]     _at    the byte's place.
+ * @param[in,out] _out   the buffer that gains it, its failure kept in it.
+ *
+ * One byte of a word in CLI11's double quotes: one of add_escaped_characters'
+ * -- backspace, tab, line feed, form feed, carriage return, `"` and the
+ * backslash -- after a backslash, by its letter; a `=` or `:` before a quote,
+ * or last, as a `\\u` escape; any other as it is.
+ */
 D_STATIC void
 d_arg_internal_quote_cli11_byte(
     struct d_pack_text   _word,
@@ -1878,11 +2158,15 @@ d_arg_internal_quote_cli11_byte(
     return;
 }
 
-/*
-d_arg_internal_quote_cli11
-  CLI11's quoting: the word in double quotes, each byte as
-d_arg_internal_quote_cli11_byte writes it.
-*/
+/**
+ * @brief Appends a word in CLI11's quoting.
+ *
+ * @param[in]     _word  the word.
+ * @param[in,out] _out   the buffer that gains it, its failure kept in it.
+ *
+ * CLI11's quoting: the word in double quotes, each byte as
+ * d_arg_internal_quote_cli11_byte writes it.
+ */
 D_STATIC void
 d_arg_internal_quote_cli11(
     struct d_pack_text   _word,
@@ -1906,11 +2190,15 @@ d_arg_internal_quote_cli11(
     return;
 }
 
-/*
-d_arg_internal_quote_gnu
-  GNU's quoting: each special byte after a backslash, and an empty word as
-two single quotes.
-*/
+/**
+ * @brief Appends a word in GNU's quoting.
+ *
+ * @param[in]     _word  the word.
+ * @param[in,out] _out   the buffer that gains it, its failure kept in it.
+ *
+ * GNU's quoting: each special byte after a backslash, and an empty word as
+ * two single quotes.
+ */
 D_STATIC void
 d_arg_internal_quote_gnu(
     struct d_pack_text   _word,

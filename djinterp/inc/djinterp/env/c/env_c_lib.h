@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/env/c/env_c_lib.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.08
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -791,22 +791,36 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 4.3.1
 // D_ENV_C_HAS_ALIGNED_ALLOC
-//   feature: detect if aligned_alloc is available (C11)
+//   feature: 1 where the C library has C11's aligned_alloc, from C11 and
+// C++17 on (decision 125 of the register). Not with Microsoft's runtime,
+// under MSVC or MinGW-w64: it has none, and _aligned_malloc in its place
+// (4.3.3). On Apple's systems from the releases that added it, macOS 10.15,
+// iOS and tvOS 13 and watchOS 6 (libmalloc's <malloc/_malloc.h>), read from
+// the deployment target the compiler predefines; a target it does not name,
+// visionOS among them, reads 0.
 #ifndef D_ENV_C_HAS_ALIGNED_ALLOC
     #if !D_INTERNAL_ENV_C_HOSTED
         #define D_ENV_C_HAS_ALIGNED_ALLOC 0
-    #elif ( (D_ENV_LANG_IS_C11_OR_HIGHER) ||                                   \
-            (D_ENV_LANG_IS_CPP17_OR_HIGHER) )
-        #if !defined(__APPLE__)
-            // TODO: Apple supports aligned_alloc from macOS 10.15+;
-            // refine with __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500
-            // if targeting 10.15+ only.
+    #elif ( (!D_ENV_LANG_IS_C11_OR_HIGHER) &&                                  \
+            (!D_ENV_LANG_IS_CPP17_OR_HIGHER) )
+        #define D_ENV_C_HAS_ALIGNED_ALLOC 0
+    #elif D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
+        #define D_ENV_C_HAS_ALIGNED_ALLOC 0
+    #elif defined(__APPLE__)
+        #if ( ( (defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__)) &&    \
+                (__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 101500) )  ||\
+              ( (defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__)) &&   \
+                (__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ >= 130000) ) ||\
+              ( (defined(__ENVIRONMENT_TV_OS_VERSION_MIN_REQUIRED__)) &&       \
+                (__ENVIRONMENT_TV_OS_VERSION_MIN_REQUIRED__ >= 130000) )     ||\
+              ( (defined(__ENVIRONMENT_WATCH_OS_VERSION_MIN_REQUIRED__)) &&    \
+                (__ENVIRONMENT_WATCH_OS_VERSION_MIN_REQUIRED__ >= 60000) ) )
             #define D_ENV_C_HAS_ALIGNED_ALLOC 1
         #else
             #define D_ENV_C_HAS_ALIGNED_ALLOC 0
         #endif
     #else
-        #define D_ENV_C_HAS_ALIGNED_ALLOC 0
+        #define D_ENV_C_HAS_ALIGNED_ALLOC 1
     #endif
 #endif  // D_ENV_C_HAS_ALIGNED_ALLOC
 

@@ -12,16 +12,16 @@
 * just char_traits) may include that file directly.
 *
 *   PORTABILITY:
-*   The whole module requires C++11 (back-port of the C++17 std
-* surface); on C++98/03 this header expands to nothing. char_traits's
-* char / wchar_t paths are the one part that also compiles on C++98 —
-* include char_traits.hpp directly for that.
+*   C++98 and up (a back-port of the C++17 std surface). Below C++11 the
+* char16_t and char32_t views and their hashes are absent, as their
+* types are, the nullptr_t deletion is absent, and the literal operators
+* (C++11 syntax) with them; everything for char and wchar_t is there.
 *
 *
 * path:      /inc/re_std/string_view/string_view
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*

@@ -23,7 +23,7 @@
 * path:      /inc/djinterp/env/util/compress/env_compress.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -32,7 +32,6 @@ TABLE OF CONTENTS
 1.  CONFIGURATION AND PROBING
     -------------------------
     1.  Configuration
-         1.  D_CFG_ENV_COMPRESSION_ENABLED
     2.  Probing
          1.  D_ENV_HAS_INCLUDE
          2.  D_INTERNAL_ENV_COMPRESSION_PROBE
@@ -114,6 +113,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../../c/djinterp.h"  // D_EXTERN_C_BEGIN, D_EXTERN_C_END
 #include "../../env.h"            // D_ENV_OS_ID, D_ENV_IS_OS_WINDOWS
+#include "../../../config/core/env/util/compress/cfg_env_compress.h"  // switch
 
 
 //==============================================================================
@@ -123,13 +123,8 @@ TABLE OF CONTENTS
 
 // 1.1    Configuration
 //------------------------------------------------------------------------------
-// 1.1.1
-// D_CFG_ENV_COMPRESSION_ENABLED
-//   configuration: master toggle for codec-library detection. when 0, every
-// D_ENV_COMPRESSION_HAVE_* flag resolves to 0 unless explicitly pre-defined.
-#ifndef D_CFG_ENV_COMPRESSION_ENABLED
-    #define D_CFG_ENV_COMPRESSION_ENABLED 1
-#endif  // D_CFG_ENV_COMPRESSION_ENABLED
+// The master switch, D_CFG_ENV_COMPRESSION_ENABLED, is cfg_env_compress.h's
+// (decision 105 of the register).
 
 // 1.2    Probing
 //------------------------------------------------------------------------------

@@ -11,8 +11,9 @@
 * d_arg_config_format_init_ini its ConfigINI.
 *   A `struct d_arg_config_item` is one entry read: its section path, its
 * name, and its values. A command's config option (d_arg_command_set_config)
-* reads files through its format during the parse; d_arg_command_config_to_
-* sink writes the values a parse produced, CLI11's config_to_str.
+* reads files through its format during the parse;
+* d_arg_command_config_to_sink writes the values a parse produced, CLI11's
+* config_to_str.
 *   The records exist in every build, as does reading an item as a flag,
 * which the parse asks of a positional expecting no values; reading and
 * writing text and files exist only with D_INTERNAL_ARG_PARSER_CONFIG_FILES.
@@ -21,7 +22,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_config.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -161,10 +162,11 @@ struct d_arg_config_item_list
 //   struct: CLI11's Config virtual functions. from_config reads `_input` into
 // items appended to `_out`, describing a failure in `_error`; to_config
 // appends a command's values, each name preceded by `_prefix`, with
-// `_mode` a d_arg_config_output_mode value; to_flag appends the text a
-// flag-like option takes from an item. Each returns D_ARG_OK or the status
-// that stopped it; a NULL entry runs the default operation of 4.4.1 or
-// 5.2. A from_config builds its items as 4.2 describes.
+// `_mode` a d_arg_config_output_mode value and descriptions written as
+// comments when `_describe` is set; to_flag appends the text a flag-like
+// option takes from an item. Each returns D_ARG_OK or the status that
+// stopped it; a NULL entry runs the default operation of 4.4.1 or 5.2. A
+// from_config builds its items as 4.2 describes.
 struct d_arg_config_format_vtable
 {
     int (*from_config)(const struct d_arg_config_format* _format,
@@ -174,7 +176,7 @@ struct d_arg_config_format_vtable
     int (*to_config)(const struct d_arg_config_format* _format,
                      const struct d_arg_command*       _command,
                      int                               _mode,
-                     bool                              _write_description,
+                     bool                              _describe,
                      struct d_pack_text                _prefix,
                      struct d_arg_buffer*              _out);
     int (*to_flag)(const struct d_arg_config_format* _format,
@@ -445,14 +447,12 @@ int  d_arg_config_from_file(const struct d_arg_config_format* _format,
  *       default's values are kept by the option, as CLI11's results(T&)
  *       keeps them; nothing else about the options changes.
  *
- * @param[in]     _format             the format.
- * @param[in]     _command            the command.
- * @param[in]     _mode               a d_arg_config_output_mode value.
- * @param[in]     _write_description  whether descriptions are written as
- *                                    comments.
- * @param[in]     _prefix             what precedes each name; empty for
- *                                    none.
- * @param[in,out] _out                receives the text, appended.
+ * @param[in]     _format    the format.
+ * @param[in]     _command   the command.
+ * @param[in]     _mode      a d_arg_config_output_mode value.
+ * @param[in]     _describe  whether descriptions are written as comments.
+ * @param[in]     _prefix    what precedes each name; empty for none.
+ * @param[in,out] _out       receives the text, appended.
  * @return D_ARG_OK, or the status of the buffer or of an option whose values
  *         could not be validated or reduced, recorded as a parse records
  *         it; D_ARG_ERROR_BAD_ARGUMENT for a NULL argument or a mode that is
@@ -461,7 +461,7 @@ int  d_arg_config_from_file(const struct d_arg_config_format* _format,
 int  d_arg_config_to_text(const struct d_arg_config_format* _format,
                           const struct d_arg_command*       _command,
                           int                               _mode,
-                          bool                              _write_description,
+                          bool                              _describe,
                           struct d_pack_text                _prefix,
                           struct d_arg_buffer*              _out);
 
@@ -479,7 +479,7 @@ int  d_arg_config_from_text_default(const struct d_arg_config_format* _format,
 int  d_arg_config_to_text_default(const struct d_arg_config_format* _format,
                                   const struct d_arg_command*       _command,
                                   int                               _mode,
-                                  bool                              _write_description,
+                                  bool                              _describe,
                                   struct d_pack_text                _prefix,
                                   struct d_arg_buffer*              _out);
 
@@ -491,17 +491,16 @@ int  d_arg_config_to_text_default(const struct d_arg_config_format* _format,
  * @brief Writes a command's values through its format; CLI11's
  *        config_to_str.
  *
- * @param[in] _command            the command.
- * @param[in] _mode               a d_arg_config_output_mode value.
- * @param[in] _write_description  whether descriptions are written as
- *                                comments.
- * @param[in] _sink               where the text goes.
+ * @param[in] _command   the command.
+ * @param[in] _mode      a d_arg_config_output_mode value.
+ * @param[in] _describe  whether descriptions are written as comments.
+ * @param[in] _sink      where the text goes.
  * @return D_ARG_OK, D_ARG_ERROR_FILE when the sink refused the text, or a
  *         status of d_arg_config_to_text.
  */
 int  d_arg_command_config_to_sink(const struct d_arg_command* _command,
                                   int                         _mode,
-                                  bool                        _write_description,
+                                  bool                        _describe,
                                   struct d_pack_sink          _sink);
 
 #endif  // D_INTERNAL_ARG_PARSER_CONFIG_FILES

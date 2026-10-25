@@ -3,32 +3,37 @@
 *
 * Tests of the TCP transport's C++ layer.
 *   Every test opens its own sockets: an ephemeral loopback port, or a
-* unix-domain path of its own. A std::thread plays the second party where one
-* is needed.
+* unix-domain path of its own. A thread of dmutex.h's plays the second party
+* where one is needed, at every level. The suite runs from C++98: connect and
+* accept fill an open_result in place everywhere, and the moves and the
+* by-value forms are checked from C++11. Link tcp.c, net.c and dmutex.c.
 *
 *
 * path:      /tests/djinterp/net/tcp/tcp_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 #include "./tcp_tests.hpp"  // corresponding header
 // std
-#include <cerrno>       // errno, EAGAIN, EBADF, ECONNREFUSED
-#include <chrono>       // std::chrono::milliseconds
-#include <cstddef>      // std::size_t
-#include <cstdio>       // std::printf
-#include <cstring>      // std::memcmp
-#include <functional>   // std::cref, std::ref
-#include <string>       // std::string, std::to_string
-#include <thread>       // std::thread, std::this_thread
-#include <type_traits>  // std::is_same, std::is_nothrow_move_constructible
-#include <utility>      // std::declval, std::move
-#include <vector>       // std::vector
+#include <cerrno>   // errno, EAGAIN, EBADF, ECONNREFUSED
+#include <cstddef>  // std::size_t
+#include <cstdio>   // std::printf, std::sprintf
+#include <cstring>  // std::memcmp
+#include <ctime>    // std::timespec
+#include <string>   // std::string
+#include <vector>   // std::vector
+#if (D_MOVE_ENABLED == 1)
+    // std
+    #include <type_traits>  // std::is_same, std::is_nothrow_move_constructible
+    #include <utility>      // std::declval, std::move
+#endif  // D_MOVE_ENABLED
 // posix
 #include <fcntl.h>      // fcntl, F_GETFD
 #include <sys/stat.h>   // stat
 #include <unistd.h>     // dup, getpid
+// djinterp
+#include "../../../../inc/djinterp/c/sync/dmutex.h"  // d_thread_create
 
 
 NS_DJINTERP
@@ -36,7 +41,9 @@ NS_TESTING
 
 namespace net = ::djinterp::net;
 
-// the shapes the consumers rely on, checked where they are resolved
+// the shapes the consumers rely on, checked where they are resolved; the
+// by-value forms and the moves are C++11's
+#if (D_MOVE_ENABLED == 1)
 static_assert(std::is_same<decltype(std::declval<net::tcp_connector&>()
                                         .connect(std::declval<
                                             const net::endpoint&>())),
@@ -58,6 +65,7 @@ static_assert(std::is_nothrow_move_constructible<net::tcp_acceptor>::value,
               "tcp_acceptor must move without throwing");
 static_assert(!std::is_copy_constructible<net::socket_connection>::value,
               "socket_connection owns its socket and must not copy");
+#endif  // D_MOVE_ENABLED
 
 NS_INTERNAL
 
@@ -65,8 +73,13 @@ NS_INTERNAL
     //   struct: checks run and failed across the suite.
     struct tally
     {
-        std::size_t checks   = 0u;
-        std::size_t failures = 0u;
+        tally()
+            : checks(0u),
+              failures(0u)
+        {}
+
+        std::size_t checks;
+        std::size_t failures;
     };
 
     // pair
@@ -78,10 +91,62 @@ NS_INTERNAL
         net::open_result  server;
     };
 
+    // bytes_of
+    //   function: a vector's first byte, or null when it has none; C++98's
+    // std::vector has no data().
+    inline unsigned char*
+    bytes_of(
+        std::vector<unsigned char>& _bytes
+    )
+    {
+        return (_bytes.empty()) ? D_NULLPTR
+                                : &_bytes[0];
+    }
+
+    inline const unsigned char*
+    bytes_of(
+        const std::vector<unsigned char>& _bytes
+    )
+    {
+        return (_bytes.empty()) ? D_NULLPTR
+                                : &_bytes[0];
+    }
+
+    // pause_ms
+    //   function: sleeps the calling thread, through dmutex.h.
+    static void
+    pause_ms(
+        long _milliseconds
+    )
+    {
+        struct timespec span;
+
+        span.tv_sec  = _milliseconds / 1000;
+        span.tv_nsec = (_milliseconds % 1000) * 1000000L;
+        (void)::d_thread_sleep(&span,
+                               D_NULLPTR);
+
+        return;
+    }
+
+    // connect_error
+    //   function: what connecting to `_where` reports, in place.
+    static net::io_error::value
+    connect_error(
+        net::tcp_connector&  _connector,
+        const net::endpoint& _where
+    )
+    {
+        net::open_result attempt;
+
+        return _connector.connect(_where,
+                                  attempt);
+    }
+
     // counts
     //   function: the suite's tally.
     static tally&
-    counts() noexcept
+    counts() D_NOEXCEPT
     {
         static tally instance;
 
@@ -94,7 +159,7 @@ NS_INTERNAL
     check(
         bool        _condition,
         const char* _message
-    ) noexcept
+    ) D_NOEXCEPT
     {
         counts().checks += 1u;
 
@@ -134,8 +199,9 @@ NS_INTERNAL
             return false;
         }
 
-        _pair.client = connector.connect(_pair.acceptor.local_endpoint());
-        _pair.server = _pair.acceptor.accept();
+        (void)connector.connect(_pair.acceptor.local_endpoint(),
+                                _pair.client);
+        (void)_pair.acceptor.accept(_pair.server);
 
         return ( (_pair.client.ok()) &&
                  (_pair.server.ok()) );
@@ -159,7 +225,7 @@ NS_INTERNAL
                  (net::read_exactly(_to,
                                     &arrived[0],
                                     arrived.size()) ==
-                  net::io_error::none) &&
+                  net::io_error::none)                          &&
                  (arrived == _text) );
     }
 
@@ -189,20 +255,68 @@ NS_INTERNAL
     )
     {
         (void)net::write_all(_out,
-                             _bytes.data(),
+                             bytes_of(_bytes),
                              _bytes.size());
 
         // each frame a prefix of the same bytes
-        for (const std::size_t size : FRAME_SIZES)
+        for (std::size_t i = 0u;
+             i < sizeof(FRAME_SIZES) / sizeof(FRAME_SIZES[0]);
+             ++i)
         {
             (void)net::write_frame(_out,
-                                   _bytes.data(),
-                                   size);
+                                   bytes_of(_bytes),
+                                   FRAME_SIZES[i]);
         }
 
         (void)_out.shutdown(net::shutdown_mode::write);
 
         return;
+    }
+
+    // writer
+    //   struct: write_streams' arguments, carried to its thread.
+    struct writer
+    {
+        net::connection*                  out;
+        const std::vector<unsigned char>* bytes;
+    };
+
+    // writer_main
+    //   function: the writer thread's body.
+    static d_thread_result_t
+    writer_main(
+        void* _writer
+    )
+    {
+        const writer* const work = static_cast<const writer*>(_writer);
+
+        write_streams(*work->out,
+                      *work->bytes);
+
+        return D_THREAD_SUCCESS;
+    }
+
+    // waiter
+    //   struct: an acceptor to wait on, and what its accept reported.
+    struct waiter
+    {
+        net::tcp_acceptor*   acceptor;
+        net::io_error::value outcome;
+    };
+
+    // waiter_main
+    //   function: the waiting thread's body: one accept, its error kept.
+    static d_thread_result_t
+    waiter_main(
+        void* _waiter
+    )
+    {
+        waiter* const    work = static_cast<waiter*>(_waiter);
+        net::open_result accepted;
+
+        work->outcome = work->acceptor->accept(accepted);
+
+        return D_THREAD_SUCCESS;
     }
 
     // read_frames
@@ -218,15 +332,19 @@ NS_INTERNAL
         bool                       framed = true;
 
         // each frame as the writer sent it; an empty one has no bytes
-        for (const std::size_t size : FRAME_SIZES)
+        for (std::size_t i = 0u;
+             i < sizeof(FRAME_SIZES) / sizeof(FRAME_SIZES[0]);
+             ++i)
         {
-            framed = ( (framed) &&
+            const std::size_t size = FRAME_SIZES[i];
+
+            framed = ( (framed)                                        &&
                        (net::read_frame(_in,
                                         frame) == net::io_error::none) &&
-                       (frame.size() == size) &&
+                       (frame.size() == size)                          &&
                        ( (size == 0u) ||
-                         (std::memcmp(frame.data(),
-                                      _sent.data(),
+                         (std::memcmp(bytes_of(frame),
+                                      bytes_of(_sent),
                                       size) == 0) ) );
         }
 
@@ -255,25 +373,28 @@ tests_tcp_options()
     tuned.reuse_address      = false;
     tuned.reuse_port         = true;
     tuned.connect_timeout_ms = 250;
+    tuned.io_timeout_ms      = 500;
     tuned.listen_backlog     = 7;
 
     const ::d_tcp_options converted = net::internal::to_c_options(tuned);
 
-    result = internal::check( (!defaults.no_delay) &&
-                              (defaults.reuse_address) &&
-                              (!defaults.reuse_port) &&
+    result = internal::check( (!defaults.no_delay)               &&
+                              (defaults.reuse_address)           &&
+                              (!defaults.reuse_port)             &&
                               (defaults.connect_timeout_ms == 0) &&
+                              (defaults.io_timeout_ms == 0)      &&
                               (defaults.listen_backlog == 128),
                              "socket_options keeps tcp.hpp's defaults") &&
              result;
-    result = internal::check( (converted.no_delay) &&
-                              (!converted.reuse_address) &&
-                              (converted.reuse_port) &&
+    result = internal::check( (converted.no_delay)                  &&
+                              (!converted.reuse_address)            &&
+                              (converted.reuse_port)                &&
                               (converted.connect_timeout_ms == 250) &&
+                              (converted.io_timeout_ms == 500)      &&
                               (converted.listen_backlog == 7),
                              "every option reaches tcp.h") && result;
     result = internal::check( (net::internal::from_errno(0) ==
-                               net::io_error::none) &&
+                               net::io_error::none)               &&
                               (net::internal::from_errno(ECONNREFUSED) ==
                                net::io_error::connection_refused) &&
                               (net::internal::from_errno(EAGAIN) ==
@@ -301,16 +422,16 @@ tests_tcp_loopback()
     const bool          opened = internal::open_pair(pair);
     const net::endpoint bound  = pair.acceptor.local_endpoint();
 
-    result = internal::check( (opened) &&
+    result = internal::check( (opened)                    &&
                               (bound.host == "127.0.0.1") &&
-                              (bound.port != 0u) &&
+                              (bound.port != 0u)          &&
                               (pair.client.get()->remote_endpoint() ==
-                               bound) &&
+                               bound)                     &&
                               (pair.client.get()->local_endpoint() ==
                                pair.server.get()->remote_endpoint()),
                              "the endpoints agree across the connection") &&
              result;
-    result = internal::check( (opened) &&
+    result = internal::check( (opened)                     &&
                               (internal::exchange(*pair.client.get(),
                                                   *pair.server.get(),
                                                   "ping")) &&
@@ -350,18 +471,28 @@ tests_tcp_streams()
                                "a loopback pair opens for streaming");
     }
 
-    std::thread writer(internal::write_streams,
-                       std::ref(*pair.client.get()),
-                       std::cref(sent));
-    const bool  bulk   = ( (net::read_exactly(*pair.server.get(),
-                                              arrived.data(),
-                                              arrived.size()) ==
-                            net::io_error::none) &&
-                           (arrived == sent) );
-    const bool  framed = internal::read_frames(*pair.server.get(),
-                                               sent);
+    internal::writer work   = { pair.client.get(),
+                                &sent };
+    d_thread_t       thread;
+    const bool       began  = (::d_thread_create(&thread,
+                                                 &internal::writer_main,
+                                                 &work) == 0);
+    const bool       bulk   = ( (began)               &&
+                                (net::read_exactly(*pair.server.get(),
+                                                   internal::bytes_of(arrived),
+                                                   arrived.size()) ==
+                                 net::io_error::none) &&
+                                (arrived == sent) );
+    const bool       framed = ( (began) &&
+                                (internal::read_frames(*pair.server.get(),
+                                                       sent)) );
 
-    writer.join();
+    // the writer is waited for, if it ran
+    if (began)
+    {
+        (void)::d_thread_join(thread,
+                              D_NULLPTR);
+    }
     result = internal::check(bulk,
                              "1 MiB arrives intact") && result;
     result = internal::check(framed,
@@ -371,6 +502,7 @@ tests_tcp_streams()
     return result;
 }
 
+#if (D_MOVE_ENABLED == 1)
 /*
 tests_tcp_moves
   Tests the following:
@@ -384,18 +516,18 @@ tests_tcp_moves()
     internal::pair pair;
     bool           result = true;
 
-    const bool opened = internal::open_pair(pair);
-    auto&      client = *static_cast<net::socket_connection*>(
-                             pair.client.get());
-    const int  native = client.native_handle();
+    const bool              opened = internal::open_pair(pair);
+    net::socket_connection& client =
+        *static_cast<net::socket_connection*>(pair.client.get());
+    const int               native = client.native_handle();
 
     net::socket_connection moved(std::move(client));
     net::socket_connection target(::dup(native));
     const int              spare = target.native_handle();
 
-    result = internal::check( (opened) &&
-                              (client.native_handle() == -1) &&
-                              (!client.is_open()) &&
+    result = internal::check( (opened)                          &&
+                              (client.native_handle() == -1)    &&
+                              (!client.is_open())               &&
                               (moved.native_handle() == native) &&
                               (internal::exchange(moved,
                                                   *pair.server.get(),
@@ -403,7 +535,7 @@ tests_tcp_moves()
                              "a moved connection keeps its socket") && result;
     target = std::move(moved);
     result = internal::check( (internal::descriptor_closed(spare)) &&
-                              (target.native_handle() == native) &&
+                              (target.native_handle() == native)   &&
                               (!moved.is_open()),
                              "move assignment closes the old socket") &&
              result;
@@ -414,11 +546,75 @@ tests_tcp_moves()
 
     net::open_result again = connector.connect(second.local_endpoint());
 
-    result = internal::check( (!pair.acceptor.is_open()) &&
+    result = internal::check( (!pair.acceptor.is_open())            &&
                               (second.native_handle() == listening) &&
-                              (again.ok()) &&
+                              (again.ok())                          &&
                               (second.accept().ok()),
                              "a moved acceptor goes on accepting") && result;
+
+    return result;
+}
+#endif  // D_MOVE_ENABLED
+
+/*
+tests_tcp_results
+  Tests the following:
+  - fail closes the connection an open_result held, and records the error
+  - reset adopts a new connection, closing the one it replaces
+  - release hands the connection over, which the result then cannot close
+  - swap exchanges connections and errors
+*/
+bool
+tests_tcp_results()
+{
+    internal::pair pair;
+    bool           result = true;
+
+    const bool opened = internal::open_pair(pair);
+    const int  client = (opened)
+                            ? static_cast<net::socket_connection*>(
+                                  pair.client.get())->native_handle()
+                            : -1;
+    const int  server = (opened)
+                            ? static_cast<net::socket_connection*>(
+                                  pair.server.get())->native_handle()
+                            : -1;
+
+    pair.client.fail(net::io_error::timed_out);
+    result = internal::check( (opened)                              &&
+                              (internal::descriptor_closed(client)) &&
+                              (pair.client.get() == D_NULLPTR)      &&
+                              (!pair.client.ok())                   &&
+                              (pair.client.error == net::io_error::timed_out),
+                             "fail closes what was held and keeps the error") &&
+             result;
+
+    net::socket_connection* const spare =
+        new net::socket_connection(::dup(server));
+    const int                     copy  = spare->native_handle();
+
+    pair.server.reset(spare);
+    result = internal::check( (opened)                              &&
+                              (internal::descriptor_closed(server)) &&
+                              (pair.server.get() == spare)          &&
+                              (pair.server.ok()),
+                             "reset adopts, closing the connection replaced") &&
+             result;
+
+    net::connection* const held = pair.server.release();
+
+    result = internal::check( (held == spare)                  &&
+                              (pair.server.get() == D_NULLPTR) &&
+                              (!internal::descriptor_closed(copy)),
+                             "release hands the connection over") && result;
+    pair.server.reset(held);
+    pair.server.swap(pair.client);
+    result = internal::check( (pair.client.get() == spare)     &&
+                              (pair.client.ok())               &&
+                              (pair.server.get() == D_NULLPTR) &&
+                              (pair.server.error == net::io_error::timed_out),
+                             "swap exchanges connections and errors") &&
+             result;
 
     return result;
 }
@@ -437,11 +633,12 @@ tests_tcp_adopt()
     internal::pair pair;
     bool           result = true;
 
-    const bool opened = internal::open_pair(pair);
-    auto&      server = *static_cast<net::socket_connection*>(
-                             pair.server.get());
-    const int  raw    = static_cast<int>(
-                            ::d_tcp_connection_release(&server.c_view()));
+    const bool              opened = internal::open_pair(pair);
+    net::socket_connection& server =
+        *static_cast<net::socket_connection*>(pair.server.get());
+    const int               raw    = static_cast<int>(
+                                         ::d_tcp_connection_release(
+                                             &server.c_view()));
 
     net::socket_connection adopted(raw,
                                    net::protocol::tcp);
@@ -450,15 +647,15 @@ tests_tcp_adopt()
     net::socket_connection none(-1);
     char                   byte = '\0';
 
-    result = internal::check( (opened) &&
-                              (adopted.is_open()) &&
+    result = internal::check( (opened)                              &&
+                              (adopted.is_open())                   &&
                               (adopted.remote_endpoint() ==
                                pair.client.get()->local_endpoint()) &&
                               (internal::exchange(*pair.client.get(),
                                                   adopted,
                                                   "adopted")),
                              "an adopted descriptor works") && result;
-    result = internal::check( (!none.is_open()) &&
+    result = internal::check( (!none.is_open())                              &&
                               (none.read(&byte,
                                          1u).error == net::io_error::closed) &&
                               (tagged.remote_endpoint().proto ==
@@ -480,23 +677,33 @@ bool
 tests_tcp_accept_wake()
 {
     net::tcp_acceptor acceptor;
-    net::io_error     outcome = net::io_error::unknown;
-    bool              result  = true;
+    internal::waiter  work   = { &acceptor,
+                                 net::io_error::unknown };
+    net::open_result  late;
+    d_thread_t        thread;
+    bool              result = true;
 
-    const bool  bound = (acceptor.bind(internal::loopback()) ==
-                         net::io_error::none);
-    std::thread waiter([&acceptor, &outcome]()
-                       {
-                           outcome = acceptor.accept().error;
-                       });
+    const bool bound = (acceptor.bind(internal::loopback()) ==
+                        net::io_error::none);
+    const bool began = (::d_thread_create(&thread,
+                                          &internal::waiter_main,
+                                          &work) == 0);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    internal::pause_ms(100);
     acceptor.close();
-    waiter.join();
+
+    // the waiter is waited for, if it ran
+    if (began)
+    {
+        (void)::d_thread_join(thread,
+                              D_NULLPTR);
+    }
+
     result = internal::check( (bound) &&
-                              (outcome == net::io_error::closed),
+                              (began) &&
+                              (work.outcome == net::io_error::closed),
                              "close wakes the blocked accept") && result;
-    result = internal::check(acceptor.accept().error == net::io_error::closed,
+    result = internal::check(acceptor.accept(late) == net::io_error::closed,
                              "a closed acceptor refuses at once") && result;
 
     return result;
@@ -513,8 +720,14 @@ tests_tcp_unix
 bool
 tests_tcp_unix()
 {
-    const std::string   path  = "/tmp/djinterp_tcp_cpp_" +
-                                std::to_string(::getpid()) + ".sock";
+    char                pid[32];
+    const int           written = std::sprintf(pid,
+                                               "%ld",
+                                               static_cast<long>(::getpid()));
+    const std::string   path  = "/tmp/djinterp_tcp_cpp_"                       +
+                                std::string(pid,
+                                            static_cast<std::size_t>(written)) +
+                                ".sock";
     const net::endpoint where = net::endpoint::local(path);
     struct stat         status;
     net::tcp_acceptor   acceptor;
@@ -524,16 +737,20 @@ tests_tcp_unix()
     const bool       bound  = ( (acceptor.bind(where) == net::io_error::none) &&
                                 (::stat(path.c_str(),
                                         &status) == 0) );
-    net::open_result client = connector.connect(where);
-    net::open_result server = acceptor.accept();
+    net::open_result client;
+    net::open_result server;
 
-    result = internal::check( (bound) &&
-                              (client.ok()) &&
-                              (server.ok()) &&
+    (void)connector.connect(where,
+                            client);
+    (void)acceptor.accept(server);
+
+    result = internal::check( (bound)                                    &&
+                              (client.ok())                              &&
+                              (server.ok())                              &&
                               (client.get()->remote_endpoint() == where) &&
                               (internal::exchange(*client.get(),
                                                   *server.get(),
-                                                  "by path")) &&
+                                                  "by path"))            &&
                               (internal::exchange(*server.get(),
                                                   *client.get(),
                                                   "and back")),
@@ -571,12 +788,14 @@ tests_tcp_errors()
 
     held.close();
 
-    const bool refused = (connector.connect(where).error ==
+    const bool refused = (internal::connect_error(connector,
+                                                  where) ==
                           net::io_error::connection_refused);
 
     connector.options().connect_timeout_ms = 1500;
 
-    const bool bounded = (connector.connect(where).error ==
+    const bool bounded = (internal::connect_error(connector,
+                                                  where) ==
                           net::io_error::connection_refused);
     const net::endpoint huge(std::string(300u,
                                          'h'),
@@ -585,22 +804,72 @@ tests_tcp_errors()
                                  9u,
                                  net::protocol::udp);
 
-    result = internal::check( (bound) &&
-                              (taken) &&
+    result = internal::check( (bound)   &&
+                              (taken)   &&
                               (refused) &&
                               (bounded),
                              "refusals and a held port are reported") &&
              result;
-    result = internal::check( (connector.connect(huge).error ==
+    result = internal::check( (internal::connect_error(connector,
+                                                       huge) ==
                                net::io_error::address_invalid) &&
                               (second.bind(huge) ==
                                net::io_error::address_invalid) &&
-                              (connector.connect(datagram).error ==
+                              (internal::connect_error(connector,
+                                                       datagram) ==
                                net::io_error::invalid_argument),
                              "unholdable and UDP endpoints are refused") &&
              result;
+#if (D_MOVE_ENABLED == 1)
+    result = internal::check( (connector.connect(huge).error ==
+                               net::io_error::address_invalid) &&
+                              (connector.connect(datagram).error ==
+                               net::io_error::invalid_argument),
+                             "the by-value connect reports the same") &&
+             result;
+#endif  // D_MOVE_ENABLED
 
     return result;
+}
+
+/*
+tests_tcp_timeouts
+  Tests the following:
+  - io_timeout_ms reaches both the connections a connector opens and those
+    an acceptor accepts, and a read with nothing to read then expires
+*/
+bool
+tests_tcp_timeouts()
+{
+    net::socket_options options;
+
+    options.io_timeout_ms = 100;
+
+    net::tcp_acceptor  acceptor(options);
+    net::tcp_connector connector(options);
+    net::open_result   client;
+    net::open_result   server;
+    unsigned char      byte = 0u;
+
+    const bool bound = (acceptor.bind(internal::loopback()) ==
+                        net::io_error::none);
+
+    (void)connector.connect(acceptor.local_endpoint(),
+                            client);
+    (void)acceptor.accept(server);
+
+    const bool opened = ( (bound)       &&
+                          (client.ok()) &&
+                          (server.ok()) );
+
+    return internal::check( (opened)                   &&
+                            (client.get()->read(&byte,
+                                                1u).error ==
+                             net::io_error::timed_out) &&
+                            (server.get()->read(&byte,
+                                                1u).error ==
+                             net::io_error::timed_out),
+                           "reads under io_timeout_ms expire");
 }
 
 /*
@@ -621,17 +890,23 @@ tests_tcp_run_all()
         { "options",     tests_tcp_options },
         { "loopback",    tests_tcp_loopback },
         { "streams",     tests_tcp_streams },
+#if (D_MOVE_ENABLED == 1)
         { "moves",       tests_tcp_moves },
+#endif  // D_MOVE_ENABLED
+        { "results",     tests_tcp_results },
         { "adoption",    tests_tcp_adopt },
         { "accept wake", tests_tcp_accept_wake },
         { "unix-domain", tests_tcp_unix },
-        { "errors",      tests_tcp_errors }
+        { "errors",      tests_tcp_errors },
+        { "timeouts",    tests_tcp_timeouts }
     };
     bool all = true;
 
-    for (const entry& test : CASES)
+    // run every case, reporting each
+    for (std::size_t i = 0u; i < sizeof(CASES) / sizeof(CASES[0]); ++i)
     {
-        const bool passed = test.run();
+        const entry& test   = CASES[i];
+        const bool   passed = test.run();
 
         all = ( (all) &&
                 (passed) );
@@ -640,9 +915,10 @@ tests_tcp_run_all()
                     test.name);
     }
 
-    std::printf("%zu/%zu checks\n",
-                internal::counts().checks - internal::counts().failures,
-                internal::counts().checks);
+    std::printf("%lu/%lu checks\n",
+                static_cast<unsigned long>(internal::counts().checks -
+                                           internal::counts().failures),
+                static_cast<unsigned long>(internal::counts().checks));
 
     return all;
 }

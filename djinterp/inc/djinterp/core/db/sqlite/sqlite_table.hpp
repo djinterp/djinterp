@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/core/db/sqlite/sqlite_table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.23
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -36,7 +36,7 @@ TABLE OF CONTENTS
 #define DJINTERP_DB_SQLITE_SQLITE_TABLE_HPP 1
 
 // djinterp
-#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: the floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
@@ -126,8 +126,13 @@ public:
     using typename base_type::schema_type;
     using self_type = sqlite_table<Config>;
 
-    using type_support = sqlite_type_support;
-    using version_info = sqlite_version_info;
+    using client_capabilities = sqlite_client_capabilities;
+    using version_info        = sqlite_version_info;
+
+    // type_support -- client_capabilities, by its former name (2026.10.21),
+    // for one release
+    using type_support [[deprecated("client_capabilities")]] =
+        sqlite_client_capabilities;
 
     // construction -- as database_table's
     sqlite_table()

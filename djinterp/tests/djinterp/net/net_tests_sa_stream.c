@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/net/net_tests_sa_stream.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.14
 *******************************************************************************/
 #include "./net_tests_sa.h"  // corresponding header
 // std
@@ -56,7 +56,7 @@ d_tests_net_liar_read(
     (void)_buffer;
 
     return d_net_io_result_make(_size + 1u,
-                                D_NET_ERROR_NONE);
+                                D_NET_OK);
 }
 
 /*
@@ -74,7 +74,7 @@ d_tests_net_liar_write(
     (void)_data;
 
     return d_net_io_result_make(_size + 1u,
-                                D_NET_ERROR_NONE);
+                                D_NET_OK);
 }
 
 /*
@@ -118,6 +118,7 @@ static const struct d_net_connection_vtable LIAR_OPERATIONS =
     NULL,
     NULL,
     NULL,
+    NULL,
     NULL
 };
 
@@ -131,6 +132,7 @@ static const struct d_net_connection_vtable PARTIAL_OPERATIONS =
     NULL,
     d_tests_net_liar_is_open,
     d_tests_net_liar_close,
+    NULL,
     NULL,
     NULL,
     NULL,
@@ -181,22 +183,22 @@ d_tests_net_dispatch_edges(
                                                       NULL,
                                                       0u),
                                 0u,
-                                D_NET_ERROR_NONE)) &&
+                                D_NET_OK)) &&
                            (d_tests_net_result_is(
                                 d_net_connection_write(&liar,
                                                        NULL,
                                                        0u),
                                 0u,
-                                D_NET_ERROR_NONE)) );
+                                D_NET_OK)) );
 
-    result = d_assert_standalone(refused,
-                                 TEST,
-                                 "NULL and incomplete arguments are refused",
-                                 _counter) && result;
-    result = d_assert_standalone(nothing,
-                                 TEST,
-                                 "zero-byte requests never reach a backend",
-                                 _counter) && result;
+    result = d_tests_net_assert(refused,
+                                TEST,
+                                "NULL and incomplete arguments are refused",
+                                _counter) && result;
+    result = d_tests_net_assert(nothing,
+                                TEST,
+                                "zero-byte requests never reach a backend",
+                                _counter) && result;
 
     return result;
 }
@@ -220,10 +222,10 @@ d_tests_sa_net_dispatch(
     bool                    result = true;
 
     const bool init = ( (d_net_connection_init(&liar,
-                                               &LIAR_OPERATIONS)) &&
+                                               &LIAR_OPERATIONS))     &&
                         (!d_net_connection_init(&empty,
                                                 &PARTIAL_OPERATIONS)) &&
-                        (empty.vtable == NULL) &&
+                        (empty.vtable == NULL)                        &&
                         (!d_net_connection_init(NULL,
                                                 &LIAR_OPERATIONS)) );
     const bool held = ( (d_tests_net_result_is(
@@ -239,16 +241,68 @@ d_tests_sa_net_dispatch(
                              0u,
                              D_NET_ERROR_UNKNOWN)) );
 
-    result = d_assert_standalone(init,
-                                 TEST,
-                                 "init adopts only complete tables",
-                                 _counter) && result;
-    result = d_assert_standalone(held,
-                                 TEST,
-                                 "a backend overclaiming is held to UNKNOWN",
-                                 _counter) && result;
+    result = d_tests_net_assert(init,
+                                TEST,
+                                "init adopts only complete tables",
+                                _counter) && result;
+    result = d_tests_net_assert(held,
+                                TEST,
+                                "a backend overclaiming is held to UNKNOWN",
+                                _counter) && result;
 
     return d_tests_net_dispatch_edges(_counter) && result;
+}
+
+/*
+d_tests_sa_net_complete
+  Tests the following:
+  - a connection whose table init adopted is complete
+  - NULL is not, nor is a connection whose init refused its table, nor one
+    pointed straight at a table missing any one of the four required
+    operations, as a module might be handed
+*/
+bool
+d_tests_sa_net_complete(
+    struct d_test_counter* _counter
+)
+{
+    struct d_net_connection_vtable tables[4] =
+    {
+        LIAR_OPERATIONS,
+        LIAR_OPERATIONS,
+        LIAR_OPERATIONS,
+        LIAR_OPERATIONS
+    };
+    struct d_net_connection        adopted   = { NULL };
+    struct d_net_connection        refused   = { NULL };
+    struct d_net_connection        handed    = { NULL };
+    bool                           missing   = true;
+
+    (void)d_net_connection_init(&adopted,
+                                &LIAR_OPERATIONS);
+    (void)d_net_connection_init(&refused,
+                                &PARTIAL_OPERATIONS);
+
+    tables[0].read    = NULL;
+    tables[1].write   = NULL;
+    tables[2].is_open = NULL;
+    tables[3].close   = NULL;
+
+    // each table missing one operation, handed over without init
+    for (size_t i = 0u; i < 4u; ++i)
+    {
+        handed.vtable = &tables[i];
+        missing       = ( (!d_net_connection_is_complete(&handed)) &&
+                          (missing) );
+    }
+
+    return d_tests_net_assert( (d_net_connection_is_complete(&adopted))  &&
+                               (!d_net_connection_is_complete(&refused)) &&
+                               (!d_net_connection_is_complete(NULL))     &&
+                               (missing),
+                               "d_net_connection_is_complete",
+                               "complete only with all four operations",
+                               _counter);
 }
 
 /*
@@ -278,23 +332,79 @@ d_tests_net_lifetime_end(
     d_net_connection_destroy(&minimal.base);
     d_net_connection_destroy(NULL);
 
-    const bool destroyed = ( (full.closes == 3u) &&
-                             (full.destroys == 1u) &&
+    const bool destroyed = ( (full.closes == 3u)    &&
+                             (full.destroys == 1u)  &&
                              (minimal.closes == 1u) &&
                              (!minimal.open) );
 
-    return d_assert_standalone( ( (closed) &&
-                                  (destroyed) ),
-                                "d_net_connection lifetime",
-                                "close repeats; destroy closes, releases",
-                                _counter);
+    return d_tests_net_assert( ( (closed) &&
+                                 (destroyed) ),
+                               "d_net_connection lifetime",
+                               "close repeats; destroy closes, releases",
+                               _counter);
+}
+
+/*
+d_tests_net_endpoint_emptied
+  Whether a query that said `_known` left `_address` empty, as an address
+that is not known must; then dirties it again for the next query.
+*/
+static bool
+d_tests_net_endpoint_emptied(
+    bool                   _known,
+    struct d_net_endpoint* _address
+)
+{
+    const bool emptied = ( (!_known)                   &&
+                           (_address->host[0] == '\0') &&
+                           (_address->port == 0u) );
+
+    _address->host[0] = 'z';
+    _address->port    = 7u;
+
+    return emptied;
+}
+
+/*
+d_tests_net_endpoints_unknown
+  The unknown half of d_tests_sa_net_lifetime's endpoints: whatever the
+output held, an address that is not known leaves it empty -- one a backend
+refuses, one it has no query for, and one an incomplete connection asks.
+*/
+static bool
+d_tests_net_endpoints_unknown(
+    struct d_tests_net_mock* _full,
+    struct d_tests_net_mock* _minimal
+)
+{
+    struct d_net_connection incomplete = { NULL };
+    struct d_net_endpoint   address    = { .port = 7u };
+
+    address.host[0] = 'z';
+
+    return ( (d_tests_net_endpoint_emptied(
+                  d_net_connection_local_endpoint(&_full->base,
+                                                  &address),
+                  &address)) &&
+             (d_tests_net_endpoint_emptied(
+                  d_net_connection_remote_endpoint(&_minimal->base,
+                                                   &address),
+                  &address)) &&
+             (d_tests_net_endpoint_emptied(
+                  d_net_connection_local_endpoint(&incomplete,
+                                                  &address),
+                  &address)) &&
+             (!d_net_connection_remote_endpoint(&_full->base,
+                                                NULL)) );
 }
 
 /*
 d_tests_sa_net_lifetime
   Tests the following:
   - shutdown reaches a backend, defaults to success, and validates modes
-  - endpoints are reported when known, and emptied when not
+  - endpoints are reported when known, each through its own query, and
+    emptied when not, whatever the output held
+    (d_tests_net_endpoints_unknown)
   - closing and destroying (d_tests_net_lifetime_end)
 */
 bool
@@ -315,40 +425,121 @@ d_tests_sa_net_lifetime(
 
     const bool halves = ( (d_net_connection_shutdown(&full.base,
                                                      D_NET_SHUTDOWN_WRITE) ==
-                           D_NET_ERROR_NONE) &&
+                           D_NET_OK)                                   &&
                           (full.last_shutdown == D_NET_SHUTDOWN_WRITE) &&
                           (d_net_connection_shutdown(&minimal.base,
                                                      D_NET_SHUTDOWN_BOTH) ==
-                           D_NET_ERROR_NONE) &&
+                           D_NET_OK)                                   &&
                           (d_net_connection_shutdown(&full.base,
                                                      (enum d_net_shutdown)9) ==
-                           D_NET_ERROR_INVALID_ARGUMENT) &&
+                           D_NET_ERROR_INVALID_ARGUMENT)               &&
                           (full.shutdowns == 1u) );
-    const bool known = ( (d_net_connection_remote_endpoint(&full.base,
-                                                           &address)) &&
-                         (strcmp(address.host,
-                                 "192.0.2.1") == 0) &&
-                         (address.port == 80u) );
-    const bool unknown = ( (!d_net_connection_local_endpoint(&full.base,
+    const bool unknown = d_tests_net_endpoints_unknown(&full,
+                                                       &minimal);
+    const bool remote  = ( (d_net_connection_remote_endpoint(&full.base,
                                                              &address)) &&
-                           (address.host[0] == '\0') &&
-                           (address.port == 0u) &&
-                           (!d_net_connection_remote_endpoint(&minimal.base,
-                                                              &address)) &&
-                           (!d_net_connection_remote_endpoint(&full.base,
-                                                              NULL)) );
+                           (strcmp(address.host,
+                                   "192.0.2.1") == 0)                   &&
+                           (address.port == 80u) );
 
-    result = d_assert_standalone(halves,
-                                 TEST,
-                                 "shutdown reaches, defaults, and validates",
-                                 _counter) && result;
-    result = d_assert_standalone(( (known) &&
-                                   (unknown) ),
-                                 TEST,
-                                 "endpoints are reported, or emptied",
-                                 _counter) && result;
+    full.knows_local = true;
+
+    const bool local   = ( (d_net_connection_local_endpoint(&full.base,
+                                                            &address)) &&
+                           (strcmp(address.host,
+                                   "198.51.100.7") == 0)               &&
+                           (address.port == 8080u) );
+
+    result = d_tests_net_assert(halves,
+                                TEST,
+                                "shutdown reaches, defaults, and validates",
+                                _counter) && result;
+    result = d_tests_net_assert(( (remote) &&
+                                  (local)  &&
+                                  (unknown) ),
+                                TEST,
+                                "endpoints are reported, or emptied",
+                                _counter) && result;
 
     return d_tests_net_lifetime_end(_counter) && result;
+}
+
+/*
+d_tests_sa_net_available
+  Tests the following:
+  - a backend's count is reported, and follows its input
+  - a backend without the operation, an unusable connection, and a NULL
+    count are refused, the count left 0
+  - a backend's refusal is passed on with the count zeroed, whatever the
+    backend left in it
+*/
+bool
+d_tests_sa_net_available(
+    struct d_test_counter* _counter
+)
+{
+    const char* const       TEST      = "d_net_connection_available";
+    struct d_tests_net_mock full      = { .open = false };
+    struct d_tests_net_mock minimal   = { .open = false };
+    struct d_net_connection empty     = { NULL };
+    unsigned char           octets[3] = { 1u, 2u, 3u };
+    size_t                  count     = 7u;
+    bool                    result    = true;
+
+    d_tests_net_mock_init(&full,
+                          true);
+    d_tests_net_mock_init(&minimal,
+                          false);
+    d_tests_net_mock_input(&full,
+                           octets,
+                           sizeof(octets));
+
+    const bool known = ( (d_net_connection_available(&full.base,
+                                                     &count)) &&
+                         (count == 3u)                        &&
+                         (d_tests_net_result_is(
+                              d_net_connection_read(&full.base,
+                                                    octets,
+                                                    2u),
+                              2u,
+                              D_NET_OK))                      &&
+                         (d_net_connection_available(&full.base,
+                                                     &count)) &&
+                         (count == 1u) );
+
+    count = 7u;
+
+    const bool unknown = ( (!d_net_connection_available(&minimal.base,
+                                                        &count)) &&
+                           (count == 0u)                         &&
+                           (!d_net_connection_available(&empty,
+                                                        &count)) &&
+                           (!d_net_connection_available(NULL,
+                                                        &count)) &&
+                           (!d_net_connection_available(&full.base,
+                                                        NULL)) );
+
+    d_net_connection_close(&full.base);
+    count = 7u;
+
+    const bool refused = ( (!d_net_connection_available(&full.base,
+                                                        &count)) &&
+                           (count == 0u) );
+
+    result = d_tests_net_assert(known,
+                                TEST,
+                                "a backend's count is reported",
+                                _counter) && result;
+    result = d_tests_net_assert(unknown,
+                                TEST,
+                                "no operation, no connection: unknown, 0",
+                                _counter) && result;
+    result = d_tests_net_assert(refused,
+                                TEST,
+                                "a refusal is passed on, the count zeroed",
+                                _counter) && result;
+
+    return result;
 }
 
 /*
@@ -395,11 +586,11 @@ d_tests_net_write_stops(
                                            &done) == D_NET_ERROR_TIMED_OUT) &&
                           (done == 6u) );
 
-    return d_assert_standalone( ( (stalled) &&
-                                  (failed) ),
-                                "d_net_write_all",
-                                "stalls and failures end it, counted",
-                                _counter);
+    return d_tests_net_assert( ( (stalled) &&
+                                 (failed) ),
+                               "d_net_write_all",
+                               "stalls and failures end it, counted",
+                               _counter);
 }
 
 /*
@@ -434,17 +625,17 @@ d_tests_net_exact_writes(
     const bool whole = ( (d_net_write_all(&mock.base,
                                           source,
                                           sizeof(source),
-                                          &done) == D_NET_ERROR_NONE) &&
-                         (done == 10u) &&
-                         (mock.writes == 5u) &&
+                                          &done) == D_NET_OK) &&
+                         (done == 10u)                        &&
+                         (mock.writes == 5u)                  &&
                          (memcmp(target,
                                  source,
                                  sizeof(source)) == 0) );
 
-    result = d_assert_standalone(whole,
-                                 TEST,
-                                 "short writes are looped over",
-                                 _counter) && result;
+    result = d_tests_net_assert(whole,
+                                TEST,
+                                "short writes are looped over",
+                                _counter) && result;
 
     return d_tests_net_write_stops(_counter) && result;
 }
@@ -494,11 +685,11 @@ d_tests_net_read_stops(
                            D_NET_ERROR_WOULD_BLOCK) &&
                           (done == 4u) );
 
-    return d_assert_standalone( ( (early) &&
-                                  (failed) ),
-                                "d_net_read_exactly",
-                                "ends and failures stop it, counted",
-                                _counter);
+    return d_tests_net_assert( ( (early) &&
+                                 (failed) ),
+                               "d_net_read_exactly",
+                               "ends and failures stop it, counted",
+                               _counter);
 }
 
 /*
@@ -536,8 +727,8 @@ d_tests_sa_net_exact(
     const bool whole = ( (d_net_read_exactly(&mock.base,
                                              target,
                                              10u,
-                                             &done) == D_NET_ERROR_NONE) &&
-                         (done == 10u) &&
+                                             &done) == D_NET_OK) &&
+                         (done == 10u)                           &&
                          (memcmp(target,
                                  source,
                                  sizeof(source)) == 0) );
@@ -546,20 +737,20 @@ d_tests_sa_net_exact(
                                              1u,
                                              &done) ==
                           D_NET_ERROR_INVALID_ARGUMENT) &&
-                         (done == 0u) &&
+                         (done == 0u)                   &&
                          (d_net_read_exactly(&mock.base,
                                              NULL,
                                              0u,
-                                             NULL) == D_NET_ERROR_NONE) );
+                                             NULL) == D_NET_OK) );
 
-    result = d_assert_standalone(whole,
-                                 TEST,
-                                 "short reads are looped over",
-                                 _counter) && result;
-    result = d_assert_standalone(edges,
-                                 TEST,
-                                 "NULL is refused; zero bytes succeed",
-                                 _counter) && result;
+    result = d_tests_net_assert(whole,
+                                TEST,
+                                "short reads are looped over",
+                                _counter) && result;
+    result = d_tests_net_assert(edges,
+                                TEST,
+                                "NULL is refused; zero bytes succeed",
+                                _counter) && result;
 
     result = d_tests_net_read_stops(_counter) && result;
 
@@ -605,8 +796,8 @@ d_tests_net_pumps(
 
     const bool copied = ( (d_net_pump(&source.base,
                                       &sink.base,
-                                      &total) == D_NET_ERROR_NONE) &&
-                          (total == sizeof(data)) &&
+                                      &total) == D_NET_OK) &&
+                          (total == sizeof(data))          &&
                           (memcmp(target,
                                   data,
                                   sizeof(data)) == 0) );
@@ -621,20 +812,20 @@ d_tests_net_pumps(
     const bool stalled = ( (d_net_pump(&source.base,
                                        &sink.base,
                                        &total) == D_NET_ERROR_CLOSED) &&
-                           (total == 100u) &&
+                           (total == 100u)                            &&
                            (d_net_pump(&source.base,
                                        NULL,
                                        NULL) ==
                             D_NET_ERROR_INVALID_ARGUMENT) );
 
-    result = d_assert_standalone(copied,
-                                 TEST,
-                                 "a stream is copied across short transfers",
-                                 _counter) && result;
-    result = d_assert_standalone(stalled,
-                                 TEST,
-                                 "a stalled sink ends it, counted; NULL fails",
-                                 _counter) && result;
+    result = d_tests_net_assert(copied,
+                                TEST,
+                                "a stream is copied across short transfers",
+                                _counter) && result;
+    result = d_tests_net_assert(stalled,
+                                TEST,
+                                "a stalled sink ends it, counted; NULL fails",
+                                _counter) && result;
 
     return result;
 }
@@ -674,7 +865,7 @@ d_tests_net_read_all_stops(
                                         d_tests_net_sink(&buffer),
                                         &total) ==
                          D_NET_ERROR_MESSAGE_TOO_LARGE) &&
-                        (buffer.length == 5000u) &&
+                        (buffer.length == 5000u)        &&
                         (total < 5000u) );
 
     d_tests_net_mock_input(&mock,
@@ -686,17 +877,17 @@ d_tests_net_read_all_stops(
                                         d_tests_net_sink(&buffer),
                                         &total) ==
                          D_NET_ERROR_CONNECTION_RESET) &&
-                        (total == 100u) &&
+                        (total == 100u)                &&
                         (d_net_read_all(&mock.base,
                                         none,
                                         NULL) ==
                          D_NET_ERROR_INVALID_ARGUMENT) );
 
-    return d_assert_standalone( ( (full) &&
-                                  (torn) ),
-                                "d_net_read_all",
-                                "full sinks, failures, and NULL end it",
-                                _counter);
+    return d_tests_net_assert( ( (full) &&
+                                 (torn) ),
+                               "d_net_read_all",
+                               "full sinks, failures, and NULL end it",
+                               _counter);
 }
 
 /*
@@ -735,16 +926,16 @@ d_tests_sa_net_bulk(
 
     const bool drained = ( (d_net_read_all(&mock.base,
                                            d_tests_net_sink(&buffer),
-                                           &total) == D_NET_ERROR_NONE) &&
-                           (total == sizeof(data)) &&
+                                           &total) == D_NET_OK) &&
+                           (total == sizeof(data))              &&
                            (memcmp(target,
                                    data,
                                    sizeof(data)) == 0) );
 
-    result = d_assert_standalone(drained,
-                                 TEST,
-                                 "a stream is drained into a sink",
-                                 _counter) && result;
+    result = d_tests_net_assert(drained,
+                                TEST,
+                                "a stream is drained into a sink",
+                                _counter) && result;
 
     result = d_tests_net_read_all_stops(_counter) && result;
 
@@ -837,11 +1028,11 @@ d_tests_net_frame_refusals(
                                          &length) == D_NET_ERROR_CLOSED) &&
                        (length == 0u) );
 
-    return d_assert_standalone( ( (small) &&
-                                  (cut) ),
-                                "d_net_read_frame",
-                                "short buffers and headers are refused",
-                                _counter);
+    return d_tests_net_assert( ( (small) &&
+                                 (cut) ),
+                               "d_net_read_frame",
+                               "short buffers and headers are refused",
+                               _counter);
 }
 
 /*
@@ -885,7 +1076,7 @@ d_tests_net_frame_reads(
                                                 back,
                                                 sizeof(back),
                                                 &length) ==
-                               D_NET_ERROR_NONE) &&
+                               D_NET_OK)                  &&
                               (length == sizeof(payload)) &&
                               (memcmp(back,
                                       payload,
@@ -901,16 +1092,16 @@ d_tests_net_frame_reads(
                                           &length) == D_NET_ERROR_CLOSED) &&
                         (length == sizeof(payload)) );
 
-    result = d_assert_standalone(( (writes == 2u) &&
-                                   (sent == sizeof(wire)) &&
-                                   (back_again) ),
-                                 TEST,
-                                 "a large frame makes the round trip",
-                                 _counter) && result;
-    result = d_assert_standalone(torn,
-                                 TEST,
-                                 "a torn payload reports its length",
-                                 _counter) && result;
+    result = d_tests_net_assert(( (writes == 2u)         &&
+                                  (sent == sizeof(wire)) &&
+                                  (back_again) ),
+                                TEST,
+                                "a large frame makes the round trip",
+                                _counter) && result;
+    result = d_tests_net_assert(torn,
+                                TEST,
+                                "a torn payload reports its length",
+                                _counter) && result;
 
     return d_tests_net_frame_refusals(_counter) && result;
 }
@@ -942,10 +1133,10 @@ d_tests_net_frame_ceiling(
                             D_NET_ERROR_MESSAGE_TOO_LARGE) &&
                            (mock.output_length == 0u) );
 
-    return d_assert_standalone(refused,
-                               "d_net_write_frame",
-                               "frames over the ceiling write nothing",
-                               _counter);
+    return d_tests_net_assert(refused,
+                              "d_net_write_frame",
+                              "frames over the ceiling write nothing",
+                              _counter);
 }
 
 /*
@@ -982,8 +1173,8 @@ d_tests_sa_net_frames(
                                             "hello",
                                             5u,
                                             D_NET_FRAME_MAX) ==
-                          D_NET_ERROR_NONE) &&
-                         (mock.writes == 1u) &&
+                          D_NET_OK)                               &&
+                         (mock.writes == 1u)                      &&
                          (mock.output_length == sizeof(EXPECTED)) &&
                          (memcmp(wire,
                                  EXPECTED,
@@ -997,21 +1188,21 @@ d_tests_sa_net_frames(
                                            NULL,
                                            0u,
                                            D_NET_FRAME_MAX) ==
-                         D_NET_ERROR_NONE) &&
+                         D_NET_OK)                                      &&
                         (mock.output_length == D_NET_FRAME_HEADER_SIZE) &&
                         (memcmp(wire,
                                 EXPECTED,
-                                3u) == 0) &&
+                                3u) == 0)                               &&
                         (wire[3] == 0u) );
 
-    result = d_assert_standalone(whole,
-                                 TEST,
-                                 "a small frame is one big-endian write",
-                                 _counter) && result;
-    result = d_assert_standalone(bare,
-                                 TEST,
-                                 "an empty frame is a bare header",
-                                 _counter) && result;
+    result = d_tests_net_assert(whole,
+                                TEST,
+                                "a small frame is one big-endian write",
+                                _counter) && result;
+    result = d_tests_net_assert(bare,
+                                TEST,
+                                "an empty frame is a bare header",
+                                _counter) && result;
     result = d_tests_net_frame_ceiling(_counter) && result;
 
     return d_tests_net_frame_reads(_counter) && result;
@@ -1060,7 +1251,7 @@ d_tests_net_frame_sink_stops(
                                                   100u,
                                                   &length) ==
                             D_NET_ERROR_MESSAGE_TOO_LARGE) &&
-                           (buffer.length == 0u) &&
+                           (buffer.length == 0u)           &&
                            (length == sizeof(payload)) );
 
     d_tests_net_mock_input(&reader,
@@ -1073,18 +1264,18 @@ d_tests_net_frame_sink_stops(
                                                D_NET_FRAME_MAX,
                                                NULL) ==
                          D_NET_ERROR_MESSAGE_TOO_LARGE) &&
-                        (buffer.length == 100u) &&
+                        (buffer.length == 100u)         &&
                         (d_net_read_frame_sink(&reader.base,
                                                none,
                                                D_NET_FRAME_MAX,
                                                NULL) ==
                          D_NET_ERROR_INVALID_ARGUMENT) );
 
-    return d_assert_standalone( ( (ceiling) &&
-                                  (full) ),
-                                "d_net_read_frame_sink",
-                                "ceilings, full sinks, and NULL end it",
-                                _counter);
+    return d_tests_net_assert( ( (ceiling) &&
+                                 (full) ),
+                               "d_net_read_frame_sink",
+                               "ceilings, full sinks, and NULL end it",
+                               _counter);
 }
 
 /*
@@ -1131,17 +1322,17 @@ d_tests_sa_net_frames_sink(
                                                 d_tests_net_sink(&buffer),
                                                 D_NET_FRAME_MAX,
                                                 &length) ==
-                          D_NET_ERROR_NONE) &&
-                         (length == sizeof(payload)) &&
+                          D_NET_OK)                         &&
+                         (length == sizeof(payload))        &&
                          (buffer.length == sizeof(payload)) &&
                          (memcmp(target,
                                  payload,
                                  sizeof(payload)) == 0) );
 
-    result = d_assert_standalone(whole,
-                                 TEST,
-                                 "a multi-chunk frame reaches the sink",
-                                 _counter) && result;
+    result = d_tests_net_assert(whole,
+                                TEST,
+                                "a multi-chunk frame reaches the sink",
+                                _counter) && result;
 
     return d_tests_net_frame_sink_stops(_counter) && result;
 }
@@ -1165,7 +1356,12 @@ d_tests_sa_net_run_all(
         { "endpoint text",    d_tests_sa_net_endpoint_format },
         { "frame codec",      d_tests_sa_net_frame_codec },
         { "dispatch",         d_tests_sa_net_dispatch },
+        { "completeness",     d_tests_sa_net_complete },
         { "lifetime",         d_tests_sa_net_lifetime },
+        { "available",        d_tests_sa_net_available },
+        { "pipes",            d_tests_sa_net_pipes },
+        { "pipe ends",        d_tests_sa_net_pipe_ends },
+        { "memory streams",   d_tests_sa_net_memory },
         { "exact transfers",  d_tests_sa_net_exact },
         { "bulk transfers",   d_tests_sa_net_bulk },
         { "url components",   d_tests_sa_net_url_components },
@@ -1177,6 +1373,7 @@ d_tests_sa_net_run_all(
         { "url normal forms", d_tests_sa_net_url_normalize },
         { "url escapes",      d_tests_sa_net_url_percent },
         { "url endpoints",    d_tests_sa_net_url_endpoints },
+        { "url net errors",   d_tests_sa_net_url_errors_to_net },
         { "frames",           d_tests_sa_net_frames },
         { "frames to a sink", d_tests_sa_net_frames_sink }
     };

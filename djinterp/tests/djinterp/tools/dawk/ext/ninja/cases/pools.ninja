@@ -1,0 +1,10 @@
+pool p
+  depth = 2
+rule r
+  command = c
+  pool = p
+build a: r
+build b: r
+  pool = console
+build c: r
+  pool =

@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/config/parse/cli/arg_parser/cfg_arg_parser.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.17
 *******************************************************************************/
 
 /*
@@ -214,8 +214,10 @@ TABLE OF CONTENTS
 // 1.2.9
 // D_CFG_ARG_PARSER_WIDE_ARGV
 //   knob: 1 compiles the UTF-8 recovery of `argv` from the platform's wide
-// command line (CLI11's ensure_utf8) and parsing a wide `argv` (`wmain`'s);
-// 0 removes both. Default 1.
+// command line (CLI11's ensure_utf8), parsing a wide `argv` (`wmain`'s), and
+// wide text converted both ways -- CLI11's narrow() and widen(), and, in the
+// C++ face, values of the types made from a std::wstring; 0 removes them.
+// Default 1.
 #ifndef D_CFG_ARG_PARSER_WIDE_ARGV
     #if defined(D_CFG_ARG_PARSER_ALL)
         #define D_CFG_ARG_PARSER_WIDE_ARGV         D_CFG_ARG_PARSER_ALL

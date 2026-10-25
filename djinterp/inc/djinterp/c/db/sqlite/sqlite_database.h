@@ -13,12 +13,14 @@
 * keeps beside it. The file-level functions create one, recognise one, and
 * delete one with everything beside it. They go through SQLite's own VFS, so
 * paths are UTF-8 on every platform, Windows included.
+*   In memory a database can be bytes: a database of the connection copied
+* out as its file would hold it, and bytes put in a database's place.
 *
 *
 * path:      /inc/djinterp/c/db/sqlite/sqlite_database.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -33,6 +35,10 @@ TABLE OF CONTENTS
     --------------
     1.  Creating and deleting
     2.  Recognising
+3.  DATABASES AS BYTES
+    ------------------
+    1.  Serializing
+    2.  Deserializing
 */
 
 #ifndef DJINTERP_C_DB_SQLITE_SQLITE_DATABASE_H
@@ -165,6 +171,82 @@ int  d_sqlite_delete_database_file(const char* _path,
 // false for a missing file, anything else, or an encrypted database whose key
 // is not given
 bool d_sqlite_is_database_file(const char* _path) D_NOTHROW;
+
+
+//==============================================================================
+// 3.  DATABASES AS BYTES
+//==============================================================================
+// A database as the bytes its file would hold, and a database made of bytes:
+// SQLite's sqlite3_serialize and sqlite3_deserialize, which a library has
+// from 3.36.0 unless built without them (OMIT_DESERIALIZE), and from 3.23.0
+// where built with them (ENABLE_DESERIALIZE).
+// d_sqlite_supports(D_SQLITE_FEATURE_SERIALIZE) says whether both the
+// library loaded and the layer's build have them; where either lacks them,
+// both functions answer D_DB_UNSUPPORTED.
+
+
+// 3.1    Serializing
+//------------------------------------------------------------------------------
+/**
+ * @brief Copies a database of the connection into bytes, as its file would
+ *        hold them; an in-memory or temporary database as a backup to a file
+ *        would write it.
+ *
+ * @note A database that has no pages yet is given its first, as SQLite gives
+ *       a file its header, by an empty transaction; inside a transaction, or
+ *       on a database opened read-only, it has none, and its bytes are none.
+ *
+ * @param[in]  _db      the connection.
+ * @param[in]  _schema  the database: `NULL` for "main", "temp", or an
+ *                      attached one's name.
+ * @param[out] _bytes   receives the bytes, which the caller releases with
+ *                      d_db_free; written only on success, `NULL` for none.
+ * @param[out] _size    receives how many; written only on success.
+ * @return SQLITE_OK; D_DB_NOT_FOUND for no such database; the SQLite result
+ *         code of a failure to read it, SQLITE_BUSY while another connection
+ *         holds a lock that keeps it from being read among them; SQLITE_NOMEM
+ *         when memory runs out; D_DB_UNSUPPORTED where the library or the
+ *         layer's build has no sqlite3_serialize; SQLITE_MISUSE for a `NULL`
+ *         connection or out-parameter, or an empty name.
+ */
+int  d_sqlite_serialize(struct sqlite3* _db,
+                        const char*     _schema,
+                        void**          _bytes,
+                        size_t*         _size) D_NOTHROW;
+
+// 3.2    Deserializing
+//------------------------------------------------------------------------------
+/**
+ * @brief Replaces a database of the connection with one made of bytes, which
+ *        SQLite copies and keeps in memory: what the connection writes there
+ *        changes its copy, not `_bytes`, nor any file.
+ *
+ * @note The database stays in memory until it is detached or the connection
+ *       closes; replacing "main" leaves the file the connection opened as it
+ *       was. Bytes that are no database are found out when the database is
+ *       first read, with SQLITE_NOTADB.
+ *
+ * @param[in] _db         the connection.
+ * @param[in] _schema     the database: `NULL` for "main", or an attached
+ *                        one's name; never "temp".
+ * @param[in] _bytes      the bytes, as d_sqlite_serialize gives them or a
+ *                        database file holds them; may be `NULL` when
+ *                        `_size` is 0, for an empty database.
+ * @param[in] _size       how many.
+ * @param[in] _read_only  `true` for a database that refuses writes.
+ * @return SQLITE_OK; SQLITE_ERROR for "temp", or no such database;
+ *         SQLITE_BUSY inside a read transaction, or while the database is
+ *         being backed up; SQLITE_NOMEM when memory runs out; SQLITE_TOOBIG
+ *         for more bytes than SQLite counts; D_DB_UNSUPPORTED where the
+ *         library or the layer's build has no sqlite3_deserialize;
+ *         SQLITE_MISUSE for a `NULL` connection, `NULL` bytes of a size, or
+ *         an empty name.
+ */
+int  d_sqlite_deserialize(struct sqlite3* _db,
+                          const char*     _schema,
+                          const void*     _bytes,
+                          size_t          _size,
+                          bool            _read_only) D_NOTHROW;
 
 
 D_EXTERN_C_END

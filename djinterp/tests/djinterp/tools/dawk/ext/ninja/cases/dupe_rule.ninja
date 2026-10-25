@@ -1,0 +1,4 @@
+rule r
+  command = c
+rule r
+  command = d

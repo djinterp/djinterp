@@ -21,7 +21,7 @@
 * path:      /src/djinterp/c/filesys/file_stat.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_stat.h"  // corresponding header
 // std
@@ -190,13 +190,16 @@ d_internal_stat_fill_nsec(
 #endif  // D_INTERNAL_FILE_STAT_NSEC
 
 #if ( (D_INTERNAL_FILE_STAT_BIRTHTIME == 1) &&                                 \
-      (D_INTERNAL_FILE_OS_DARWIN == 1) )
+      ( (D_INTERNAL_FILE_OS_DARWIN == 1) ||                                    \
+        (D_INTERNAL_FILE_STAT_BSD_BIRTH != 0) ) )
 
 /*
 d_internal_stat_fill_birth
-  Apple's systems keep the creation time beside the other three. st_birthtime
-reads it at every level Darwin builds at: a member of its own at a POSIX
-level, and a name for st_birthtimespec.tv_sec otherwise.
+  Apple's systems, FreeBSD and NetBSD keep the creation time beside the other
+three. On Darwin and NetBSD st_birthtime reads it at every level they build
+at: a member of its own at a POSIX level, and a name for st_birthtimespec's
+seconds otherwise. FreeBSD names its st_birthtim member at every level, and
+st_birthtime only where its BSD names are visible.
 */
 static void
 d_internal_stat_fill_birth(
@@ -204,7 +207,11 @@ d_internal_stat_fill_birth(
     struct d_stat64_t* _out
 )
 {
+#if (D_INTERNAL_FILE_STAT_BSD_BIRTH == 1)
+    _out->st_created = (int64_t)_native->st_birthtim.tv_sec;
+#else
     _out->st_created = (int64_t)_native->st_birthtime;
+#endif
 
     return;
 }
@@ -228,7 +235,7 @@ d_internal_stat_fill_birth(
     return;
 }
 
-#endif  // D_INTERNAL_FILE_STAT_BIRTHTIME == 1 && D_INTERNAL_FILE_OS_DARWIN
+#endif  // D_INTERNAL_FILE_STAT_BIRTHTIME == 1 && (Darwin || a BSD that keeps one)
 
 /*
 d_internal_stat_fill_times

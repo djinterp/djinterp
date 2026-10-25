@@ -13,7 +13,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_list.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -513,12 +513,19 @@ d_arg_internal_extra_push(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_validator_room
-  Grows a validator list to hold one more, releasing the validator that
-was to go into it when it cannot -- the list was to take it over either
-way.
-*/
+/**
+ * @brief Makes room in a validator list for one more.
+ *
+ * @param[in,out] _list       the list.
+ * @param[in,out] _validator  the validator that was to go in, released when
+ *                            there is no room.
+ * @return D_ARG_OK; D_ARG_ERROR_OUT_OF_MEMORY, the validator then released and
+ *         the list unchanged.
+ *
+ * Grows a validator list to hold one more, releasing the validator that
+ * was to go into it when it cannot -- the list was to take it over either
+ * way.
+ */
 D_STATIC int
 d_arg_internal_validator_room(
     struct d_arg_validator_list* _list,

@@ -5,8 +5,12 @@
 * path:      /tests/djinterp/core/db/database_tests_config.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.21
 *******************************************************************************/
+#include "../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
 // std
 #include <chrono>
 // djinterp
@@ -21,7 +25,8 @@ namespace testing
       Verifies every field initialized by connection_config's default
       constructor.
       Tests the following:
-      - host/port and the three timeouts default as documented
+      - host/port and the three timeouts default as documented: 30 s to
+        connect, no limit on reads and writes
       - the boolean flags and max_packet_size default as documented
       - the optional and string/map fields default empty/unset
     */
@@ -33,9 +38,12 @@ namespace testing
         D_DB_CHECK(config.host == "localhost");
         D_DB_CHECK(config.port == 0);
 
+        // reads and writes wait as long as the client's own default, no
+        // limit, which a 30-second default capped every statement at
+        // (chunk 4.2, db_audit 9.6.5.9)
         D_DB_CHECK(config.connect_timeout == std::chrono::seconds(30));
-        D_DB_CHECK(config.read_timeout    == std::chrono::seconds(30));
-        D_DB_CHECK(config.write_timeout   == std::chrono::seconds(30));
+        D_DB_CHECK(config.read_timeout    == std::chrono::seconds(0));
+        D_DB_CHECK(config.write_timeout   == std::chrono::seconds(0));
 
         D_DB_CHECK(config.auto_reconnect  == false);
         D_DB_CHECK(config.enable_ssl      == false);
@@ -170,3 +178,5 @@ namespace testing
 
 }   // namespace testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

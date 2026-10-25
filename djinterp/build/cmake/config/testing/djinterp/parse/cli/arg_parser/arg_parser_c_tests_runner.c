@@ -14,7 +14,7 @@
 * path:      /build/cmake/config/testing/djinterp/parse/cli/arg_parser/arg_parser_c_tests_runner.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.17
 *******************************************************************************/
 // std
 #include <stdbool.h>  // bool
@@ -24,6 +24,7 @@
 #include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_argv_tests.h"  // arguments from text
 #include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_command_tests.h"  // commands
 #include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_common_tests.h"  // the vocabulary
+#include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_completion_tests.h"  // shell completion
 #include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_config_tests.h"  // configuration files
 #include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_formatter_tests.h"  // help
 #include "../../../../../../../../tests/djinterp/parse/cli/arg_parser/c/arg_option_tests.h"  // options
@@ -55,27 +56,30 @@ struct d_tests_arg_c_suite
 // suite of a part a knob leaves out is not compiled, and is not here.
 static const struct d_tests_arg_c_suite SUITES[] =
 {
-    { d_tests_arg_common,    &d_tests_arg_common_count    },
-    { d_tests_arg_type,      &d_tests_arg_type_count      },
-    { d_tests_arg_validator, &d_tests_arg_validator_count },
+    { d_tests_arg_common,     &d_tests_arg_common_count     },
+    { d_tests_arg_type,       &d_tests_arg_type_count       },
+    { d_tests_arg_validator,  &d_tests_arg_validator_count  },
 #if (D_INTERNAL_ARG_PARSER_EXTRA_VALIDATORS == 1)
-    { d_tests_arg_extra,     &d_tests_arg_extra_count     },
-    { d_tests_arg_member,    &d_tests_arg_member_count    },
-    { d_tests_arg_unit,      &d_tests_arg_unit_count      },
+    { d_tests_arg_extra,      &d_tests_arg_extra_count      },
+    { d_tests_arg_member,     &d_tests_arg_member_count     },
+    { d_tests_arg_unit,       &d_tests_arg_unit_count       },
 #endif
 #if (D_INTERNAL_ARG_PARSER_PATH_VALIDATORS == 1)
-    { d_tests_arg_path,      &d_tests_arg_path_count      },
+    { d_tests_arg_path,       &d_tests_arg_path_count       },
 #endif
-    { d_tests_arg_option,    &d_tests_arg_option_count    },
-    { d_tests_arg_command,   &d_tests_arg_command_count   },
-    { d_tests_arg_formatter, &d_tests_arg_formatter_count },
-    { d_tests_arg_parsing,   &d_tests_arg_parsing_count   },
-    { d_tests_arg_process,   &d_tests_arg_process_count   },
-    { d_tests_arg_config,    &d_tests_arg_config_count    },
-    { d_tests_arg_text,      &d_tests_arg_text_count      },
-    { d_tests_arg_parser,    &d_tests_arg_parser_count    },
-    { d_tests_arg_suggest,   &d_tests_arg_suggest_count   },
-    { d_tests_arg_smoke,     &d_tests_arg_smoke_count     }
+    { d_tests_arg_option,     &d_tests_arg_option_count     },
+    { d_tests_arg_command,    &d_tests_arg_command_count    },
+    { d_tests_arg_formatter,  &d_tests_arg_formatter_count  },
+    { d_tests_arg_parsing,    &d_tests_arg_parsing_count    },
+    { d_tests_arg_process,    &d_tests_arg_process_count    },
+    { d_tests_arg_config,     &d_tests_arg_config_count     },
+    { d_tests_arg_text,       &d_tests_arg_text_count       },
+    { d_tests_arg_parser,     &d_tests_arg_parser_count     },
+    { d_tests_arg_suggest,    &d_tests_arg_suggest_count    },
+#if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
+    { d_tests_arg_completion, &d_tests_arg_completion_count },
+#endif
+    { d_tests_arg_smoke,      &d_tests_arg_smoke_count      }
 };
 
 /*

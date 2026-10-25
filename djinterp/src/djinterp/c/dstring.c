@@ -9,11 +9,10 @@
 * path:      /src/djinterp/c/dstring.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.15
 *******************************************************************************/
 #include "../../../inc/djinterp/c/dstring.h"  // corresponding header
 // std
-#include <ctype.h>                              // isspace
 #include <errno.h>                              // EINVAL, ERANGE
 #include <stdarg.h>                             // va_list, va_start, va_copy
 #include <stdbool.h>                            // bool
@@ -26,7 +25,7 @@
 #include "../../../inc/djinterp/c/memory/dmemory.h"  // d_memcpy, d_memset
 #include "../../../inc/djinterp/c/string_fn.h"       // d_str* primitives
 // re_std
-#include "../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
+#include "../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX, uintptr_t
 
 
 // internal helpers
@@ -95,6 +94,97 @@ d_string_internal_grow(
     free(_string->text);
     _string->text     = new_text;
     _string->capacity = new_capacity;
+
+    return true;
+}
+
+/**
+ * @brief Replaces `_count` characters at `_pos` with `_length` bytes, which
+ *        may lie in the string's own text.
+ *
+ * @param[in,out] _string  the string; `_pos` and `_count` lie within its text.
+ * @param[in]     _pos     where the replaced run starts.
+ * @param[in]     _count   how many characters the run holds.
+ * @param[in]     _bytes   the replacement; may point into `_string`'s text.
+ * @param[in]     _length  how many bytes the replacement holds.
+ * @return `true` on success, or `false` if allocation failed, in which case
+ *         the string is untouched.
+ *
+ * A replacement inside the text is found again by its offset, since growing
+ * frees the old buffer (decision 121). Shrinking copies the replacement into
+ * the run that is going away, then closes the gap. Growing opens the gap
+ * first: the replacement's bytes before the old tail have not moved, and go
+ * with memmove(), since they may overlap the gap; those in the tail are
+ * copied from where the shift put them, which the gap does not reach.
+ */
+D_STATIC bool
+d_string_internal_splice(
+    struct d_string* _string,
+    size_t           _pos,
+    size_t           _count,
+    const char*      _bytes,
+    size_t           _length
+)
+{
+    const size_t    size  = _string->size;
+    const size_t    tail  = _pos + _count;
+    const uintptr_t first = (uintptr_t)_string->text;
+    const uintptr_t at    = (uintptr_t)_bytes;
+
+    // a replacement inside the string's own text, by its offset
+    const bool   inside = ( (_string->text != NULL) &&
+                            (at >= first)           &&
+                            (at <= first + size) );
+    const size_t offset = inside ? (size_t)(at - first) : 0;
+
+    if (!d_string_internal_grow(_string,
+                                size - _count + _length + 1))
+    {
+        return false;
+    }
+
+    char* const text = _string->text;
+
+    _string->size = size - _count + _length;
+
+    // shrinking: copy into the run going away, then close the gap
+    if (_length < _count)
+    {
+        memmove(text + _pos,
+                inside ? (text + offset) : _bytes,
+                _length);
+        memmove(text + _pos + _length,
+                text + tail,
+                size - tail + 1);
+
+        return true;
+    }
+
+    // growing, or the same length: open the gap, terminator included
+    memmove(text + _pos + _length,
+            text + tail,
+            size - tail + 1);
+
+    // a replacement from elsewhere goes in whole
+    if (!inside)
+    {
+        d_memcpy(text + _pos,
+                 _bytes,
+                 _length);
+
+        return true;
+    }
+
+    // its bytes before the old tail have not moved; the rest moved with it
+    const size_t ahead = (offset >= tail) ? 0 : (tail - offset);
+    const size_t still = (ahead > _length) ? _length : ahead;
+
+    memmove(text + _pos,
+            text + offset,
+            still);
+    d_memcpy(text + _pos + still,
+             text + offset + still + (_length - _count),
+             _length - still);
 
     return true;
 }
@@ -2313,8 +2403,8 @@ d_string_append_formatted(
 // modification: prepend
 /*
 d_string_prepend
-  Grows, shifts the existing text and terminator right with memmove(), then
-copies the new text into the gap.
+  A splice of nothing at index 0: d_string_internal_splice() takes the string
+itself, as append and insert do (decision 121).
 */
 bool
 d_string_prepend(
@@ -2328,26 +2418,11 @@ d_string_prepend(
         return false;
     }
 
-    const size_t new_size = _string->size + _other->size;
-
-    if (!d_string_internal_grow(_string,
-                                new_size + 1))
-    {
-        return false;
-    }
-
-    // shift existing content
-    memmove(_string->text + _other->size,
-            _string->text,
-            _string->size + 1);
-
-    // copy prepend content
-    d_memcpy(_string->text,
-             _other->text,
-             _other->size);
-    _string->size = new_size;
-
-    return true;
+    return d_string_internal_splice(_string,
+                                    0,
+                                    0,
+                                    _other->text,
+                                    _other->size);
 }
 
 /*
@@ -2695,10 +2770,8 @@ d_string_clear(
 // modification: replace
 /*
 d_string_replace
-  Clamps the count, grows to the final size, shifts the tail after the
-replaced range with memmove() (terminator included), then copies the
-replacement into place. One shift serves both growing and shrinking
-replacements.
+  Clamps the count and leaves the rest to d_string_internal_splice(), which
+takes the string itself as its own replacement (decision 121).
 */
 bool
 d_string_replace(
@@ -2731,34 +2804,17 @@ d_string_replace(
         actual_count = _string->size - pos;
     }
 
-    const size_t new_size = _string->size - actual_count + _replacement->size;
-
-    if (!d_string_internal_grow(_string,
-                                new_size + 1))
-    {
-        return false;
-    }
-
-    // shift content after replacement region
-    memmove(_string->text + pos + _replacement->size,
-            _string->text + pos + actual_count,
-            _string->size - pos - actual_count + 1);
-
-    // copy replacement
-    d_memcpy(_string->text + pos,
-             _replacement->text,
-             _replacement->size);
-    _string->size = new_size;
-
-    return true;
+    return d_string_internal_splice(_string,
+                                    pos,
+                                    actual_count,
+                                    _replacement->text,
+                                    _replacement->size);
 }
 
 /*
 d_string_replace_cstr
-  Clamps the count, grows to the final size, shifts the tail after the
-replaced range with memmove() (terminator included), then copies the
-replacement into place. One shift serves both growing and shrinking
-replacements.
+  Clamps the count and leaves the rest to d_string_internal_splice(), which
+takes a replacement inside the string's own text (decision 121).
 */
 bool
 d_string_replace_cstr(
@@ -2791,25 +2847,11 @@ d_string_replace_cstr(
         actual_count = _string->size - pos;
     }
 
-    const size_t rep_len  = strlen(_replacement);
-    const size_t new_size = _string->size - actual_count + rep_len;
-
-    if (!d_string_internal_grow(_string,
-                                new_size + 1))
-    {
-        return false;
-    }
-
-    memmove(_string->text + pos + rep_len,
-            _string->text + pos + actual_count,
-            _string->size - pos - actual_count + 1);
-
-    d_memcpy(_string->text + pos,
-             _replacement,
-             rep_len);
-    _string->size = new_size;
-
-    return true;
+    return d_string_internal_splice(_string,
+                                    pos,
+                                    actual_count,
+                                    _replacement,
+                                    strlen(_replacement));
 }
 
 /*
@@ -3124,7 +3166,8 @@ d_string_reversed(
 // transformation: trimming
 /*
 d_string_trim
-  Scans inward from both ends; the backward scan stops at `start`, so no
+  White space is string_fn's, ASCII only, whatever the locale (decision
+123). Scans inward from both ends; the backward scan stops at `start`, so no
 character is examined twice. The surviving run is moved to the front with one
 memmove(), and only when leading whitespace was found.
 */
@@ -3147,7 +3190,8 @@ d_string_trim(
     size_t start = 0;
 
     while ( (start < _string->size) &&
-            (isspace((unsigned char)_string->text[start])) )
+            (d_str_is_whitespace(_string->text + start,
+                                 1)) )
     {
         start++;
     }
@@ -3165,7 +3209,8 @@ d_string_trim(
     size_t end = _string->size - 1;
 
     while ( (end > start) &&
-            (isspace((unsigned char)_string->text[end])) )
+            (d_str_is_whitespace(_string->text + end,
+                                 1)) )
     {
         end--;
     }
@@ -3209,7 +3254,8 @@ d_string_trim_left(
     size_t start = 0;
 
     while ( (start < _string->size) &&
-            (isspace((unsigned char)_string->text[start])) )
+            (d_str_is_whitespace(_string->text + start,
+                                 1)) )
     {
         start++;
     }
@@ -3257,7 +3303,8 @@ d_string_trim_right(
     size_t end = _string->size;
 
     while ( (end > 0) &&
-            (isspace((unsigned char)_string->text[end - 1])) )
+            (d_str_is_whitespace(_string->text + end - 1,
+                                 1)) )
     {
         end--;
     }
@@ -3271,7 +3318,7 @@ d_string_trim_right(
 /*
 d_string_trim_chars
   Same shape as d_string_trim(), testing membership with strchr() on `_chars`
-in place of isspace().
+in place of the white-space class.
 */
 bool
 d_string_trim_chars(

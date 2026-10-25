@@ -21,7 +21,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -56,6 +56,7 @@ TABLE OF CONTENTS
     2.  Floating point
          1.  d_arg_internal_real
          2.  d_arg_internal_read_real
+         3.  d_arg_internal_float_stored / d_arg_internal_double_stored
     3.  Number text
          1.  D_INTERNAL_ARG_NUMBER_TEXT_MAX
          2.  d_arg_internal_number_text
@@ -124,13 +125,14 @@ TABLE OF CONTENTS
     3.  Commands
          1.  d_arg_internal_command_init / d_arg_internal_command_release
          2.  d_arg_internal_fallthrough_parent
-         3.  d_arg_internal_compare_subcommand_names
+         3.  d_arg_internal_subcommand_clash
          4.  d_arg_internal_find_subcommand
          5.  d_arg_internal_find_option
          6.  d_arg_internal_parser_of
          7.  d_arg_internal_command_options and kin
          8.  d_arg_internal_command_forget_option
          9.  d_arg_internal_command_untrigger
+         10. d_arg_internal_command_refuse_option
     4.  Validators
          1.  d_arg_internal_validator_failed
          2.  d_arg_internal_validator_bounds and kin
@@ -152,7 +154,7 @@ TABLE OF CONTENTS
          2.  d_arg_internal_run_callback
          3.  d_arg_internal_process_completion_callbacks
          4.  d_arg_internal_parse_config
-         5.  d_arg_internal_add_flag_like_result
+         5.  d_arg_internal_flag_like_result
          6.  d_arg_internal_process_config
     3.  Arguments
          1.  d_arg_internal_pending_push / d_arg_internal_pending_push_copy
@@ -183,6 +185,7 @@ TABLE OF CONTENTS
          2.  d_arg_internal_utf8_append
          3.  d_arg_internal_utf16
          4.  d_arg_internal_utf16_feed / d_arg_internal_utf16_finish
+         5.  d_arg_internal_utf8_next
     4.  Suggestions
          1.  d_arg_internal_edit_distance
          2.  d_arg_internal_suggest_extras
@@ -605,6 +608,18 @@ enum d_arg_internal_real
 int                d_arg_internal_read_real(struct d_pack_text _text,
                                             int                _real,
                                             void*              _out);
+
+// 3.2.3
+// d_arg_internal_float_stored / d_arg_internal_double_stored
+//   arithmetic: a value as an object of the type holds it -- a result an
+// expression carried with more range and precision than its type, as the
+// x87 unit's 80-bit registers carry it (FLT_EVAL_METHOD 2), rounded to the
+// type, as C99 has every assignment and cast round it and as not every
+// compiler does. CLI11 stores each product and sum it judges in an object
+// of its type; the module's arithmetic passes through these to judge the
+// same value on every unit.
+float              d_arg_internal_float_stored(float _value);
+double             d_arg_internal_double_stored(double _value);
 
 // 3.3    Number text
 //------------------------------------------------------------------------------
@@ -1379,9 +1394,9 @@ int         d_arg_internal_option_judge(const struct d_arg_option* _option,
  *         it, for too few or too many values under D_ARG_MULTI_THROW; or
  *         D_ARG_ERROR_OUT_OF_MEMORY, recorded.
  */
-int         d_arg_internal_option_reduce(struct d_arg_option*          _option,
-                                         struct d_arg_text_list*       _out,
-                                         const struct d_arg_text_list* _original);
+int d_arg_internal_option_reduce(struct d_arg_option*          _option,
+                                 struct d_arg_text_list*       _out,
+                                 const struct d_arg_text_list* _original);
 
 // 7.2.7
 // d_arg_internal_option_results_text
@@ -1471,26 +1486,27 @@ struct d_arg_command*
         d_arg_internal_fallthrough_parent(const struct d_arg_command* _command);
 
 // 7.3.3
-// d_arg_internal_compare_subcommand_names
+// d_arg_internal_subcommand_clash
 //   matching: CLI11's _compare_subcommand_names: a name or alias of
 // `_subcommand` that matches one of `_base`'s other enabled subcommands, or
 // the reverse, looking into option groups on both sides; NULL when none
 // does. The name returned is owned by one of the commands.
 const char*
-     d_arg_internal_compare_subcommand_names(const struct d_arg_command* _subcommand,
-                                             const struct d_arg_command* _base);
+     d_arg_internal_subcommand_clash(const struct d_arg_command* _subcommand,
+                                     const struct d_arg_command* _base);
 
 // 7.3.4
 // d_arg_internal_find_subcommand
-//   lookup: CLI11's _find_subcommand: the subcommand a name selects, looking
-// into option groups, skipping disabled ones when asked and, when asked,
-// those already used; with prefix matching an unambiguous prefix selects,
-// and an ambiguous one selects nothing.
+//   lookup: CLI11's _find_subcommand, its ignore_disabled and ignore_used
+// the switches: the subcommand a name selects, looking into option groups,
+// skipping disabled ones when asked and, when asked, those already used;
+// with prefix matching an unambiguous prefix selects, and an ambiguous one
+// selects nothing.
 struct d_arg_command*
      d_arg_internal_find_subcommand(const struct d_arg_command* _command,
                                     struct d_pack_text          _name,
-                                    bool                        _ignore_disabled,
-                                    bool                        _ignore_used);
+                                    bool                        _skip_disabled,
+                                    bool                        _skip_used);
 
 // 7.3.5
 // d_arg_internal_find_option
@@ -1571,6 +1587,28 @@ void d_arg_internal_command_forget_option(struct d_arg_command*      _command,
 // arg_command_util.c.
 void d_arg_internal_command_untrigger(struct d_arg_command*       _trigger,
                                       const struct d_arg_command* _gone);
+
+// 7.3.10
+// d_arg_internal_command_refuse_option
+/**
+ * @brief Refuses an option whose definition failed after it was stored:
+ *        the failure recorded and the option removed, so that a refused
+ *        definition leaves nothing behind.
+ *
+ * @note Defined in arg_command_option.c.
+ *
+ * @param[in,out] _command  the command the option was stored in.
+ * @param[in,out] _option   the option, removed and released; NULL leaves
+ *                          the failure alone recorded.
+ * @param[in]     _status   the failure, recorded unless the parser keeps a
+ *                          definition error already -- the one the step
+ *                          that failed recorded, which stays.
+ * @return NULL, for the call that made the option to return.
+ */
+struct d_arg_option*
+     d_arg_internal_command_refuse_option(struct d_arg_command* _command,
+                                          struct d_arg_option*  _option,
+                                          int                   _status);
 
 // 7.4    Validators
 //------------------------------------------------------------------------------
@@ -1806,9 +1844,11 @@ int         d_arg_internal_run_callback(struct d_arg_command* _command,
 // 8.2.3
 // d_arg_internal_process_completion_callbacks
 //   processing: CLI11's _process_completion_callbacks, for a subcommand with
-// a parse-complete callback. Defined in arg_process.c.
+// a parse-complete callback: `_full` as its parse ends, with the help flags
+// and the environment; without them as its configuration section closes.
+// Defined in arg_process.c.
 int  d_arg_internal_process_completion_callbacks(struct d_arg_command* _command,
-                                                 bool                  _with_help_flags);
+                                                 bool                  _full);
 
 // 8.2.4
 // d_arg_internal_parse_config
@@ -1819,7 +1859,7 @@ int  d_arg_internal_parse_config(struct d_arg_command*                _command,
                                  const struct d_arg_config_item_list* _items);
 
 // 8.2.5
-// d_arg_internal_add_flag_like_result
+// d_arg_internal_flag_like_result
 /**
  * @brief Gives an option expecting no values its value from an item;
  *        CLI11's _add_flag_like_result. Defined in arg_process_config.c, in
@@ -1843,11 +1883,11 @@ int  d_arg_internal_parse_config(struct d_arg_command*                _command,
  *                          `false` leaves them for the caller to add.
  * @return D_ARG_OK, or the error CLI11 throws, recorded.
  */
-int  d_arg_internal_add_flag_like_result(const struct d_arg_command*     _command,
-                                         struct d_arg_option*            _option,
-                                         const struct d_arg_config_item* _item,
-                                         const struct d_arg_text_list*   _inputs,
-                                         bool*                           _handled);
+int  d_arg_internal_flag_like_result(const struct d_arg_command*     _command,
+                                     struct d_arg_option*            _option,
+                                     const struct d_arg_config_item* _item,
+                                     const struct d_arg_text_list*   _inputs,
+                                     bool*                           _handled);
 
 // 8.2.6
 // d_arg_internal_process_config
@@ -1899,9 +1939,9 @@ int         d_arg_internal_expand_responses(struct d_arg_parser* _parser);
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the pieces stored
  *         before the failure kept.
  */
-int         d_arg_internal_split_up(struct d_pack_text        _text,
-                                    char                      _delimiter,
-                                    struct d_arg_string_list* _out);
+int  d_arg_internal_split_up(struct d_pack_text        _text,
+                             char                      _delimiter,
+                             struct d_arg_string_list* _out);
 /**
  * @brief One turn of d_arg_internal_split_up, for a caller that keeps the
  *        pieces as spans of the text: each piece is one, NUL bytes and all.
@@ -1915,9 +1955,9 @@ int         d_arg_internal_split_up(struct d_pack_text        _text,
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when a bracket's nesting
  *         could not be followed.
  */
-int         d_arg_internal_split_step(struct d_pack_text* _rest,
-                                      char                _delimiter,
-                                      struct d_pack_text* _word);
+int  d_arg_internal_split_step(struct d_pack_text* _rest,
+                               char                _delimiter,
+                               struct d_pack_text* _word);
 // d_arg_internal_words
 //   struct: where the words a split makes go: a copy of each into `strings`,
 // and, unless `spans` is NULL, the copy's span into `spans`, to the length
@@ -1936,8 +1976,8 @@ struct d_arg_internal_words
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY -- the copy kept when only
  *         its span could not be, for the split's failure to cut back.
  */
-int         d_arg_internal_words_add(const struct d_arg_internal_words* _words,
-                                     struct d_pack_text                 _word);
+int  d_arg_internal_words_add(const struct d_arg_internal_words* _words,
+                              struct d_pack_text                 _word);
 /**
  * @brief d_arg_split_line where a split's words go, their spans too.
  *        Defined in arg_argv.c.
@@ -1952,11 +1992,11 @@ int         d_arg_internal_words_add(const struct d_arg_internal_words* _words,
  * @return a status, as d_arg_split_line's; D_ARG_ERROR_BAD_ARGUMENT also
  *         for NULL `_words` or `_words->strings`.
  */
-int         d_arg_internal_split_words(struct d_pack_text                 _line,
-                                       int                                _quoting,
-                                       uint32_t                           _flags,
-                                       const struct d_arg_internal_words* _words,
-                                       struct d_arg_buffer*               _error);
+int  d_arg_internal_split_words(struct d_pack_text                 _line,
+                                int                                _quoting,
+                                uint32_t                           _flags,
+                                const struct d_arg_internal_words* _words,
+                                struct d_arg_buffer*               _error);
 /**
  * @brief Whether a value is one of the four d_arg_quoting sets of rules.
  *        Defined in arg_argv.c.
@@ -1965,7 +2005,7 @@ int         d_arg_internal_split_words(struct d_pack_text                 _line,
  * @return `true` for D_ARG_QUOTING_POSIX, _WINDOWS, _CLI11 and _GNU, which
  *         NATIVE and NATIVE_RESPONSE are among.
  */
-bool        d_arg_internal_quoting_known(int _quoting);
+bool d_arg_internal_quoting_known(int _quoting);
 /**
  * @brief Finds where a quoted or bracketed run closes; CLI11's
  *        close_sequence. Defined in arg_argv.c.
@@ -1983,10 +2023,10 @@ bool        d_arg_internal_quoting_known(int _quoting);
  * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when a bracket's nesting
  *         could not be followed.
  */
-int         d_arg_internal_close_sequence(struct d_pack_text _text,
-                                          size_t             _start,
-                                          char               _closure,
-                                          size_t*            _end);
+int  d_arg_internal_close_sequence(struct d_pack_text _text,
+                                   size_t             _start,
+                                   char               _closure,
+                                   size_t*            _end);
 /**
  * @brief Removes one word's quotes as CLI11's remove_quotes(vector) does.
  *        Defined in arg_argv.c.
@@ -2005,9 +2045,9 @@ int         d_arg_internal_close_sequence(struct d_pack_text _text,
  *                                    CLI11's ParseError, D_ARG_ERROR_PARSE.
  * @retval D_ARG_ERROR_OUT_OF_MEMORY  the word could not be stored.
  */
-int         d_arg_internal_remove_quotes(struct d_pack_text                 _word,
-                                         const struct d_arg_internal_words* _out,
-                                         struct d_arg_buffer*               _error);
+int  d_arg_internal_remove_quotes(struct d_pack_text                 _word,
+                                  const struct d_arg_internal_words* _out,
+                                  struct d_arg_buffer*               _error);
 /**
  * @brief d_arg_internal_remove_quotes into a buffer, which keeps whatever
  *        bytes an escape resolves to, NUL among them. Defined in arg_argv.c.
@@ -2018,9 +2058,9 @@ int         d_arg_internal_remove_quotes(struct d_pack_text                 _wor
  *                        appended; may be NULL.
  * @return a status, as d_arg_internal_remove_quotes's.
  */
-int         d_arg_internal_remove_quotes_text(struct d_pack_text   _word,
-                                              struct d_arg_buffer* _out,
-                                              struct d_arg_buffer* _error);
+int  d_arg_internal_remove_quotes_text(struct d_pack_text   _word,
+                                       struct d_arg_buffer* _out,
+                                       struct d_arg_buffer* _error);
 
 // 8.3.4
 // d_arg_internal_parse_back and kin
@@ -2362,6 +2402,17 @@ int  d_arg_internal_utf16_feed(struct d_arg_internal_utf16* _state,
 int  d_arg_internal_utf16_finish(struct d_arg_internal_utf16* _state,
                                  struct d_arg_buffer*         _out);
 
+// 9.3.5
+// d_arg_internal_utf8_next
+//   decoding: the code point of the well-formed UTF-8 sequence -- RFC 3629's:
+// no overlong form, no surrogate, nothing past U+10FFFF -- at `*_at`, which
+// must lie within `_text`, and which then moves past it; false, `*_at` left
+// as it was, for a sequence ill-formed or cut short. Reads nothing past the
+// text.
+bool d_arg_internal_utf8_next(struct d_pack_text _text,
+                              size_t*            _at,
+                              uint32_t*          _code_point);
+
 // 9.4    Suggestions
 //------------------------------------------------------------------------------
 //   Defined in arg_suggest.c; the first only with
@@ -2667,9 +2718,10 @@ struct d_arg_internal_complete_entry
 //   struct: the model shell completion writes its scripts from: the
 // commands completion knows, in breadth-first order from the root; their
 // subcommands' names, their options and their options' names, each
-// command's together and in the order the parse searches them; and the
-// options' choices, copied. The rest borrows from the command tree, which
-// must not change while the model is in use.
+// command's together and in the order the parse searches them -- a name
+// once, for the option the parse finds it in first; and the options'
+// choices, copied. The rest borrows from the command tree, which must not
+// change while the model is in use.
 struct d_arg_internal_model
 {
     struct d_arg_internal_complete_command* commands;
@@ -2700,7 +2752,11 @@ struct d_arg_internal_model
  * @note A subcommand or an option group that is disabled, or in the empty
  *       group, is left out with all it holds; so is an option in the empty
  *       group, but for a positional, which is kept -- completing as nothing
- *       -- so that the positionals after it are counted rightly.
+ *       -- so that the positionals after it are counted rightly. A name a
+ *       command lists already -- an option group's copy of the help-all
+ *       flag, or a name the command gave an option after one of its groups
+ *       had it -- is left out, the option keeping its others: the parse
+ *       finds the name in the option before it.
  *
  * @param[out] _model  the model, whatever it held ignored.
  * @param[in]  _root   the command.

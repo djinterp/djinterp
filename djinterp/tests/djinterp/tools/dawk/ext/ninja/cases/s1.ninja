@@ -1,0 +1,5 @@
+x = $x$x
+rule r
+  command = c $x
+build a: r
+subninja s2.ninja

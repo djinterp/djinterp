@@ -17,7 +17,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_path.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 // std
@@ -425,8 +425,14 @@ d_fs_tests_path_is_absolute
     dtest_test(_suite, "NULL -> not absolute (and not an error)");
     D_FS_CHECK(_suite, d_path_is_absolute(NULL) == 0);
 
+#if D_FILE_PATH_UNDERSTANDS_WINDOWS
+    // a lone root names the current drive's under Windows syntax
+    dtest_test(_suite, "rooted path is not absolute (Windows syntax)");
+    D_FS_CHECK(_suite, d_path_is_absolute("/foo") == 0);
+#else
     dtest_test(_suite, "rooted path is absolute");
     D_FS_CHECK(_suite, d_path_is_absolute("/foo") != 0);
+#endif
 
     dtest_test(_suite, "relative path is not absolute");
     D_FS_CHECK(_suite, d_path_is_absolute("foo") == 0);
@@ -434,8 +440,13 @@ d_fs_tests_path_is_absolute
     dtest_test(_suite, "empty path is not absolute");
     D_FS_CHECK(_suite, d_path_is_absolute("") == 0);
 
+#if D_FILE_PATH_UNDERSTANDS_WINDOWS
+    dtest_test(_suite, "bare root is not absolute (Windows syntax)");
+    D_FS_CHECK(_suite, d_path_is_absolute("/") == 0);
+#else
     dtest_test(_suite, "bare root is absolute");
     D_FS_CHECK(_suite, d_path_is_absolute("/") != 0);
+#endif
 
     dtest_test(_suite, "POSIX double-slash root is absolute");
     D_FS_CHECK(_suite, d_path_is_absolute("//foo") != 0);

@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/test/sync/test_threadsafe_tests_reachability.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 // std
@@ -122,7 +122,7 @@ bool tests_ureach_invariant_module()
 {
     dt::invariant_monitor      monitor;
     dt::monotonic_guard<int>   mono;
-    dt::bounded_guard<int>     bounded(0, 10);
+    dt::bounded_guard<int>     bounded(0, 0, 10);
     dt::invariant_report       report;
     dt::invariant_violation    violation;
 

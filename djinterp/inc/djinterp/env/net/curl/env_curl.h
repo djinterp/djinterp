@@ -26,7 +26,7 @@
 * path:      /inc/djinterp/env/net/curl/env_curl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.16
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -40,8 +40,7 @@ TABLE OF CONTENTS
 2.  VERSION EXTRACTION
     ------------------
     1.  Version probe
-         1.  D_CFG_ENV_CURL_PROBE_VERSION
-         2.  <curl/curlver.h>
+         1.  <curl/curlver.h>
     2.  Version components
          1.  D_ENV_CURL_VERSION_NUM
          2.  D_ENV_CURL_VERSION_STRING
@@ -67,6 +66,7 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../env_net.h"  // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP
+#include "../../../config/core/env/net/curl/cfg_env_curl.h"  // D_CFG_ENV_CURL_*
 
 
 //==============================================================================
@@ -113,19 +113,10 @@ TABLE OF CONTENTS
 // 2.1    Version probe
 //------------------------------------------------------------------------------
 // 2.1.1
-// D_CFG_ENV_CURL_PROBE_VERSION
-//   config: set 0 before inclusion to suppress the automatic
-// <curl/curlver.h> include (e.g. to keep detection from touching any curl
-// header). Version macros then fall back to "unknown" unless pre-defined.
-#ifndef D_CFG_ENV_CURL_PROBE_VERSION
-    #define D_CFG_ENV_CURL_PROBE_VERSION 1
-#endif  // D_CFG_ENV_CURL_PROBE_VERSION
-
-// 2.1.2
 // <curl/curlver.h>
-//   include: included when D_CFG_ENV_CURL_PROBE_VERSION is 1 and the header
-// exists. It defines only the version macros, and brings in no declarations
-// or linkage.
+//   include: included when D_CFG_ENV_CURL_PROBE_VERSION, cfg_env_curl.h's
+// switch, is 1 and the header exists. It defines only the version macros,
+// and brings in no declarations or linkage.
 #if ( (D_CFG_ENV_CURL_PROBE_VERSION) &&                                        \
       (D_ENV_CURL_HAS_CURLVER_HEADER) )
     // curl

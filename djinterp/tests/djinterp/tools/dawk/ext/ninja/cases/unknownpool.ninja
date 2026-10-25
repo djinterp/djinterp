@@ -1,0 +1,6 @@
+rule r
+  command = c $in > $out
+build a: r
+  pool = nope
+
+# c

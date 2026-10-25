@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/c/dtime.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.21
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.18
 *******************************************************************************/
 
 /*
@@ -154,9 +154,28 @@ TABLE OF CONTENTS
 
 // 1.2.4
 // D_TIME_HAS_STRPTIME
-//   feature: detect strptime availability (POSIX but not Windows).
+//   feature: 1 where <time.h> declares strptime, an XSI function, under the
+// build's feature-test macros. d_strptime does not read it: dtime parses for
+// itself on every platform (decision 120 of the register, as ruled on
+// 2026.10.18), and the flag says only what the system has. glibc and musl
+// declare it for _XOPEN_SOURCE or _GNU_SOURCE -- glibc not for
+// _DEFAULT_SOURCE, so not in the C compilers' default modes, nor for
+// _POSIX_C_SOURCE alone; musl defines _XOPEN_SOURCE itself where the build
+// asks for no standard. FreeBSD declares it unless the build asks for POSIX
+// without XSI, with _POSIX_C_SOURCE alone, or for ISO C alone, with
+// _ANSI_SOURCE, _C99_SOURCE or _C11_SOURCE; the other UNIX systems are read
+// the same way. Apple's and bionic's <time.h> always declare it.
 #ifndef D_TIME_HAS_STRPTIME
-    #if defined(D_TIME_PLATFORM_POSIX)
+    #if ( (defined(D_TIME_PLATFORM_POSIX)) &&                                  \
+          ( (defined(_XOPEN_SOURCE))          ||                               \
+            (defined(_GNU_SOURCE))            ||                               \
+            (defined(D_ENV_PLATFORM_MACOS))   ||                               \
+            (defined(D_ENV_PLATFORM_ANDROID)) ||                               \
+            ( (defined(D_ENV_PLATFORM_UNIX)) &&                                \
+              (!defined(_POSIX_C_SOURCE))    &&                                \
+              (!defined(_ANSI_SOURCE))       &&                                \
+              (!defined(_C99_SOURCE))        &&                                \
+              (!defined(_C11_SOURCE)) ) ) )
         #define D_TIME_HAS_STRPTIME 1
     #else
         #define D_TIME_HAS_STRPTIME 0
@@ -450,18 +469,44 @@ void             d_tzset(void);
 // 7.1    Parsing and formatting
 //------------------------------------------------------------------------------
 /**
- * @brief Parses a time string according to a format (POSIX strptime
- *        equivalent).
+ * @brief Parses a time string by a format, as POSIX's strptime does, with
+ *        the same result on every platform and C library.
  *
- * @note where the platform has no strptime (e.g. Windows) a fallback parser
- *       handles %Y %y %m %b %h %B %a %A %d %e %H %k %I %l %M %S %j %w %p %P %n
- *       %t and %%. It zeroes `_tm` first, skips an unsupported conversion or an
- *       unmatched name rather than failing, and stops without failing when the
- *       input runs out.
+ * @note dtime's own parser, never the system's (decision 120 of the
+ *       register): the C locale's names and white space, whatever the
+ *       process's locale. White space in the format matches any run of
+ *       white space in the input, or none, as %n and %t do; any other
+ *       character outside a conversion matches only itself. The
+ *       conversions: %a %A a day's name and %b %B %h a month's, full or
+ *       their first three letters, in any case; %c "%a %b %e %H:%M:%S %Y";
+ *       %C the century, 0-99; %d %e the day, 1-31; %D %x "%m/%d/%y"; %H %k
+ *       the hour, 0-23; %I %l the hour, 1-12; %j the day of the year,
+ *       1-366; %m the month, 1-12; %M the minute, 0-59; %p %P AM or PM; %r
+ *       "%I:%M:%S %p"; %R "%H:%M"; %S the second, 0-60; %T %X "%H:%M:%S";
+ *       %u the weekday, 1-7 from Monday; %U %W the week of the year, 0-53,
+ *       starting on Sunday or Monday; %w the weekday, 0-6 from Sunday; %y the
+ *       year in its century, the 2000s below 69 and the 1900s from it, unless
+ *       %C gives the century; %Y the year, 0-9999; %z "Z", or a sign and hh,
+ *       hhmm or hh:mm up to 23:59, checked and not stored, struct tm having
+ *       no standard field for it; %Z a zone's name, skipped to the next
+ *       white space; %% a percent sign. POSIX's E and O modifiers read as
+ *       the plain conversion. Any other conversion fails.
+ * @note A number may follow white space and has at most its field's digits,
+ *       four for %Y, three for %j and two otherwise; a digit is read while
+ *       the value can still fit, so "123" read by %m is 12, leaving "3".
+ * @note Only the fields the input gives are written, and then what they
+ *       settle, whatever the conversions' order: the year, %Y's over %C's
+ *       and %y's; the hour of %I or %l with %p; with a year, a date not
+ *       given whole from %U or %W with a weekday, and the month and day
+ *       from %j, which must agree with those read; and from a whole date,
+ *       tm_yday and tm_wday where the input gave neither. A day the year
+ *       does not have fails.
  *
- * @param[in]  _s       the string to parse.
- * @param[in]  _format  the format, with strftime-style conversions.
- * @param[out] _tm      receives the parsed fields.
+ * @param[in]     _s       the string to parse.
+ * @param[in]     _format  the format.
+ * @param[in,out] _tm      receives the fields read and settled; the rest
+ *                         are left as they were. On failure it may hold
+ *                         some fields already read.
  * @return a pointer to the first character of `_s` not parsed, or `NULL` on a
  *         mismatch or a `NULL` argument.
  */

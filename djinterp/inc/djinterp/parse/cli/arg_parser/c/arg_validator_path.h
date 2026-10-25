@@ -18,14 +18,15 @@
 *   Like every such check, each answers for the moment it asks: the file
 * can change before the program opens it, so a validator here improves an
 * error message and decides nothing about security.
-*   Everything here is compiled only with D_INTERNAL_ARG_PARSER_PATH_
-* VALIDATORS; without it the header declares nothing.
+*   Everything here is compiled only with
+* D_INTERNAL_ARG_PARSER_PATH_VALIDATORS; without it the header declares
+* nothing.
 *
 *
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_validator_path.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -164,7 +165,8 @@ struct d_arg_validator d_arg_validator_exec_permissions(void);
  *       exceeds maximum <max> bytes". Described as "File size at least <min>
  *       bytes", or "File size between <min> and <max> bytes" when there is
  *       a maximum. Declared where dstdint.h declares uint64_t, which is
- *       everywhere but ISO strict C++98 on a 32-bit target.
+ *       everywhere but ISO strict C++98 wherever uint64_t is `unsigned long
+ *       long`: a 32-bit target, 64-bit Windows or macOS.
  *
  * @param[in] _minimum  the least size in bytes.
  * @param[in] _maximum  the greatest size in bytes; 0 for no maximum.

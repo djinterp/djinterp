@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/net/smtp/smtp_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -199,8 +199,9 @@ enum d_smtp_error d_smtp_error_from_net(enum d_net_error _error);
 
 // the SSL kernel's own types: the two judgments below exist where the
 // kernel does, which needs a 64-bit integer type, and are absent where the
-// build has none -- ISO strict C++98 on a 32-bit target (the owner's ruling
-// of 2026.10.03 on round 3's question 1, (a)) -- as ssl.h is
+// build has none -- ISO strict C++98 wherever int64_t is `long long`: a 32-bit
+// target, 64-bit Windows or macOS (the owner's ruling of 2026.10.03 on round
+// 3's question 1, (a)) -- as ssl.h is
 #if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 /**

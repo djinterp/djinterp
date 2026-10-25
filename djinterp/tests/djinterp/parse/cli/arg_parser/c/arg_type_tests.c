@@ -18,7 +18,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_type_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "./arg_type_tests.h"  // corresponding header
 // std
@@ -425,6 +425,13 @@ static const struct d_tests_arg_type_double_row DOUBLE_ROWS[] =
     { "1,5",     false, 0.0 }   // CLI11: 15
 };
 
+// TENTH
+//   constant: the float nearest 0.1, as an object holds it. A float read is
+// compared with this rather than with `0.1f` itself: where FLT_EVAL_METHOD
+// is 2, as on the x87 unit, C99 lets a compiler evaluate the constant with
+// long double's precision -- GCC does -- and so it equals no float.
+static const float TENTH = 0.1f;
+
 // d_tests_arg_type_bool_row
 //   struct: a text, and what d_arg_parse_bool makes of it.
 struct d_tests_arg_type_bool_row
@@ -590,38 +597,41 @@ struct d_tests_arg_type_sum_row
 // SUM_ROWS
 //   constant: d_arg_sum_values under the C rule, every row CLI11's
 // sum_string_vector: exact for integers, sixteen significant digits for
-// floating point, flag words as their values, text concatenated.
+// floating point, flag words as their values, text concatenated. The last
+// is rounded to a double at every step, as CLI11's `val` is: summed in more
+// precision, as the x87 unit can, and rounded once, it is 9007199254740994.
 static const struct d_tests_arg_type_sum_row SUM_ROWS[] =
 {
-    { { "1", "2" },                         2u, "3" },
-    { { "0.1", "0.2" },                     2u, "0.3" },
-    { { "1", "true", "3" },                 3u, "5" },
-    { { "a", "b" },                         2u, "ab" },
-    { { "1.5", "yes" },                     2u, "2.5" },
-    { { NULL },                             0u, "0" },
-    { { "7" },                              1u, "7" },
-    { { "9223372036854775807", "1" },       2u, "9.223372036854776e+18" },
-    { { "-9223372036854775808", "-1" },     2u, "-9.223372036854776e+18" },
-    { { "1e3", "1" },                       2u, "1001" },
-    { { "0x10", "1" },                      2u, "17" },
-    { { "010", "1" },                       2u, "9" },
-    { { "1", "off" },                       2u, "0" },
-    { { "-", "+" },                         2u, "0" },
-    { { "2", "x" },                         2u, "2x" },
-    { { "1_000", "1" },                     2u, "1001" },
-    { { "1.0", "2.0" },                     2u, "3" },
-    { { "1e300", "1e300" },                 2u, "2e+300" },
-    { { "0.1", "0.2", "0.3" },              3u, "0.6000000000000001" },
-    { { "123456789012345678", "1" },        2u, "123456789012345679" },
-    { { "0.000001", "0" },                  2u, "1e-06" },
-    { { "1", "-1" },                        2u, "0" },
-    { { "true", "true" },                   2u, "2" },
-    { { "", "1" },                          2u, "1" }
+    { { "1", "2" },                            2u, "3" },
+    { { "0.1", "0.2" },                        2u, "0.3" },
+    { { "1", "true", "3" },                    3u, "5" },
+    { { "a", "b" },                            2u, "ab" },
+    { { "1.5", "yes" },                        2u, "2.5" },
+    { { NULL },                                0u, "0" },
+    { { "7" },                                 1u, "7" },
+    { { "9223372036854775807", "1" },          2u, "9.223372036854776e+18" },
+    { { "-9223372036854775808", "-1" },        2u, "-9.223372036854776e+18" },
+    { { "1e3", "1" },                          2u, "1001" },
+    { { "0x10", "1" },                         2u, "17" },
+    { { "010", "1" },                          2u, "9" },
+    { { "1", "off" },                          2u, "0" },
+    { { "-", "+" },                            2u, "0" },
+    { { "2", "x" },                            2u, "2x" },
+    { { "1_000", "1" },                        2u, "1001" },
+    { { "1.0", "2.0" },                        2u, "3" },
+    { { "1e300", "1e300" },                    2u, "2e+300" },
+    { { "0.1", "0.2", "0.3" },                 3u, "0.6000000000000001" },
+    { { "123456789012345678", "1" },           2u, "123456789012345679" },
+    { { "0.000001", "0" },                     2u, "1e-06" },
+    { { "1", "-1" },                           2u, "0" },
+    { { "true", "true" },                      2u, "2" },
+    { { "", "1" },                             2u, "1" },
+    { { "0.5", "9007199254740992", "1", "1" }, 4u, "9007199254740992" }
 };
 
 // d_tests_arg_type_color
-//   enum: the values of the caller's own type d_tests_arg_type_custom_
-// descriptor converts into.
+//   enum: the values of the caller's own type
+// d_tests_arg_type_custom_descriptor converts into.
 enum d_tests_arg_type_color
 {
     COLOR_RED   = 0,
@@ -638,11 +648,21 @@ static const char* const COLOR_NAMES[] =
     "blue"
 };
 
-/*
-d_tests_arg_type_convert_color
-  A converter of the caller's: a color's name into an `int`, and a reason
-for anything else.
-*/
+/**
+ * @brief Converts a color's name into an `int`.
+ *
+ * @param[in]  _type     the descriptor; unused.
+ * @param[in]  _values   the values; the first is read.
+ * @param[in]  _count    how many.
+ * @param[out] _target   receives the color, an `int`.
+ * @param[in]  _context  the conversion's context, whose message buffer, when
+ *                       there is one, receives the reason for a refusal.
+ * @return D_ARG_OK; D_ARG_ERROR_CONVERSION for no value, or one that names no
+ *         color.
+ *
+ * A converter of the caller's: a color's name into an `int`, and a reason
+ * for anything else.
+ */
 static int
 d_tests_arg_type_convert_color(
     const struct d_arg_type*            _type,
@@ -685,10 +705,16 @@ d_tests_arg_type_convert_color(
     return D_ARG_ERROR_CONVERSION;
 }
 
-/*
-d_tests_arg_type_format_color
-  A color's name, written as the converter reads it.
-*/
+/**
+ * @brief Writes a color's name.
+ *
+ * @param[in] _type   the descriptor; unused.
+ * @param[in] _value  the color, an `int`.
+ * @param[in] _sink   receives the name; `?` for no color.
+ * @return D_ARG_OK, or the sink's refusal.
+ *
+ * A color's name, written as the converter reads it.
+ */
 static int
 d_tests_arg_type_format_color(
     const struct d_arg_type* _type,
@@ -832,11 +858,17 @@ static const struct d_tests_arg_type_format_row FORMAT_ROWS[] =
     { D_ARG_BUILTIN_TEXT,          &SAMPLES.span,          "span" }
 };
 
-/*
-d_tests_arg_type_convert
-  Converts one text into a value through a built-in descriptor, under the
-C rule, and returns the descriptor's status.
-*/
+/**
+ * @brief Converts one text through a built-in descriptor, under the C rule.
+ *
+ * @param[in]  _builtin  the built-in type, a D_ARG_BUILTIN_*.
+ * @param[in]  _text     the text.
+ * @param[out] _value    receives the value, in the type's member.
+ * @return the descriptor's status.
+ *
+ * Converts one text into a value through a built-in descriptor, under the
+ * C rule, and returns the descriptor's status.
+ */
 static int
 d_tests_arg_type_convert(
     int                           _builtin,
@@ -853,10 +885,15 @@ d_tests_arg_type_convert(
                          &CONTEXT_C);
 }
 
-/*
-d_tests_arg_type_signed_of
-  The value a signed built-in type left in the union, widened.
-*/
+/**
+ * @brief Reads the value a signed built-in type left in the union.
+ *
+ * @param[in] _builtin  the built-in type, a D_ARG_BUILTIN_*.
+ * @param[in] _value    the union.
+ * @return the value, widened; 0 for a type that is not a signed integer.
+ *
+ * The value a signed built-in type left in the union, widened.
+ */
 static long long
 d_tests_arg_type_signed_of(
     int                                 _builtin,
@@ -880,10 +917,15 @@ d_tests_arg_type_signed_of(
     }
 }
 
-/*
-d_tests_arg_type_unsigned_of
-  The value an unsigned built-in type left in the union, widened.
-*/
+/**
+ * @brief Reads the value an unsigned built-in type left in the union.
+ *
+ * @param[in] _builtin  the built-in type, a D_ARG_BUILTIN_*.
+ * @param[in] _value    the union.
+ * @return the value, widened; 0 for a type that is not an unsigned integer.
+ *
+ * The value an unsigned built-in type left in the union, widened.
+ */
 static unsigned long long
 d_tests_arg_type_unsigned_of(
     int                                 _builtin,
@@ -910,11 +952,16 @@ d_tests_arg_type_unsigned_of(
     }
 }
 
-/*
-d_tests_arg_type_zero
-  Whether a built-in type left its zero in the union: 0 for a number,
-`false`, NUL, empty text.
-*/
+/**
+ * @brief Tells whether a built-in type left its zero in the union.
+ *
+ * @param[in] _builtin  the built-in type, a D_ARG_BUILTIN_*.
+ * @param[in] _value    the union.
+ * @return `true` for the type's zero; `false` otherwise.
+ *
+ * Whether a built-in type left its zero in the union: 0 for a number,
+ * `false`, NUL, empty text.
+ */
 static bool
 d_tests_arg_type_zero(
     int                                 _builtin,
@@ -940,10 +987,17 @@ d_tests_arg_type_zero(
     }
 }
 
-/*
-d_tests_arg_type_writes
-  Whether a built-in type writes a value as the text expected.
-*/
+/**
+ * @brief Tells whether a built-in type writes a value as the text expected.
+ *
+ * @param[in] _builtin   the built-in type, a D_ARG_BUILTIN_*.
+ * @param[in] _value     the value, of that type.
+ * @param[in] _expected  the text expected.
+ * @return `true` when the descriptor wrote `_expected` and reported D_ARG_OK;
+ *         `false` otherwise.
+ *
+ * Whether a built-in type writes a value as the text expected.
+ */
 static bool
 d_tests_arg_type_writes(
     int         _builtin,
@@ -965,11 +1019,17 @@ d_tests_arg_type_writes(
              (same) );
 }
 
-/*
-d_tests_arg_type_long_rows
-  Runs d_arg_parse_long over a table under a rule, printing each row that
-does not come out as the table says.
-*/
+/**
+ * @brief Runs d_arg_parse_long over a table under a rule.
+ *
+ * @param[in] _rows   the rows: each text, whether it converts, and to what.
+ * @param[in] _count  how many.
+ * @param[in] _rule   the d_arg_integer_rule.
+ * @return `true` when every row came out as the table says; `false` otherwise.
+ *
+ * Runs d_arg_parse_long over a table under a rule, printing each row that
+ * does not come out as the table says.
+ */
 static bool
 d_tests_arg_type_long_rows(
     const struct d_tests_arg_type_long_row* _rows,
@@ -1055,18 +1115,23 @@ d_tests_arg_type_builtin_descriptors(void)
                                                  D_ARG_BUILTIN_STRING);
 
     return ( (described)                                                &&
-             (strcmp(boolean->name, "BOOLEAN") == 0)                    &&
+             (strcmp(boolean->name,
+                     "BOOLEAN") == 0)                                   &&
              (boolean->flags == D_ARG_TYPE_FLAG_BOOL)                   &&
-             (strcmp(number->name, "INT") == 0)                         &&
+             (strcmp(number->name,
+                     "INT") == 0)                                       &&
              (number->flags == (D_ARG_TYPE_FLAG_INTEGER |
                                 D_ARG_TYPE_FLAG_SIGNED))                &&
              (number->size == sizeof(int))                              &&
-             (strcmp(count->name, "UINT") == 0)                         &&
+             (strcmp(count->name,
+                     "UINT") == 0)                                      &&
              (count->flags == D_ARG_TYPE_FLAG_INTEGER)                  &&
              (count->size == sizeof(size_t))                            &&
-             (strcmp(real->name, "FLOAT") == 0)                         &&
+             (strcmp(real->name,
+                     "FLOAT") == 0)                                     &&
              ((real->flags & D_ARG_TYPE_FLAG_FLOAT) != 0u)              &&
-             (strcmp(text->name, "TEXT") == 0)                          &&
+             (strcmp(text->name,
+                     "TEXT") == 0)                                      &&
              (text->flags == D_ARG_TYPE_FLAG_STRING)                    &&
              (strcmp(d_arg_type_builtin(D_ARG_BUILTIN_CHAR)->name,
                      "CHAR") == 0) );
@@ -1355,7 +1420,7 @@ d_tests_arg_type_floating(void)
     const bool narrow = ( (d_tests_arg_type_convert(D_ARG_BUILTIN_FLOAT,
                                                     "0.1",
                                                     &tenth) == D_ARG_OK)    &&
-                          (tenth.single == 0.1f)                            &&
+                          (tenth.single == TENTH)                           &&
                           (d_tests_arg_type_convert(D_ARG_BUILTIN_FLOAT,
                                                     "3.4028235e38",
                                                     &most) == D_ARG_OK)     &&
@@ -1448,8 +1513,10 @@ d_tests_arg_type_floating_locale(void)
          (found == NULL) && (index < sizeof(NAMES) / sizeof(NAMES[0]));
          ++index)
     {
-        if ( (setlocale(LC_NUMERIC, NAMES[index]) != NULL) &&
-             (strcmp(localeconv()->decimal_point, ",") == 0) )
+        if ( (setlocale(LC_NUMERIC,
+                        NAMES[index]) != NULL)    &&
+             (strcmp(localeconv()->decimal_point,
+                     ",") == 0) )
         {
             found = NAMES[index];
         }
@@ -1458,7 +1525,8 @@ d_tests_arg_type_floating_locale(void)
     // none here: the C locale is what is checked
     if (!found)
     {
-        (void)setlocale(LC_NUMERIC, "C");
+        (void)setlocale(LC_NUMERIC,
+                        "C");
         printf("    no locale with a decimal comma here: checked under "
                "the C locale\n");
     }
@@ -1476,7 +1544,8 @@ d_tests_arg_type_floating_locale(void)
                                                    &quarter,
                                                    "2.25");
 
-    (void)setlocale(LC_NUMERIC, "C");
+    (void)setlocale(LC_NUMERIC,
+                    "C");
 
     return ( (read) &&
              (written) );
@@ -1623,16 +1692,20 @@ d_tests_arg_type_flag_value_intmax(void)
                  (row) );
     }
 
-    long      narrow = 7L;
-    const int beyond = d_arg_flag_value(d_pack_text_from_cstr("4294967296"),
-                                        D_ARG_INTEGER_C,
-                                        &narrow);
+    long            narrow = 7L;
+    const long long wide   = 4294967296LL;
+    const int       beyond = d_arg_flag_value(
+                                 d_pack_text_from_cstr("4294967296"),
+                                 D_ARG_INTEGER_C,
+                                 &narrow);
 
-    // past 32 bits, as wide as the platform's `long` is
+    // past 32 bits, as wide as the platform's `long` is; `wide` a variable,
+    // so that a 32-bit `long`'s compiler does not call the unused branch
+    // always false
     return ( (held) &&
              ( (LONG_MAX > 2147483647L)
                ? ( (beyond == D_ARG_OK) &&
-                   ((long long)narrow == 4294967296LL) )
+                   ((long long)narrow == wide) )
                : ( (beyond == D_ARG_ERROR_CONVERSION) &&
                    (narrow == 7L) ) ) );
 }
@@ -1963,8 +2036,8 @@ d_tests_arg_type_sums
   d_arg_sum_values, CLI11's sum_string_vector.
   Tests the following:
   - integers summed exactly, past what a `double` holds exactly
-  - a sum that overflows, or any floating-point value, summed as `double`
-    and written to sixteen significant digits
+  - a sum that overflows, or any floating-point value, summed as `double`,
+    rounded at every step, and written to sixteen significant digits
   - flag words as their values, text concatenated, no values as 0
   - the decimal rule reads leading zeros as decimal
 */

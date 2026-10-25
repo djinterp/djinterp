@@ -15,7 +15,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_command_tree.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_command.h"  // corresponding header
 // std
@@ -34,11 +34,15 @@
 // 1.  SPECIAL OPTIONS
 //==============================================================================
 
-/*
-d_arg_internal_command_names_given
-  Whether a special option is named at all: NULL and "" name nothing, and
-remove it.
-*/
+/**
+ * @brief Tells whether a special option is named at all.
+ *
+ * @param[in] _names  the names; NULL or "" for none, which removes the option.
+ * @return `true` when there are names; `false` otherwise.
+ *
+ * Whether a special option is named at all: NULL and "" name nothing, and
+ * remove it.
+ */
 D_STATIC bool
 d_arg_internal_command_names_given(
     const char* _names
@@ -48,13 +52,18 @@ d_arg_internal_command_names_given(
              (_names[0] != '\0') );
 }
 
-/*
-d_arg_internal_command_drop_special
-  The first half of CLI11's set_help_flag and its kin: the option a slot
-points at removed -- when the command still owns it, for a version flag
-moved into an option group stays there, as in CLI11 -- and the slot
-emptied.
-*/
+/**
+ * @brief Removes the special option a slot points at, and empties the slot.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in,out] _slot     the slot: the command's help, help-all, version or
+ *                          configuration option.
+ *
+ * The first half of CLI11's set_help_flag and its kin: the option a slot
+ * points at removed -- when the command still owns it, for a version flag
+ * moved into an option group stays there, as in CLI11 -- and the slot
+ * emptied.
+ */
 D_STATIC void
 d_arg_internal_command_drop_special(
     struct d_arg_command* _command,
@@ -73,11 +82,15 @@ d_arg_internal_command_drop_special(
     return;
 }
 
-/*
-d_arg_internal_command_mark_special
-  The second half: a special option that was made is not configurable and
-runs first.
-*/
+/**
+ * @brief Makes a special option not configurable and the first to run.
+ *
+ * @param[in,out] _option  the option; NULL for one that was not made.
+ * @return `_option`.
+ *
+ * The second half: a special option that was made is not configurable and
+ * runs first.
+ */
 D_STATIC struct d_arg_option*
 d_arg_internal_command_mark_special(
     struct d_arg_option* _option
@@ -159,10 +172,13 @@ d_arg_command_set_help_all_flag(
     return _command->help_all;
 }
 
-/*
-d_arg_internal_command_drop_version
-  The version flag removed, with its text and its function.
-*/
+/**
+ * @brief Removes a command's version flag, with its text and its function.
+ *
+ * @param[in,out] _command  the command.
+ *
+ * The version flag removed, with its text and its function.
+ */
 D_STATIC void
 d_arg_internal_command_drop_version(
     struct d_arg_command* _command
@@ -179,11 +195,17 @@ d_arg_internal_command_drop_version(
     return;
 }
 
-/*
-d_arg_internal_command_version_noop
-  CLI11's empty lambda behind the version flag: the flag's use is what the
-parse acts on, and nothing is left for its callback to do.
-*/
+/**
+ * @brief Does nothing, as CLI11's empty lambda behind the version flag.
+ *
+ * @param[in] _option   the flag; unused.
+ * @param[in] _count    how many times it was given; unused.
+ * @param[in] _context  unused.
+ * @return D_ARG_OK.
+ *
+ * CLI11's empty lambda behind the version flag: the flag's use is what the
+ * parse acts on, and nothing is left for its callback to do.
+ */
 D_STATIC int
 d_arg_internal_command_version_noop(
     struct d_arg_option* _option,
@@ -198,12 +220,20 @@ d_arg_internal_command_version_noop(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_command_add_version
-  The flag CLI11's set_version_flag adds once the version is in place, with
-CLI11's description unless one is given; a refused flag takes the version
-with it, which CLI11's version() would no longer show.
-*/
+/**
+ * @brief Adds the flag CLI11's set_version_flag adds once the version is in
+ *        place.
+ *
+ * @param[in,out] _command      the command, which keeps the flag.
+ * @param[in]     _names        the flag's names.
+ * @param[in]     _description  the help text; NULL for CLI11's.
+ * @return the flag; NULL when it was refused, the refusal recorded and the
+ *         version dropped too.
+ *
+ * The flag CLI11's set_version_flag adds once the version is in place, with
+ * CLI11's description unless one is given; a refused flag takes the version
+ * with it, which CLI11's version() would no longer show.
+ */
 D_STATIC struct d_arg_option*
 d_arg_internal_command_add_version(
     struct d_arg_command* _command,
@@ -335,11 +365,18 @@ d_arg_command_set_version_fn(
                                               _description);
 }
 
-/*
-d_arg_internal_command_config_default
-  The default file CLI11's set_config gives its option: the default text,
-and the callback forced, so that the file is read when none is given.
-*/
+/**
+ * @brief Gives a configuration option the default file CLI11's set_config gives
+ *        it.
+ *
+ * @param[in,out] _option        the option.
+ * @param[in]     _default_file  the default file; NULL or empty for none.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded as a definition
+ *         error.
+ *
+ * The default file CLI11's set_config gives its option: the default text,
+ * and the callback forced, so that the file is read when none is given.
+ */
 D_STATIC int
 d_arg_internal_command_config_default(
     struct d_arg_option* _option,
@@ -435,12 +472,18 @@ d_arg_command_set_config(
 // 2.  MAKING SUBCOMMANDS AND GROUPS
 //==============================================================================
 
-/*
-d_arg_internal_command_check_subcommand_name
-  CLI11's checks in add_subcommand: a name that is not valid is refused for
-its first character when that cannot start a name, and otherwise for the
-first character -- the first itself included -- that cannot follow in one.
-*/
+/**
+ * @brief Checks a subcommand's name, as CLI11's add_subcommand does.
+ *
+ * @param[in] _command  the command it is added to.
+ * @param[in] _name     the name; NULL or empty for none.
+ * @return D_ARG_OK; D_ARG_ERROR_INCORRECT_CONSTRUCTION, recorded as a
+ *         definition error, for a name that is not valid.
+ *
+ * CLI11's checks in add_subcommand: a name that is not valid is refused for
+ * its first character when that cannot start a name, and otherwise for the
+ * first character -- the first itself included -- that cannot follow in one.
+ */
 D_STATIC int
 d_arg_internal_command_check_subcommand_name(
     const struct d_arg_command* _command,
@@ -485,11 +528,14 @@ d_arg_internal_command_check_subcommand_name(
                name.data[at]);
 }
 
-/*
-d_arg_internal_command_discard
-  A subcommand that never joined the tree, or has left it: released, then
-freed.
-*/
+/**
+ * @brief Releases and frees a subcommand that is not in the tree.
+ *
+ * @param[in] _subcommand  the subcommand, released and freed.
+ *
+ * A subcommand that never joined the tree, or has left it: released, then
+ * freed.
+ */
 D_STATIC void
 d_arg_internal_command_discard(
     struct d_arg_command* _subcommand
@@ -501,12 +547,19 @@ d_arg_internal_command_discard(
     return;
 }
 
-/*
-d_arg_internal_command_make
-  CLI11's App constructor for a subcommand: the record allocated and made
-under `_command`; a refused one has recorded its failure, and is
-discarded.
-*/
+/**
+ * @brief Allocates and makes a subcommand, as CLI11's App constructor.
+ *
+ * @param[in] _command      the command it is made under.
+ * @param[in] _name         its name, copied; NULL or "" for none.
+ * @param[in] _description  its description, copied; NULL for none.
+ * @return the subcommand, not yet in the tree; NULL when it could not be made,
+ *         the failure recorded as a definition error.
+ *
+ * CLI11's App constructor for a subcommand: the record allocated and made
+ * under `_command`; a refused one has recorded its failure, and is
+ * discarded.
+ */
 D_STATIC struct d_arg_command*
 d_arg_internal_command_make(
     struct d_arg_command* _command,
@@ -543,19 +596,25 @@ d_arg_internal_command_make(
     return subcommand;
 }
 
-/*
-d_arg_internal_command_adopt
-  CLI11's add_subcommand(App_p): the new subcommand's names checked against
-the subcommands of the command -- or, for an option group, of its
-fallthrough parent -- then the subcommand kept; refused, it is discarded.
-*/
+/**
+ * @brief Adds a subcommand to a command, as CLI11's add_subcommand(App_p).
+ *
+ * @param[in,out] _command     the command.
+ * @param[in]     _subcommand  the subcommand, which the call takes over.
+ * @return the subcommand; NULL when it was refused, the failure recorded as a
+ *         definition error and the subcommand discarded.
+ *
+ * CLI11's add_subcommand(App_p): the new subcommand's names checked against
+ * the subcommands of the command -- or, for an option group, of its
+ * fallthrough parent -- then the subcommand kept; refused, it is discarded.
+ */
 D_STATIC struct d_arg_command*
 d_arg_internal_command_adopt(
     struct d_arg_command* _command,
     struct d_arg_command* _subcommand
 )
 {
-    const char* const clash = d_arg_internal_compare_subcommand_names(
+    const char* const clash = d_arg_internal_subcommand_clash(
                                   _subcommand,
                                   (d_arg_command_is_option_group(_command))
                                   ? d_arg_internal_fallthrough_parent(_command)
@@ -628,12 +687,19 @@ d_arg_command_add_subcommand(
            : NULL;
 }
 
-/*
-d_arg_internal_command_make_group
-  CLI11's Option_group constructor after App's, then what add_option_group
-changes: the group's name, no help-all flag for a hidden or `+` group, and
-for every group no help flag, no footer and no fallthrough.
-*/
+/**
+ * @brief Makes a new subcommand an option group, as CLI11's Option_group
+ *        constructor and add_option_group.
+ *
+ * @param[in,out] _group       the subcommand.
+ * @param[in]     _group_name  the group's name.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded as a definition
+ *         error.
+ *
+ * CLI11's Option_group constructor after App's, then what add_option_group
+ * changes: the group's name, no help-all flag for a hidden or `+` group, and
+ * for every group no help flag, no footer and no fallthrough.
+ */
 D_STATIC int
 d_arg_internal_command_make_group(
     struct d_arg_command* _group,
@@ -734,11 +800,16 @@ d_arg_command_add_option_group(
 // 3.  MOVING INTO A GROUP
 //==============================================================================
 
-/*
-d_arg_internal_command_move_clash
-  CLI11's refusal of an option whose name the group has already, worded as
-CLI11 words it, with the option's display name.
-*/
+/**
+ * @brief Refuses an option whose name a group has already, as CLI11 does.
+ *
+ * @param[in] _group   the group.
+ * @param[in] _option  the option.
+ * @return D_ARG_ERROR_OPTION_ALREADY_ADDED, recorded as a definition error.
+ *
+ * CLI11's refusal of an option whose name the group has already, worded as
+ * CLI11 words it, with the option's display name.
+ */
 D_STATIC int
 d_arg_internal_command_move_clash(
     const struct d_arg_command* _group,
@@ -763,11 +834,17 @@ d_arg_internal_command_move_clash(
     return status;
 }
 
-/*
-d_arg_internal_command_group_has
-  CLI11's `*v == *opt_p` over a group's options: whether one shares a name
-with `_option`.
-*/
+/**
+ * @brief Tells whether one of a group's options shares a name with an option,
+ *        as CLI11's `*v == *opt_p`.
+ *
+ * @param[in] _group   the group.
+ * @param[in] _option  the option.
+ * @return `true` when one does; `false` otherwise.
+ *
+ * CLI11's `*v == *opt_p` over a group's options: whether one shares a name
+ * with `_option`.
+ */
 D_STATIC bool
 d_arg_internal_command_group_has(
     const struct d_arg_command* _group,
@@ -787,12 +864,21 @@ d_arg_internal_command_group_has(
     return false;
 }
 
-/*
-d_arg_internal_command_move_check
-  CLI11's _move_option checks, in its order: the help options stay, the
-configuration option stays, only the parent's own option moves, and not
-into a group that has its name already.
-*/
+/**
+ * @brief Checks that an option may move into a group, as CLI11's _move_option
+ *        does.
+ *
+ * @param[in] _group   the group.
+ * @param[in] _option  the option.
+ * @return D_ARG_OK; D_ARG_ERROR_OPTION_ALREADY_ADDED for a help or
+ *         configuration option, or one whose name the group has;
+ *         D_ARG_ERROR_OPTION_NOT_FOUND for one that is not the parent's own;
+ *         each recorded as a definition error.
+ *
+ * CLI11's _move_option checks, in its order: the help options stay, the
+ * configuration option stays, only the parent's own option moves, and not
+ * into a group that has its name already.
+ */
 D_STATIC int
 d_arg_internal_command_move_check(
     const struct d_arg_command* _group,
@@ -894,10 +980,15 @@ d_arg_command_group_add_option(
     return status;
 }
 
-/*
-d_arg_internal_command_within
-  Whether a command is `_ancestor` or lies below it.
-*/
+/**
+ * @brief Tells whether a command is another or lies below it.
+ *
+ * @param[in] _command   the command.
+ * @param[in] _ancestor  the other.
+ * @return `true` when `_command` is `_ancestor` or below it; `false` otherwise.
+ *
+ * Whether a command is `_ancestor` or lies below it.
+ */
 D_STATIC bool
 d_arg_internal_command_within(
     const struct d_arg_command* _command,
@@ -916,12 +1007,19 @@ d_arg_internal_command_within(
     return (at != NULL);
 }
 
-/*
-d_arg_internal_command_unlink
-  CLI11's first loop in remove_subcommand: each subcommand of the command
-drops its exclusion of `_subcommand` -- both halves, as CLI11's
-remove_excludes drops them -- and its need of it.
-*/
+/**
+ * @brief Drops the links a command's subcommands have to one of them, as
+ *        CLI11's first loop in remove_subcommand.
+ *
+ * @param[in,out] _command     the command, whose subcommands drop their
+ *                             exclusions and needs of `_subcommand`.
+ * @param[in,out] _subcommand  the subcommand, which drops its exclusions of
+ *                             them too.
+ *
+ * CLI11's first loop in remove_subcommand: each subcommand of the command
+ * drops its exclusion of `_subcommand` -- both halves, as CLI11's
+ * remove_excludes drops them -- and its need of it.
+ */
 D_STATIC void
 d_arg_internal_command_unlink(
     struct d_arg_command* _command,
@@ -962,17 +1060,17 @@ d_arg_command_group_add_subcommand(
 )
 {
     // validate the parameters
-    if ( (!d_arg_command_is_option_group(_group))           ||
-         (!_subcommand)                                      ||
-         (!_subcommand->parent)                              ||
-         (_subcommand->parser != _group->parser)             ||
+    if ( (!d_arg_command_is_option_group(_group)) ||
+         (!_subcommand)                           ||
+         (!_subcommand->parent)                   ||
+         (_subcommand->parser != _group->parser)  ||
          (d_arg_internal_command_within(_group,
                                         _subcommand)) )
     {
         return D_ARG_ERROR_BAD_ARGUMENT;
     }
 
-    const char* const clash = d_arg_internal_compare_subcommand_names(
+    const char* const clash = d_arg_internal_subcommand_clash(
                                   _subcommand,
                                   d_arg_internal_fallthrough_parent(_group));
 
@@ -1089,11 +1187,15 @@ d_arg_command_option_group(
     return NULL;
 }
 
-/*
-d_arg_internal_command_forget_command
-  Every reference to a command in a command and below it: needs, excludes,
-the last parse's list of subcommands, and a trigger's targets.
-*/
+/**
+ * @brief Drops every reference to a command in a command and below it.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _gone     the command forgotten.
+ *
+ * Every reference to a command in a command and below it: needs, excludes,
+ * the last parse's list of subcommands, and a trigger's targets.
+ */
 D_STATIC void
 d_arg_internal_command_forget_command(
     struct d_arg_command*       _command,
@@ -1125,12 +1227,16 @@ d_arg_internal_command_forget_command(
     return;
 }
 
-/*
-d_arg_internal_command_forget_tree
-  Every reference from the tree under `_root` into the subtree of `_gone`,
-which has left it: to each of its options, to each command below it, and
-to itself.
-*/
+/**
+ * @brief Drops every reference from a tree into a subtree that has left it.
+ *
+ * @param[in,out] _root  the tree's root.
+ * @param[in]     _gone  the subtree's command.
+ *
+ * Every reference from the tree under `_root` into the subtree of `_gone`,
+ * which has left it: to each of its options, to each command below it, and
+ * to itself.
+ */
 D_STATIC void
 d_arg_internal_command_forget_tree(
     struct d_arg_command*       _root,

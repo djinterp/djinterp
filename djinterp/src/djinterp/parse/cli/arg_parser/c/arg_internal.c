@@ -12,7 +12,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_internal.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -50,13 +50,19 @@
     #define D_INTERNAL_ARG_SNPRINTF_LONG_DOUBLE snprintf
 #endif
 
-/*
-d_arg_internal_next_significant
-  Advances `*_index` to the next byte of `_text` that is not a digit
-separator, `_` or `'`, and reads it; false at the end. CLI11 removes every
-separator before converting, so skipping them wherever they stand -- before
-a sign, inside a prefix -- reads exactly what it reads.
-*/
+/**
+ * @brief Reads the next byte of a number's text that is not a digit separator.
+ *
+ * @param[in]     _text   the text.
+ * @param[in,out] _index  where to read from, moved to the byte read.
+ * @param[out]    _out    receives the byte.
+ * @return `true` when a byte was read; `false` at the end of the text.
+ *
+ * Advances `*_index` to the next byte of `_text` that is not a digit
+ * separator, `_` or `'`, and reads it; false at the end. CLI11 removes every
+ * separator before converting, so skipping them wherever they stand -- before
+ * a sign, inside a prefix -- reads exactly what it reads.
+ */
 D_STATIC bool
 d_arg_internal_next_significant(
     struct d_pack_text _text,
@@ -86,13 +92,21 @@ d_arg_internal_next_significant(
     return false;
 }
 
-/*
-d_arg_internal_integer_base
-  Reads an integer's sign and base prefix, leaving `*_index` at its first
-digit. A leading 0 followed by `x`, `o` or `b` names the base and is
-consumed; under the C rule a leading 0 followed by anything else makes the
-number octal and stays, being a valid octal digit itself.
-*/
+/**
+ * @brief Reads an integer's sign and base prefix.
+ *
+ * @param[in]     _text      the text.
+ * @param[in]     _rule      the d_arg_integer_rule.
+ * @param[in,out] _index     where to read from, left at the first digit.
+ * @param[out]    _negative  receives whether the sign is a minus; untouched
+ *                           when there is no sign.
+ * @return the base: 16, 8, 2 or 10.
+ *
+ * Reads an integer's sign and base prefix, leaving `*_index` at its first
+ * digit. A leading 0 followed by `x`, `o` or `b` names the base and is
+ * consumed; under the C rule a leading 0 followed by anything else makes the
+ * number octal and stays, being a valid octal digit itself.
+ */
 D_STATIC int
 d_arg_internal_integer_base(
     struct d_pack_text _text,
@@ -150,11 +164,14 @@ d_arg_internal_integer_base(
     return (_rule == (int)D_ARG_INTEGER_C) ? 8 : 10;
 }
 
-/*
-d_arg_internal_decimal_point
-  The current locale's decimal point as localeconv reports it, or "." when it
-reports nothing usable.
-*/
+/**
+ * @brief Reads the current locale's decimal point.
+ *
+ * @return the point localeconv reports; "." when it reports nothing usable.
+ *
+ * The current locale's decimal point as localeconv reports it, or "." when it
+ * reports nothing usable.
+ */
 D_STATIC const char*
 d_arg_internal_decimal_point(
     void
@@ -173,13 +190,21 @@ d_arg_internal_decimal_point(
     return conventions->decimal_point;
 }
 
-/*
-d_arg_internal_real_input
-  Writes the text strto* is to read into `_out`: the separators dropped and
-each `.` replaced by the locale's decimal point, NUL-terminated. Returns the
-length written, or (size_t)-1 when the text holds the locale's own decimal
-point, which this module refuses so that one spelling means one number.
-*/
+/**
+ * @brief Writes the text the strto* functions are to read.
+ *
+ * @param[in]  _text   the number's text.
+ * @param[in]  _point  the locale's decimal point.
+ * @param[out] _out    receives the input, NUL-terminated; room for the text
+ *                     with each `.` as long as the point.
+ * @return the length written; (size_t)-1 for text holding the locale's own
+ *         decimal point.
+ *
+ * Writes the text strto* is to read into `_out`: the separators dropped and
+ * each `.` replaced by the locale's decimal point, NUL-terminated. Returns the
+ * length written, or (size_t)-1 when the text holds the locale's own decimal
+ * point, which this module refuses so that one spelling means one number.
+ */
 D_STATIC size_t
 d_arg_internal_real_input(
     struct d_pack_text _text,
@@ -198,8 +223,8 @@ d_arg_internal_real_input(
         const char c = _text.data[index];
 
         // the locale's point, where it is not `.`, is not this module's
-        if ( (!is_dot) &&
-             (c == _point[0]) &&
+        if ( (!is_dot)                                &&
+             (c == _point[0])                         &&
              (point_length <= (_text.length - index)) &&
              (memcmp(_text.data + index,
                      _point,
@@ -234,11 +259,18 @@ d_arg_internal_real_input(
     return length;
 }
 
-/*
-d_arg_internal_real_parse
-  Calls the strto* function of the type, so that the number is rounded once,
-directly to the type, and reports whether it read the whole input.
-*/
+/**
+ * @brief Reads a number with the strto* function of its type.
+ *
+ * @param[in]  _input   the input, NUL-terminated.
+ * @param[in]  _length  its length.
+ * @param[in]  _real    the type, a D_ARG_INTERNAL_REAL_* value.
+ * @param[out] _out     receives the number, of the type.
+ * @return `true` when the whole input was read; `false` otherwise.
+ *
+ * Calls the strto* function of the type, so that the number is rounded once,
+ * directly to the type, and reports whether it read the whole input.
+ */
 D_STATIC bool
 d_arg_internal_real_parse(
     const char* _input,
@@ -282,13 +314,18 @@ d_arg_internal_real_parse(
              (end == _input + _length) );
 }
 
-/*
-d_arg_internal_decimal_digits
-  The significant decimal digits that always distinguish the values of a
-type with `_mantissa` binary digits, 1 + ceil(_mantissa * log10(2)) -- C11's
-*_DECIMAL_DIG, which C99 lacks: 9, 17, 21 and 36 for the IEEE formats. The
-logarithm is taken as 30103/100000, exact to the digits that matter here.
-*/
+/**
+ * @brief Gives the significant decimal digits that always tell a type's values
+ *        apart.
+ *
+ * @param[in] _mantissa  the type's binary digits.
+ * @return 1 + ceil(_mantissa * log10(2)).
+ *
+ * The significant decimal digits that always distinguish the values of a
+ * type with `_mantissa` binary digits, 1 + ceil(_mantissa * log10(2)) -- C11's
+ * *_DECIMAL_DIG, which C99 lacks: 9, 17, 21 and 36 for the IEEE formats. The
+ * logarithm is taken as 30103/100000, exact to the digits that matter here.
+ */
 D_STATIC int
 d_arg_internal_decimal_digits(
     int _mantissa
@@ -297,11 +334,16 @@ d_arg_internal_decimal_digits(
     return 1 + (((_mantissa * 30103) + 99999) / 100000);
 }
 
-/*
-d_arg_internal_real_digits
-  The most significant digits a shortest round-trip search tries for a
-type: past them every value round-trips.
-*/
+/**
+ * @brief Gives the most significant digits a shortest round-trip search tries
+ *        for a type.
+ *
+ * @param[in] _real  the type, a D_ARG_INTERNAL_REAL_* value.
+ * @return the digits past which every value round-trips.
+ *
+ * The most significant digits a shortest round-trip search tries for a
+ * type: past them every value round-trips.
+ */
 D_STATIC int
 d_arg_internal_real_digits(
     int _real
@@ -321,10 +363,16 @@ d_arg_internal_real_digits(
     return d_arg_internal_decimal_digits(LDBL_MANT_DIG);
 }
 
-/*
-d_arg_internal_real_as_double
-  A float or a double read as a double; a float widens exactly.
-*/
+/**
+ * @brief Reads a float or a double as a double.
+ *
+ * @param[in] _real   the type: D_ARG_INTERNAL_REAL_FLOAT or
+ *                    D_ARG_INTERNAL_REAL_DOUBLE.
+ * @param[in] _value  the object.
+ * @return the value, a float widened exactly.
+ *
+ * A float or a double read as a double; a float widens exactly.
+ */
 D_STATIC double
 d_arg_internal_real_as_double(
     int         _real,
@@ -352,12 +400,20 @@ d_arg_internal_real_as_double(
     return value;
 }
 
-/*
-d_arg_internal_real_print
-  snprintf with `%.<digits>g` for the type; a float is promoted to double,
-which printf would do anyway. Returns false when the runtime fails or the
-text does not fit, which no `%g` of these precisions can do.
-*/
+/**
+ * @brief Prints a floating-point object with a number of significant digits.
+ *
+ * @param[out] _out     receives the text; empty on failure.
+ * @param[in]  _real    the type, a D_ARG_INTERNAL_REAL_* value.
+ * @param[in]  _value   the object.
+ * @param[in]  _digits  the significant digits.
+ * @return `true` when the text was printed; `false` when the runtime failed or
+ *         the text did not fit.
+ *
+ * snprintf with `%.<digits>g` for the type; a float is promoted to double,
+ * which printf would do anyway. Returns false when the runtime fails or the
+ * text does not fit, which no `%g` of these precisions can do.
+ */
 D_STATIC bool
 d_arg_internal_real_print(
     struct d_arg_internal_number_text* _out,
@@ -407,11 +463,17 @@ d_arg_internal_real_print(
     return true;
 }
 
-/*
-d_arg_internal_real_round_trips
-  Whether the text printf just wrote -- with the locale's decimal point, so
-read back with the same locale -- names exactly the value printed.
-*/
+/**
+ * @brief Tells whether printed text reads back as the value printed.
+ *
+ * @param[in] _text   the text, with the locale's decimal point.
+ * @param[in] _real   the type, a D_ARG_INTERNAL_REAL_* value.
+ * @param[in] _value  the object printed.
+ * @return `true` when it reads back as exactly the value; `false` otherwise.
+ *
+ * Whether the text printf just wrote -- with the locale's decimal point, so
+ * read back with the same locale -- names exactly the value printed.
+ */
 D_STATIC bool
 d_arg_internal_real_round_trips(
     const struct d_arg_internal_number_text* _text,
@@ -470,13 +532,17 @@ d_arg_internal_real_round_trips(
     return (back.r == original);
 }
 
-/*
-d_arg_internal_real_normalize
-  Rewrites what printf wrote into the module's one spelling: the locale's
-decimal point becomes `.`, and an exponent of three or more digits with
-leading zeros -- the old Microsoft runtime's `1e+006` -- loses them down to
-C99's two.
-*/
+/**
+ * @brief Rewrites printed text into the module's one spelling.
+ *
+ * @param[in,out] _text  the text: the locale's decimal point becomes `.`, and
+ *                       an exponent loses leading zeros down to two digits.
+ *
+ * Rewrites what printf wrote into the module's one spelling: the locale's
+ * decimal point becomes `.`, and an exponent of three or more digits with
+ * leading zeros -- the old Microsoft runtime's `1e+006` -- loses them down to
+ * C99's two.
+ */
 D_STATIC void
 d_arg_internal_real_normalize(
     struct d_arg_internal_number_text* _text
@@ -525,11 +591,15 @@ d_arg_internal_real_normalize(
     return;
 }
 
-/*
-d_arg_internal_real_exponent
-  The decimal exponent printf wrote after `e`, or 0 when it wrote none, the
-number being in fixed notation already.
-*/
+/**
+ * @brief Reads the decimal exponent printed after `e`.
+ *
+ * @param[in] _text  the text.
+ * @return the exponent; 0 for fixed notation.
+ *
+ * The decimal exponent printf wrote after `e`, or 0 when it wrote none, the
+ * number being in fixed notation already.
+ */
 D_STATIC int
 d_arg_internal_real_exponent(
     const struct d_arg_internal_number_text* _text
@@ -559,10 +629,14 @@ d_arg_internal_real_exponent(
     return negative ? -exponent : exponent;
 }
 
-/*
-d_arg_internal_text_word
-  Writes a short constant word, such as "nan", as a number's text.
-*/
+/**
+ * @brief Writes a short constant word as a number's text.
+ *
+ * @param[out] _out   receives the word.
+ * @param[in]  _word  the word, such as "nan".
+ *
+ * Writes a short constant word, such as "nan", as a number's text.
+ */
 D_STATIC void
 d_arg_internal_text_word(
     struct d_arg_internal_number_text* _out,
@@ -579,11 +653,16 @@ d_arg_internal_text_word(
     return;
 }
 
-/*
-d_arg_internal_real_widen
-  A floating-point object of the type, widened to long double for the tests
-that apply to every type alike.
-*/
+/**
+ * @brief Reads a floating-point object as a long double.
+ *
+ * @param[in] _real   the type, a D_ARG_INTERNAL_REAL_* value.
+ * @param[in] _value  the object.
+ * @return the value, widened exactly.
+ *
+ * A floating-point object of the type, widened to long double for the tests
+ * that apply to every type alike.
+ */
 D_STATIC long double
 d_arg_internal_real_widen(
     int         _real,
@@ -622,12 +701,17 @@ d_arg_internal_real_widen(
     return value;
 }
 
-/*
-d_arg_internal_write_signed
-  Writes a signed value already known to fit into an object of `_size`
-bytes, each width through its own type so that the bytes are the value's;
-any other size is intmax_t's own.
-*/
+/**
+ * @brief Writes a signed value into an object of a size.
+ *
+ * @param[in]  _value   the value, known to fit.
+ * @param[in]  _size    the object's size: 1, 2, 4 or 8 bytes, or intmax_t's.
+ * @param[out] _object  receives the value.
+ *
+ * Writes a signed value already known to fit into an object of `_size`
+ * bytes, each width through its own type so that the bytes are the value's;
+ * any other size is intmax_t's own.
+ */
 D_STATIC void
 d_arg_internal_write_signed(
     intmax_t _value,
@@ -678,12 +762,18 @@ d_arg_internal_write_signed(
     return;
 }
 
-/*
-d_arg_internal_store_signed
-  Narrows a signed value into an object of `_size` bytes, refusing a value
-the object cannot hold; the range is checked before the conversion, from
-the exact-width limits.
-*/
+/**
+ * @brief Narrows a signed value into an object of a size.
+ *
+ * @param[in]  _value   the value.
+ * @param[in]  _size    the object's size: 1, 2, 4 or 8 bytes, or intmax_t's.
+ * @param[out] _object  receives the value; untouched when it does not fit.
+ * @return `true` when it fits; `false` otherwise.
+ *
+ * Narrows a signed value into an object of `_size` bytes, refusing a value
+ * the object cannot hold; the range is checked before the conversion, from
+ * the exact-width limits.
+ */
 D_STATIC bool
 d_arg_internal_store_signed(
     intmax_t _value,
@@ -716,10 +806,15 @@ d_arg_internal_store_signed(
     return true;
 }
 
-/*
-d_arg_internal_write_unsigned
-  As d_arg_internal_write_signed, for an unsigned value.
-*/
+/**
+ * @brief Writes an unsigned value into an object of a size.
+ *
+ * @param[in]  _value   the value, known to fit.
+ * @param[in]  _size    the object's size: 1, 2, 4 or 8 bytes, or uintmax_t's.
+ * @param[out] _object  receives the value.
+ *
+ * As d_arg_internal_write_signed, for an unsigned value.
+ */
 D_STATIC void
 d_arg_internal_write_unsigned(
     uintmax_t _value,
@@ -770,11 +865,17 @@ d_arg_internal_write_unsigned(
     return;
 }
 
-/*
-d_arg_internal_store_unsigned
-  Narrows an unsigned value into an object of `_size` bytes, refusing a
-value the object cannot hold.
-*/
+/**
+ * @brief Narrows an unsigned value into an object of a size.
+ *
+ * @param[in]  _value   the value.
+ * @param[in]  _size    the object's size: 1, 2, 4 or 8 bytes, or uintmax_t's.
+ * @param[out] _object  receives the value; untouched when it does not fit.
+ * @return `true` when it fits; `false` otherwise.
+ *
+ * Narrows an unsigned value into an object of `_size` bytes, refusing a
+ * value the object cannot hold.
+ */
 D_STATIC bool
 d_arg_internal_store_unsigned(
     uintmax_t _value,
@@ -801,13 +902,21 @@ d_arg_internal_store_unsigned(
     return true;
 }
 
-/*
-d_arg_internal_store_real
-  Narrows a long double into a float, double or long double, refusing a
-finite value beyond the type's range -- converting one is undefined in C, so
-the range is checked first -- while infinities and NaNs pass, being
-representable in every format.
-*/
+/**
+ * @brief Narrows a long double into a float, a double or a long double.
+ *
+ * @param[in]  _value   the value.
+ * @param[in]  _size    the object's size, which chooses its type.
+ * @param[out] _object  receives the value; untouched when a finite value is
+ *                      beyond the type's range.
+ * @return `true` when it fits, infinities and NaNs among them; `false`
+ *         otherwise.
+ *
+ * Narrows a long double into a float, double or long double, refusing a
+ * finite value beyond the type's range -- converting one is undefined in C, so
+ * the range is checked first -- while infinities and NaNs pass, being
+ * representable in every format.
+ */
 D_STATIC bool
 d_arg_internal_store_real(
     long double _value,
@@ -857,11 +966,16 @@ d_arg_internal_store_real(
     return true;
 }
 
-/*
-d_arg_internal_load_signed
-  Reads a signed object of `_size` bytes through its exact-width type, by
-copying it into one, which reads it without aliasing it.
-*/
+/**
+ * @brief Reads a signed object of a size.
+ *
+ * @param[in] _object  the object.
+ * @param[in] _size    its size: 1, 2, 4 or 8 bytes, or intmax_t's.
+ * @return the value.
+ *
+ * Reads a signed object of `_size` bytes through its exact-width type, by
+ * copying it into one, which reads it without aliasing it.
+ */
 D_STATIC intmax_t
 d_arg_internal_load_signed(
     const void* _object,
@@ -922,10 +1036,15 @@ d_arg_internal_load_signed(
     return value;
 }
 
-/*
-d_arg_internal_load_unsigned
-  As d_arg_internal_load_signed, for an unsigned object.
-*/
+/**
+ * @brief Reads an unsigned object of a size.
+ *
+ * @param[in] _object  the object.
+ * @param[in] _size    its size: 1, 2, 4 or 8 bytes, or uintmax_t's.
+ * @return the value.
+ *
+ * As d_arg_internal_load_signed, for an unsigned object.
+ */
 D_STATIC uintmax_t
 d_arg_internal_load_unsigned(
     const void* _object,
@@ -1240,9 +1359,9 @@ d_arg_internal_checked_multiply(
     const int a = *_a;
 
     // a zero or a one never overflows
-    if ( (a == 0) ||
+    if ( (a == 0)  ||
          (_b == 0) ||
-         (a == 1) ||
+         (a == 1)  ||
          (_b == 1) )
     {
         *_a = a * _b;
@@ -1351,9 +1470,9 @@ d_arg_internal_read_integer(
     size_t                   index    = 0u;
     bool                     negative = false;
     const int                base     = d_arg_internal_integer_base(text,
-                                                                   _rule,
-                                                                   &index,
-                                                                   &negative);
+                                                                    _rule,
+                                                                    &index,
+                                                                    &negative);
     const uintmax_t          ubase    = (uintmax_t)base;
     uintmax_t                value    = 0u;
     bool                     overflow = false;
@@ -1398,11 +1517,20 @@ d_arg_internal_read_integer(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_real_read_into
-  Writes strto*'s input for `_text` into `_input`, which has room for it,
-and has strto* read all of it into `_value`.
-*/
+/**
+ * @brief Reads a number's text with the strto* function of its type.
+ *
+ * @param[in]  _text   the text.
+ * @param[in]  _point  the locale's decimal point.
+ * @param[out] _input  receives the strto* input; room for it, as
+ *                     d_arg_internal_real_input asks.
+ * @param[in]  _real   the type, a D_ARG_INTERNAL_REAL_* value.
+ * @param[out] _value  receives the number.
+ * @return `true` when the whole text was read; `false` otherwise.
+ *
+ * Writes strto*'s input for `_text` into `_input`, which has room for it,
+ * and has strto* read all of it into `_value`.
+ */
 D_STATIC bool
 d_arg_internal_real_read_into(
     struct d_pack_text            _text,
@@ -1489,6 +1617,40 @@ d_arg_internal_read_real(
 }
 
 /*
+d_arg_internal_float_stored
+  The value written to a volatile float and read back. Under FLT_EVAL_METHOD
+2 an expression may carry more range and precision than its type, and C99
+has an assignment, an initialization or a cast drop the excess (6.3.1.8);
+GCC does, but clang for the x87 unit keeps an arithmetic result in its
+80-bit register through all three, so that a product past FLT_MAX reads as
+finite and 30 * 0.7f as 20.9999996 rather than 21. A volatile object is one
+every compiler must write and read again, and what it reads is a float.
+*/
+float
+d_arg_internal_float_stored(
+    float _value
+)
+{
+    volatile float stored = _value;
+
+    return stored;
+}
+
+/*
+d_arg_internal_double_stored
+  As d_arg_internal_float_stored, through a volatile double.
+*/
+double
+d_arg_internal_double_stored(
+    double _value
+)
+{
+    volatile double stored = _value;
+
+    return stored;
+}
+
+/*
 d_arg_internal_text_unsigned
   Digits from the right into a local array, then copied to the front.
 */
@@ -1550,11 +1712,16 @@ d_arg_internal_text_signed(
     return;
 }
 
-/*
-d_arg_internal_text_special
-  Spells NaN and the infinities by hand, since runtimes disagree
-("-nan(ind)" on Microsoft's); false for a finite value, left to the caller.
-*/
+/**
+ * @brief Spells NaN and the infinities.
+ *
+ * @param[out] _out   receives the spelling; untouched for a finite value.
+ * @param[in]  _wide  the value, widened.
+ * @return `true` for NaN or an infinity; `false` for a finite value.
+ *
+ * Spells NaN and the infinities by hand, since runtimes disagree
+ * ("-nan(ind)" on Microsoft's); false for a finite value, left to the caller.
+ */
 D_STATIC bool
 d_arg_internal_text_special(
     struct d_arg_internal_number_text* _out,
@@ -1582,13 +1749,22 @@ d_arg_internal_text_special(
     return false;
 }
 
-/*
-d_arg_internal_real_shortest
-  Prints with 1, 2, ... significant digits until the text reads back as the
-value, which `_last` digits -- the type's decimal digits -- always do; a
-positive `_precision` prints once, with that many. Returns the digits the
-search stopped at, or 0 when printing failed.
-*/
+/**
+ * @brief Prints a floating-point object with the fewest digits that read back
+ *        as it.
+ *
+ * @param[out] _out        receives the text.
+ * @param[in]  _real       the type, a D_ARG_INTERNAL_REAL_* value.
+ * @param[in]  _value      the object.
+ * @param[in]  _precision  digits to print with once; 0 or less for the search.
+ * @param[in]  _last       the most digits tried, which always read back.
+ * @return the digits the text was printed with; 0 when printing failed.
+ *
+ * Prints with 1, 2, ... significant digits until the text reads back as the
+ * value, which `_last` digits -- the type's decimal digits -- always do; a
+ * positive `_precision` prints once, with that many. Returns the digits the
+ * search stopped at, or 0 when printing failed.
+ */
 D_STATIC int
 d_arg_internal_real_shortest(
     struct d_arg_internal_number_text* _out,
@@ -1730,11 +1906,16 @@ d_arg_internal_number_of(
            : D_ARG_INTERNAL_NUMBER_UNSIGNED;
 }
 
-/*
-d_arg_internal_real_kind
-  The floating-point type of a descriptor's size, the narrowest first, since
-sizes may coincide.
-*/
+/**
+ * @brief Gives the floating-point type of a size.
+ *
+ * @param[in] _size  the size.
+ * @return D_ARG_INTERNAL_REAL_FLOAT, D_ARG_INTERNAL_REAL_DOUBLE, or
+ *         D_ARG_INTERNAL_REAL_LONG_DOUBLE, the narrowest first.
+ *
+ * The floating-point type of a descriptor's size, the narrowest first, since
+ * sizes may coincide.
+ */
 D_STATIC int
 d_arg_internal_real_kind(
     size_t _size
@@ -1963,12 +2144,20 @@ d_arg_internal_lexical_cast(
                          _context);
 }
 
-/*
-d_arg_internal_number_write_plain
-  An object of a type without a format function, written as the built-in
-formats write theirs: floating point to the digits that read back, anything
-else as it streams. Only an arithmetic type has such a form.
-*/
+/**
+ * @brief Writes an object of a type without a format function, as the built-in
+ *        formats write theirs.
+ *
+ * @param[in]     _type    the type.
+ * @param[in]     _object  the object.
+ * @param[in,out] _out     the buffer that gains the text.
+ * @return D_ARG_OK; D_ARG_ERROR_UNSUPPORTED for a type that is not arithmetic,
+ *         or a number the runtime cannot print; or the buffer's status.
+ *
+ * An object of a type without a format function, written as the built-in
+ * formats write theirs: floating point to the digits that read back, anything
+ * else as it streams. Only an arithmetic type has such a form.
+ */
 D_STATIC int
 d_arg_internal_number_write_plain(
     const struct d_arg_type* _type,

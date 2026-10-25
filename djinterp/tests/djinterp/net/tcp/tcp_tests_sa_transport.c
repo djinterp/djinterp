@@ -10,30 +10,87 @@
 * path:      /tests/djinterp/net/tcp/tcp_tests_sa_transport.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.18
 *******************************************************************************/
-// enable POSIX.1-2008 (fcntl, fopen's companions) under a strict C
-// compiler; a feature-test macro must precede every include, so it sits
-// ahead of the suite's header
-#ifndef _POSIX_C_SOURCE
-    #define _POSIX_C_SOURCE 200809L
-#endif  // _POSIX_C_SOURCE
-
 #include "./tcp_tests_sa.h"  // the suite
 // std
 #include <stdio.h>   // fopen, fclose
-#include <errno.h>   // EAGAIN, ECONNREFUSED, EPIPE
 #include <string.h>  // memset, strcmp, strlen
-// posix
-#include <fcntl.h>   // fcntl, F_GETFD, F_GETFL, F_SETFL, FD_CLOEXEC
-#include <unistd.h>  // close, dup
 
+
+/*
+d_tests_tcp_init_forgets
+  Whether the three inits overwrite records holding other values throughout:
+options come out as the defaults, and a connection and a listener closed,
+with nothing recorded.
+*/
+static bool
+d_tests_tcp_init_forgets(void)
+{
+    struct d_tcp_options    options    = { .connect_timeout_ms = 5,
+                                           .io_timeout_ms      = 7,
+                                           .listen_backlog     = 3,
+                                           .no_delay           = true,
+                                           .reuse_address      = false,
+                                           .reuse_port         = true };
+    struct d_tcp_connection connection = { .socket     = 987654,
+                                           .protocol   = D_NET_PROTOCOL_UDP,
+                                           .timeout_ms = 9 };
+    struct d_tcp_listener   listener   = { .socket        = 987654,
+                                           .wake_read     = 987655,
+                                           .wake_write    = 987656,
+                                           .protocol      =
+                                               D_NET_PROTOCOL_UNIX,
+                                           .io_timeout_ms = 9,
+                                           .no_delay      = true,
+                                           .owns_path     = true };
+    struct d_net_endpoint   endpoint   = { .port = 0u };
+
+    // somewhere recorded at every end
+    (void)d_tests_tcp_endpoint(&connection.remote,
+                               "192.0.2.1",
+                               80u);
+    (void)d_tests_tcp_endpoint(&connection.local,
+                               "192.0.2.2",
+                               81u);
+    (void)d_tests_tcp_endpoint(&listener.local,
+                               "192.0.2.3",
+                               82u);
+
+    d_tcp_options_init(&options);
+    d_tcp_connection_init(&connection);
+    d_tcp_listener_init(&listener);
+
+    return ( (options.connect_timeout_ms == 0)              &&
+             (options.io_timeout_ms == 0)                   &&
+             (options.listen_backlog == 128)                &&
+             (!options.no_delay)                            &&
+             (options.reuse_address)                        &&
+             (!options.reuse_port)                          &&
+             (connection.socket == D_TCP_SOCKET_INVALID)    &&
+             (connection.protocol == D_NET_PROTOCOL_TCP)    &&
+             (connection.timeout_ms == 0)                   &&
+             (!d_tcp_connection_remote_endpoint(&connection,
+                                                &endpoint)) &&
+             (!d_tcp_connection_local_endpoint(&connection,
+                                               &endpoint))  &&
+             (listener.socket == D_TCP_SOCKET_INVALID)      &&
+             (listener.wake_read == D_TCP_SOCKET_INVALID)   &&
+             (listener.wake_write == D_TCP_SOCKET_INVALID)  &&
+             (listener.protocol == D_NET_PROTOCOL_TCP)      &&
+             (listener.io_timeout_ms == 0)                  &&
+             (!listener.no_delay)                           &&
+             (!listener.owns_path)                          &&
+             (!d_tcp_listener_local_endpoint(&listener,
+                                             &endpoint)) );
+}
 
 /*
 d_tests_sa_tcp_options
   Tests the following:
   - d_tcp_options_init gives tcp.hpp's defaults, the backlog from cfg_tcp.h
   - a NULL argument is ignored
+  - each init overwrites whatever its record held
   - the BSD backend is built and available
 */
 bool
@@ -49,19 +106,24 @@ d_tests_sa_tcp_options(
     d_tcp_options_init(NULL);
 
     const bool defaults = ( (options.connect_timeout_ms == 0) &&
-                            (options.listen_backlog == 128) &&
-                            (!options.no_delay) &&
-                            (options.reuse_address) &&
+                            (options.io_timeout_ms == 0)      &&
+                            (options.listen_backlog == 128)   &&
+                            (!options.no_delay)               &&
+                            (options.reuse_address)           &&
                             (!options.reuse_port) );
 
-    result = d_assert_standalone(defaults,
-                                 TEST,
-                                 "tcp.hpp's defaults; NULL is ignored",
-                                 _counter) && result;
-    result = d_assert_standalone(d_tcp_available(),
-                                 TEST,
-                                 "the BSD backend is available",
-                                 _counter) && result;
+    result = d_tests_net_assert(defaults,
+                                TEST,
+                                "tcp.hpp's defaults; NULL is ignored",
+                                _counter) && result;
+    result = d_tests_net_assert(d_tests_tcp_init_forgets(),
+                                TEST,
+                                "inits overwrite whatever a record held",
+                                _counter) && result;
+    result = d_tests_net_assert(d_tcp_available(),
+                                TEST,
+                                "the BSD backend is available",
+                                _counter) && result;
 
     return result;
 }
@@ -95,24 +157,24 @@ d_tests_sa_tcp_closed(
     const struct d_net_io_result put = d_tcp_connection_write(&connection,
                                                               &byte,
                                                               1u);
-    const bool closed = ( (!d_tcp_connection_is_open(&connection)) &&
+    const bool closed = ( (!d_tcp_connection_is_open(&connection))       &&
                           (d_tcp_connection_native(&connection) ==
-                           D_TCP_SOCKET_INVALID) &&
-                          (got.count == 0u) &&
-                          (got.error == D_NET_ERROR_CLOSED) &&
-                          (put.error == D_NET_ERROR_CLOSED) &&
+                           D_TCP_SOCKET_INVALID)                         &&
+                          (got.count == 0u)                              &&
+                          (got.error == D_NET_ERROR_CLOSED)              &&
+                          (put.error == D_NET_ERROR_CLOSED)              &&
                           (d_tcp_connection_shutdown(&connection,
                                                      D_NET_SHUTDOWN_BOTH) ==
-                           D_NET_ERROR_CLOSED) &&
+                           D_NET_ERROR_CLOSED)                           &&
                           (!d_tcp_connection_remote_endpoint(&connection,
                                                              &endpoint)) &&
                           (!d_tcp_connection_local_endpoint(&connection,
-                                                            &endpoint)) &&
+                                                            &endpoint))  &&
                           (d_tcp_connection_release(&connection) ==
                            D_TCP_SOCKET_INVALID) );
-    const bool idle   = ( (!d_tcp_listener_is_open(&listener)) &&
+    const bool idle   = ( (!d_tcp_listener_is_open(&listener))        &&
                           (d_tcp_listener_native(&listener) ==
-                           D_TCP_SOCKET_INVALID) &&
+                           D_TCP_SOCKET_INVALID)                      &&
                           (!d_tcp_listener_local_endpoint(&listener,
                                                           &endpoint)) &&
                           (d_tcp_accept(&listener,
@@ -123,14 +185,14 @@ d_tests_sa_tcp_closed(
     d_tcp_connection_close(&connection);
     d_tcp_listener_close(&listener);
     d_tcp_listener_close(&listener);
-    result = d_assert_standalone(closed,
-                                 TEST,
-                                 "a fresh connection is closed throughout",
-                                 _counter) && result;
-    result = d_assert_standalone(idle,
-                                 TEST,
-                                 "a fresh listener is closed; accept says so",
-                                 _counter) && result;
+    result = d_tests_net_assert(closed,
+                                TEST,
+                                "a fresh connection is closed throughout",
+                                _counter) && result;
+    result = d_tests_net_assert(idle,
+                                TEST,
+                                "a fresh listener is closed; accept says so",
+                                _counter) && result;
 
     return result;
 }
@@ -154,11 +216,11 @@ d_tests_tcp_refuses_udp(
                             NULL) == D_NET_ERROR_INVALID_ARGUMENT) &&
              (d_tcp_listen(_listener,
                            _endpoint,
-                           NULL) == D_NET_ERROR_INVALID_ARGUMENT) &&
+                           NULL) == D_NET_ERROR_INVALID_ARGUMENT)  &&
              (d_tcp_connection_adopt(_connection,
                                      D_TCP_SOCKET_INVALID,
                                      D_NET_PROTOCOL_TCP) ==
-              D_NET_ERROR_INVALID_ARGUMENT) &&
+              D_NET_ERROR_INVALID_ARGUMENT)                        &&
              (!d_tcp_connection_is_open(_connection)) );
 }
 
@@ -219,14 +281,14 @@ d_tests_sa_tcp_refusals(
                                              &listener,
                                              &endpoint);
 
-    result = d_assert_standalone((prepared) && (nulls),
-                                 TEST,
-                                 "NULL arguments are refused",
-                                 _counter) && result;
-    result = d_assert_standalone(udp,
-                                 TEST,
-                                 "UDP, and adopting no socket, are refused",
-                                 _counter) && result;
+    result = d_tests_net_assert((prepared) && (nulls),
+                                TEST,
+                                "NULL arguments are refused",
+                                _counter) && result;
+    result = d_tests_net_assert(udp,
+                                TEST,
+                                "UDP, and adopting no socket, are refused",
+                                _counter) && result;
 
     return result;
 }
@@ -253,41 +315,41 @@ d_tests_sa_tcp_loopback(
 
     const bool opened = d_tests_tcp_pair_open(&pair,
                                               NULL);
-    const bool agreed = ( (opened) &&
+    const bool agreed = ( (opened)                                    &&
                           (d_tcp_listener_local_endpoint(&pair.listener,
-                                                         &bound)) &&
+                                                         &bound))     &&
                           (strcmp(bound.host,
-                                  "127.0.0.1") == 0) &&
-                          (bound.port != 0u) &&
+                                  "127.0.0.1") == 0)                  &&
+                          (bound.port != 0u)                          &&
                           (d_tcp_connection_remote_endpoint(&pair.client,
                                                             &remote)) &&
                           (d_net_endpoint_equal(&remote,
-                                                &bound)) &&
+                                                &bound))              &&
                           (d_tcp_connection_local_endpoint(&pair.client,
-                                                           &local)) &&
+                                                           &local))   &&
                           (d_tcp_connection_remote_endpoint(&pair.server,
-                                                            &peer)) &&
+                                                            &peer))   &&
                           (d_net_endpoint_equal(&local,
                                                 &peer)) );
-    const bool crossed = ( (opened) &&
+    const bool crossed = ( (opened)                                 &&
                            (d_tcp_connection_is_open(&pair.client)) &&
                            (d_tcp_connection_is_open(&pair.server)) &&
                            (d_tests_tcp_exchange(&pair.client,
                                                  &pair.server,
-                                                 "hello, server")) &&
+                                                 "hello, server"))  &&
                            (d_tests_tcp_exchange(&pair.server,
                                                  &pair.client,
                                                  "hello, client")) );
 
     d_tests_tcp_pair_close(&pair);
-    result = d_assert_standalone(agreed,
-                                 TEST,
-                                 "endpoints are recorded and agree",
-                                 _counter) && result;
-    result = d_assert_standalone(crossed,
-                                 TEST,
-                                 "bytes cross in both directions",
-                                 _counter) && result;
+    result = d_tests_net_assert(agreed,
+                                TEST,
+                                "endpoints are recorded and agree",
+                                _counter) && result;
+    result = d_tests_net_assert(crossed,
+                                TEST,
+                                "bytes cross in both directions",
+                                _counter) && result;
 
     return result;
 }
@@ -295,7 +357,7 @@ d_tests_sa_tcp_loopback(
 /*
 d_tests_sa_tcp_half_close
   Tests the following:
-  - after a write shutdown the peer reads the end of the stream as (0, NONE)
+  - after a write shutdown the peer reads the end of the stream as (0, OK)
   - the other direction still carries bytes
   - writing after one's own shutdown reports a reset, not SIGPIPE
 */
@@ -313,7 +375,7 @@ d_tests_sa_tcp_half_close(
                                                  NULL)) &&
                           (d_tcp_connection_shutdown(&pair.client,
                                                      D_NET_SHUTDOWN_WRITE) ==
-                           D_NET_ERROR_NONE) );
+                           D_NET_OK) );
 
     const struct d_net_io_result end = d_tcp_connection_read(&pair.server,
                                                              &byte,
@@ -322,23 +384,23 @@ d_tests_sa_tcp_half_close(
                                                               &byte,
                                                               1u);
 
-    result = d_assert_standalone( (opened) &&
-                                  (end.count == 0u) &&
-                                  (end.error == D_NET_ERROR_NONE),
+    result = d_tests_net_assert( (opened)          &&
+                                 (end.count == 0u) &&
+                                 (end.error == D_NET_OK),
                                  TEST,
                                  "the peer reads the end of the stream",
                                  _counter) && result;
-    result = d_assert_standalone( (opened) &&
-                                  (d_tests_tcp_exchange(&pair.server,
-                                                        &pair.client,
-                                                        "still open")),
+    result = d_tests_net_assert( (opened) &&
+                                 (d_tests_tcp_exchange(&pair.server,
+                                                       &pair.client,
+                                                       "still open")),
                                  TEST,
                                  "the other direction still carries bytes",
                                  _counter) && result;
-    result = d_assert_standalone(put.error == D_NET_ERROR_CONNECTION_RESET,
-                                 TEST,
-                                 "a write after shutdown is a reset",
-                                 _counter) && result;
+    result = d_tests_net_assert(put.error == D_NET_ERROR_CONNECTION_RESET,
+                                TEST,
+                                "a write after shutdown is a reset",
+                                _counter) && result;
     d_tests_tcp_pair_close(&pair);
 
     return result;
@@ -365,31 +427,31 @@ d_tests_sa_tcp_net_view(
 
     const bool opened = d_tests_tcp_pair_open(&pair,
                                               NULL);
-    const bool agrees = ( (opened) &&
+    const bool agrees = ( (opened)                                      &&
                           (d_net_connection_is_open(&pair.client.base)) &&
                           (d_tcp_connection_remote_endpoint(&pair.client,
-                                                            &direct)) &&
+                                                            &direct))   &&
                           (d_net_connection_remote_endpoint(&pair.client.base,
-                                                            &viewed)) &&
+                                                            &viewed))   &&
                           (d_net_endpoint_equal(&direct,
-                                                &viewed)) &&
+                                                &viewed))               &&
                           (d_net_connection_shutdown(&pair.client.base,
                                                      D_NET_SHUTDOWN_WRITE) ==
-                           D_NET_ERROR_NONE) &&
+                           D_NET_OK)                                    &&
                           (d_net_connection_read(&pair.server.base,
                                                  &byte,
                                                  1u).count == 0u) );
     const d_tcp_socket native = d_tcp_connection_native(&pair.client);
 
     d_net_connection_close(&pair.client.base);
-    result = d_assert_standalone(agrees,
-                                 TEST,
-                                 "the view dispatches to the socket",
-                                 _counter) && result;
-    result = d_assert_standalone( (opened) &&
-                                  (!d_net_connection_is_open(
-                                        &pair.client.base)) &&
-                                  (d_tests_tcp_descriptor_closed(native)),
+    result = d_tests_net_assert(agrees,
+                                TEST,
+                                "the view dispatches to the socket",
+                                _counter) && result;
+    result = d_tests_net_assert( (opened)                  &&
+                                 (!d_net_connection_is_open(
+                                       &pair.client.base)) &&
+                                 (d_tests_tcp_descriptor_closed(native)),
                                  TEST,
                                  "closing through the view frees the socket",
                                  _counter) && result;
@@ -423,36 +485,36 @@ d_tests_sa_tcp_refused(
     // a port just released has no listener
     const bool freed = ( (d_tests_tcp_endpoint(&where,
                                                "127.0.0.1",
-                                               0u)) &&
+                                               0u))       &&
                          (d_tcp_listen(&listener,
                                        &where,
-                                       NULL) == D_NET_ERROR_NONE) &&
+                                       NULL) == D_NET_OK) &&
                          (d_tcp_listener_local_endpoint(&listener,
                                                         &where)) );
 
     d_tcp_listener_close(&listener);
 
-    const bool blocking = ( (freed) &&
+    const bool blocking = ( (freed)                          &&
                             (d_tcp_connect(&connection,
                                            &where,
                                            NULL) ==
                              D_NET_ERROR_CONNECTION_REFUSED) &&
                             (!d_tcp_connection_is_open(&connection)) );
-    const bool bounded  = ( (freed) &&
+    const bool bounded  = ( (freed)                          &&
                             (d_tcp_connect(&connection,
                                            &where,
                                            &timed) ==
                              D_NET_ERROR_CONNECTION_REFUSED) &&
                             (!d_tcp_connection_is_open(&connection)) );
 
-    result = d_assert_standalone(blocking,
-                                 TEST,
-                                 "a blocking connect is refused",
-                                 _counter) && result;
-    result = d_assert_standalone(bounded,
-                                 TEST,
-                                 "a timed connect is refused too",
-                                 _counter) && result;
+    result = d_tests_net_assert(blocking,
+                                TEST,
+                                "a blocking connect is refused",
+                                _counter) && result;
+    result = d_tests_net_assert(bounded,
+                                TEST,
+                                "a timed connect is refused too",
+                                _counter) && result;
 
     return result;
 }
@@ -483,46 +545,46 @@ d_tests_sa_tcp_names(
 
     const bool bound = ( (d_tests_tcp_endpoint(&anywhere,
                                                "",
-                                               0u)) &&
+                                               0u))       &&
                          (d_tcp_listen(&pair.listener,
                                        &anywhere,
-                                       NULL) == D_NET_ERROR_NONE) &&
+                                       NULL) == D_NET_OK) &&
                          (d_tcp_listener_local_endpoint(&pair.listener,
                                                         &anywhere)) );
-    const bool by_name = ( (bound) &&
+    const bool by_name = ( (bound)                               &&
                            (d_tests_tcp_endpoint(&named,
                                                  "localhost",
                                                  anywhere.port)) &&
                            (d_tcp_connect(&pair.client,
                                           &named,
-                                          NULL) == D_NET_ERROR_NONE) &&
+                                          NULL) == D_NET_OK)     &&
                            (d_tcp_accept(&pair.listener,
                                          &pair.server) ==
-                            D_NET_ERROR_NONE) );
-    const bool by_empty = ( (bound) &&
+                            D_NET_OK) );
+    const bool by_empty = ( (bound)                               &&
                             (d_tests_tcp_endpoint(&named,
                                                   "",
                                                   anywhere.port)) &&
                             (d_tcp_connect(&pair.client,
                                            &named,
-                                           NULL) == D_NET_ERROR_NONE) );
+                                           NULL) == D_NET_OK) );
     const bool unknown = ( (d_tests_tcp_endpoint(&named,
                                                  UNKNOWN,
-                                                 80u)) &&
+                                                 80u))       &&
                            (d_tcp_connect(&pair.server,
                                           &named,
-                                          NULL) != D_NET_ERROR_NONE) &&
+                                          NULL) != D_NET_OK) &&
                            (!d_tcp_connection_is_open(&pair.server)) );
 
     d_tests_tcp_pair_close(&pair);
-    result = d_assert_standalone((by_name) && (by_empty),
-                                 TEST,
-                                 "localhost and the empty host connect",
-                                 _counter) && result;
-    result = d_assert_standalone(unknown,
-                                 TEST,
-                                 "an unresolvable name fails cleanly",
-                                 _counter) && result;
+    result = d_tests_net_assert((by_name) && (by_empty),
+                                TEST,
+                                "localhost and the empty host connect",
+                                _counter) && result;
+    result = d_tests_net_assert(unknown,
+                                TEST,
+                                "an unresolvable name fails cleanly",
+                                _counter) && result;
 
     return result;
 }
@@ -550,24 +612,24 @@ d_tests_sa_tcp_adopt(
     const bool         opened   = d_tests_tcp_pair_open(&pair,
                                                         NULL);
     const d_tcp_socket released = d_tcp_connection_release(&pair.client);
-    const bool         handed   = ( (opened) &&
+    const bool         handed   = ( (opened)                           &&
                                     (released != D_TCP_SOCKET_INVALID) &&
                                     (!d_tcp_connection_is_open(
-                                          &pair.client)) &&
+                                          &pair.client))               &&
                                     (!d_tests_tcp_descriptor_closed(
                                           released)) );
-    const bool         working  = ( (handed) &&
+    const bool         working  = ( (handed)                       &&
                                     (d_tcp_connection_adopt(
                                          &adopted,
                                          released,
                                          D_NET_PROTOCOL_TCP) ==
-                                     D_NET_ERROR_NONE) &&
+                                     D_NET_OK)                     &&
                                     (d_tcp_connection_remote_endpoint(
                                          &adopted,
-                                         &remote)) &&
+                                         &remote))                 &&
                                     (d_tcp_listener_local_endpoint(
                                          &pair.listener,
-                                         &bound)) &&
+                                         &bound))                  &&
                                     (d_net_endpoint_equal(&remote,
                                                           &bound)) &&
                                     (d_tests_tcp_exchange(&adopted,
@@ -575,16 +637,16 @@ d_tests_sa_tcp_adopt(
                                                           "adopted")) );
     const d_tcp_socket refused  = d_tcp_connection_release(&pair.server);
 
-    result = d_assert_standalone(working,
-                                 TEST,
-                                 "a released socket is adopted and works",
-                                 _counter) && result;
-    result = d_assert_standalone( (d_tcp_connection_adopt(
-                                       &pair.server,
-                                       refused,
-                                       (enum d_net_protocol)7) ==
-                                   D_NET_ERROR_INVALID_ARGUMENT) &&
-                                  (d_tests_tcp_descriptor_closed(refused)),
+    result = d_tests_net_assert(working,
+                                TEST,
+                                "a released socket is adopted and works",
+                                _counter) && result;
+    result = d_tests_net_assert( (d_tcp_connection_adopt(
+                                      &pair.server,
+                                      refused,
+                                      (enum d_net_protocol)7) ==
+                                  D_NET_ERROR_INVALID_ARGUMENT) &&
+                                 (d_tests_tcp_descriptor_closed(refused)),
                                  TEST,
                                  "a refused adoption closes the socket",
                                  _counter) && result;
@@ -613,22 +675,22 @@ d_tests_sa_tcp_adopt_udp(
 
     const bool opened = d_tests_tcp_pair_open(&pair,
                                               NULL);
-    const bool marked = ( (opened) &&
+    const bool marked = ( (opened)                                    &&
                           (d_tcp_connection_adopt(
                                &adopted,
                                d_tcp_connection_release(&pair.client),
-                               D_NET_PROTOCOL_UDP) == D_NET_ERROR_NONE) &&
-                          (d_tcp_connection_is_open(&adopted)) &&
+                               D_NET_PROTOCOL_UDP) == D_NET_OK)       &&
+                          (d_tcp_connection_is_open(&adopted))        &&
                           (d_tcp_connection_remote_endpoint(&adopted,
                                                             &remote)) &&
                           (remote.protocol == D_NET_PROTOCOL_UDP) );
 
     d_tcp_connection_close(&adopted);
     d_tests_tcp_pair_close(&pair);
-    result = d_assert_standalone(marked,
-                                 TEST,
-                                 "an adopted UDP socket's endpoints say UDP",
-                                 _counter) && result;
+    result = d_tests_net_assert(marked,
+                                TEST,
+                                "an adopted UDP socket's endpoints say UDP",
+                                _counter) && result;
 
     return result;
 }
@@ -638,6 +700,7 @@ d_tests_sa_tcp_would_block
   Tests the following:
   - a non-blocking socket with nothing to read reports WOULD_BLOCK, the
     mapping reactor.hpp relies on
+  - under a limit as well: the socket's own mode decides, not the limit
   - once a byte arrives, the same read returns it
 */
 bool
@@ -652,14 +715,18 @@ d_tests_sa_tcp_would_block(
 
     const bool opened = d_tests_tcp_pair_open(&pair,
                                               NULL);
-    const int  server = (int)d_tcp_connection_native(&pair.server);
-    const bool set    = ( (opened) &&
-                          (fcntl(server,
-                                 F_SETFL,
-                                 fcntl(server,
-                                       F_GETFL) | O_NONBLOCK) == 0) );
+    const bool set = ( (opened) &&
+                       (d_tests_tcp_nonblocking(
+                            d_tcp_connection_native(&pair.server))) );
 
     const struct d_net_io_result empty = d_tcp_connection_read(&pair.server,
+                                                               &byte,
+                                                               1u);
+    const bool                   limit = ( (set) &&
+                                           (d_tcp_connection_set_timeout(
+                                                &pair.server,
+                                                100) == D_NET_OK) );
+    const struct d_net_io_result still = d_tcp_connection_read(&pair.server,
                                                                &byte,
                                                                1u);
     const struct d_net_io_result sent  = d_tcp_connection_write(&pair.client,
@@ -672,15 +739,21 @@ d_tests_sa_tcp_would_block(
                                                               &byte,
                                                               1u);
 
-    result = d_assert_standalone( (set) &&
-                                  (empty.count == 0u) &&
-                                  (empty.error == D_NET_ERROR_WOULD_BLOCK),
+    result = d_tests_net_assert( (set)               &&
+                                 (empty.count == 0u) &&
+                                 (empty.error == D_NET_ERROR_WOULD_BLOCK),
                                  TEST,
                                  "an empty non-blocking read would block",
                                  _counter) && result;
-    result = d_assert_standalone( (sent.count == 1u) &&
-                                  (full.count == 1u) &&
-                                  (byte == 'y'),
+    result = d_tests_net_assert( (limit)             &&
+                                 (still.count == 0u) &&
+                                 (still.error == D_NET_ERROR_WOULD_BLOCK),
+                                 TEST,
+                                 "under a limit, the socket's mode decides",
+                                 _counter) && result;
+    result = d_tests_net_assert( (sent.count == 1u) &&
+                                 (full.count == 1u) &&
+                                 (byte == 'y'),
                                  TEST,
                                  "an arrived byte is then read",
                                  _counter) && result;
@@ -690,10 +763,64 @@ d_tests_sa_tcp_would_block(
 }
 
 /*
+d_tests_tcp_nagle
+  Whether both ends of a pair opened with `_no_delay` have Nagle's
+algorithm off exactly when it was asked: the client's by connect, the
+server's by accept.
+*/
+static bool
+d_tests_tcp_nagle(
+    bool _no_delay
+)
+{
+    struct d_tests_tcp_pair pair    = { .listener.socket = 0 };
+    struct d_tcp_options    options = { .connect_timeout_ms = 0 };
+    bool                    client  = !_no_delay;
+    bool                    server  = !_no_delay;
+
+    d_tcp_options_init(&options);
+    options.no_delay = _no_delay;
+
+    const bool asked =
+        ( (d_tests_tcp_pair_open(&pair,
+                                 &options))                            &&
+          (d_tests_tcp_no_delay(d_tcp_connection_native(&pair.client),
+                                &client))                              &&
+          (d_tests_tcp_no_delay(d_tcp_connection_native(&pair.server),
+                                &server)) );
+
+    d_tests_tcp_pair_close(&pair);
+
+    return ( (asked)               &&
+             (client == _no_delay) &&
+             (server == _no_delay) );
+}
+
+/*
+d_tests_sa_tcp_nagle
+  Tests the following:
+  - with no_delay, both ends of a connection have Nagle's algorithm off,
+    the accepted one included; without it, both have it on
+*/
+bool
+d_tests_sa_tcp_nagle(
+    struct d_test_counter* _counter
+)
+{
+    return d_tests_net_assert( (d_tests_tcp_nagle(true)) &&
+                               (d_tests_tcp_nagle(false)),
+                               "no_delay",
+                               "Nagle is off at both ends exactly when asked",
+                               _counter);
+}
+
+/*
 d_tests_sa_tcp_native
   Tests the following:
-  - d_tcp_error_from_native maps errno values as the transport does
-  - d_tcp_socket_cloexec marks a descriptor dup() left inheritable
+  - d_tcp_error_from_native maps the platform's native codes as the
+    transport does
+  - d_tcp_socket_cloexec marks an inheritable socket not to be inherited:
+    a BSD dup(), or a Winsock socket marked inheritable
   - neither preparation minds an invalid socket
 */
 bool
@@ -705,42 +832,43 @@ d_tests_sa_tcp_native(
     struct d_tests_tcp_pair pair   = { .client = { .socket = -1 } };
     bool                    result = true;
 
-    const bool mapped = ( (d_tcp_error_from_native(0) ==
-                           D_NET_ERROR_NONE) &&
-                          (d_tcp_error_from_native(EAGAIN) ==
-                           D_NET_ERROR_WOULD_BLOCK) &&
-                          (d_tcp_error_from_native(ECONNREFUSED) ==
-                           D_NET_ERROR_CONNECTION_REFUSED) &&
-                          (d_tcp_error_from_native(EPIPE) ==
-                           D_NET_ERROR_CONNECTION_RESET) );
-    const bool opened = d_tests_tcp_pair_open(&pair,
-                                              NULL);
-    const int  copy   = (opened) ? dup((int)d_tcp_connection_native(
-                                               &pair.client))
-                                 : -1;
-    const bool plain  = ( (copy >= 0) &&
-                          ((fcntl(copy,
-                                  F_GETFD) & FD_CLOEXEC) == 0) );
+    const struct d_tests_tcp_codes codes  = d_tests_tcp_native_codes();
+    const bool                     mapped =
+        ( (d_tcp_error_from_native(0) ==
+           D_NET_OK)                                    &&
+          (d_tcp_error_from_native(codes.would_block) ==
+           D_NET_ERROR_WOULD_BLOCK)                     &&
+          (d_tcp_error_from_native(codes.refused) ==
+           D_NET_ERROR_CONNECTION_REFUSED)              &&
+          (d_tcp_error_from_native(codes.reset) ==
+           D_NET_ERROR_CONNECTION_RESET) );
+    const bool         opened = d_tests_tcp_pair_open(&pair,
+                                                      NULL);
+    const d_tcp_socket copy   =
+        (opened)
+            ? d_tests_tcp_inheritable(d_tcp_connection_native(&pair.client))
+            : D_TCP_SOCKET_INVALID;
+    const bool         plain  = ( (copy != D_TCP_SOCKET_INVALID) &&
+                                  (d_tests_tcp_inherited(copy)) );
 
-    d_tcp_socket_cloexec((d_tcp_socket)copy);
-    d_tcp_socket_no_sigpipe((d_tcp_socket)copy);
+    d_tcp_socket_cloexec(copy);
+    d_tcp_socket_no_sigpipe(copy);
     d_tcp_socket_cloexec(D_TCP_SOCKET_INVALID);
     d_tcp_socket_no_sigpipe(D_TCP_SOCKET_INVALID);
 
     const bool marked = ( (plain) &&
-                          ((fcntl(copy,
-                                  F_GETFD) & FD_CLOEXEC) != 0) );
+                          (!d_tests_tcp_inherited(copy)) );
 
-    (void)close(copy);
+    d_tests_tcp_drop(copy);
     d_tests_tcp_pair_close(&pair);
-    result = d_assert_standalone(mapped,
-                                 TEST,
-                                 "native codes map as the transport's do",
-                                 _counter) && result;
-    result = d_assert_standalone(marked,
-                                 TEST,
-                                 "a dup()ed socket is marked close-on-exec",
-                                 _counter) && result;
+    result = d_tests_net_assert(mapped,
+                                TEST,
+                                "native codes map as the transport's do",
+                                _counter) && result;
+    result = d_tests_net_assert(marked,
+                                TEST,
+                                "an inheritable socket is marked close-on-exec",
+                                _counter) && result;
 
     return result;
 }
@@ -772,13 +900,13 @@ d_tests_sa_tcp_listener_errors(
 
     const bool held = ( (d_tests_tcp_endpoint(&fresh,
                                               "127.0.0.1",
-                                              0u)) &&
+                                              0u))       &&
                         (d_tcp_listen(&first,
                                       &fresh,
-                                      NULL) == D_NET_ERROR_NONE) &&
+                                      NULL) == D_NET_OK) &&
                         (d_tcp_listener_local_endpoint(&first,
                                                        &where)) );
-    const bool taken = ( (held) &&
+    const bool taken = ( (held)                       &&
                          (d_tcp_listen(&second,
                                        &where,
                                        &strict) ==
@@ -790,26 +918,74 @@ d_tests_sa_tcp_listener_errors(
                          (!d_tcp_listener_is_open(&second)) );
 
     // rebinding the first frees its old port for the second
-    const bool rebound = ( (held) &&
+    const bool rebound = ( (held)                           &&
                            (d_tcp_listen(&first,
                                          &fresh,
-                                         NULL) == D_NET_ERROR_NONE) &&
+                                         NULL) == D_NET_OK) &&
                            (d_tcp_listen(&second,
                                          &where,
-                                         NULL) == D_NET_ERROR_NONE) );
+                                         NULL) == D_NET_OK) );
 
     d_tcp_listener_close(&first);
     d_tcp_listener_close(&second);
-    result = d_assert_standalone(taken,
-                                 TEST,
-                                 "a held port is in use, reuse or not",
-                                 _counter) && result;
-    result = d_assert_standalone(rebound,
-                                 TEST,
-                                 "listening again releases the old binding",
-                                 _counter) && result;
+    result = d_tests_net_assert(taken,
+                                TEST,
+                                "a held port is in use, reuse or not",
+                                _counter) && result;
+    result = d_tests_net_assert(rebound,
+                                TEST,
+                                "listening again releases the old binding",
+                                _counter) && result;
 
     return result;
+}
+
+/*
+d_tests_tcp_unix_refused
+  Without unix-domain support: listen and connect both refuse a unix-domain
+endpoint as ADDRESS_INVALID, as tcp.h says, leaving no path behind.
+*/
+static bool
+d_tests_tcp_unix_refused(
+    const char*            _test,
+    struct d_test_counter* _counter
+)
+{
+    struct d_tcp_listener   listener   = { .socket = D_TCP_SOCKET_INVALID };
+    struct d_tcp_connection connection = { .socket = D_TCP_SOCKET_INVALID };
+    struct d_net_endpoint   where      = { .port = 0u };
+    char                    path[256]  = { 0 };
+
+    d_tcp_listener_init(&listener);
+    d_tcp_connection_init(&connection);
+
+    const bool               made  = d_tests_tcp_unix_path(path,
+                                                           sizeof(path),
+                                                           "refused");
+    const struct d_pack_text text  = { path,
+                                       (made) ? strlen(path) : 0u };
+    const bool               named = ( (made) &&
+                                       (d_net_endpoint_set_local(&where,
+                                                                 text) ==
+                                        D_NET_OK) );
+    const bool refused = ( (named)                                       &&
+                           (d_tcp_listen(&listener,
+                                         &where,
+                                         NULL) ==
+                            D_NET_ERROR_ADDRESS_INVALID)                 &&
+                           (d_tcp_connect(&connection,
+                                          &where,
+                                          NULL) ==
+                            D_NET_ERROR_ADDRESS_INVALID)                 &&
+                           (!d_tests_tcp_path_exists(path)) );
+
+    d_tcp_connection_close(&connection);
+    d_tcp_listener_close(&listener);
+
+    return d_tests_net_assert(refused,
+                              _test,
+                              "without unix-domain support, refused",
+                              _counter);
 }
 
 /*
@@ -832,6 +1008,13 @@ d_tests_sa_tcp_unix(
     struct d_net_endpoint   peer   = { .port = 0u };
     bool                    result = true;
 
+    // without unix-domain support, both ends refuse such an endpoint
+    if (!D_ENV_TCP_HAS_UNIX)
+    {
+        return d_tests_tcp_unix_refused(TEST,
+                                        _counter);
+    }
+
     // this test's own path
     char path[128] = { 0 };
 
@@ -848,38 +1031,38 @@ d_tests_sa_tcp_unix(
 
     const bool opened = ( (d_net_endpoint_set_local(&where,
                                                     text) ==
-                           D_NET_ERROR_NONE) &&
+                           D_NET_OK)                        &&
                           (d_tcp_listen(&pair.listener,
                                         &where,
-                                        NULL) == D_NET_ERROR_NONE) &&
-                          (d_tests_tcp_path_exists(path)) &&
+                                        NULL) == D_NET_OK)  &&
+                          (d_tests_tcp_path_exists(path))   &&
                           (d_tcp_connect(&pair.client,
                                          &where,
-                                         NULL) == D_NET_ERROR_NONE) &&
+                                         NULL) == D_NET_OK) &&
                           (d_tcp_accept(&pair.listener,
                                         &pair.server) ==
-                           D_NET_ERROR_NONE) );
-    const bool named  = ( (opened) &&
+                           D_NET_OK) );
+    const bool named  = ( (opened)                                  &&
                           (d_tcp_connection_remote_endpoint(&pair.client,
                                                             &peer)) &&
                           (d_net_endpoint_equal(&peer,
-                                                &where)) &&
+                                                &where))            &&
                           (!d_tcp_connection_remote_endpoint(&pair.server,
                                                              &peer)) );
 
-    result = d_assert_standalone( (opened) &&
-                                  (d_tests_tcp_exchange(&pair.client,
-                                                        &pair.server,
-                                                        "by path")) &&
-                                  (d_tests_tcp_exchange(&pair.server,
-                                                        &pair.client,
-                                                        "and back")),
+    result = d_tests_net_assert( (opened)                          &&
+                                 (d_tests_tcp_exchange(&pair.client,
+                                                       &pair.server,
+                                                       "by path")) &&
+                                 (d_tests_tcp_exchange(&pair.server,
+                                                       &pair.client,
+                                                       "and back")),
                                  TEST,
                                  "bytes cross a unix-domain connection",
                                  _counter) && result;
     d_tests_tcp_pair_close(&pair);
-    result = d_assert_standalone( (named) &&
-                                  (!d_tests_tcp_path_exists(path)),
+    result = d_tests_net_assert( (named) &&
+                                 (!d_tests_tcp_path_exists(path)),
                                  TEST,
                                  "endpoints recorded; the path is removed",
                                  _counter) && result;
@@ -926,7 +1109,7 @@ d_tests_tcp_refuses_path(
     struct d_net_endpoint    where = { .port = 0u };
 
     return ( (d_net_endpoint_set_local(&where,
-                                       text) == D_NET_ERROR_NONE) &&
+                                       text) == D_NET_OK)        &&
              (d_tcp_listen(_listener,
                            &where,
                            NULL) == D_NET_ERROR_ADDRESS_INVALID) &&
@@ -953,6 +1136,13 @@ d_tests_sa_tcp_unix_paths(
     struct d_net_endpoint   where      = { .port = 0u };
     bool                    result     = true;
 
+    // without unix-domain support, both ends refuse such an endpoint
+    if (!D_ENV_TCP_HAS_UNIX)
+    {
+        return d_tests_tcp_unix_refused(TEST,
+                                        _counter);
+    }
+
     // this test's own path, and one too long for any sun_path
     char path[128] = { 0 };
     char long_path[200] = { 0 };
@@ -972,29 +1162,29 @@ d_tests_sa_tcp_unix_paths(
     const bool replaced = ( (d_tests_tcp_make_stale(path)) &&
                             (d_net_endpoint_set_local(&where,
                                                       text) ==
-                             D_NET_ERROR_NONE) &&
+                             D_NET_OK)                     &&
                             (d_tcp_listen(&listener,
                                           &where,
-                                          NULL) == D_NET_ERROR_NONE) );
+                                          NULL) == D_NET_OK) );
 
     d_tcp_listener_close(&listener);
 
     const bool missing = ( (d_tcp_connect(&connection,
                                           &where,
-                                          NULL) != D_NET_ERROR_NONE) &&
+                                          NULL) != D_NET_OK) &&
                            (!d_tcp_connection_is_open(&connection)) );
     const bool refused = d_tests_tcp_refuses_path(&listener,
                                                   &connection,
                                                   long_path);
 
-    result = d_assert_standalone((replaced) && (missing),
-                                 TEST,
-                                 "a stale file is replaced; absence fails",
-                                 _counter) && result;
-    result = d_assert_standalone(refused,
-                                 TEST,
-                                 "an overlong path is refused",
-                                 _counter) && result;
+    result = d_tests_net_assert((replaced) && (missing),
+                                TEST,
+                                "a stale file is replaced; absence fails",
+                                _counter) && result;
+    result = d_tests_net_assert(refused,
+                                TEST,
+                                "an overlong path is refused",
+                                _counter) && result;
 
     return result;
 }

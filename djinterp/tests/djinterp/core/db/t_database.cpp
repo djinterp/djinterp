@@ -4,7 +4,8 @@
 *   core/db's vocabulary and utilities, database.hpp's, which every vendor
 * shares and no server is needed for: the exceptions and the refusals, the
 * configuration's defaults, connection strings in each form, read and
-* written, quoting and escaping, values as text, and names. The vendors'
+* written, quoting and escaping, values as text, names, and the connection
+* pool over stand-in connections. The vendors'
 * harnesses (t_sqlite_core.cpp, t_mariadb_core.cpp, t_postgres_core.cpp)
 * test the connections.
 *   Below C++17 core/db compiles to nothing, and so does this test.
@@ -17,7 +18,7 @@
 * path:      /tests/djinterp/core/db/t_database.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 // djinterp
 #include "../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -30,8 +31,10 @@
 #include <chrono>     // std::chrono::system_clock, milliseconds, seconds
 #include <cmath>      // std::isnan, std::isinf
 #include <limits>     // std::numeric_limits
+#include <memory>     // std::unique_ptr, std::make_unique
 #include <stdexcept>  // std::runtime_error
 #include <string>     // std::string
+#include <thread>     // std::this_thread::sleep_for
 #include <variant>    // std::get, std::holds_alternative
 #include <vector>     // std::vector
 // djinterp
@@ -555,6 +558,282 @@ d_tests_database_names(
     return;
 }
 
+
+// pool_counts
+//   struct: what the stand-in connections of one pool were asked, and how
+// they answer.
+struct pool_counts
+{
+    int         made        = 0;
+    int         pings       = 0;
+    int         queries     = 0;
+    bool        ping_answer = true;
+    bool        query_fails = false;
+    std::string last_query;
+};
+
+// pool_conn
+//   class: a connection a pool can lend, which connects and answers a ping
+// as its counts say.
+class pool_conn
+{
+public:
+    explicit pool_conn(
+        pool_counts& _counts
+    )
+        : m_counts(&_counts),
+          m_id(++_counts.made),
+          m_connected(false)
+    {}
+
+    void
+    connect()
+    {
+        m_connected = true;
+
+        return;
+    }
+
+    bool
+    ping()
+    {
+        ++m_counts->pings;
+
+        return m_counts->ping_answer;
+    }
+
+    int
+    id() const noexcept
+    {
+        return m_id;
+    }
+
+    bool
+    connected() const noexcept
+    {
+        return m_connected;
+    }
+
+protected:
+    pool_counts* m_counts;
+
+private:
+    int  m_id;
+    bool m_connected;
+};
+
+// pool_query_conn
+//   class: a pool_conn that runs statements too, so that a pool checks it
+// with its validation_query.
+class pool_query_conn : public pool_conn
+{
+public:
+    explicit pool_query_conn(
+        pool_counts& _counts
+    )
+        : pool_conn(_counts)
+    {}
+
+    bool
+    execute(
+        const std::string& _query
+    )
+    {
+        ++m_counts->queries;
+        m_counts->last_query = _query;
+
+        // a statement the counts say fails, fails as a connection's would
+        if (m_counts->query_fails)
+        {
+            throw db::query_exception("refused", 1);
+        }
+
+        return true;
+    }
+};
+
+// pool_factory
+//   function: a factory of stand-in connections over one set of counts.
+template<typename Connection>
+std::function<std::unique_ptr<Connection>()>
+pool_factory(
+    pool_counts& _counts
+)
+{
+    pool_counts* counts = &_counts;
+
+    return [counts]()
+    {
+        return std::make_unique<Connection>(*counts);
+    };
+}
+
+// pool_settings
+//   function: a pool_config with the sizes and durations given, and no
+// checks.
+db::pool_config
+pool_settings(
+    std::size_t               _min,
+    std::size_t               _max,
+    std::chrono::milliseconds _idle_timeout,
+    std::chrono::milliseconds _max_lifetime
+)
+{
+    db::pool_config config;
+
+    config.min_connections = _min;
+    config.max_connections = _max;
+    config.idle_timeout    = _idle_timeout;
+    config.max_lifetime    = _max_lifetime;
+
+    return config;
+}
+
+/*
+d_tests_database_pool
+  connection_pool over stand-in connections.
+  Tests the following:
+  - the minimum is made and connected up front; a lent connection goes back
+    idle; the pool lends the one that came back last, and refuses to go
+    past its maximum, connection_exception; it never waits
+  - idle_timeout retires idle connections, the longest waiting first, down
+    to the minimum, when the pool next lends; max_lifetime retires one when
+    it comes back; durations of 0 retire nothing
+  - validate_on_acquire checks a connection by validation_query where the
+    connection runs statements, replacing one that fails, and by a ping
+    where it does not
+*/
+void
+d_tests_database_pool(
+    void
+)
+{
+    std::printf("connection pool\n");
+
+    const std::chrono::milliseconds none(0);
+    const std::chrono::milliseconds instant(1);
+    const std::chrono::milliseconds wait(20);
+
+    // the minimum up front, the last one back lent first, the maximum
+    {
+        pool_counts                    counts;
+        db::connection_pool<pool_conn> pool(pool_factory<pool_conn>(counts),
+                                            pool_settings(2, 3, none, none));
+
+        D_TESTS_DATABASE_CHECK( (counts.made == 2) &&
+                                (pool.idle_connections() == 2) &&
+                                (pool.active_connections() == 0) );
+        {
+            auto a = pool.acquire();
+            auto b = pool.acquire();
+            auto c = pool.acquire();
+
+            D_TESTS_DATABASE_CHECK( (a->connected()) &&
+                                    (pool.active_connections() == 3) &&
+                                    (pool.idle_connections() == 0) &&
+                                    (counts.made == 3) );
+            D_TESTS_DATABASE_THROWS(pool.acquire(),
+                                    db::connection_exception,
+                                    0);
+            D_TESTS_DATABASE_CHECK(pool.waiting_requests() == 0);
+
+            b.release();
+            D_TESTS_DATABASE_CHECK(pool.acquire()->id() == 1);
+        }
+
+        D_TESTS_DATABASE_CHECK( (pool.idle_connections() == 3) &&
+                                (pool.total_connections() == 3) );
+    }
+
+    // idle_timeout: the longest waiting retired first, down to the minimum
+    {
+        pool_counts                    counts;
+        db::connection_pool<pool_conn> pool(
+            pool_factory<pool_conn>(counts),
+            pool_settings(1, 3, instant, none));
+        {
+            auto a = pool.acquire();
+            auto b = pool.acquire();
+            auto c = pool.acquire();
+
+            a.release();
+            b.release();
+            c.release();
+        }
+        std::this_thread::sleep_for(wait);
+
+        auto kept = pool.acquire();
+
+        D_TESTS_DATABASE_CHECK( (kept->id() == 3) &&
+                                (pool.idle_connections() == 0) &&
+                                (pool.total_connections() == 1) &&
+                                (counts.made == 3) );
+    }
+
+    // max_lifetime: retired when it comes back, and replaced when asked
+    {
+        pool_counts                    counts;
+        db::connection_pool<pool_conn> pool(
+            pool_factory<pool_conn>(counts),
+            pool_settings(0, 2, none, instant));
+        {
+            auto a = pool.acquire();
+
+            std::this_thread::sleep_for(wait);
+        }
+
+        D_TESTS_DATABASE_CHECK( (pool.total_connections() == 0) &&
+                                (pool.acquire()->id() == 2) );
+    }
+
+    // durations of 0: nothing retired, however long
+    {
+        pool_counts                    counts;
+        db::connection_pool<pool_conn> pool(
+            pool_factory<pool_conn>(counts),
+            pool_settings(0, 2, none, none));
+        {
+            auto a = pool.acquire();
+            auto b = pool.acquire();
+        }
+        std::this_thread::sleep_for(wait);
+
+        D_TESTS_DATABASE_CHECK( (pool.acquire()->id() == 1) &&
+                                (pool.idle_connections() == 1) );
+    }
+
+    // validation_query where the connection runs statements, ping elsewhere
+    {
+        pool_counts     counts;
+        db::pool_config config = pool_settings(1, 2, none, none);
+
+        config.validate_on_acquire = true;
+        config.validation_query    = "SELECT 1";
+
+        db::connection_pool<pool_query_conn> pool(
+            pool_factory<pool_query_conn>(counts),
+            config);
+
+        D_TESTS_DATABASE_CHECK( (pool.acquire()->id() == 1) &&
+                                (counts.queries == 1) &&
+                                (counts.last_query == "SELECT 1") &&
+                                (counts.pings == 0) );
+
+        counts.query_fails = true;
+        D_TESTS_DATABASE_CHECK( (pool.acquire()->id() == 2) &&
+                                (counts.made == 2) );
+
+        pool_counts                    pinged;
+        db::connection_pool<pool_conn> plain(pool_factory<pool_conn>(pinged),
+                                             config);
+
+        D_TESTS_DATABASE_CHECK( (plain.acquire()->id() == 1) &&
+                                (pinged.pings == 1) );
+    }
+
+    return;
+}
+
 }  // namespace
 
 /*
@@ -573,6 +852,7 @@ main(
     d_tests_database_quoting();
     d_tests_database_values();
     d_tests_database_names();
+    d_tests_database_pool();
 
     std::printf("%d checks, %d failed (core/db, as C++ %ld)\n",
                 g_checks,

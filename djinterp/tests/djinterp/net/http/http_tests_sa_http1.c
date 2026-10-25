@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/net/http/http_tests_sa_http1.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "./http_tests_sa.h"  // the suite
 // std
@@ -190,11 +190,11 @@ d_tests_http1_right(
     // each case, whole
     for (size_t i = 0u; i < _count; ++i)
     {
-        struct d_http1_field    items[8];
-        struct d_http1_request  request;
-        struct d_http1_response response;
-        size_t                  used  = 0u;
-        const struct d_pack_text text = d_tests_http1_text(_cases[i].text);
+        struct d_http1_field     items[8];  // filled before it is read
+        struct d_http1_request   request  = { 0 };
+        struct d_http1_response  response = { 0 };
+        size_t                   used     = 0u;
+        const struct d_pack_text text     = d_tests_http1_text(_cases[i].text);
 
         const enum d_http_error found = (_requests)
             ? d_tests_http1_request(text,
@@ -227,20 +227,20 @@ d_tests_sa_http1_heads(
     const size_t responses = sizeof(RESPONSES) / sizeof(RESPONSES[0]);
     bool         result    = true;
 
-    result = d_assert_standalone(
-                 d_tests_http1_right(REQUESTS,
-                                     requests,
-                                     true) == requests,
-                 "d_http1_parse_request",
-                 "every request case gives its error",
-                 _counter) && result;
-    result = d_assert_standalone(
-                 d_tests_http1_right(RESPONSES,
-                                     responses,
-                                     false) == responses,
-                 "d_http1_parse_response",
-                 "every response case gives its error",
-                 _counter) && result;
+    result = d_tests_net_assert(
+                d_tests_http1_right(REQUESTS,
+                                    requests,
+                                    true) == requests,
+                "d_http1_parse_request",
+                "every request case gives its error",
+                _counter) && result;
+    result = d_tests_net_assert(
+                d_tests_http1_right(RESPONSES,
+                                    responses,
+                                    false) == responses,
+                "d_http1_parse_response",
+                "every response case gives its error",
+                _counter) && result;
 
     return result;
 }
@@ -272,9 +272,9 @@ its name.
 static bool
 d_tests_http1_forms_hold(void)
 {
-    struct d_http1_field   items[8];
-    struct d_http1_request request;
-    size_t                 used = 0u;
+    struct d_http1_field   items[8];  // filled before it is read
+    struct d_http1_request request = { 0 };
+    size_t                 used    = 0u;
 
     const bool connect   = ( (d_tests_http1_request(
                                   d_tests_http1_text(REQUESTS[4].text),
@@ -287,8 +287,8 @@ d_tests_http1_forms_hold(void)
                                   d_tests_http1_text(REQUESTS[6].text),
                                   &request,
                                   items,
-                                  &used) == D_HTTP_OK)                 &&
-                             (request.method == D_HTTP_METHOD_OTHER)   &&
+                                  &used) == D_HTTP_OK)               &&
+                             (request.method == D_HTTP_METHOD_OTHER) &&
                              (d_tests_http1_text_is(request.method_name,
                                                     "PROPFIND")) );
 
@@ -311,9 +311,9 @@ d_tests_sa_http1_parts(
 {
     const char* const       text     = "GET /a?b HTTP/1.1\r\nHost: h\r\n"
                                        "X-Y:  z  \r\n\r\nGET /next";
-    struct d_http1_field    items[8];
-    struct d_http1_request  request;
-    struct d_http1_response response;
+    struct d_http1_field    items[8];  // filled before it is read
+    struct d_http1_request  request  = { 0 };
+    struct d_http1_response response = { 0 };
     size_t                  used     = 0u;
     bool                    result   = true;
 
@@ -321,40 +321,40 @@ d_tests_sa_http1_parts(
                                    d_tests_http1_text(text),
                                    &request,
                                    items,
-                                   &used) == D_HTTP_OK)                  &&
+                                   &used) == D_HTTP_OK)                    &&
                               (used == strlen(text) - strlen("GET /next")) &&
-                              (request.method == D_HTTP_METHOD_GET)       &&
+                              (request.method == D_HTTP_METHOD_GET)        &&
                               (d_tests_http1_text_is(request.target,
-                                                     "/a?b"))             &&
+                                                     "/a?b"))              &&
                               (request.target_form ==
-                               D_HTTP1_TARGET_ORIGIN)                     &&
-                              (request.version == D_HTTP_VERSION_1_1)     &&
-                              (request.fields.count == 2u)                &&
+                               D_HTTP1_TARGET_ORIGIN)                      &&
+                              (request.version == D_HTTP_VERSION_1_1)      &&
+                              (request.fields.count == 2u)                 &&
                               (d_tests_http1_text_is(items[1].value,
                                                      "z")) );
     const bool response_ok = ( (d_tests_http1_response(
                                     d_tests_http1_text(RESPONSES[3].text),
                                     &response,
                                     items,
-                                    &used) == D_HTTP_OK)                 &&
-                               (response.version == D_HTTP_VERSION_1_0)  &&
-                               (response.status == 404u)                 &&
+                                    &used) == D_HTTP_OK)                &&
+                               (response.version == D_HTTP_VERSION_1_0) &&
+                               (response.status == 404u)                &&
                                (d_tests_http1_text_is(response.reason,
-                                                      "Not Found"))      &&
+                                                      "Not Found"))     &&
                                (response.fields.count == 0u) );
 
-    result = d_assert_standalone(request_ok,
-                                 "d_http1_parse_request",
-                                 "a request's parts, before pipelined bytes",
-                                 _counter) && result;
-    result = d_assert_standalone(d_tests_http1_forms_hold(),
-                                 "d_http1_parse_request",
-                                 "target forms, and an extension's name",
-                                 _counter) && result;
-    result = d_assert_standalone(response_ok,
-                                 "d_http1_parse_response",
-                                 "a response's parts",
-                                 _counter) && result;
+    result = d_tests_net_assert(request_ok,
+                                "d_http1_parse_request",
+                                "a request's parts, before pipelined bytes",
+                                _counter) && result;
+    result = d_tests_net_assert(d_tests_http1_forms_hold(),
+                                "d_http1_parse_request",
+                                "target forms, and an extension's name",
+                                _counter) && result;
+    result = d_tests_net_assert(response_ok,
+                                "d_http1_parse_response",
+                                "a response's parts",
+                                _counter) && result;
 
     return result;
 }
@@ -370,14 +370,14 @@ d_tests_http1_fed(
     bool                             _requests
 )
 {
-    const struct d_pack_text all    = d_tests_http1_text(_case->text);
-    struct d_http1_parser    parser = { .line = 0u };
-    struct d_http1_field     items[8];
-    struct d_http1_request   request;
-    struct d_http1_response  response;
-    size_t                   whole  = 0u;
-    size_t                   used   = 0u;
-    enum d_http_error        found  = D_HTTP_ERROR_INCOMPLETE;
+    const struct d_pack_text all      = d_tests_http1_text(_case->text);
+    struct d_http1_parser    parser   = { .line = 0u };
+    struct d_http1_field     items[8];  // filled before it is read
+    struct d_http1_request   request  = { 0 };
+    struct d_http1_response  response = { 0 };
+    size_t                   whole    = 0u;
+    size_t                   used     = 0u;
+    enum d_http_error        found    = D_HTTP_ERROR_INCOMPLETE;
 
     const enum d_http_error expected = (_requests)
         ? d_tests_http1_request(all,
@@ -446,10 +446,10 @@ d_tests_sa_http1_incremental(
                                              : 0u;
     }
 
-    return d_assert_standalone(agreed == requests + responses,
-                               "d_http1_parse_request",
-                               "a byte at a time agrees with the whole",
-                               _counter);
+    return d_tests_net_assert(agreed == requests + responses,
+                              "d_http1_parse_request",
+                              "a byte at a time agrees with the whole",
+                              _counter);
 }
 
 // d_tests_http1_limit_case
@@ -497,7 +497,7 @@ d_tests_http1_limited(
 )
 {
     struct d_http1_parser  parser  = { .line = 0u };
-    struct d_http1_field   items[8];
+    struct d_http1_field   items[8];  // filled before it is read
     struct d_http1_request request = { .fields = { items,
                                                    _case->capacity,
                                                    0u } };
@@ -525,12 +525,12 @@ d_tests_http1_limited_fed(
 {
     const struct d_pack_text all     = d_tests_http1_text(_case->text);
     struct d_http1_parser    parser  = { .line = 0u };
-    struct d_http1_field     items[8];
+    struct d_http1_field     items[8];  // filled before it is read
     struct d_http1_request   request = { .fields = { items,
                                                      _case->capacity,
                                                      0u } };
-    size_t                   used    = 0u;
-    enum d_http_error        found   = D_HTTP_ERROR_INCOMPLETE;
+    size_t            used  = 0u;
+    enum d_http_error found = D_HTTP_ERROR_INCOMPLETE;
 
     d_http1_parser_init(&parser);
     parser.start_line_max = _case->start_line_max;
@@ -579,10 +579,10 @@ d_tests_sa_http1_limits(
                                        : 0u;
     }
 
-    return d_assert_standalone(right == count,
-                               "d_http1_parse_request",
-                               "every limit, at its bound and past it",
-                               _counter);
+    return d_tests_net_assert(right == count,
+                              "d_http1_parse_request",
+                              "every limit, at its bound and past it",
+                              _counter);
 }
 
 /*
@@ -596,11 +596,11 @@ d_tests_sa_http1_lookup(
     struct d_test_counter* _counter
 )
 {
-    struct d_http1_field   items[8];
-    struct d_http1_request request;
-    struct d_http1_parser  parser = { .line = 0u };
-    size_t                 used   = 0u;
-    bool                   result = true;
+    struct d_http1_field   items[8];  // filled before it is read
+    struct d_http1_request request = { 0 };
+    struct d_http1_parser  parser  = { .line = 0u };
+    size_t                 used    = 0u;
+    bool                   result  = true;
 
     (void)d_tests_http1_request(
         d_tests_http1_text("GET / HTTP/1.1\r\nHost: h\r\nAccept: a\r\n"
@@ -610,33 +610,33 @@ d_tests_sa_http1_lookup(
         &used);
     d_http1_parser_init(&parser);
 
-    result = d_assert_standalone(
-                 (d_http1_fields_index(&request.fields,
-                                       d_tests_http1_text("ACCEPT"),
-                                       0u) == 1u)                     &&
-                 (d_http1_fields_index(&request.fields,
-                                       d_tests_http1_text("Accept"),
-                                       2u) == 2u)                     &&
-                 (d_http1_fields_index(&request.fields,
-                                       d_tests_http1_text("Cookie"),
-                                       0u) == request.fields.count),
-                 "d_http1_fields_index",
-                 "found without case, repeated, and missing",
-                 _counter) && result;
-    result = d_assert_standalone(
-                 (d_http1_parse_request(NULL,
+    result = d_tests_net_assert(
+                (d_http1_fields_index(&request.fields,
+                                      d_tests_http1_text("ACCEPT"),
+                                      0u) == 1u) &&
+                (d_http1_fields_index(&request.fields,
+                                      d_tests_http1_text("Accept"),
+                                      2u) == 2u) &&
+                (d_http1_fields_index(&request.fields,
+                                      d_tests_http1_text("Cookie"),
+                                      0u) == request.fields.count),
+                "d_http1_fields_index",
+                "found without case, repeated, and missing",
+                _counter) && result;
+    result = d_tests_net_assert(
+                (d_http1_parse_request(NULL,
+                                       d_tests_http1_text("x"),
+                                       &request,
+                                       &used) ==
+                 D_HTTP_ERROR_INVALID_ARGUMENT) &&
+                (d_http1_parse_response(&parser,
                                         d_tests_http1_text("x"),
-                                        &request,
+                                        NULL,
                                         &used) ==
-                  D_HTTP_ERROR_ARGUMENT)                              &&
-                 (d_http1_parse_response(&parser,
-                                         d_tests_http1_text("x"),
-                                         NULL,
-                                         &used) ==
-                  D_HTTP_ERROR_ARGUMENT),
-                 "d_http1_parse_request",
-                 "NULL arguments are refused",
-                 _counter) && result;
+                 D_HTTP_ERROR_INVALID_ARGUMENT),
+                "d_http1_parse_request",
+                "NULL arguments are refused",
+                _counter) && result;
 
     return result;
 }

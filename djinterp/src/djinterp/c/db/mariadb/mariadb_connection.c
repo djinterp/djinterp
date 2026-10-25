@@ -12,13 +12,15 @@
 * character set -- libmysqlclient from 8.0 against MariaDB, or MySQL before
 * 8.0 -- it is set again once connected, and again after a change of user.
 * d_mariadb_connect_with applies a program's settings after the layer's
-* defaults, so that one can replace a default.
+* defaults, so that one can replace a default, and the handle keeps its init
+* commands and the character set the session began with, which a reset
+* restores.
 *
 *
 * path:      /src/djinterp/c/db/mariadb/mariadb_connection.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // D_INTERNAL_MARIADB_SOURCE
 //   macro: this file is one of the MariaDB layer's own sources, for which
@@ -123,9 +125,34 @@ d_internal_mariadb_describe(
 }
 
 /*
+d_internal_mariadb_note_charset
+  The character set the client names now, which the session it just began
+has: kept for a reset, which returns the session to it. A name too long to
+keep is kept as none, which a reset reads as different from any.
+*/
+static void
+d_internal_mariadb_note_charset(
+    struct d_mariadb* _db
+)
+{
+    const char* const name   = mysql_character_set_name(_db->native);
+    const size_t      length = (name) ? strlen(name) : 0u;
+
+    // the name, where it fits
+    if (length < sizeof(_db->charset))
+    {
+        memcpy(_db->charset, (name) ? name : "", length);
+    }
+
+    _db->charset[(length < sizeof(_db->charset)) ? length : 0u] = '\0';
+
+    return;
+}
+
+/*
 d_internal_mariadb_wrap
   A new handle around a connection, which learns the server's flavor and
-version at once.
+version, and the character set its session began with, at once.
 */
 static struct d_mariadb*
 d_internal_mariadb_wrap(
@@ -144,11 +171,61 @@ d_internal_mariadb_wrap(
     db->native           = _native;
     db->owned            = _owned;
     db->multi_statements = false;
+    db->tracked          = false;
     db->case_rule        = -1;
     db->failed           = NULL;
+    db->init_commands    = NULL;
+    db->init_count       = 0u;
+    db->attributes       = NULL;
+    db->attribute_count  = 0u;
+    db->statements       = NULL;
+    db->cursor           = NULL;
+    db->retired          = NULL;
     d_internal_mariadb_describe(db);
+    d_internal_mariadb_note_charset(db);
 
     return db;
+}
+
+/*
+d_internal_mariadb_keep_init_commands
+  The texts of the settings that are init commands, in their order, each
+terminated, one after another in one block: what the client ran once
+connected, and a reset runs again.
+*/
+static bool
+d_internal_mariadb_keep_init_commands(
+    struct d_mariadb*               _db,
+    const struct d_mariadb_setting* _settings,
+    size_t                          _count
+)
+{
+    struct d_internal_db_buffer kept  = { NULL, 0u, 0u };
+    size_t                      found = 0u;
+
+    // each init command's text, terminated
+    for (size_t i = 0u; i < _count; ++i)
+    {
+        if ( (_settings[i].name == D_MARIADB_SETTING_INIT_COMMAND) &&
+             (_settings[i].text) )
+        {
+            if (!d_internal_db_buffer_append(&kept,
+                                             _settings[i].text,
+                                             strlen(_settings[i].text) + 1u))
+            {
+                d_internal_db_buffer_release(&kept);
+
+                return false;
+            }
+
+            ++found;
+        }
+    }
+
+    _db->init_commands = kept.data;
+    _db->init_count    = found;
+
+    return true;
 }
 
 /*
@@ -224,12 +301,41 @@ d_internal_mariadb_ssl_mode(
 
 #elif (D_INTERNAL_MARIADB_SSL_SWITCHES == 2)
 
+/**
+ * @brief Sets Connector/C's two TLS switches.
+ *
+ * @param[in] _native   the client's connection, before it connects.
+ * @param[in] _enforce  whether to use TLS: MYSQL_OPT_SSL_ENFORCE.
+ * @param[in] _verify   whether to check the server's certificate against an
+ *                      authority and the host's name:
+ *                      MYSQL_OPT_SSL_VERIFY_SERVER_CERT.
+ * @return 0, or the client's refusal.
+ */
+static int
+d_internal_mariadb_tls_switches(
+    MYSQL*                  _native,
+    d_internal_mariadb_flag _enforce,
+    d_internal_mariadb_flag _verify
+)
+{
+    return ( (mysql_options(_native, MYSQL_OPT_SSL_ENFORCE, &_enforce) ==
+              0) &&
+             (mysql_options(_native,
+                            MYSQL_OPT_SSL_VERIFY_SERVER_CERT,
+                            &_verify) == 0) )
+               ? 0
+               : d_internal_mariadb_refused(_native);
+}
+
 /*
 d_internal_mariadb_ssl_mode
-  Connector/C's two switches: one insists on TLS, the other on a certificate
-an authority signed for the host's name. It has none to refuse TLS, which it
-uses only when a key, a certificate or an authority is given, nor one to
-check the authority alone.
+  Connector/C's two switches: one has it use TLS, the other check an
+authority's signature and the host's name. It has none to check the
+authority alone. Before 3.4 it uses TLS only when a key, a certificate or an
+authority is given; from 3.4 it uses TLS and checks the certificate unless
+told not to, refusing a server without TLS. Every mode sets both, so that
+each means the same with either. With TLS on and the check off, either
+connects without TLS to a server that has none: the layer's PREFERRED.
 */
 static int
 d_internal_mariadb_ssl_mode(
@@ -237,31 +343,22 @@ d_internal_mariadb_ssl_mode(
     unsigned long _mode
 )
 {
-    const d_internal_mariadb_flag on = 1;
-
     switch (_mode)
     {
         case D_MARIADB_SSL_PREFERRED:
+            return d_internal_mariadb_tls_switches(_native, 1, 0);
+
         case D_MARIADB_SSL_DISABLED:
-            return 0;
+            return d_internal_mariadb_tls_switches(_native, 0, 0);
 
         case D_MARIADB_SSL_REQUIRED:
-            return (mysql_options(_native, MYSQL_OPT_SSL_ENFORCE, &on) == 0)
-                       ? 0
-                       : d_internal_mariadb_refused(_native);
+            return d_internal_mariadb_tls_switches(_native, 1, 0);
 
         case D_MARIADB_SSL_VERIFY_CA:
             return D_DB_UNSUPPORTED;
 
         case D_MARIADB_SSL_VERIFY_IDENTITY:
-            return ( (mysql_options(_native,
-                                    MYSQL_OPT_SSL_ENFORCE,
-                                    &on) == 0) &&
-                     (mysql_options(_native,
-                                    MYSQL_OPT_SSL_VERIFY_SERVER_CERT,
-                                    &on) == 0) )
-                       ? 0
-                       : d_internal_mariadb_refused(_native);
+            return d_internal_mariadb_tls_switches(_native, 1, 1);
 
         default:
             break;
@@ -299,6 +396,146 @@ d_internal_mariadb_ssl_mode(
 #endif  // D_INTERNAL_MARIADB_SSL_SWITCHES
 
 /*
+d_internal_mariadb_max_packet
+  The largest packet, in the type the client's option reads
+(D_INTERNAL_MARIADB_MAX_PACKET), which a size_t always holds; 0 leaves the
+client's own.
+*/
+static int
+d_internal_mariadb_max_packet(
+    MYSQL*        _native,
+    unsigned long _bytes
+)
+{
+    // the client's own
+    if (_bytes == 0ul)
+    {
+        return 0;
+    }
+
+#if (D_INTERNAL_MARIADB_MAX_PACKET == 1)
+    const unsigned long bytes = _bytes;
+#elif (D_INTERNAL_MARIADB_MAX_PACKET == 2)
+    const size_t        bytes = (size_t)_bytes;
+#endif  // D_INTERNAL_MARIADB_MAX_PACKET
+
+#if (D_INTERNAL_MARIADB_MAX_PACKET != 0)
+    return (mysql_options(_native, MYSQL_OPT_MAX_ALLOWED_PACKET, &bytes) == 0)
+               ? 0
+               : d_internal_mariadb_refused(_native);
+#else
+    (void)_native;
+
+    return D_DB_UNSUPPORTED;
+#endif  // D_INTERNAL_MARIADB_MAX_PACKET
+}
+
+/*
+d_internal_mariadb_tls_text
+  The TLS versions, by whichever option the client has
+(D_INTERNAL_MARIADB_TLS_VERSION), or TLS 1.3's cipher suites, by
+libmysqlclient's alone (D_INTERNAL_MARIADB_TLS_CIPHERSUITES).
+*/
+static int
+d_internal_mariadb_tls_text(
+    MYSQL*                          _native,
+    const struct d_mariadb_setting* _setting
+)
+{
+    int refused = 0;
+
+    // a text, which these cannot do without
+    if (!_setting->text)
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    if (_setting->name == D_MARIADB_SETTING_TLS_VERSION)
+    {
+#if (D_INTERNAL_MARIADB_TLS_VERSION == 1)
+        refused = mysql_options(_native, MYSQL_OPT_TLS_VERSION, _setting->text);
+#elif (D_INTERNAL_MARIADB_TLS_VERSION == 2)
+        refused = mysql_options(_native,
+                                MARIADB_OPT_TLS_VERSION,
+                                _setting->text);
+#else
+        return D_DB_UNSUPPORTED;
+#endif  // D_INTERNAL_MARIADB_TLS_VERSION
+    }
+    else
+    {
+#if (D_INTERNAL_MARIADB_TLS_CIPHERSUITES == 1)
+        refused = mysql_options(_native,
+                                MYSQL_OPT_TLS_CIPHERSUITES,
+                                _setting->text);
+#else
+        return D_DB_UNSUPPORTED;
+#endif  // D_INTERNAL_MARIADB_TLS_CIPHERSUITES
+    }
+
+    return (refused == 0) ? 0 : d_internal_mariadb_refused(_native);
+}
+
+/*
+d_internal_mariadb_cleartext
+  libmysqlclient's switch (D_INTERNAL_MARIADB_CLEARTEXT_SWITCH); MariaDB's
+clients have nothing to switch.
+*/
+static int
+d_internal_mariadb_cleartext(
+    MYSQL*        _native,
+    unsigned long _allowed
+)
+{
+#if (D_INTERNAL_MARIADB_CLEARTEXT_SWITCH == 1)
+    const d_internal_mariadb_flag allowed = (_allowed != 0ul) ? 1 : 0;
+
+    return (mysql_options(_native,
+                          MYSQL_ENABLE_CLEARTEXT_PLUGIN,
+                          &allowed) == 0)
+               ? 0
+               : d_internal_mariadb_refused(_native);
+#else
+    (void)_native;
+    (void)_allowed;
+
+    return 0;
+#endif  // D_INTERNAL_MARIADB_CLEARTEXT_SWITCH
+}
+
+/*
+d_internal_mariadb_public_key_ask
+  Whether the client may ask the server for its RSA public key
+(D_INTERNAL_MARIADB_PUBLIC_KEY_ASK): libmysqlclient's switch from 8.0.3;
+Connector/C asks whatever it is told, so it can only be allowed to; and
+libmysqlclient before 8.0.3 never asks, so it can only be forbidden to.
+*/
+static int
+d_internal_mariadb_public_key_ask(
+    MYSQL*        _native,
+    unsigned long _allowed
+)
+{
+#if (D_INTERNAL_MARIADB_PUBLIC_KEY_ASK == 1)
+    const d_internal_mariadb_flag allowed = (_allowed != 0ul) ? 1 : 0;
+
+    return (mysql_options(_native,
+                          MYSQL_OPT_GET_SERVER_PUBLIC_KEY,
+                          &allowed) == 0)
+               ? 0
+               : d_internal_mariadb_refused(_native);
+#elif (D_INTERNAL_MARIADB_PUBLIC_KEY_ASK == 2)
+    (void)_native;
+
+    return (_allowed != 0ul) ? 0 : D_DB_UNSUPPORTED;
+#else
+    (void)_native;
+
+    return (_allowed != 0ul) ? D_DB_UNSUPPORTED : 0;
+#endif  // D_INTERNAL_MARIADB_PUBLIC_KEY_ASK
+}
+
+/*
 d_internal_mariadb_setting_option
   The client's option for a setting that takes a number of seconds or a text,
 by the setting's name; d_internal_mariadb_set asks only for those.
@@ -316,6 +553,9 @@ d_internal_mariadb_setting_option(
         case D_MARIADB_SETTING_SSL_KEY:       return MYSQL_OPT_SSL_KEY;
         case D_MARIADB_SETTING_SSL_CERT:      return MYSQL_OPT_SSL_CERT;
         case D_MARIADB_SETTING_SSL_CA:        return MYSQL_OPT_SSL_CA;
+        case D_MARIADB_SETTING_DEFAULT_AUTH:  return MYSQL_DEFAULT_AUTH;
+        case D_MARIADB_SETTING_SERVER_PUBLIC_KEY:
+            return MYSQL_SERVER_PUBLIC_KEY;
         default:                              break;
     }
 
@@ -362,6 +602,8 @@ d_internal_mariadb_set(
         case D_MARIADB_SETTING_SSL_KEY:
         case D_MARIADB_SETTING_SSL_CERT:
         case D_MARIADB_SETTING_SSL_CA:
+        case D_MARIADB_SETTING_DEFAULT_AUTH:
+        case D_MARIADB_SETTING_SERVER_PUBLIC_KEY:
             // a text, which these cannot do without
             if (!_setting->text)
             {
@@ -425,6 +667,20 @@ d_internal_mariadb_set(
                                     _setting->value);
             break;
 
+        case D_MARIADB_SETTING_MAX_PACKET:
+            return d_internal_mariadb_max_packet(_native, _setting->number);
+
+        case D_MARIADB_SETTING_TLS_VERSION:
+        case D_MARIADB_SETTING_TLS_CIPHERSUITES:
+            return d_internal_mariadb_tls_text(_native, _setting);
+
+        case D_MARIADB_SETTING_CLEARTEXT_PLUGIN:
+            return d_internal_mariadb_cleartext(_native, _setting->number);
+
+        case D_MARIADB_SETTING_GET_SERVER_PUBLIC_KEY:
+            return d_internal_mariadb_public_key_ask(_native,
+                                                     _setting->number);
+
         default:
             return D_DB_INVALID_ARGUMENT;
     }
@@ -433,15 +689,50 @@ d_internal_mariadb_set(
 }
 
 /*
-d_internal_mariadb_settle_charset
+d_internal_mariadb_loses_charset
   libmysqlclient from 8.0 names utf8mb4_0900_ai_ci in its handshake, which
 MariaDB and MySQL before 8.0 do not have: such a server keeps its own
 default character set for the session, silently, while the client believes
 it has the one asked for, and text in any other character set is mangled.
-With that client, against those servers, the character set named is set
-again once connected, by mysql_set_character_set's SET NAMES, which the
-client records; with every other pairing the handshake carried it. A change
-of user is a handshake too, and is settled the same way.
+With every other pairing the handshake carries it.
+*/
+static bool
+d_internal_mariadb_loses_charset(
+    const struct d_mariadb* _db
+)
+{
+    return ( (D_ENV_MYSQL_COMMON_IS_MARIADB == 0)        &&
+             (mysql_get_client_version() >= 80000ul)     &&
+             ( (_db->flavor != D_MARIADB_FLAVOR_MYSQL) ||
+               (_db->version < 80000ul) ) );
+}
+
+/*
+d_internal_mariadb_set_names
+  mysql_set_character_set's SET NAMES, which the client then records; it is
+a query, which takes any attributes set for the next one.
+*/
+static int
+d_internal_mariadb_set_names(
+    struct d_mariadb* _db,
+    const char*       _charset
+)
+{
+    const int result = (mysql_set_character_set(_db->native, _charset) == 0)
+                           ? 0
+                           : d_internal_mariadb_refused(_db->native);
+
+    d_internal_mariadb_attributes_sent(_db);
+    d_internal_mariadb_replied(_db, (result == 0));
+
+    return result;
+}
+
+/*
+d_internal_mariadb_settle_charset
+  Where the handshake lost the character set named, it is set again once
+connected (d_internal_mariadb_loses_charset). A change of user is a
+handshake too, and is settled the same way.
 */
 static int
 d_internal_mariadb_settle_charset(
@@ -452,24 +743,44 @@ d_internal_mariadb_settle_charset(
     const char* const charset = (_charset) ? _charset : "";
 
     // a character set named, and a pairing whose handshake lost it
-    if ( (charset[0] == '\0')                     ||
-         (D_ENV_MYSQL_COMMON_IS_MARIADB != 0)       ||
-         (mysql_get_client_version() < 80000ul)     ||
-         ( (_db->flavor == D_MARIADB_FLAVOR_MYSQL) &&
-           (_db->version >= 80000ul) ) )
+    if ( (charset[0] == '\0') ||
+         (!d_internal_mariadb_loses_charset(_db)) )
     {
         return 0;
     }
 
-    // SET NAMES, which the client then records
-    if (mysql_set_character_set(_db->native, charset) != 0)
+    return d_internal_mariadb_set_names(_db, charset);
+}
+
+/*
+d_internal_mariadb_restore_charset
+  A reset returns the session to the character set it began with -- the
+server's own default, where the handshake lost the client's -- while the
+client keeps the one it has now, which a program may have changed since. The
+client's is set again wherever the two can differ.
+*/
+static int
+d_internal_mariadb_restore_charset(
+    struct d_mariadb* _db
+)
+{
+    const char* const name   = mysql_character_set_name(_db->native);
+    const size_t      length = (name) ? strlen(name) : 0u;
+    char              current[D_INTERNAL_MARIADB_CHARSET_SIZE];
+
+    // a character set the client can name, which the session may lack
+    if ( (length == 0u)                    ||
+         (length >= sizeof(current))       ||
+         ( (!d_internal_mariadb_loses_charset(_db)) &&
+           (strcmp(name, _db->charset) == 0) ) )
     {
-        return (mysql_errno(_db->native) != 0u)
-                   ? (int)mysql_errno(_db->native)
-                   : D_INTERNAL_MARIADB_UNKNOWN_ERROR;
+        return 0;
     }
 
-    return 0;
+    // the client's own copy, which SET NAMES replaces
+    memcpy(current, name, length + 1u);
+
+    return d_internal_mariadb_set_names(_db, current);
 }
 
 /*
@@ -512,14 +823,16 @@ d_internal_mariadb_reason(
 
 /*
 d_internal_mariadb_hold
-  The layer's handle around a connection d_mariadb_connect made, its
-character set settled; on a failure no handle, and the connection still the
-caller's to close.
+  The layer's handle around a connection d_mariadb_connect made, with the
+init commands its settings gave, its character set settled; on a failure no
+handle, and the connection still the caller's to close.
 */
 static int
 d_internal_mariadb_hold(
-    MYSQL*             _native,
-    struct d_mariadb** _db
+    MYSQL*                          _native,
+    const struct d_mariadb_setting* _settings,
+    size_t                          _count,
+    struct d_mariadb**              _db
 )
 {
     *_db = d_internal_mariadb_wrap(_native, true);
@@ -530,12 +843,22 @@ d_internal_mariadb_hold(
         return D_INTERNAL_MARIADB_OUT_OF_MEMORY;
     }
 
-    const int result = d_internal_mariadb_settle_charset(
-                           *_db, D_INTERNAL_MARIADB_CHARSET);
+    int result = (d_internal_mariadb_keep_init_commands(*_db,
+                                                        _settings,
+                                                        _count))
+                     ? 0
+                     : D_INTERNAL_MARIADB_OUT_OF_MEMORY;
 
-    // a character set the server would not take: no handle
+    if (result == 0)
+    {
+        result = d_internal_mariadb_settle_charset(
+                     *_db, D_INTERNAL_MARIADB_CHARSET);
+    }
+
+    // memory, or a character set the server would not take: no handle
     if (result != 0)
     {
+        free((*_db)->init_commands);
         free(*_db);
         *_db = NULL;
     }
@@ -560,6 +883,27 @@ d_mariadb_connect(
 )
 {
     return d_mariadb_connect_with(_options, NULL, 0u, _db, NULL);
+}
+
+/*
+d_internal_mariadb_close_native
+  mysql_close, after the one option Connector/C keeps and never frees: the
+server's public key file's name (MYSQL_SERVER_PUBLIC_KEY), which it copies
+when set and lets go only when set again -- to NULL here. libmysqlclient
+frees its own.
+*/
+static void
+d_internal_mariadb_close_native(
+    MYSQL* _native
+)
+{
+#if (D_ENV_MYSQL_COMMON_IS_MARIADB)
+    (void)mysql_options(_native, MYSQL_SERVER_PUBLIC_KEY, NULL);
+#endif  // D_ENV_MYSQL_COMMON_IS_MARIADB
+
+    mysql_close(_native);
+
+    return;
 }
 
 /*
@@ -617,6 +961,15 @@ d_mariadb_connect_with(
 
     int result = d_internal_mariadb_configure(native);
 
+    // the layer's TLS mode, PREFERRED, which a setting may change: Connector/C
+    // would otherwise use none before 3.4, and insist on it from 3.4
+    if (result == 0)
+    {
+        result = d_internal_mariadb_ssl_mode(
+                     native,
+                     (unsigned long)D_MARIADB_SSL_PREFERRED);
+    }
+
     // the settings, in their order, over the defaults
     for (size_t i = 0u; (result == 0) && (i < _count); ++i)
     {
@@ -648,7 +1001,7 @@ d_mariadb_connect_with(
 
     if (result == 0)
     {
-        result = d_internal_mariadb_hold(native, _db);
+        result = d_internal_mariadb_hold(native, _settings, _count, _db);
     }
 
     // a failure leaves nothing behind but its reason, where it is wanted
@@ -659,7 +1012,7 @@ d_mariadb_connect_with(
             *_message = d_internal_mariadb_reason(native, result);
         }
 
-        mysql_close(native);
+        d_internal_mariadb_close_native(native);
     }
 
     return result;
@@ -697,8 +1050,16 @@ d_mariadb_adopt(
 
 /*
 d_mariadb_close
-  The connection goes only when the handle owns it; the handle always, and a
-statement whose prepare failed, which the handle kept, with it.
+  The connection goes only when the handle owns it; the handle always, with
+the attributes and init commands it kept, and the statements it kept to
+close later: one whose prepare failed, and those finalized while a run held
+the connection. A run still open ends first; its rest is read only from a
+connection the program keeps, which it gets back free. The statements
+prepared on the connection are left only to be finalized. The client
+statements the handle kept are closed after the connection, which leaves them
+with nothing to send; on a connection the handle does not own they tell the
+server, as finalizing would. That connection is told to drop the attributes,
+whose values it would point into.
 */
 int
 d_mariadb_close(
@@ -708,16 +1069,27 @@ d_mariadb_close(
     // accept NULL, as free does
     if (_db)
     {
+        d_internal_mariadb_detach(_db, !_db->owned);
+
+        if (_db->owned)
+        {
+            d_internal_mariadb_close_native(_db->native);
+            d_internal_mariadb_attributes_release(_db);
+        }
+        else
+        {
+            d_internal_mariadb_attributes_sent(_db);
+        }
+
+        // the client statements the handle kept to close
         if (_db->failed)
         {
             (void)mysql_stmt_close(_db->failed);
         }
 
-        if (_db->owned)
-        {
-            mysql_close(_db->native);
-        }
+        d_internal_mariadb_close_retired(_db);
 
+        free(_db->init_commands);
         free(_db);
     }
 
@@ -728,11 +1100,12 @@ d_mariadb_close(
 //------------------------------------------------------------------------------
 /*
 d_mariadb_change_user
-  The client's own call, after the layer's housekeeping. The new session
-starts from the character set the client names in the request, which the
-servers d_internal_mariadb_settle_charset knows of may not have, so it is
-settled as at connecting -- the client's current one, which a program may
-have changed since.
+  The client's own call, after the layer's housekeeping; it drops the query
+attributes, which the layer then frees, whatever the server answers. The new
+session starts from the character set the client names in the request, which
+a reset returns to, and which the servers d_internal_mariadb_loses_charset
+knows of may not have, so it is settled as at connecting -- the client's
+current one, which a program may have changed since.
 */
 int
 d_mariadb_change_user(
@@ -751,16 +1124,23 @@ d_mariadb_change_user(
     int result = d_internal_mariadb_ready(_db);
 
     // the request itself
-    if ( (result == 0) &&
-         (mysql_change_user(_db->native, _user, _password, _database) != 0) )
+    if (result == 0)
     {
-        result = (mysql_errno(_db->native) != 0u)
-                     ? (int)mysql_errno(_db->native)
-                     : D_INTERNAL_MARIADB_UNKNOWN_ERROR;
+        if (mysql_change_user(_db->native, _user, _password, _database) != 0)
+        {
+            result = (mysql_errno(_db->native) != 0u)
+                         ? (int)mysql_errno(_db->native)
+                         : D_INTERNAL_MARIADB_UNKNOWN_ERROR;
+        }
+
+        d_internal_mariadb_attributes_sent(_db);
+        d_internal_mariadb_replied(_db, (result == 0));
     }
 
     if (result == 0)
     {
+        d_internal_mariadb_note_charset(_db);
+
         result = d_internal_mariadb_settle_charset(
                      _db, mysql_character_set_name(_db->native));
     }
@@ -768,7 +1148,89 @@ d_mariadb_change_user(
     return result;
 }
 
-// 1.4    Liveness
+// 1.4    Resetting the session
+//------------------------------------------------------------------------------
+/*
+d_mariadb_reset_connection
+  The client's own call, after the layer's housekeeping, and then the
+session the layer's connect set up: the init commands it ran, in order, then
+the client's character set, where the server's reset left another
+(d_internal_mariadb_restore_charset). The client drops the query attributes
+on success, as the server does, and the layer frees its copies. Connector/C
+does not read the reset's reply for the server's status, which would still
+say a transaction is open, so a statement that changes nothing, DO 0, has
+the server send it again.
+*/
+int
+d_mariadb_reset_connection(
+    struct d_mariadb* _db
+)
+{
+    // parameter validation
+    if (!_db)
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    // a server, or a client, without the command
+    if (!d_mariadb_supports(_db, D_MARIADB_FEATURE_RESET_CONNECTION))
+    {
+        return D_DB_UNSUPPORTED;
+    }
+
+#if (D_INTERNAL_MARIADB_RESET == 1)
+    int result = d_internal_mariadb_ready(_db);
+
+    // the reset itself
+    if (result == 0)
+    {
+        if (mysql_reset_connection(_db->native) == 0)
+        {
+            d_internal_mariadb_attributes_release(_db);
+        }
+        else
+        {
+            result = (mysql_errno(_db->native) != 0u)
+                         ? (int)mysql_errno(_db->native)
+                         : D_INTERNAL_MARIADB_UNKNOWN_ERROR;
+        }
+
+        d_internal_mariadb_replied(
+            _db,
+            ( (result == 0) &&
+              (D_INTERNAL_MARIADB_READS_SIMPLE_OK == 1) ));
+    }
+
+    // the server's status, where the client did not read it
+    if ( (result == 0) &&
+         (D_INTERNAL_MARIADB_READS_SIMPLE_OK == 0) )
+    {
+        result = d_internal_mariadb_send(_db, "DO 0", 4u, NULL);
+    }
+
+    // the connect's init commands, each a statement of its own
+    const char* command = _db->init_commands;
+
+    for (size_t i = 0u; (result == 0) && (i < _db->init_count); ++i)
+    {
+        const size_t length = strlen(command);
+
+        result   = d_internal_mariadb_send(_db, command, length, NULL);
+        command += length + 1u;
+    }
+
+    if (result == 0)
+    {
+        result = d_internal_mariadb_restore_charset(_db);
+    }
+
+    return result;
+#else
+    return D_DB_UNSUPPORTED;
+#endif  // D_INTERNAL_MARIADB_RESET
+}
+
+// 1.5    Liveness
 //------------------------------------------------------------------------------
 /*
 d_mariadb_ping
@@ -786,7 +1248,22 @@ d_mariadb_ping(
         return D_DB_INVALID_ARGUMENT;
     }
 
-    return (mysql_ping(_db->native) == 0) ? 0 : (int)mysql_errno(_db->native);
+    const int idle = d_internal_mariadb_idle(_db);
+
+    // nothing is sent while a statement's rows are still arriving
+    if (idle != 0)
+    {
+        return idle;
+    }
+
+    const int result = (mysql_ping(_db->native) == 0)
+                           ? 0
+                           : (int)mysql_errno(_db->native);
+
+    // a ping changes nothing, whatever the client read
+    d_internal_mariadb_replied(_db, false);
+
+    return result;
 }
 
 /*
@@ -833,6 +1310,9 @@ d_mariadb_server_status(
 
     const char* const text = mysql_stat(_db->native);
 
+    // a reply of text, which carries no changes
+    d_internal_mariadb_replied(_db, false);
+
     if ( (!text) ||
          (mysql_errno(_db->native) != 0u) )
     {
@@ -853,7 +1333,7 @@ d_mariadb_server_status(
     return 0;
 }
 
-// 1.5    Rows changed
+// 1.6    Rows changed
 //------------------------------------------------------------------------------
 /*
 d_mariadb_last_insert_id
@@ -899,6 +1379,66 @@ d_mariadb_warning_count(
 {
     return (_db) ? mysql_warning_count(_db->native) : 0u;
 }
+
+// 1.7    Options read back
+//------------------------------------------------------------------------------
+#if (D_INTERNAL_MARIADB_GET_OPTION == 1)
+
+/*
+d_mariadb_get_option
+  Both clients read the handle's own settings, and neither asks the server.
+libmysqlclient declares the value const void*, Connector/C void*, and a void*
+passes to either. An option a client cannot read back is its 1, which
+libmysqlclient explains with no error at all, so the layer answers on its
+own, and the connection's latest failure is Connector/C's 2054 then.
+*/
+int
+d_mariadb_get_option(
+    const struct d_mariadb* _db,
+    int                     _option,
+    void*                   _value
+)
+{
+    // parameter validation
+    if ( (!_db) ||
+         (!_value) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    return (mysql_get_option(_db->native,
+                             (enum mysql_option)_option,
+                             _value) == 0)
+               ? 0
+               : D_DB_UNSUPPORTED;
+}
+
+#else
+
+/*
+d_mariadb_get_option
+  A client before mysql_get_option reads nothing back: D_DB_UNSUPPORTED.
+*/
+int
+d_mariadb_get_option(
+    const struct d_mariadb* _db,
+    int                     _option,
+    void*                   _value
+)
+{
+    (void)_option;
+
+    // parameter validation
+    if ( (!_db) ||
+         (!_value) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    return D_DB_UNSUPPORTED;
+}
+
+#endif  // D_INTERNAL_MARIADB_GET_OPTION
 
 #else
 
@@ -1022,6 +1562,20 @@ d_mariadb_change_user(
 }
 
 /*
+d_mariadb_reset_connection
+  Without a client, D_DB_UNSUPPORTED.
+*/
+int
+d_mariadb_reset_connection(
+    struct d_mariadb* _db
+)
+{
+    (void)_db;
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
 d_mariadb_ping
   Without a client, D_DB_UNSUPPORTED.
 */
@@ -1105,6 +1659,24 @@ d_mariadb_warning_count(
     (void)_db;
 
     return 0u;
+}
+
+/*
+d_mariadb_get_option
+  Without a client there are no options: D_DB_UNSUPPORTED.
+*/
+int
+d_mariadb_get_option(
+    const struct d_mariadb* _db,
+    int                     _option,
+    void*                   _value
+)
+{
+    (void)_db;
+    (void)_option;
+    (void)_value;
+
+    return D_DB_UNSUPPORTED;
 }
 
 #endif  // D_INTERNAL_MARIADB

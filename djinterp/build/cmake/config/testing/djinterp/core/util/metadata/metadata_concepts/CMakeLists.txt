@@ -8,7 +8,7 @@
 # tests directory, for the bare suite-header include used by both faces.
 # ============================================================================
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/util/metadata")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/core/util/metadata")
 
 file(GLOB _sources CONFIGURE_DEPENDS
     "${_tests_dir}/metadata_concepts_tests_*.cpp")
@@ -19,5 +19,5 @@ djinterp_add_test_executable(metadata_concepts_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/metadata_concepts_tests_runner.cpp"
         ${_sources}
     INCLUDES
-        "${DJINTERP_INC_ROOT}/djinterp/util/metadata"
+        "${DJINTERP_INC_ROOT}/djinterp/core/util/metadata"
         "${_tests_dir}")

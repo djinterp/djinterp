@@ -1,0 +1,5 @@
+x = sub
+build b: r a
+rule s
+  command = s $x
+build d: s b

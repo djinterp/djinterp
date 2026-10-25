@@ -8,7 +8,7 @@
 * path:      /tests/djinterp/test/sync/test_invariant_tests_bounded.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 // std
@@ -24,7 +24,7 @@ NS_TESTING
 
 bool tests_ibounded_construct_range()
 {
-    dt::bounded_guard<int> guard(0, 100);
+    dt::bounded_guard<int> guard(0, 0, 100);
 
     D_HI_CHECK(guard.low() == 0);
     D_HI_CHECK(guard.high() == 100);
@@ -37,7 +37,7 @@ bool tests_ibounded_construct_range()
 
 bool tests_ibounded_observe_inside()
 {
-    dt::bounded_guard<int> guard(0, 10);
+    dt::bounded_guard<int> guard(0, 0, 10);
 
     D_HI_CHECK(guard.observe(5));
     D_HI_CHECK(guard.observe(1));
@@ -51,7 +51,7 @@ bool tests_ibounded_observe_inside()
 
 bool tests_ibounded_observe_at_bounds()
 {
-    dt::bounded_guard<int> guard(-5, 5);
+    dt::bounded_guard<int> guard(-5, -5, 5);
 
     // both endpoints are inclusive
     D_HI_CHECK(guard.observe(-5));
@@ -64,7 +64,7 @@ bool tests_ibounded_observe_at_bounds()
 
 bool tests_ibounded_observe_below()
 {
-    dt::bounded_guard<int> guard(0, 10);
+    dt::bounded_guard<int> guard(0, 0, 10);
 
     D_HI_CHECK(!guard.observe(-1));
 
@@ -76,7 +76,7 @@ bool tests_ibounded_observe_below()
 
 bool tests_ibounded_observe_above()
 {
-    dt::bounded_guard<int> guard(0, 10);
+    dt::bounded_guard<int> guard(0, 0, 10);
 
     D_HI_CHECK(!guard.observe(11));
 
@@ -88,7 +88,7 @@ bool tests_ibounded_observe_above()
 
 bool tests_ibounded_current_tracks()
 {
-    dt::bounded_guard<int> guard(0, 100);
+    dt::bounded_guard<int> guard(0, 0, 100);
 
     guard.observe(42);
     D_HI_CHECK(guard.current() == 42);
@@ -106,7 +106,7 @@ bool tests_ibounded_current_tracks()
 
 bool tests_ibounded_observation_count()
 {
-    dt::bounded_guard<int> guard(0, 10);
+    dt::bounded_guard<int> guard(0, 0, 10);
 
     guard.observe(1);     // ok
     guard.observe(-4);    // violation
@@ -122,7 +122,7 @@ bool tests_ibounded_observation_count()
 
 bool tests_ibounded_success_predicate()
 {
-    dt::bounded_guard<int> guard(0, 10);
+    dt::bounded_guard<int> guard(0, 0, 10);
 
     D_HI_CHECK(guard.success());
 
@@ -146,7 +146,7 @@ bool tests_ibounded_concurrent_observers_mt()
     const std::size_t threads = 4;
     const std::size_t per     = 500;
 
-    dt::bounded_guard<int> guard(0, 10);
+    dt::bounded_guard<int> guard(0, 0, 10);
 
     std::vector<std::thread> ts;
     for (std::size_t t = 0; t < threads; ++t)

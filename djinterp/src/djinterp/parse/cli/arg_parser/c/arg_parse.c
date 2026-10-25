@@ -22,7 +22,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_parse.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_parser.h"  // corresponding header
 // std
@@ -315,11 +315,15 @@ d_arg_internal_parse_name(
 
 #if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
 
-/*
-d_arg_internal_parse_responses
-  The response files, once the arguments are stacked, when the parser
-reads them: each `@file` replaced by its file's words.
-*/
+/**
+ * @brief Expands the response files on the stack, when the parser reads them.
+ *
+ * @param[in,out] _parser  the parser.
+ * @return D_ARG_OK, or the expansion's failure, recorded.
+ *
+ * The response files, once the arguments are stacked, when the parser
+ * reads them: each `\@file` replaced by its file's words.
+ */
 D_STATIC int
 d_arg_internal_parse_responses(
     struct d_arg_parser* _parser
@@ -332,10 +336,14 @@ d_arg_internal_parse_responses(
 
 #else
 
-/*
-d_arg_internal_parse_responses
-  Without response files built in, nothing to read.
-*/
+/**
+ * @brief Expands the response files on the stack, when the parser reads them.
+ *
+ * @param[in,out] _parser  the parser.
+ * @return D_ARG_OK, or the expansion's failure, recorded.
+ *
+ * Without response files built in, nothing to read.
+ */
 D_STATIC int
 d_arg_internal_parse_responses(
     struct d_arg_parser* _parser
@@ -348,12 +356,20 @@ d_arg_internal_parse_responses(
 
 #endif  // D_INTERNAL_ARG_PARSER_RESPONSE_FILES
 
-/*
-d_arg_internal_parse_stack
-  The arguments after the program's name onto the stack, the last first so
-that the first is on top, as CLI11 reverses them into its vector; then the
-response files.
-*/
+/**
+ * @brief Stacks the arguments after the program's name, the first on top, then
+ *        expands the response files.
+ *
+ * @param[in,out] _parser  the parser.
+ * @param[in]     _argc    how many arguments there are, the program's name
+ *                         among them.
+ * @param[in]     _argv    the arguments.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * The arguments after the program's name onto the stack, the last first so
+ * that the first is on top, as CLI11 reverses them into its vector; then the
+ * response files.
+ */
 D_STATIC int
 d_arg_internal_parse_stack(
     struct d_arg_parser* _parser,
@@ -434,12 +450,21 @@ d_arg_parser_parse(
            : status;
 }
 
-/*
-d_arg_internal_parse_stack_args
-  Arguments given without a program name onto the stack, the first on top
-whichever order they come in, borrowed or copied as asked; an empty
-argument without bytes borrows the empty literal.
-*/
+/**
+ * @brief Stacks arguments given without a program name, the first on top, then
+ *        expands the response files.
+ *
+ * @param[in,out] _parser  the parser.
+ * @param[in]     _args    the arguments.
+ * @param[in]     _count   how many.
+ * @param[in]     _flags   D_ARG_ARGS_* switches: whether they come reversed,
+ *                         and whether they are copied rather than borrowed.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * Arguments given without a program name onto the stack, the first on top
+ * whichever order they come in, borrowed or copied as asked; an empty
+ * argument without bytes borrows the empty literal.
+ */
 D_STATIC int
 d_arg_internal_parse_stack_args(
     struct d_arg_parser*      _parser,
@@ -569,11 +594,17 @@ d_arg_parser_parse_args(
 // 3.  SETUP
 //==============================================================================
 
-/*
-d_arg_internal_parse_unlimited
-  How many of a command's options taking values without end are positional
-only -- all of them, or only those not required.
-*/
+/**
+ * @brief Counts a command's positional-only options that take values without
+ *        end.
+ *
+ * @param[in] _command     the command.
+ * @param[in] _unrequired  whether only those not required count.
+ * @return the count.
+ *
+ * How many of a command's options taking values without end are positional
+ * only -- all of them, or only those not required.
+ */
 D_STATIC size_t
 d_arg_internal_parse_unlimited(
     const struct d_arg_command* _command,
@@ -602,11 +633,18 @@ d_arg_internal_parse_unlimited(
     return total;
 }
 
-/*
-d_arg_internal_parse_check_options
-  The last checks of CLI11's _validate, on the command's requirement for
-options, against its options and its nameless subcommands.
-*/
+/**
+ * @brief Checks a command's requirement for options, as the last checks of
+ *        CLI11's _validate.
+ *
+ * @param[in] _command   the command.
+ * @param[in] _nameless  how many nameless subcommands it has.
+ * @return D_ARG_OK; D_ARG_ERROR_INVALID, recorded, for a minimum above the
+ *         maximum or above the options there are.
+ *
+ * The last checks of CLI11's _validate, on the command's requirement for
+ * options, against its options and its nameless subcommands.
+ */
 D_STATIC int
 d_arg_internal_parse_check_options(
     const struct d_arg_command* _command,
@@ -884,13 +922,20 @@ d_arg_internal_parse_split_windows(
     return true;
 }
 
-/*
-d_arg_internal_parse_valid_subcommand
-  CLI11's _valid_subcommand: a command that has met its maximum of
-subcommands asks only its parent, and only with subcommand fallthrough;
-otherwise a subcommand of its own, then, with subcommand fallthrough, its
-parent's.
-*/
+/**
+ * @brief Tells whether an argument names a subcommand a command can take, as
+ *        CLI11's _valid_subcommand.
+ *
+ * @param[in] _command      the command.
+ * @param[in] _argument     the argument.
+ * @param[in] _ignore_used  whether subcommands used already are passed over.
+ * @return `true` when it does; `false` otherwise.
+ *
+ * CLI11's _valid_subcommand: a command that has met its maximum of
+ * subcommands asks only its parent, and only with subcommand fallthrough;
+ * otherwise a subcommand of its own, then, with subcommand fallthrough, its
+ * parent's.
+ */
 D_STATIC bool
 d_arg_internal_parse_valid_subcommand(
     const struct d_arg_command* _command,
@@ -924,12 +969,19 @@ d_arg_internal_parse_valid_subcommand(
                                                       _ignore_used)) ) );
 }
 
-/*
-d_arg_internal_parse_numeric
-  CLI11's test in _recognize of a short argument that reads as a number --
-a digit after the dash, or a dot and then a digit -- which is a positional
-unless an option answers to the dash and that first character.
-*/
+/**
+ * @brief Tells whether a short argument reads as a number no option claims, as
+ *        CLI11's test in _recognize.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _name     what follows the dash.
+ * @param[in] _rest     what follows the first character.
+ * @return `true` for a number no option answers to; `false` otherwise.
+ *
+ * CLI11's test in _recognize of a short argument that reads as a number --
+ * a digit after the dash, or a dot and then a digit -- which is a positional
+ * unless an option answers to the dash and that first character.
+ */
 D_STATIC bool
 d_arg_internal_parse_numeric(
     const struct d_arg_command* _command,
@@ -954,13 +1006,22 @@ d_arg_internal_parse_numeric(
                                                            2u)) == NULL);
 }
 
-/*
-d_arg_internal_parse_option_form
-  The option forms of CLI11's _recognize, in its order: long; short --
-unless it reads as a number no option claims, which makes it a positional;
-Windows-style where the command takes it. Whether the argument has one of
-them, `_class` receiving which.
-*/
+/**
+ * @brief Tells whether an argument has one of the option forms of CLI11's
+ *        _recognize.
+ *
+ * @param[in]  _command   the command.
+ * @param[in]  _argument  the argument.
+ * @param[out] _class     receives the d_arg_classifier value of its form;
+ *                        D_ARG_CLASS_NONE for a short argument that reads as a
+ *                        number no option claims.
+ * @return `true` when it has an option form; `false` otherwise.
+ *
+ * The option forms of CLI11's _recognize, in its order: long; short --
+ * unless it reads as a number no option claims, which makes it a positional;
+ * Windows-style where the command takes it. Whether the argument has one of
+ * them, `_class` receiving which.
+ */
 D_STATIC bool
 d_arg_internal_parse_option_form(
     const struct d_arg_command* _command,
@@ -1006,11 +1067,18 @@ d_arg_internal_parse_option_form(
                                                  &tail)) );
 }
 
-/*
-d_arg_internal_parse_dotted
-  The last test of CLI11's _recognize: `sub.rest`, where `sub` names a
-subcommand by which `rest` is recognized as a subcommand in turn.
-*/
+/**
+ * @brief Tells whether an argument is `sub.rest` with `rest` a subcommand of
+ *        `sub`'s, as the last test of CLI11's _recognize.
+ *
+ * @param[in] _command      the command.
+ * @param[in] _argument     the argument.
+ * @param[in] _ignore_used  whether subcommands used already are passed over.
+ * @return `true` when it is; `false` otherwise.
+ *
+ * The last test of CLI11's _recognize: `sub.rest`, where `sub` names a
+ * subcommand by which `rest` is recognized as a subcommand in turn.
+ */
 D_STATIC bool
 d_arg_internal_parse_dotted(
     const struct d_arg_command* _command,
@@ -1104,11 +1172,17 @@ d_arg_internal_recognize(
 // 5.  UNUSED ARGUMENTS
 //==============================================================================
 
-/*
-d_arg_internal_parse_capture
-  CLI11's capture_extras: the modes in which a command keeps what it does
-not recognize for remaining().
-*/
+/**
+ * @brief Tells whether an extras mode keeps what a command does not recognize,
+ *        as CLI11's capture_extras.
+ *
+ * @param[in] _mode  the d_arg_extras_mode.
+ * @return `true` for D_ARG_EXTRAS_CAPTURE, D_ARG_EXTRAS_ASSUME_SINGLE and
+ *         D_ARG_EXTRAS_ASSUME_MULTIPLE; `false` otherwise.
+ *
+ * CLI11's capture_extras: the modes in which a command keeps what it does
+ * not recognize for remaining().
+ */
 D_STATIC bool
 d_arg_internal_parse_capture(
     int _mode
@@ -1119,13 +1193,22 @@ d_arg_internal_parse_capture(
              (_mode == (int)D_ARG_EXTRAS_ASSUME_MULTIPLE) );
 }
 
-/*
-d_arg_internal_parse_extras_join
-  The arguments of CLI11's ExtrasError, each after a space, joined as
-CLI11's join joins them -- a space that ends what it joined dropped. The
-arguments are a stack's, read from its top -- its last -- down, or the
-texts of unused arguments, in order.
-*/
+/**
+ * @brief Appends the arguments of CLI11's ExtrasError, joined as CLI11's join
+ *        joins them.
+ *
+ * @param[in,out] _text    the buffer that gains them, its failure kept in it.
+ * @param[in]     _stack   the arguments as a stack holds them, read from its
+ *                         top down; NULL to read `_unused`.
+ * @param[in]     _unused  unused arguments, their texts read in order, when
+ *                         `_stack` is NULL.
+ * @param[in]     _count   how many.
+ *
+ * The arguments of CLI11's ExtrasError, each after a space, joined as
+ * CLI11's join joins them -- a space that ends what it joined dropped. The
+ * arguments are a stack's, read from its top -- its last -- down, or the
+ * texts of unused arguments, in order.
+ */
 D_STATIC void
 d_arg_internal_parse_extras_join(
     struct d_arg_buffer*      _text,
@@ -1213,11 +1296,18 @@ d_arg_internal_parse_extras_error(
     return status;
 }
 
-/*
-d_arg_internal_parse_keep
-  An argument kept among a command's unused arguments, with what it was
-taken to be.
-*/
+/**
+ * @brief Keeps an argument among a command's unused arguments.
+ *
+ * @param[in,out] _command   the command.
+ * @param[in]     _class     what the argument was taken to be, a
+ *                           d_arg_classifier value.
+ * @param[in]     _argument  the argument.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * An argument kept among a command's unused arguments, with what it was
+ * taken to be.
+ */
 D_STATIC int
 d_arg_internal_parse_keep(
     struct d_arg_command* _command,
@@ -1365,10 +1455,15 @@ d_arg_internal_parse_remaining(
     return total;
 }
 
-/*
-d_arg_internal_parse_has_remaining
-  CLI11's _has_remaining_positionals: any positional short of its minimum.
-*/
+/**
+ * @brief Tells whether a positional is short of its minimum, as CLI11's
+ *        _has_remaining_positionals.
+ *
+ * @param[in] _command  the command.
+ * @return `true` when one is; `false` otherwise.
+ *
+ * CLI11's _has_remaining_positionals: any positional short of its minimum.
+ */
 D_STATIC bool
 d_arg_internal_parse_has_remaining(
     const struct d_arg_command* _command
@@ -1587,14 +1682,21 @@ d_arg_internal_parse_list(
                                              _sub));
 }
 
-/*
-d_arg_internal_parse_take_name
-  The subcommand an argument names, the name taken off the stack: CLI11's
-lookup in _parse_subcommand by the whole argument, else -- the main way to
-get here -- by the part before its first dot, the rest then left on the
-stack in its place for the subcommand to parse. NULL, the stack as it was,
-when neither names one.
-*/
+/**
+ * @brief Takes the name of a subcommand off the stack, as CLI11's lookup in
+ *        _parse_subcommand.
+ *
+ * @param[in,out] _command  the command, whose stack loses the name, or keeps a
+ *                          dotted argument's rest in its place.
+ * @return the subcommand named; NULL, the stack as it was, when the argument
+ *         names none.
+ *
+ * The subcommand an argument names, the name taken off the stack: CLI11's
+ * lookup in _parse_subcommand by the whole argument, else -- the main way to
+ * get here -- by the part before its first dot, the rest then left on the
+ * stack in its place for the subcommand to parse. NULL, the stack as it was,
+ * when neither names one.
+ */
 D_STATIC struct d_arg_command*
 d_arg_internal_parse_take_name(
     struct d_arg_command* _command
@@ -1647,13 +1749,18 @@ d_arg_internal_parse_take_name(
     return dotted;
 }
 
-/*
-d_arg_internal_parse_enter
-  CLI11's parse of a subcommand named in _parse_subcommand: listed among
-the command's parsed subcommands unless silent, then parsed; then each
-option group between the two -- when it was found in one -- has its
-pre-parse step and lists it too.
-*/
+/**
+ * @brief Parses a subcommand named, as CLI11's _parse_subcommand does.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in,out] _sub      the subcommand.
+ * @return D_ARG_OK, or the error a step raised, recorded.
+ *
+ * CLI11's parse of a subcommand named in _parse_subcommand: listed among
+ * the command's parsed subcommands unless silent, then parsed; then each
+ * option group between the two -- when it was found in one -- has its
+ * pre-parse step and lists it too.
+ */
 D_STATIC int
 d_arg_internal_parse_enter(
     struct d_arg_command* _command,
@@ -1687,16 +1794,24 @@ d_arg_internal_parse_enter(
     return status;
 }
 
-/*
-d_arg_internal_parse_subcommand
-  CLI11's _parse_subcommand: while a required positional still waits for
-values, a subcommand's name is a positional; otherwise the subcommand it
-names is parsed. A name only a parent's subcommand answers to, through
-subcommand fallthrough, ends the command -- and at the root, where none
-can, is CLI11's HorribleError. Where CLI11 goes on after a positional
-nothing took, meeting it again for ever, the command ends instead, leaving
-it to its parent.
-*/
+/**
+ * @brief Deals with an argument that names a subcommand, as CLI11's
+ *        _parse_subcommand.
+ *
+ * @param[in,out] _command  the command.
+ * @param[out]    _go_on    receives whether the command goes on: `false` when
+ *                          it ends, leaving the argument to a parent.
+ * @return D_ARG_OK; D_ARG_ERROR_HORRIBLE, recorded, for a name nothing at the
+ *         root answers to; or the error a step raised, recorded.
+ *
+ * CLI11's _parse_subcommand: while a required positional still waits for
+ * values, a subcommand's name is a positional; otherwise the subcommand it
+ * names is parsed. A name only a parent's subcommand answers to, through
+ * subcommand fallthrough, ends the command -- and at the root, where none
+ * can, is CLI11's HorribleError. Where CLI11 goes on after a positional
+ * nothing took, meeting it again for ever, the command ends instead, leaving
+ * it to its parent.
+ */
 D_STATIC int
 d_arg_internal_parse_subcommand(
     struct d_arg_command* _command,
@@ -1764,11 +1879,16 @@ d_arg_internal_increment_parsed(
     return;
 }
 
-/*
-d_arg_internal_parse_preparse
-  A command's pre-parse callback, watched, so that a failure it returns
-without recording is recorded.
-*/
+/**
+ * @brief Runs a command's pre-parse callback, watched.
+ *
+ * @param[in,out] _command    the command.
+ * @param[in]     _remaining  how many arguments are left.
+ * @return D_ARG_OK, or the failure the callback returned, recorded.
+ *
+ * A command's pre-parse callback, watched, so that a failure it returns
+ * without recording is recorded.
+ */
 D_STATIC int
 d_arg_internal_parse_preparse(
     struct d_arg_command* _command,
@@ -1790,12 +1910,17 @@ d_arg_internal_parse_preparse(
                                       status);
 }
 
-/*
-d_arg_internal_parse_fresh
-  CLI11's fresh start of an immediate-callback subcommand met again: its
-clear(), keeping its count and its unused arguments, with its pre-parse
-step counted as done.
-*/
+/**
+ * @brief Starts an immediate-callback subcommand met again afresh, as CLI11's
+ *        clear().
+ *
+ * @param[in,out] _command  the subcommand, which keeps its count and its unused
+ *                          arguments.
+ *
+ * CLI11's fresh start of an immediate-callback subcommand met again: its
+ * clear(), keeping its count and its unused arguments, with its pre-parse
+ * step counted as done.
+ */
 D_STATIC void
 d_arg_internal_parse_fresh(
     struct d_arg_command* _command
@@ -1849,13 +1974,20 @@ d_arg_internal_trigger_pre_parse(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_parse_mark
-  CLI11's `--`, taken off the stack: a prefix command keeps it and all that
-follows among its unused arguments, whatever its extras mode; a subcommand
-whose positionals have all they need ends at it, leaving what follows to
-its parent; anything else keeps it as an unused argument.
-*/
+/**
+ * @brief Deals with a `--` taken off the stack, as CLI11 does.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _mark     the argument.
+ * @param[out]    _go_on    receives `false` when the command ends at it;
+ *                          untouched otherwise.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * CLI11's `--`, taken off the stack: a prefix command keeps it and all that
+ * follows among its unused arguments, whatever its extras mode; a subcommand
+ * whose positionals have all they need ends at it, leaving what follows to
+ * its parent; anything else keeps it as an unused argument.
+ */
 D_STATIC int
 d_arg_internal_parse_mark(
     struct d_arg_command* _command,
@@ -1890,12 +2022,21 @@ d_arg_internal_parse_mark(
                                            _mark);
 }
 
-/*
-d_arg_internal_parse_lone
-  CLI11's step for an argument recognized as nothing else: probably a
-positional, or something for a parent; one taken under positionals-at-end
-makes every later argument a positional.
-*/
+/**
+ * @brief Deals with an argument recognized as nothing else, as CLI11's step for
+ *        one.
+ *
+ * @param[in,out] _command          the command.
+ * @param[in,out] _positional_only  whether every later argument is a
+ *                                  positional; set when one is taken under
+ *                                  positionals-at-end.
+ * @param[out]    _go_on            receives whether the command goes on.
+ * @return D_ARG_OK, or the error a step raised, recorded.
+ *
+ * CLI11's step for an argument recognized as nothing else: probably a
+ * positional, or something for a parent; one taken under positionals-at-end
+ * makes every later argument a positional.
+ */
 D_STATIC int
 d_arg_internal_parse_lone(
     struct d_arg_command* _command,
@@ -1919,12 +2060,20 @@ d_arg_internal_parse_lone(
     return status;
 }
 
-/*
-d_arg_internal_parse_single
-  CLI11's _parse_single: the next argument recognized -- or, once the
-positionals stand alone, taken as one -- and handed to its step; the `++`
-that ends a named subcommand is taken off the stack and ends it.
-*/
+/**
+ * @brief Parses the next argument, as CLI11's _parse_single.
+ *
+ * @param[in,out] _command          the command.
+ * @param[in,out] _positional_only  whether the positionals stand alone; set at
+ *                                  a `--`, or when one is taken under
+ *                                  positionals-at-end.
+ * @param[out]    _go_on            receives whether the command goes on.
+ * @return D_ARG_OK, or the error a step raised, recorded.
+ *
+ * CLI11's _parse_single: the next argument recognized -- or, once the
+ * positionals stand alone, taken as one -- and handed to its step; the `++`
+ * that ends a named subcommand is taken off the stack and ends it.
+ */
 D_STATIC int
 d_arg_internal_parse_single(
     struct d_arg_command* _command,

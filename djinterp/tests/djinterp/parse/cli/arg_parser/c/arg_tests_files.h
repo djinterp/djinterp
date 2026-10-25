@@ -1,10 +1,12 @@
 /*******************************************************************************
 * djinterp [parse]                                             arg_tests_files.h
 *
-* A scratch directory for the argument parser's C suites: files and
+* A scratch directory for the argument parser's suites: files and
 * directories a section makes, by name, in a fresh directory that is the
 * working directory while the section runs, and that is removed with
-* everything in it when the section is done.
+* everything in it when the section is done. It is C, and its calls have C
+* linkage in C++, so that the C++ suites -- and the CLI11 programs their
+* transcripts come from -- make their files with it too.
 *   The suites that ask the file system -- the path validators, and the
 * configuration and response files read from disk -- name what they made by
 * relative paths, so that their transcripts are the same text on every
@@ -19,7 +21,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_tests_files.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 
 /*
@@ -54,6 +56,7 @@ TABLE OF CONTENTS
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
 // djinterp
+#include "../../../../../../inc/djinterp/c/djinterp.h"  // framework root
 #include "../../../../../../inc/djinterp/env/parse/cli/arg_parser/env_arg_parser.h"  // D_ENV_ARG_PARSER_STAT
 
 
@@ -128,6 +131,8 @@ struct d_tests_arg_files
 // it was made, and a failure also sets `failed`, so that a section can make
 // everything and look once.
 
+
+D_EXTERN_C_BEGIN
 
 // 2.1    Entering and leaving
 //------------------------------------------------------------------------------
@@ -240,6 +245,8 @@ bool d_tests_arg_files_fifo(struct d_tests_arg_files* _files,
                             const char*               _name);
 
 #endif  // D_TESTS_ARG_FILES_POSIX
+
+D_EXTERN_C_END
 
 
 #endif  // DJINTERP_PARSE_CLI_ARG_PARSER_C_ARG_TESTS_FILES_H

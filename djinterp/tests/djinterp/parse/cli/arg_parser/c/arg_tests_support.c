@@ -17,7 +17,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_tests_support.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_tests_support.h"  // corresponding header
 // std
@@ -66,10 +66,13 @@ union d_tests_arg_variable
 
 #if (D_INTERNAL_ARG_PARSER_SUGGESTIONS == 1)
 
-/*
-d_tests_arg_quiet
-  Turns the parser's suggestions off, so that its messages are CLI11's.
-*/
+/**
+ * @brief Keeps a parser's messages CLI11's.
+ *
+ * @param[in,out] _parser  the parser.
+ *
+ * Turns the parser's suggestions off, so that its messages are CLI11's.
+ */
 static void
 d_tests_arg_quiet(
     struct d_arg_parser* _parser
@@ -83,10 +86,13 @@ d_tests_arg_quiet(
 
 #else
 
-/*
-d_tests_arg_quiet
-  Nothing to turn off: a build without suggestions has CLI11's messages.
-*/
+/**
+ * @brief Keeps a parser's messages CLI11's.
+ *
+ * @param[in,out] _parser  the parser.
+ *
+ * Nothing to turn off: a build without suggestions has CLI11's messages.
+ */
 static void
 d_tests_arg_quiet(
     struct d_arg_parser* _parser
@@ -99,11 +105,15 @@ d_tests_arg_quiet(
 
 #endif  // D_INTERNAL_ARG_PARSER_SUGGESTIONS
 
-/*
-d_tests_arg_report_command
-  One `cmd` line: the uses, the arguments the command did not use, the
-subcommands it parsed, and its options in the order met.
-*/
+/**
+ * @brief Writes a watched command's `cmd` line to a run's transcript.
+ *
+ * @param[in,out] _run    the run, whose transcript gains the line.
+ * @param[in]     _watch  the watch: the command and its label.
+ *
+ * One `cmd` line: the uses, the arguments the command did not use, the
+ * subcommands it parsed, and its options in the order met.
+ */
 static void
 d_tests_arg_report_command(
     struct d_tests_arg_run*                 _run,
@@ -162,11 +172,15 @@ d_tests_arg_report_command(
     return;
 }
 
-/*
-d_tests_arg_report_option
-  One `opt` line: how many values the option was given, and the values as
-given, escaped.
-*/
+/**
+ * @brief Writes a watched option's `opt` line to a run's transcript.
+ *
+ * @param[in,out] _run    the run, whose transcript gains the line.
+ * @param[in]     _watch  the watch: the option and its label.
+ *
+ * One `opt` line: how many values the option was given, and the values as
+ * given, escaped.
+ */
 static void
 d_tests_arg_report_option(
     struct d_tests_arg_run*                _run,
@@ -200,11 +214,15 @@ d_tests_arg_report_option(
     return;
 }
 
-/*
-d_tests_arg_show
-  Prints text under a heading, each line indented and marked, so that an
-empty line and a line's trailing spaces can be seen.
-*/
+/**
+ * @brief Prints text under a heading, line by line.
+ *
+ * @param[in] _heading  the heading.
+ * @param[in] _text     the text.
+ *
+ * Prints text under a heading, each line indented and marked, so that an
+ * empty line and a line's trailing spaces can be seen.
+ */
 static void
 d_tests_arg_show(
     const char*        _heading,
@@ -1491,12 +1509,17 @@ d_tests_arg_escape(
 // 4.  VALIDATORS
 //==============================================================================
 
-/*
-d_tests_arg_validation_line
-  One value's line: the value, then what came of it -- `pass` and the value
-it became, `fail` and the reason, or `status` and whatever the validator
-wrote before it stopped with an error.
-*/
+/**
+ * @brief Writes what a validator made of one value, as one line.
+ *
+ * @param[in]     _validator  the validator.
+ * @param[in]     _input      the value.
+ * @param[in,out] _out        the buffer that gains the line.
+ *
+ * One value's line: the value, then what came of it -- `pass` and the value
+ * it became, `fail` and the reason, or `status` and whatever the validator
+ * wrote before it stopped with an error.
+ */
 static void
 d_tests_arg_validation_line(
     const struct d_arg_validator* _validator,
@@ -1606,13 +1629,24 @@ d_tests_arg_holds(
     return same;
 }
 
-/*
-d_tests_arg_define_checked
-  Defines the option a d_tests_arg_validates parse validates on the run's
-root, bound to the variable, and hands it the validator, which is consumed
-whether or not the option could be defined; the option, or NULL -- also for
-a root that could not be made -- which fails the run.
-*/
+/**
+ * @brief Defines a checked option, bound to a variable, and hands it its
+ *        validator.
+ *
+ * @param[in,out] _run        the run, which watches the option, and fails when
+ *                            it could not be made or its validator was refused.
+ * @param[in,out] _app        the root command.
+ * @param[in]     _option     the option's name and type, and whether its
+ *                            validator transforms.
+ * @param[in]     _validator  the validator, consumed either way.
+ * @param[in]     _variable   the variable bound, which the parse writes.
+ * @return the option; NULL when it could not be defined.
+ *
+ * Defines the option a d_tests_arg_validates parse validates on the run's
+ * root, bound to the variable, and hands it the validator, which is consumed
+ * whether or not the option could be defined; the option, or NULL -- also for
+ * a root that could not be made -- which fails the run.
+ */
 static struct d_arg_option*
 d_tests_arg_define_checked(
     struct d_tests_arg_run*           _run,

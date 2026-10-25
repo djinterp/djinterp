@@ -11,8 +11,10 @@
 * and counts the rows it changed; d_sqlite_execute_query runs it and returns
 * its rows, typed as sqlite_query.h describes. Each run starts from the
 * beginning and ends with the statement reset and its values kept, so the next
-* run needs nothing first, and no lock outlives a run. d_sqlite_finalize
-* releases the statement.
+* run needs nothing first, and no lock outlives a run. d_sqlite_open_cursor
+* begins a run whose rows d_sqlite_fetch_rows reads a few at a time, as SQLite
+* steps through them, until a fetch comes back short or d_sqlite_close_cursor
+* ends it. d_sqlite_finalize releases the statement.
 *   RESULTS. As every module's (sqlite_common.h): SQLITE_OK, or SQLite's
 * result code for a failure, which d_sqlite_error_message on the statement's
 * connection then describes; SQLITE_RANGE for a parameter the statement does
@@ -24,7 +26,7 @@
 * path:      /inc/djinterp/c/db/sqlite/sqlite_statement.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -43,6 +45,7 @@ TABLE OF CONTENTS
     -------
     1.  Rows changed
     2.  Rows
+    3.  Rows a few at a time
 */
 
 #ifndef DJINTERP_C_DB_SQLITE_SQLITE_STATEMENT_H
@@ -58,9 +61,10 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict
-// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
-// ruling of 2026.10.03 on round 3's question 1, (a)).
+// declares only where the build can spell one. Below it -- ISO strict C++98
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
+// question 1, (a)).
 #if defined(INT64_MAX)
 
 
@@ -149,7 +153,9 @@ struct sqlite3*
 // NULL binding NULL; bytes, `_size` of them copied, NULL binding NULL and a
 // pointer to none an empty BLOB. Each returns SQLITE_OK; SQLITE_RANGE for a
 // parameter the statement does not have; SQLITE_TOOBIG for text or bytes
-// past SQLite's limit; SQLITE_NOMEM; or SQLITE_MISUSE for a NULL statement.
+// past SQLite's limit; SQLITE_NOMEM; or SQLITE_MISUSE for a NULL statement,
+// or for one part-way through a run (section 3.3), whose values SQLite reads
+// as it goes.
 int    d_sqlite_bind_null(struct sqlite3_stmt* _statement,
                           size_t               _index) D_NOTHROW;
 int    d_sqlite_bind_bool(struct sqlite3_stmt* _statement,
@@ -172,7 +178,7 @@ int    d_sqlite_bind_blob(struct sqlite3_stmt* _statement,
 // 2.2    Clearing
 //------------------------------------------------------------------------------
 // clearing -- every parameter NULL again: SQLITE_OK, or SQLITE_MISUSE for a
-// NULL statement
+// NULL statement, or for one part-way through a run, as binding
 int    d_sqlite_clear_bindings(struct sqlite3_stmt* _statement) D_NOTHROW;
 
 
@@ -214,6 +220,47 @@ int    d_sqlite_execute_update(struct sqlite3_stmt* _statement,
  */
 int    d_sqlite_execute_query(struct sqlite3_stmt* _statement,
                               struct d_db_rows*    _rows) D_NOTHROW;
+
+// 3.3    Rows a few at a time
+//------------------------------------------------------------------------------
+/**
+ * @brief Begins a run of a statement whose rows d_sqlite_fetch_rows then
+ *        reads a few at a time, rather than all at once.
+ *
+ * @note SQLite runs the statement step by step, as its rows are fetched, so
+ *       the run begins with the first fetch, and from then until it ends the
+ *       statement's values cannot change: binding one, or clearing them, is
+ *       SQLITE_MISUSE. Meanwhile the connection runs other statements;
+ *       running this one again, by any of the functions above, ends the run
+ *       and begins another.
+ *
+ * @param[in] _statement  the statement, its values bound.
+ * @return SQLITE_OK; SQLITE_MISUSE for a `NULL` statement.
+ * @post The statement is reset, its values kept.
+ */
+int    d_sqlite_open_cursor(struct sqlite3_stmt* _statement) D_NOTHROW;
+/**
+ * @brief Reads the next rows of the run d_sqlite_open_cursor began.
+ *
+ * @param[in]  _statement  the statement.
+ * @param[in]  _max        the most rows to read; 1 or more.
+ * @param[out] _rows       receives the columns and up to `_max` rows, typed
+ *                         as sqlite_query.h describes; fewer -- none among
+ *                         them -- once the run has none left, which ends it:
+ *                         the statement is then reset, and a further fetch
+ *                         begins another run. Written only on success.
+ * @return SQLITE_OK; SQLITE_NOMEM when the rows could not be built; the
+ *         SQLite result code of the step that failed, which ends the run;
+ *         SQLITE_MISUSE for a `NULL` argument or no rows asked for.
+ * @post On success the caller releases `_rows` with d_db_rows_free.
+ */
+int    d_sqlite_fetch_rows(struct sqlite3_stmt* _statement,
+                           size_t               _max,
+                           struct d_db_rows*    _rows) D_NOTHROW;
+// ending a run -- _close_cursor ends the run d_sqlite_open_cursor began,
+// whatever rows it had left, and resets the statement, its values kept:
+// SQLITE_OK, or SQLITE_MISUSE for NULL
+int    d_sqlite_close_cursor(struct sqlite3_stmt* _statement) D_NOTHROW;
 
 
 D_EXTERN_C_END

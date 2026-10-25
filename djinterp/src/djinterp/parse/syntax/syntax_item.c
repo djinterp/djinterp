@@ -100,7 +100,6 @@ struct d_internal_scratch
     uint32_t  operator_at;   // an `operator` keyword
     uint32_t  provisional;   // end of a completed body, while waiting
     uint16_t  seen;          // significant children so far
-    uint16_t  angle;         // open `<` of a template's parameter list
     uint8_t   state;
     uint8_t   saw_typedef;
     uint8_t   linkage;
@@ -108,12 +107,6 @@ struct d_internal_scratch
     uint8_t   macro_head;
     uint8_t   else_seen;
     uint8_t   enum_like;
-    uint8_t   init_list;     // a `:` after the parameter group: a
-                             // constructor's initializer list is open
-    uint8_t   base_clause;   // a `:` after a tag keyword and before any
-                             // parameter group: a class's bases are open
-    uint16_t  head_angle;    // open `<` of the template arguments a tag's
-                             // name is given, before any parameter group
 };
 
 // 1.3.2
@@ -132,8 +125,9 @@ struct d_internal_build
     uint8_t*                       mode;       // per opener: its scope mode
     uint32_t*                      owner;      // per opener: owning item
     uint32_t*                      last_item;  // per opener: last item in it
-    uint8_t*                       pp;         // per token: open conditionals,
-                                               // the include guard excluded
+    uint8_t*                       pp;         // per token: open conditionals
+    uint8_t                        file_pp;    // around the whole file: its
+                                               // include guard
 };
 
 // 1.3.3
@@ -148,12 +142,6 @@ struct d_internal_scope
     uint8_t   base_level;
     uint8_t   base_pp;
     bool      under_label;
-    bool      after_label;   // nothing has been opened since a `case` or
-                             // `default` label ended
-    uint32_t  ns_indents;    // per open namespace macro: whether it indents
-    uint8_t   ns_depth;      // namespace macros open, in a file scope
-    uint32_t  skip_to;       // children up to here are an item already made,
-                             // or D_SYNTAX_NONE
     uint32_t  cur;
     uint32_t  prev_extent;
 };
@@ -550,58 +538,6 @@ d_internal_set_scope(
 
 
 /**
- * @brief Follows a template argument list through a declaration's head.
- *
- * @note A `<` that follows a name, or `template`, opens one; each `>` closes
- *       one and `>>` two. A caller that stops at an initializer never meets a
- *       comparison, so in a declaration's head a `<` after a name is always
- *       the list's. C has neither, and is left as it was.
- *
- * @param[in]     _kind   the token's kind.
- * @param[in]     _prev   the kind of the significant token before it.
- * @param[in,out] _angle  the lists open before the token; after, on return.
- * @return `true` if the token opens a list, lies inside one or closes one,
- *         and so is no part of the declaration's own spelling.
- */
-static bool
-d_internal_angle(
-    int       _kind,
-    int       _prev,
-    unsigned* _angle
-)
-{
-    if (*_angle == 0u)
-    {
-        // the list opens after a name or the keyword
-        if ( (_kind == D_TOKEN_LESS) &&
-             ( (_prev == D_TOKEN_IDENTIFIER) ||
-               (_prev == D_TOKEN_KW_TEMPLATE) ) )
-        {
-            *_angle = 1u;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    if (_kind == D_TOKEN_LESS)
-    {
-        ++*_angle;
-    }
-    else if (_kind == D_TOKEN_GREATER)
-    {
-        --*_angle;
-    }
-    else if (_kind == D_TOKEN_SHIFT_RIGHT)
-    {
-        *_angle = (*_angle > 2u) ? (*_angle - 2u) : 0u;
-    }
-
-    return true;
-}
-
-/**
  * @brief Finds what a declaration or typedef declares.
  *
  * A parenthesis whose first child is `*` and which is followed by a parameter
@@ -625,7 +561,6 @@ d_internal_declarator(
 
     uint32_t name      = D_SYNTAX_NONE;
     int      prev_kind = D_TOKEN_END;
-    unsigned angle     = 0u;
 
     for (uint32_t at = item->first;
          at < end;
@@ -635,16 +570,6 @@ d_internal_declarator(
 
         if (d_internal_is_trivia(token))
         {
-            continue;
-        }
-
-        // a template argument list holds neither the name nor the comma
-        // that would end the search: `std::map<int, d_x> m_map` declares
-        // m_map
-        if (d_internal_angle(token->kind, prev_kind, &angle))
-        {
-            prev_kind = token->kind;
-
             continue;
         }
 
@@ -674,7 +599,6 @@ d_internal_declarator(
             {
                 item->name   = d_internal_inner_identifier(_b, at);
                 item->flags |= D_SYNTAX_ITEM_FLAG_FN_POINTER;
-
                 return;
             }
 
@@ -734,30 +658,12 @@ d_internal_classify_param(
     int      cand_prev  = D_TOKEN_END;
     uint32_t specs      = 0u;
     uint32_t cand_specs = 0u;
-    unsigned angle      = 0u;
 
     for (uint32_t at = item->first;
          at < end;
          at = d_internal_next_child(_b, at, scope, end))
     {
         const struct d_token* const token = &_b->tokens[at];
-
-        // a template argument list is part of the type: what it holds is
-        // no candidate, and the `>` that closes it is what the parameter
-        // so far ends with
-        if (d_internal_angle(token->kind, prev_kind, &angle))
-        {
-            if (angle == 0u)
-            {
-                candidate  = at;
-                cand_prev  = prev_kind;
-                cand_specs = specs;
-            }
-
-            prev_kind = token->kind;
-
-            continue;
-        }
 
         // the separating comma and a default argument are not declarator
         if ( d_internal_is_trivia(token) || (token->kind == D_TOKEN_COMMA) )
@@ -816,7 +722,6 @@ d_internal_classify_param(
     if ((count == 1u) && (first_kind == D_TOKEN_KW_VOID))
     {
         item->flags |= D_SYNTAX_ITEM_FLAG_VOID | D_SYNTAX_ITEM_FLAG_UNNAMED;
-
         return;
     }
 
@@ -824,7 +729,6 @@ d_internal_classify_param(
     {
         item->flags |= D_SYNTAX_ITEM_FLAG_VARIADIC |
                        D_SYNTAX_ITEM_FLAG_UNNAMED;
-
         return;
     }
 
@@ -832,11 +736,9 @@ d_internal_classify_param(
     if ( (candidate != D_SYNTAX_NONE) &&
          (_b->tokens[candidate].kind == D_TOKEN_IDENTIFIER) &&
          (!d_internal_is_tag_keyword(cand_prev)) &&
-         (cand_prev != D_TOKEN_SCOPE)            &&
          (cand_specs >= 1u) )
     {
         item->name = candidate;
-
         return;
     }
 
@@ -865,8 +767,6 @@ d_internal_returns_void(
     const uint32_t                    scope = item->scope;
     const uint32_t                    end   = item->name;
     bool                              seen  = false;
-    unsigned                          angle = 0u;
-    int                               prev  = D_TOKEN_END;
 
     if (end == D_SYNTAX_NONE)
     {
@@ -878,16 +778,6 @@ d_internal_returns_void(
          at = d_internal_next_child(_b, at, scope, end))
     {
         const int kind = _b->tokens[at].kind;
-
-        // a template argument list: `result<void>` returns a result
-        if (d_internal_angle(kind, prev, &angle))
-        {
-            prev = kind;
-
-            continue;
-        }
-
-        prev = kind;
 
         if ((kind == D_TOKEN_STAR) || (kind == D_TOKEN_PAREN_OPEN))
         {
@@ -903,128 +793,6 @@ d_internal_returns_void(
     return seen;
 }
 
-
-/**
- * @brief Reports whether two tokens are spelled alike.
- *
- * @param[in] _b  the recognition in progress.
- * @param[in] _x  one token's index.
- * @param[in] _y  the other's.
- * @return `true` if their text is the same, `false` otherwise.
- */
-static bool
-d_internal_same_spelling(
-    const struct d_internal_build* _b,
-    uint32_t                       _x,
-    uint32_t                       _y
-)
-{
-    const struct d_token* const x = &_b->tokens[_x];
-    const struct d_token* const y = &_b->tokens[_y];
-
-    return ( (x->span.length == y->span.length) &&
-             (memcmp(_b->text + x->span.offset,
-                     _b->text + y->span.offset,
-                     x->span.length) == 0) );
-}
-
-/**
- * @brief Finds the name of the class whose member list a scope is.
- *
- * @param[in] _b  the recognition in progress.
- * @param[in] _s  the scope.
- * @return the tag's token index: the identifier after the `struct`, `class`
- *         or `union` of the item that owns the scope; D_SYNTAX_NONE when the
- *         scope is no member list or the class has no name.
- */
-static uint32_t
-d_internal_class_tag(
-    const struct d_internal_build* _b,
-    const struct d_internal_scope* _s
-)
-{
-    if ( (_s->mode != D_INTERNAL_MODE_MEMBERS) ||
-         (_s->opener == D_SYNTAX_NONE) )
-    {
-        return D_SYNTAX_NONE;
-    }
-
-    const uint32_t owner = _b->owner[_s->opener];
-
-    if (owner == D_SYNTAX_NONE)
-    {
-        return D_SYNTAX_NONE;
-    }
-
-    const uint32_t tag = _b->scratch[owner].struct_at;
-
-    // the keyword, and the identifier straight after it
-    if ( (tag == D_SYNTAX_NONE)          ||
-         ((tag + 1u) >= _b->count)       ||
-         (_b->tokens[tag + 1u].kind != D_TOKEN_IDENTIFIER) )
-    {
-        return D_SYNTAX_NONE;
-    }
-
-    return tag + 1u;
-}
-
-/**
- * @brief Reports whether a function has no return type: a constructor or a
- *        destructor.
- *
- * @note Three shapes: `~name`; `name::name`, a constructor defined outside
- *       its class; and, in a member list, the class's own name. A function
- *       whose name merely follows specifiers cannot be told from one whose
- *       name follows a type, so the class's name is what decides.
- *
- * @param[in] _b  the recognition in progress.
- * @param[in] _s  the scope the function was found in.
- * @param[in] _k  the function's item index.
- * @return `true` for a constructor or a destructor, `false` otherwise.
- */
-static bool
-d_internal_no_return_type(
-    const struct d_internal_build* _b,
-    const struct d_internal_scope* _s,
-    uint32_t                       _k
-)
-{
-    const struct d_syntax_item* const item = &_b->out->items[_k];
-    const uint32_t                    name = item->name;
-
-    if ( (name == D_SYNTAX_NONE) ||
-         (_b->tokens[name].kind != D_TOKEN_IDENTIFIER) )
-    {
-        return false;
-    }
-
-    // `~name`: a destructor, in its class or out of it
-    if ( (name > item->first) &&
-         (_b->tokens[name - 1u].kind == D_TOKEN_TILDE) )
-    {
-        return true;
-    }
-
-    // `name::name`: the qualifier is spelled like the function
-    if ( (name > item->first) &&
-         (_b->tokens[name - 1u].kind == D_TOKEN_SCOPE) )
-    {
-        for (uint32_t at = item->first; at < (name - 1u); ++at)
-        {
-            if ( (_b->tokens[at].kind == D_TOKEN_IDENTIFIER) &&
-                 (d_internal_same_spelling(_b, at, name)) )
-            {
-                return true;
-            }
-        }
-    }
-
-    const uint32_t tag = d_internal_class_tag(_b, _s);
-
-    return ( (tag != D_SYNTAX_NONE) &&
-             (d_internal_same_spelling(_b, tag, name)) );
-}
 
 /**
  * @brief Settles what a just-completed item is.
@@ -1048,13 +816,11 @@ d_internal_classify(
     {
         case D_SYNTAX_ITEM_PARAM:
             d_internal_classify_param(_b, _k);
-
             return;
 
         case D_SYNTAX_ITEM_ENUMERATOR:
             item->name = (first_kind == D_TOKEN_IDENTIFIER) ? item->first
                                                             : D_SYNTAX_NONE;
-
             return;
 
         case D_SYNTAX_ITEM_FN_DEF:
@@ -1065,10 +831,6 @@ d_internal_classify(
             if (scratch->macro_head)
             {
                 item->flags |= D_SYNTAX_ITEM_FLAG_MACRO_HEAD;
-            }
-            else if (d_internal_no_return_type(_b, _s, _k))
-            {
-                item->flags |= D_SYNTAX_ITEM_FLAG_NO_RETURN;
             }
             else if (d_internal_returns_void(_b, _k))
             {
@@ -1136,11 +898,7 @@ d_internal_classify(
         d_internal_set_scope(_b, scratch->fn_params,
                              D_INTERNAL_MODE_PARAMS, _k);
 
-        if (d_internal_no_return_type(_b, _s, _k))
-        {
-            item->flags |= D_SYNTAX_ITEM_FLAG_NO_RETURN;
-        }
-        else if (d_internal_returns_void(_b, _k))
+        if (d_internal_returns_void(_b, _k))
         {
             item->flags |= D_SYNTAX_ITEM_FLAG_RETURNS_VOID;
         }
@@ -1155,7 +913,6 @@ d_internal_classify(
     {
         item->flags |= D_SYNTAX_ITEM_FLAG_MACRO_HEAD |
                        D_SYNTAX_ITEM_FLAG_UNNAMED;
-
         return;
     }
 
@@ -1188,7 +945,6 @@ d_internal_body_done(
     {
         scratch->state       = D_INTERNAL_ST_ELSE;
         scratch->provisional = _last;
-
         return false;
     }
 
@@ -1196,7 +952,6 @@ d_internal_body_done(
     {
         scratch->state       = D_INTERNAL_ST_DO_WHILE;
         scratch->provisional = _last;
-
         return false;
     }
 
@@ -1204,7 +959,6 @@ d_internal_body_done(
     {
         scratch->state       = D_INTERNAL_ST_CATCH;
         scratch->provisional = _last;
-
         return false;
     }
 
@@ -1267,59 +1021,6 @@ d_internal_complete(
 
 
 /**
- * @brief Counts the conditionals an item stands in, or stands under.
- *
- * @note An `if` whose head is chosen by `#if` has two texts and one body:
- *
- *           #if D_HAS_RDHUP
- *               if (_bits & (EPOLLHUP | EPOLLRDHUP))
- *           #else
- *               if (_bits & EPOLLHUP)
- *           #endif
- *               {
- *
- *       Read as it is written that is one `if` inside another, and the body
- *       a level further in than it is. What an item owns takes the item's
- *       conditionals with it: the layout rules ask nothing of it, as they
- *       ask nothing of what stands inside the `#if` itself. A transparent
- *       block passes nothing on -- every C header's declarations stand in
- *       an `extern "C"` opened under `#ifdef __cplusplus`.
- *
- * @param[in] _b       the recognition in progress.
- * @param[in] _s       the scope the item is opened in.
- * @param[in] _at      the item's first token.
- * @param[in] _parent  the item it is a braceless body of, or
- *                     `D_SYNTAX_NONE`.
- * @return the conditionals around the token, or around the item's owner if
- *         that is more.
- */
-static uint8_t
-d_internal_pp_reach(
-    const struct d_internal_build* _b,
-    const struct d_internal_scope* _s,
-    uint32_t                       _at,
-    uint32_t                       _parent
-)
-{
-    const uint32_t owner =
-        (_parent != D_SYNTAX_NONE)
-        ? _parent
-        : ( (_s->opener != D_SYNTAX_NONE) &&
-            (_s->mode != D_INTERNAL_MODE_FILE) )
-          ? _b->owner[_s->opener]
-          : D_SYNTAX_NONE;
-    const uint8_t  own   = _b->pp[_at];
-
-    if ( (owner != D_SYNTAX_NONE) &&
-         (_b->out->items[owner].pp_total > own) )
-    {
-        return _b->out->items[owner].pp_total;
-    }
-
-    return own;
-}
-
-/**
  * @brief Opens an item at a child.
  *
  * A braceless body sits one level inside its owner; an item under a `case`
@@ -1358,13 +1059,9 @@ d_internal_open(
     item->parent = _parent;
     item->scope  = _s->opener;
 
-    // under a label a statement is indented a level, but the label's own
-    // braced body is not: `case X:` then `{` on the label's column, its
-    // contents one in.  That is the brace that follows the label and
-    // nothing else; a block further down the same case is a statement
-    // among the others, and indented as they are
-    const bool     compound = ( (kind == D_TOKEN_BRACE_OPEN) &&
-                                (_s->after_label) );
+    // under a label a statement is indented a level, but a braced body is
+    // not: `case X:` then `{` on the label's column, its contents one in
+    const bool     compound = (kind == D_TOKEN_BRACE_OPEN);
     const bool     indented = ( _s->under_label &&
                                 (!label)        &&
                                 (!compound) );
@@ -1373,18 +1070,13 @@ d_internal_open(
         ? (unsigned)_b->out->items[_parent].level + 1u
         : (unsigned)_s->base_level + (indented ? 1u : 0u);
 
-    // anything but another label ends the place just after the label:
-    // `case 1:` `case 2:` `{` is both labels' body
-    if ( (!label) && (_parent == D_SYNTAX_NONE) )
-    {
-        _s->after_label = false;
-    }
-
     item->level    = (uint8_t)((level > 255u) ? 255u : level);
     item->pp_depth = (_b->pp[_at] > _s->base_pp)
                    ? (uint8_t)(_b->pp[_at] - _s->base_pp)
                    : 0u;
-    item->pp_total = d_internal_pp_reach(_b, _s, _at, _parent);
+    item->pp_total = (_b->pp[_at] > _b->file_pp)
+                   ? (uint8_t)(_b->pp[_at] - _b->file_pp)
+                   : 0u;
 
     if (_parent != D_SYNTAX_NONE)
     {
@@ -1513,45 +1205,6 @@ d_internal_note(
         ( (scratch->operator_at != D_SYNTAX_NONE) &&
           (scratch->fn_params == D_SYNTAX_NONE) );
 
-    // inside a template's parameter list nothing is the item's own: its `=`
-    // gives a default argument and its `class` introduces a parameter, and
-    // neither may be taken for an initializer or a tag.  The list is told by
-    // the `<` straight after `template`, and its end by the `>` that closes
-    // it; `>>` closes two, as it does from C++11
-    if (scratch->angle > 0u)
-    {
-        if (kind == D_TOKEN_LESS)
-        {
-            ++scratch->angle;
-        }
-        else if (kind == D_TOKEN_GREATER)
-        {
-            --scratch->angle;
-        }
-        else if (kind == D_TOKEN_SHIFT_RIGHT)
-        {
-            scratch->angle = (uint16_t)((scratch->angle > 2u)
-                                        ? (scratch->angle - 2u)
-                                        : 0u);
-        }
-
-        scratch->prev = _at;
-
-        if (scratch->seen < 0xFFFFu)
-        {
-            ++scratch->seen;
-        }
-
-        return;
-    }
-
-    if ( (kind == D_TOKEN_LESS)            &&
-         (scratch->prev != D_SYNTAX_NONE)  &&
-         (_b->tokens[scratch->prev].kind == D_TOKEN_KW_TEMPLATE) )
-    {
-        scratch->angle = 1u;
-    }
-
     // the `=` of `operator=` is the operator's name, not an initializer
     if ( (kind == D_TOKEN_ASSIGN) && (!in_operator) &&
          (scratch->assign_at == D_SYNTAX_NONE) )
@@ -1589,62 +1242,11 @@ d_internal_note(
         scratch->operator_at = _at;
     }
 
-    // `name(...) :` opens a constructor's initializer list, where a brace
-    // after a name initializes a member: `d_internal_brace` reads this
-    if ( (kind == D_TOKEN_COLON)                   &&
-         (scratch->fn_params != D_SYNTAX_NONE)     &&
-         (scratch->assign_at == D_SYNTAX_NONE) )
-    {
-        scratch->init_list = 1u;
-    }
-
-    // `struct name :` opens a class's bases, and what a base is given in
-    // parentheses is an argument of it -- `: mixin<has(_a, _b)>` -- never
-    // the parameters of a function: the brace after the bases is the
-    // class's member list
-    if ( (kind == D_TOKEN_COLON)                   &&
-         (scratch->struct_at != D_SYNTAX_NONE)     &&
-         (scratch->fn_params == D_SYNTAX_NONE)     &&
-         (scratch->assign_at == D_SYNTAX_NONE) )
-    {
-        scratch->base_clause = 1u;
-    }
-
-    // `struct name<...>`: the template arguments a tag's name is given,
-    // where a parenthesis after a name spells a function type --
-    // `traits<Return(Args...)>` -- and is no parameter list either.  The
-    // arguments end at the `>` that closes them, so the function a
-    // `struct node<Type>* make(int _n)` declares is still seen
-    if ( (scratch->struct_at != D_SYNTAX_NONE)     &&
-         (scratch->fn_params == D_SYNTAX_NONE)     &&
-         (scratch->assign_at == D_SYNTAX_NONE) )
-    {
-        if ( (kind == D_TOKEN_LESS)                              &&
-             ( (scratch->head_angle > 0u)                    ||
-               ( (scratch->prev != D_SYNTAX_NONE)            &&
-                 (_b->tokens[scratch->prev].kind == D_TOKEN_IDENTIFIER) ) ) )
-        {
-            ++scratch->head_angle;
-        }
-        else if ( (kind == D_TOKEN_GREATER) && (scratch->head_angle > 0u) )
-        {
-            --scratch->head_angle;
-        }
-        else if (kind == D_TOKEN_SHIFT_RIGHT)
-        {
-            scratch->head_angle = (uint16_t)((scratch->head_angle > 2u)
-                                             ? (scratch->head_angle - 2u)
-                                             : 0u);
-        }
-    }
-
     // the first parenthesis after a name, before any `=`, is a candidate
     // parameter list
     if ( (kind == D_TOKEN_PAREN_OPEN) &&
          (scratch->fn_params == D_SYNTAX_NONE) &&
          (scratch->assign_at == D_SYNTAX_NONE) &&
-         (scratch->base_clause == 0u)          &&
-         (scratch->head_angle == 0u)           &&
          (scratch->prev != D_SYNTAX_NONE) )
     {
         const int prev_kind = _b->tokens[scratch->prev].kind;
@@ -1668,14 +1270,9 @@ d_internal_note(
             // in a class, where it heads a constructor
             scratch->fn_params  = _at;
             scratch->fn_name    = scratch->prev;
-            const uint32_t tag = d_internal_class_tag(_b, _s);
-
             scratch->macro_head =
                 ( (scratch->seen == 1u) &&
-                  ( (tag == D_SYNTAX_NONE) ||
-                    (!d_internal_same_spelling(_b, tag, scratch->prev)) ) )
-                ? 1u
-                : 0u;
+                  (_s->mode != D_INTERNAL_MODE_MEMBERS) ) ? 1u : 0u;
         }
     }
 
@@ -1689,24 +1286,6 @@ d_internal_note(
     return;
 }
 
-
-/**
- * @brief Reports whether a token can be the last of a member's or a base
- *        class's name in a constructor's initializer list.
- *
- * @param[in] _kind  the token's kind.
- * @return `true` for an identifier, and for the `>` or `>>` that closes a
- *         base class's template arguments; `false` otherwise.
- */
-static bool
-d_internal_ends_a_name(
-    int _kind
-)
-{
-    return ( (_kind == D_TOKEN_IDENTIFIER) ||
-             (_kind == D_TOKEN_GREATER)    ||
-             (_kind == D_TOKEN_SHIFT_RIGHT) );
-}
 
 /**
  * @brief Decides what a brace is to an item in its simple state.
@@ -1728,14 +1307,6 @@ d_internal_brace(
     struct d_internal_scratch* const scratch = &_b->scratch[_k];
     const bool block = (_s->mode == D_INTERNAL_MODE_BLOCK);
 
-    // a brace inside a template's parameter list is a default argument's
-    if (scratch->angle > 0u)
-    {
-        d_internal_note(_b, _s, _k, _at);
-
-        return;
-    }
-
     // an `extern "C"` block or a namespace, whose contents are at its level
     if ((!block) && scratch->linkage)
     {
@@ -1743,7 +1314,6 @@ d_internal_brace(
         item->body = _at;
         d_internal_set_scope(_b, _at, D_INTERNAL_MODE_FILE, _k);
         d_internal_complete(_b, _s, _k, d_internal_extent(_b, _at));
-
         return;
     }
 
@@ -1751,21 +1321,6 @@ d_internal_brace(
     if (scratch->assign_at != D_SYNTAX_NONE)
     {
         d_internal_note(_b, _s, _k, _at);
-
-        return;
-    }
-
-    // in a constructor's initializer list, the brace after a member's or a
-    // base's name initializes it -- `: m_values{}`, `: base<Type>{_x}` --
-    // and the body is the brace after an initializer's own `)` or `}`
-    if ( (!block)                                     &&
-         (scratch->fn_params != D_SYNTAX_NONE)        &&
-         (scratch->init_list != 0u)                   &&
-         (scratch->prev != D_SYNTAX_NONE)             &&
-         (d_internal_ends_a_name(_b->tokens[scratch->prev].kind)) )
-    {
-        d_internal_note(_b, _s, _k, _at);
-
         return;
     }
 
@@ -1783,7 +1338,6 @@ d_internal_brace(
         }
 
         d_internal_complete(_b, _s, _k, d_internal_extent(_b, _at));
-
         return;
     }
 
@@ -1798,7 +1352,6 @@ d_internal_brace(
                                                 : D_INTERNAL_MODE_MEMBERS,
                              _k);
         d_internal_note(_b, _s, _k, _at);
-
         return;
     }
 
@@ -1810,7 +1363,6 @@ d_internal_brace(
         item->body      = _at;
         d_internal_set_scope(_b, _at, D_INTERNAL_MODE_BLOCK, _k);
         d_internal_complete(_b, _s, _k, d_internal_extent(_b, _at));
-
         return;
     }
 
@@ -1820,58 +1372,6 @@ d_internal_brace(
     return;
 }
 
-
-/**
- * @brief Gives a child to a parameter or an enumerator, which ends at its
- *        comma.
- *
- * @note `std::pair<int, float> _p` is one parameter: a `<` after a name,
- *       before any default argument, opens a template argument list, and the
- *       commas inside it separate its arguments.
- *
- * @param[in,out] _b   the recognition in progress.
- * @param[in,out] _s   the scope being walked: a parameter group or an
- *                     enumerator list.
- * @param[in]     _k   the item's index.
- * @param[in]     _at  the child's token index.
- */
-static void
-d_internal_listed(
-    struct d_internal_build* _b,
-    struct d_internal_scope* _s,
-    uint32_t                 _k,
-    uint32_t                 _at
-)
-{
-    struct d_internal_scratch* const scratch = &_b->scratch[_k];
-    const int                        kind    = _b->tokens[_at].kind;
-
-    // the list opens: the `<` is noted as any child is, and counted after
-    if ( (_s->mode == D_INTERNAL_MODE_PARAMS)                  &&
-         (kind == D_TOKEN_LESS)                                &&
-         (scratch->angle == 0u)                                &&
-         (scratch->assign_at == D_SYNTAX_NONE)                 &&
-         (scratch->prev != D_SYNTAX_NONE)                      &&
-         (_b->tokens[scratch->prev].kind == D_TOKEN_IDENTIFIER) )
-    {
-        d_internal_note(_b, _s, _k, _at);
-        scratch->angle = 1u;
-
-        return;
-    }
-
-    // a comma outside any such list ends the item
-    if ( (kind == D_TOKEN_COMMA) && (scratch->angle == 0u) )
-    {
-        d_internal_complete(_b, _s, _k, _at);
-
-        return;
-    }
-
-    d_internal_note(_b, _s, _k, _at);
-
-    return;
-}
 
 /**
  * @brief Offers a child to an item in its simple state.
@@ -1895,22 +1395,25 @@ d_internal_simple(
     if ( (_s->mode == D_INTERNAL_MODE_PARAMS) ||
          (_s->mode == D_INTERNAL_MODE_ENUM) )
     {
-        d_internal_listed(_b, _s, _k, _at);
+        if (kind == D_TOKEN_COMMA)
+        {
+            d_internal_complete(_b, _s, _k, _at);
+            return;
+        }
 
+        d_internal_note(_b, _s, _k, _at);
         return;
     }
 
     if (kind == D_TOKEN_SEMICOLON)
     {
         d_internal_complete(_b, _s, _k, _at);
-
         return;
     }
 
     if (kind == D_TOKEN_BRACE_OPEN)
     {
         d_internal_brace(_b, _s, _k, _at);
-
         return;
     }
 
@@ -1925,15 +1428,7 @@ d_internal_simple(
         {
             _b->out->items[_k].kind      = D_SYNTAX_ITEM_LABEL;
             _b->out->items[_k].statement = D_SYNTAX_STMT_ACCESS;
-
-            // on the class's own column: a level out from its members
-            if (_b->out->items[_k].level > 0u)
-            {
-                --_b->out->items[_k].level;
-            }
-
             d_internal_complete(_b, _s, _k, _at);
-
             return;
         }
     }
@@ -1943,203 +1438,6 @@ d_internal_simple(
     return;
 }
 
-
-/**
- * @brief Reports whether a token is spelled as a word.
- *
- * @param[in] _b     the recognition in progress.
- * @param[in] _at    the token's index.
- * @param[in] _word  the spelling asked about.
- * @return `true` if the token's text is `_word`, `false` otherwise.
- */
-static bool
-d_internal_token_is(
-    const struct d_internal_build* _b,
-    uint32_t                       _at,
-    const char*                    _word
-)
-{
-    const struct d_token* const token = &_b->tokens[_at];
-
-    return ( (token->span.length == strlen(_word)) &&
-             (memcmp(_b->text + token->span.offset,
-                     _word,
-                     token->span.length) == 0) );
-}
-
-/**
- * @brief Reports whether what a scope holds from a token on stands one level
- *        inside a level: its first token that is no comment begins a line,
- *        in the column one level in gives.
- *
- * @note How a namespace's own contents say whether it indents them. The
- *       guide shows the internal namespace indenting and the framework's
- *       not, and of any other says nothing; the tree does both, 47 braced
- *       namespaces to 70. So neither is a finding: the first thing a
- *       namespace holds decides for the rest of it.
- *
- * @param[in] _b      the recognition in progress.
- * @param[in] _from   the first token to look at.
- * @param[in] _end    one past the last.
- * @param[in] _level  the level the namespace itself stands at.
- * @return `true` if the contents are one level in, `false` if they are not
- *         or there are none.
- */
-static bool
-d_internal_stands_in(
-    const struct d_internal_build* _b,
-    uint32_t                       _from,
-    uint32_t                       _end,
-    unsigned                       _level
-)
-{
-    uint32_t at = _from;
-
-    while ( (at < _end) && (d_internal_is_trivia(&_b->tokens[at])) )
-    {
-        ++at;
-    }
-
-    return ( (at < _end)                                                 &&
-             ((_b->tokens[at].flags & D_TOKEN_FLAG_LINE_START) != 0u)    &&
-             (_b->tokens[at].span.column == (((_level + 1u) * 4u) + 1u)) );
-}
-
-/**
- * @brief Finds the end of a namespace macro that stands alone on its line.
- *
- * @note Two forms open a namespace without a brace the layout can see:
- *       `NS_DJINTERP`, `NS_INTERNAL` and their like, and `NS_END`, which
- *       closes one; and `D_NAMESPACE(name)`, which they are defined by and
- *       which a header uses for a namespace of its own.
- *
- * @param[in] _b   the recognition in progress.
- * @param[in] _at  the token's index.
- * @return the macro's last token -- itself, or the `)` of `D_NAMESPACE(...)`
- *         -- when nothing follows it on its line but a comment;
- *         D_SYNTAX_NONE for anything else.
- */
-static uint32_t
-d_internal_ns_last(
-    const struct d_internal_build* _b,
-    uint32_t                       _at
-)
-{
-    const struct d_token* const token = &_b->tokens[_at];
-    uint32_t                    last  = _at;
-
-    if (token->kind != D_TOKEN_IDENTIFIER)
-    {
-        return D_SYNTAX_NONE;
-    }
-
-    if (d_internal_token_is(_b, _at, "D_NAMESPACE"))
-    {
-        // the name it is given, in its parentheses
-        if ( ((_at + 1u) >= _b->count)                              ||
-             (_b->tokens[_at + 1u].kind != D_TOKEN_PAREN_OPEN)      ||
-             (_b->groups->match[_at + 1u] == D_SYNTAX_NONE) )
-        {
-            return D_SYNTAX_NONE;
-        }
-
-        last = _b->groups->match[_at + 1u];
-    }
-    else if ( (token->span.length < 4u) ||
-              (memcmp(_b->text + token->span.offset, "NS_", 3u) != 0) )
-    {
-        return D_SYNTAX_NONE;
-    }
-
-    uint32_t next = last + 1u;
-
-    // a comment on the macro's own line
-    while ( (next < _b->count)                                         &&
-            (_b->tokens[next].kind == D_TOKEN_COMMENT)                 &&
-            ((_b->tokens[next].flags & D_TOKEN_FLAG_LINE_START) == 0u) )
-    {
-        ++next;
-    }
-
-    return ( (next >= _b->count) ||
-             ((_b->tokens[next].flags & D_TOKEN_FLAG_LINE_START) != 0u) )
-           ? last
-           : D_SYNTAX_NONE;
-}
-
-/**
- * @brief Opens a namespace macro as an item of its own, and keeps the level
- *        of what follows it.
- *
- * @note The framework's namespaces are opened and closed by macros, which
- *       show the layout no brace. `NS_INTERNAL` indents what follows it until
- *       its `NS_END`, as the guide's own example does and the tree does in
- *       596 places of 601; the framework's namespace and a subsystem's do
- *       not, in 555 of 575. `D_NAMESPACE(name)` is a header's own, and
- *       indents if its contents do: see `d_internal_stands_in`. `NS_END`
- *       sits at the level its namespace was opened at, so the level comes
- *       back before the item is placed and goes in after.
- *
- * @param[in,out] _b     the recognition in progress.
- * @param[in,out] _s     the file scope being walked.
- * @param[in]     _at    the macro's token index.
- * @param[in]     _last  its last token: `_at`, or the `)` of
- *                       `D_NAMESPACE(...)`.
- * @return `true` on success, `false` if memory ran out.
- */
-static bool
-d_internal_ns_item(
-    struct d_internal_build* _b,
-    struct d_internal_scope* _s,
-    uint32_t                 _at,
-    uint32_t                 _last
-)
-{
-    const bool closes = d_internal_token_is(_b, _at, "NS_END");
-
-    // the level its namespace was opened at
-    if ( (closes) && (_s->ns_depth > 0u) )
-    {
-        --_s->ns_depth;
-
-        if (((_s->ns_indents >> _s->ns_depth) & 1u) != 0u)
-        {
-            --_s->base_level;
-        }
-    }
-
-    const uint32_t k = d_internal_open(_b, _s, _at, D_SYNTAX_NONE);
-
-    if (k == D_SYNTAX_NONE)
-    {
-        return false;
-    }
-
-    // what follows an opening macro: one level in after the internal one,
-    // and after a header's own where the header has it so
-    if ( (!closes) && (_s->ns_depth < 32u) )
-    {
-        const bool     indents =
-            ( (d_internal_token_is(_b, _at, "NS_INTERNAL")) ||
-              ( (_last != _at) &&
-                (d_internal_stands_in(_b, _last + 1u, _s->end,
-                                      _s->base_level)) ) );
-        const uint32_t bit     = (uint32_t)1u << _s->ns_depth;
-
-        _s->ns_indents = indents ? (_s->ns_indents | bit)
-                                 : (_s->ns_indents & ~bit);
-        _s->base_level = (uint8_t)(_s->base_level + (indents ? 1u : 0u));
-        ++_s->ns_depth;
-    }
-
-    _s->cur                     = k;
-    _s->skip_to                 = (_last != _at) ? _last : D_SYNTAX_NONE;
-    _b->out->items[k].kind      = D_SYNTAX_ITEM_STATEMENT;
-    _b->out->items[k].statement = D_SYNTAX_STMT_MACRO;
-    d_internal_complete(_b, _s, k, _last);
-
-    return true;
-}
 
 /**
  * @brief Offers one child to the scope's innermost open item.
@@ -2172,14 +1470,6 @@ d_internal_feed(
                 _s->under_label = false;
             }
 
-            // a namespace macro alone on its line is an item of its own
-            if ( (_s->mode == D_INTERNAL_MODE_FILE) &&
-                 (d_internal_ns_last(_b, _at) != D_SYNTAX_NONE) )
-            {
-                return d_internal_ns_item(_b, _s, _at,
-                                          d_internal_ns_last(_b, _at));
-            }
-
             const uint32_t k = d_internal_open(_b, _s, _at, D_SYNTAX_NONE);
 
             if (k == D_SYNTAX_NONE)
@@ -2199,7 +1489,6 @@ d_internal_feed(
                     d_internal_set_scope(_b, _at, D_INTERNAL_MODE_BLOCK, k);
                     d_internal_complete(_b, _s, k,
                                         d_internal_extent(_b, _at));
-
                     return true;
                 }
 
@@ -2207,7 +1496,6 @@ d_internal_feed(
                 {
                     _b->out->items[k].statement = D_SYNTAX_STMT_EMPTY;
                     d_internal_complete(_b, _s, k, _at);
-
                     return true;
                 }
             }
@@ -2217,12 +1505,10 @@ d_internal_feed(
             {
                 _b->scratch[k].prev = _at;
                 _b->scratch[k].seen = 1u;
-
                 return true;
             }
 
             d_internal_simple(_b, _s, k, _at);
-
             return true;
         }
 
@@ -2253,7 +1539,6 @@ d_internal_feed(
                 }
 
                 d_internal_simple(_b, _s, k, _at);
-
                 return true;
 
             case D_INTERNAL_ST_LABEL:
@@ -2267,7 +1552,6 @@ d_internal_feed(
                          (statement == D_SYNTAX_STMT_DEFAULT) )
                     {
                         _s->under_label = true;
-                        _s->after_label = true;
                     }
                 }
 
@@ -2278,7 +1562,6 @@ d_internal_feed(
                 {
                     scratch->state = D_INTERNAL_ST_BODY;
                     scratch->prev  = _at;
-
                     return true;
                 }
 
@@ -2328,7 +1611,6 @@ d_internal_feed(
                     {
                         _b->out->items[inner].statement = D_SYNTAX_STMT_EMPTY;
                         d_internal_complete(_b, _s, inner, _at);
-
                         return true;
                     }
 
@@ -2336,12 +1618,10 @@ d_internal_feed(
                     {
                         _b->scratch[inner].prev = _at;
                         _b->scratch[inner].seen = 1u;
-
                         return true;
                     }
 
                     d_internal_simple(_b, _s, inner, _at);
-
                     return true;
                 }
 
@@ -2349,7 +1629,6 @@ d_internal_feed(
                 if (kind == D_TOKEN_KW_ELSE)
                 {
                     scratch->state = D_INTERNAL_ST_ELSE_TAIL;
-
                     return true;
                 }
 
@@ -2362,7 +1641,6 @@ d_internal_feed(
                 {
                     scratch->state     = D_INTERNAL_ST_COND;
                     scratch->else_seen = 0u;
-
                     return true;
                 }
 
@@ -2374,7 +1652,6 @@ d_internal_feed(
                 if (kind == D_TOKEN_KW_WHILE)
                 {
                     scratch->state = D_INTERNAL_ST_DO_COND;
-
                     return true;
                 }
 
@@ -2386,7 +1663,6 @@ d_internal_feed(
                 {
                     scratch->state       = D_INTERNAL_ST_DO_SEMI;
                     scratch->provisional = d_internal_extent(_b, _at);
-
                     return true;
                 }
 
@@ -2397,7 +1673,6 @@ d_internal_feed(
                 if (kind == D_TOKEN_SEMICOLON)
                 {
                     d_internal_complete(_b, _s, k, _at);
-
                     return true;
                 }
 
@@ -2408,7 +1683,6 @@ d_internal_feed(
                 if (kind == D_TOKEN_KW_CATCH)
                 {
                     scratch->state = D_INTERNAL_ST_CATCH_COND;
-
                     return true;
                 }
 
@@ -2419,7 +1693,6 @@ d_internal_feed(
                 if (kind == D_TOKEN_PAREN_OPEN)
                 {
                     scratch->state = D_INTERNAL_ST_CATCH_BODY;
-
                     return true;
                 }
 
@@ -2432,7 +1705,6 @@ d_internal_feed(
                     d_internal_set_scope(_b, _at, D_INTERNAL_MODE_BLOCK, k);
                     scratch->state       = D_INTERNAL_ST_CATCH;
                     scratch->provisional = d_internal_extent(_b, _at);
-
                     return true;
                 }
 
@@ -2441,39 +1713,11 @@ d_internal_feed(
 
             default:
                 d_internal_simple(_b, _s, k, _at);
-
                 return true;
         }
     }
 }
 
-
-/**
- * @brief Reports whether the item that owns a brace is a namespace, and not
- *        the other transparent block, `extern "C"`.
- *
- * @param[in] _b       the recognition in progress.
- * @param[in] _owner   the item's index.
- * @param[in] _opener  the brace's token index.
- * @return `true` if `namespace` stands in the item before the brace.
- */
-static bool
-d_internal_is_namespace(
-    const struct d_internal_build* _b,
-    uint32_t                       _owner,
-    uint32_t                       _opener
-)
-{
-    for (uint32_t at = _b->out->items[_owner].first; at < _opener; ++at)
-    {
-        if (_b->tokens[at].kind == D_TOKEN_KW_NAMESPACE)
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
 
 /**
  * @brief Walks one scope's children, dividing them into items, then records
@@ -2506,10 +1750,6 @@ d_internal_walk(
                       : _b->groups->match[_opener];
     scope.mode        = _mode;
     scope.under_label = false;
-    scope.after_label = false;
-    scope.ns_indents  = 0u;
-    scope.ns_depth    = 0u;
-    scope.skip_to     = D_SYNTAX_NONE;
     scope.cur         = D_SYNTAX_NONE;
     scope.prev_extent = (_opener == D_SYNTAX_NONE) ? 0u : _opener;
     scope.base_pp     = (_opener == D_SYNTAX_NONE) ? 0u : _b->pp[_opener];
@@ -2522,12 +1762,9 @@ d_internal_walk(
     }
     else
     {
-        const unsigned own   = (unsigned)_b->out->items[owner].level;
-        const bool     in    =
-            ( (_mode != D_INTERNAL_MODE_FILE) ||
-              ( (d_internal_is_namespace(_b, owner, _opener)) &&
-                (d_internal_stands_in(_b, _opener + 1u, scope.end, own)) ) );
-        const unsigned level = own + (in ? 1u : 0u);
+        const unsigned level =
+            (unsigned)_b->out->items[owner].level +
+            ((_mode == D_INTERNAL_MODE_FILE) ? 0u : 1u);
 
         scope.base_level = (uint8_t)((level > 255u) ? 255u : level);
     }
@@ -2538,9 +1775,7 @@ d_internal_walk(
          at < scope.end;
          at = d_internal_next_child(_b, at, _opener, scope.end))
     {
-        // trivia, and the rest of an item made whole from its first child
-        if ( (d_internal_is_trivia(&_b->tokens[at])) ||
-             ( (scope.skip_to != D_SYNTAX_NONE) && (at <= scope.skip_to) ) )
+        if (d_internal_is_trivia(&_b->tokens[at]))
         {
             continue;
         }
@@ -2667,16 +1902,9 @@ d_internal_spelled(
 
 
 /**
- * @brief Counts, for every token, the preprocessor conditionals open around
- *        it, the include guard excluded.
+ * @brief Counts, for every token, the preprocessor conditionals open around it.
  *
  * A conditional's own `#if`, `#else` and `#endif` lines stand outside it.
- *   The include guard is no conditional a rule cares about, and it is told by
- * its shape: the file's first directive an `#ifndef`, the second a `#define`
- * of the macro it tested, and no code before either.  It is not told by where
- * the first declaration lies: a header may open with a declaration under a
- * conditional of its own, and one that holds nothing but directives has no
- * declaration at all.
  *
  * @param[in,out] _b  the recognition in progress.
  */
@@ -2685,11 +1913,7 @@ d_internal_pp_depths(
     struct d_internal_build* _b
 )
 {
-    unsigned depth   = 0u;
-    unsigned floor   = 0u;
-    unsigned seen    = 0u;
-    bool     guarded = true;
-    uint32_t tested  = D_SYNTAX_NONE;
+    unsigned depth = 0u;
 
     for (uint32_t at = 0u; at < _b->count; )
     {
@@ -2697,25 +1921,16 @@ d_internal_pp_depths(
 
         if (!d_syntax_is_directive_start(token))
         {
-            // code ahead of the second directive: the file opens unguarded
-            if ( (token->kind != D_TOKEN_COMMENT) && (seen < 2u) )
-            {
-                guarded = false;
-            }
-
             _b->pp[at] = (uint8_t)((depth > 255u) ? 255u : depth);
             ++at;
-
             continue;
         }
 
-        const uint32_t last  = (_b->groups->match[at] == D_SYNTAX_NONE)
-                             ? at
-                             : _b->groups->match[at];
-        unsigned       own   = depth;
-        unsigned       next  = depth;
-        bool           tests = false;
-        bool           names = false;
+        const uint32_t last = (_b->groups->match[at] == D_SYNTAX_NONE)
+                            ? at
+                            : _b->groups->match[at];
+        unsigned       own  = depth;
+        unsigned       next = depth;
 
         if ( ((at + 1u) <= last) &&
              ((_b->tokens[at + 1u].flags & D_TOKEN_FLAG_DIRECTIVE_NAME) != 0u) )
@@ -2736,17 +1951,6 @@ d_internal_pp_depths(
             {
                 "endif", NULL
             };
-            static const char* const testing[] =
-            {
-                "ifndef", NULL
-            };
-            static const char* const defining[] =
-            {
-                "define", NULL
-            };
-
-            tests = d_internal_spelled(text, size, testing);
-            names = d_internal_spelled(text, size, defining);
 
             if (d_internal_spelled(text, size, opening))
             {
@@ -2763,38 +1967,6 @@ d_internal_pp_depths(
             }
         }
 
-        // the macro the line tests or defines
-        uint32_t macro = D_SYNTAX_NONE;
-
-        for (uint32_t scan = at + 1u;
-             (scan <= last) && (macro == D_SYNTAX_NONE);
-             ++scan)
-        {
-            if ((_b->tokens[scan].flags & D_TOKEN_FLAG_MACRO_NAME) != 0u)
-            {
-                macro = scan;
-            }
-        }
-
-        // the guard: `#ifndef X` first, `#define X` straight after it
-        if ( (seen == 0u) && (guarded) && (tests) )
-        {
-            tested = macro;
-        }
-        else if ( (seen == 1u) && (guarded) && (names)     &&
-                  (tested != D_SYNTAX_NONE)                &&
-                  (macro != D_SYNTAX_NONE)                 &&
-                  (_b->tokens[macro].span.length
-                   == _b->tokens[tested].span.length)      &&
-                  (memcmp(_b->text + _b->tokens[macro].span.offset,
-                          _b->text + _b->tokens[tested].span.offset,
-                          _b->tokens[macro].span.length) == 0) )
-        {
-            floor = 1u;
-        }
-
-        ++seen;
-
         for (uint32_t line = at; line <= last; ++line)
         {
             _b->pp[line] = (uint8_t)((own > 255u) ? 255u : own);
@@ -2802,14 +1974,6 @@ d_internal_pp_depths(
 
         depth = next;
         at    = last + 1u;
-    }
-
-    // the guard's level comes off every count
-    for (uint32_t at = 0u; (floor > 0u) && (at < _b->count); ++at)
-    {
-        _b->pp[at] = (uint8_t)( (_b->pp[at] > floor)
-                                ? (_b->pp[at] - floor)
-                                : 0u );
     }
 
     return;
@@ -2883,6 +2047,18 @@ d_syntax_items_build(
 
         d_internal_pp_depths(&build);
 
+        // a header's content sits inside its include guard, which is no
+        // conditional a layout rule cares about: the depth at the first real
+        // token is the file's floor
+        for (uint32_t at = 0u; at < build.count; ++at)
+        {
+            if (!d_internal_is_trivia(&_tokens[at]))
+            {
+                build.file_pp = build.pp[at];
+                break;
+            }
+        }
+
         // the file first, then every scope in the order of its opener, so
         // that an item always exists before the scopes inside it are walked
         ok = d_internal_walk(&build, D_SYNTAX_NONE, D_INTERNAL_MODE_FILE);
@@ -2928,15 +2104,10 @@ d_syntax_items_build(
     free(build.mode);
     free(build.owner);
     free(build.last_item);
+    free(build.pp);
 
-    // the conditional depths go out with the items
-    if (ok)
+    if (!ok)
     {
-        _out_items->pp_of = build.pp;
-    }
-    else
-    {
-        free(build.pp);
         d_syntax_items_free(_out_items);
     }
 
@@ -2962,7 +2133,6 @@ d_syntax_items_free(
     free(_items->items);
     free(_items->item_of);
     free(_items->level_of);
-    free(_items->pp_of);
 
     memset(_items, 0, sizeof(*_items));
 

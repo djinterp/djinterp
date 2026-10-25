@@ -13,13 +13,14 @@
 * path:      /tests/djinterp/net/http/http_fuzz_http1.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 #include "../../../../inc/djinterp/net/http/http1.h"  // the parsers
 // std
 #include <stddef.h>  // size_t
-#include <stdint.h>  // uint8_t
 #include <stdlib.h>  // abort
+// re_std
+#include "../../../../inc/re_std/cstdint/dstdint.h"  // uint8_t
 
 
 // d_fuzz_http1_setup
@@ -115,11 +116,11 @@ d_fuzz_http1_views_inside(
 )
 {
     const struct d_pack_text message = _setup->message;
-    bool                     inside  = ( (_whole <= message.length)      &&
+    bool                     inside  = ( (_whole <= message.length) &&
                                          (d_fuzz_http1_inside(
                                               _out->method_name,
                                               message,
-                                              _whole))                   &&
+                                              _whole))              &&
                                          (d_fuzz_http1_inside(
                                               _out->target,
                                               message,
@@ -128,10 +129,10 @@ d_fuzz_http1_views_inside(
     // each field's name and value
     for (size_t i = 0u; i < _out->fields.count; ++i)
     {
-        inside = ( (inside)                                    &&
+        inside = ( (inside)                      &&
                    (d_fuzz_http1_inside(_out->fields.items[i].name,
                                         message,
-                                        _whole))               &&
+                                        _whole)) &&
                    (d_fuzz_http1_inside(_out->fields.items[i].value,
                                         message,
                                         _whole)) );
@@ -198,13 +199,13 @@ d_fuzz_http1_check(
     bool                             _request
 )
 {
-    struct d_http1_field   items[16];
-    struct d_http1_request out    = { .fields = { items,
+    struct d_http1_field   items[16];  // filled before it is read
+    struct d_http1_request out = { .fields = { items,
                                                   16u,
                                                   0u } };
-    struct d_http1_parser  parser = { .line = 0u };
-    size_t                 whole  = 0u;
-    size_t                 fed    = 0u;
+    struct d_http1_parser parser = { .line = 0u };
+    size_t                whole  = 0u;
+    size_t                fed    = 0u;
 
     d_fuzz_http1_parser(_setup,
                         &parser);

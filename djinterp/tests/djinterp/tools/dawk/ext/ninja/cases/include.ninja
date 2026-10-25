@@ -1,0 +1,4 @@
+x = 1
+include inc.ninja
+build z: r
+  y = $x

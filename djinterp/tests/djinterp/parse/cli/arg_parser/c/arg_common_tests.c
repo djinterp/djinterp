@@ -13,7 +13,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_common_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_common_tests.h"  // corresponding header
 // std
@@ -126,10 +126,16 @@ static const char LONG_TEXT[] =
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-/*
-d_tests_arg_common_refuse
-  A sink's write function that takes nothing, as a full disk would.
-*/
+/**
+ * @brief Writes nothing.
+ *
+ * @param[in] _context  the sink's context; unused.
+ * @param[in] _data     the bytes offered; unused.
+ * @param[in] _size     how many; unused.
+ * @return 0, for no byte taken.
+ *
+ * A sink's write function that takes nothing, as a full disk would.
+ */
 static size_t
 d_tests_arg_common_refuse(
     void*       _context,
@@ -144,10 +150,16 @@ d_tests_arg_common_refuse(
     return 0u;
 }
 
-/*
-d_tests_arg_common_terminated
-  Whether a buffer holds exactly `_expected`, with a NUL after it.
-*/
+/**
+ * @brief Tells whether a buffer holds exactly the expected text.
+ *
+ * @param[in] _buffer    the buffer.
+ * @param[in] _expected  the text it must hold.
+ * @return `true` when its data holds `_expected` and nothing more, with a NUL
+ *         after it; `false` otherwise.
+ *
+ * Whether a buffer holds exactly `_expected`, with a NUL after it.
+ */
 static bool
 d_tests_arg_common_terminated(
     const struct d_arg_buffer* _buffer,
@@ -189,8 +201,38 @@ d_tests_arg_common_status_names(void)
     }
 
     return ( (named)                                                  &&
-             (strcmp(d_arg_status_name(-1), "Error") == 0)            &&
+             (strcmp(d_arg_status_name(-1),
+                     "Error") == 0)                                   &&
              (strcmp(d_arg_status_name((int)D_ARG_STATUS_COUNT),
+                     "Error") == 0) );
+}
+
+/*
+d_tests_arg_common_status_messages
+  What d_arg_status_message says of each status.
+  Tests the following:
+  - each status's message is the one it carries when none was recorded:
+    CLI11's default messages for the requests, Success and RuntimeError,
+    and a message in the same words for every other status
+  - a value outside the enumeration is "Error", CLI11's base class
+*/
+bool
+d_tests_arg_common_status_messages(void)
+{
+    bool described = true;
+
+    // each status by its message
+    for (size_t index = 0u; index < STATUS_ROW_COUNT; ++index)
+    {
+        described = ( (described) &&
+                      (strcmp(d_arg_status_message(STATUS_ROWS[index].status),
+                              STATUS_ROWS[index].message) == 0) );
+    }
+
+    return ( (described)                                          &&
+             (strcmp(d_arg_status_message(-1),
+                     "Error") == 0)                               &&
+             (strcmp(d_arg_status_message((int)D_ARG_STATUS_COUNT),
                      "Error") == 0) );
 }
 
@@ -229,6 +271,8 @@ d_tests_arg_common_status_is_error
   Tests the following:
   - D_ARG_OK, the completed requests and D_ARG_SUCCESS are not errors
   - D_ARG_RUNTIME_ERROR and every D_ARG_ERROR_* status are
+  - a value outside the enumeration, below it or past it, is, as it is named
+    "Error" and exits with D_ARG_EXIT_BASE_CLASS
 */
 bool
 d_tests_arg_common_status_is_error(void)
@@ -243,10 +287,12 @@ d_tests_arg_common_status_is_error(void)
                    (status >= (int)D_ARG_RUNTIME_ERROR)) );
     }
 
-    return ( (drawn)                                              &&
-             (!d_arg_status_is_error((int)D_ARG_SUCCESS))         &&
-             (d_arg_status_is_error((int)D_ARG_RUNTIME_ERROR))    &&
-             (d_arg_status_is_error((int)D_ARG_ERROR_INCORRECT_CONSTRUCTION)) );
+    return ( (drawn)                                                          &&
+             (!d_arg_status_is_error((int)D_ARG_SUCCESS))                     &&
+             (d_arg_status_is_error((int)D_ARG_RUNTIME_ERROR))                &&
+             (d_arg_status_is_error((int)D_ARG_ERROR_INCORRECT_CONSTRUCTION)) &&
+             (d_arg_status_is_error(-1))                                      &&
+             (d_arg_status_is_error((int)D_ARG_STATUS_COUNT)) );
 }
 
 //==============================================================================
@@ -550,9 +596,10 @@ d_tests_arg_common_buffer_detach(void)
                                    "taken");
 
     char* const taken   = d_arg_buffer_detach(&buffer);
-    const bool  content = ( (taken != NULL)               &&
-                            (strcmp(taken, "taken") == 0) );
-    const bool  emptied = ( (buffer.length == 0u)         &&
+    const bool  content = ( (taken != NULL)       &&
+                            (strcmp(taken,
+                                    "taken") == 0) );
+    const bool  emptied = ( (buffer.length == 0u) &&
                             (buffer.capacity == 0u) );
 
     free(taken);
@@ -679,9 +726,10 @@ d_tests_arg_common_sink_file(void)
 
     (void)fclose(stream);
 
-    return ( (written)                          &&
-             (count == 11u)                     &&
-             (strcmp(got, "to the file") == 0) );
+    return ( (written)      &&
+             (count == 11u) &&
+             (strcmp(got,
+                     "to the file") == 0) );
 }
 
 /*
@@ -751,7 +799,8 @@ d_tests_arg_common_error_empty(void)
                          (constant.status == (int)D_ARG_OK)            &&
                          (strcmp(d_arg_error_message(&constant),
                                  "") == 0)                             &&
-                         (strcmp(d_arg_error_message(NULL), "") == 0)  &&
+                         (strcmp(d_arg_error_message(NULL),
+                                 "") == 0)                             &&
                          (d_arg_error_exit_code(NULL) == 0) );
 
     d_arg_error_release(&initialized);
@@ -789,7 +838,8 @@ d_tests_arg_common_error_set(void)
 
     text[0] = '!';
 
-    const bool copied   = (strcmp(error.message, "--x req") == 0);
+    const bool copied   = (strcmp(error.message,
+                                  "--x req") == 0);
     const int  second   = d_arg_error_set(&error,
                                           (int)D_ARG_ERROR_EXTRAS,
                                           NULL,
@@ -916,7 +966,8 @@ d_tests_arg_common_string_list(void)
                                   3u) == 0)                        &&
                           (list.items[0][3] == '\0')               &&
                           (list.items[0] != HELD)                  &&
-                          (strcmp(list.items[40], "n") == 0) );
+                          (strcmp(list.items[40],
+                                  "n") == 0) );
 
     d_arg_string_list_release(&list);
 
@@ -963,6 +1014,8 @@ const struct d_tests_section d_tests_arg_common[] =
 {
     { "arg_common_status_names",
       d_tests_arg_common_status_names },
+    { "arg_common_status_messages",
+      d_tests_arg_common_status_messages },
     { "arg_common_status_exit_codes",
       d_tests_arg_common_status_exit_codes },
     { "arg_common_status_is_error",

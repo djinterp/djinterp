@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/test/sync/test_threadsafe_tests_integration.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                                created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 // std
@@ -74,7 +74,7 @@ bool tests_uintegration_concurrent_and_invariant()
     const std::size_t threads = 4;
     const std::size_t iters   = 100;
 
-    dt::bounded_guard<int> guard(0, static_cast<int>(threads) - 1);
+    dt::bounded_guard<int> guard(0, 0, static_cast<int>(threads) - 1);
 
     dt::concurrent_runner runner(threads);
     runner.set_worker(

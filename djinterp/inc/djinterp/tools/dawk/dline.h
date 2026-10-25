@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/tools/dawk/dline.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.10.10
+*                                                            revised: 2026.09.28
 *******************************************************************************/
 
 /*
@@ -46,11 +46,7 @@ TABLE OF CONTENTS
 // `line` carries `length` (code points, the terminator excluded, a malformed
 // byte counting as one) and, when they hold, `blank`, `tab`, `trailing-space`,
 // `cr`, `control`, `zero-width`, `wide` and `malformed`.  A line's geometry is
-// its number, column 1, and its length.  A line that is an `#include` also
-// carries `directive-length` (characters through the name's closing quote or
-// bracket) and, when a `//` comment is the rest of it, `summary` (that
-// comment as written): what a rule needs to tell a path, which no author can
-// shorten, from the words after it.
+// its number, column 1, and its length.
 
 
 // 1.1    Building

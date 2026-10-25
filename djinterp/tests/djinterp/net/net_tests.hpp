@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/net/net_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef DJINTERP_NET_NET_TESTS_HPP
@@ -23,7 +23,7 @@
 #include <cstdio>   // std::printf
 // djinterp
 #include "../../../inc/djinterp/djinterp.hpp"  // framework root
-#include "../../../inc/djinterp/net/net.hpp"   // the layer under test
+#include "../../../inc/djinterp/net/net_common.hpp"  // the layer under test
 
 
 NS_DJINTERP
@@ -56,14 +56,19 @@ NS_INTERNAL
     //   struct: checks run and failed across the suite.
     struct tally
     {
-        std::size_t checks   = 0u;
-        std::size_t failures = 0u;
+        tally()
+            : checks(0u),
+              failures(0u)
+        {}
+
+        std::size_t checks;
+        std::size_t failures;
     };
 
     // counts
     //   function: the suite's tally.
     inline tally&
-    counts() noexcept
+    counts() D_NOEXCEPT
     {
         static tally instance;
 
@@ -76,7 +81,7 @@ NS_INTERNAL
     check(
         bool        _condition,
         const char* _message
-    ) noexcept
+    ) D_NOEXCEPT
     {
         counts().checks += 1u;
 

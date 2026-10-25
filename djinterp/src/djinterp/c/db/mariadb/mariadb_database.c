@@ -12,7 +12,7 @@
 * path:      /src/djinterp/c/db/mariadb/mariadb_database.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 // D_INTERNAL_MARIADB_SOURCE
 //   macro: this file is one of the MariaDB layer's own sources, for which
@@ -171,7 +171,8 @@ d_mariadb_list_databases(
 /*
 d_mariadb_use_database
   mysql_select_db, which also tells the client, for a reconnect, where the
-connection was.
+connection was; the server's reply reports the change, where the client
+reads it (D_INTERNAL_MARIADB_READS_SIMPLE_OK).
 */
 int
 d_mariadb_use_database(
@@ -186,9 +187,24 @@ d_mariadb_use_database(
         return D_DB_INVALID_ARGUMENT;
     }
 
-    return (mysql_select_db(_db->native, _name) == 0)
-               ? 0
-               : (int)mysql_errno(_db->native);
+    const int idle = d_internal_mariadb_idle(_db);
+
+    // nothing is sent while a statement's rows are still arriving
+    if (idle != 0)
+    {
+        return idle;
+    }
+
+    const int result = (mysql_select_db(_db->native, _name) == 0)
+                           ? 0
+                           : (int)mysql_errno(_db->native);
+
+    d_internal_mariadb_replied(
+        _db,
+        ( (result == 0) &&
+          (D_INTERNAL_MARIADB_READS_SIMPLE_OK == 1) ));
+
+    return result;
 }
 
 /*

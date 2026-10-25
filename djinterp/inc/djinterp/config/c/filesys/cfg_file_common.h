@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/config/c/filesys/cfg_file_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -391,9 +391,13 @@ TABLE OF CONTENTS
 //   Every module takes it: a path goes in as UTF-8, and a name the platform
 // hands back -- an entry d_dir_read64 reads, the working directory, a full
 // path, d_dir_temp's directory, a link's target -- comes back as UTF-8,
-// D_FILE_NAME_MAX growing to hold any name Windows can (3.1.6). A name with
-// a lone surrogate, which Windows allows and UTF-8 cannot carry, fails with
-// EILSEQ, and a listing skips it, as it skips a name past D_FILE_NAME_MAX.
+// D_FILE_NAME_MAX growing to hold any name Windows can (3.1.6). The UTF-8 is
+// WTF-8 (2026.10.21): a lone surrogate, which Windows allows in a name and
+// UTF-8 cannot carry, comes back as the three bytes its code point would take
+// (ED A0 80 to ED BF BF) and goes back to Windows as it came, so that every
+// name Windows holds can be listed, opened and removed; only a surrogate pair
+// spelled as two such forms is refused, with EILSEQ, as WTF-8 spells a pair as
+// one four-byte form.
 //   On by default, since every module takes it (2026.10.20): a path is read
 // as UTF-8 on Windows as everywhere else. A program passing code-page bytes
 // sets it to 0, and gets the A calls, and the code page, back. No effect on
@@ -1101,23 +1105,38 @@ TABLE OF CONTENTS
 #endif
 
 // 3.1.5
-// D_INTERNAL_FILE_PATH_MAX
-//   resolved: the effective maximum path length. Honours an explicit
-// D_CFG_FILE_PATH_MAX, else derives it: Windows is 260 unless long paths are
-// enabled (then 32767, the \\?\ ceiling); POSIX takes PATH_MAX when the
-// headers name it; everything else gets 4096.
-#ifdef D_CFG_FILE_PATH_MAX
-    #define D_INTERNAL_FILE_PATH_MAX D_CFG_FILE_PATH_MAX
-#elif D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+// D_INTERNAL_FILE_NATIVE_PATH_MAX
+//   resolved: the longest path the platform takes, in its own units. On
+// Windows those are UTF-16 units: 32767 behind the \\?\ prefix a long-path
+// build adds, 260 (MAX_PATH) otherwise. Elsewhere they are bytes: PATH_MAX
+// where the headers name it, else 4096.
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
     #if D_CFG_IS_ON(D_CFG_FILE_LONG_PATHS)
-        #define D_INTERNAL_FILE_PATH_MAX 32767
+        #define D_INTERNAL_FILE_NATIVE_PATH_MAX 32767
     #else
-        #define D_INTERNAL_FILE_PATH_MAX 260
+        #define D_INTERNAL_FILE_NATIVE_PATH_MAX 260
     #endif
 #elif defined(PATH_MAX)
-    #define D_INTERNAL_FILE_PATH_MAX PATH_MAX
+    #define D_INTERNAL_FILE_NATIVE_PATH_MAX PATH_MAX
 #else
-    #define D_INTERNAL_FILE_PATH_MAX 4096
+    #define D_INTERNAL_FILE_NATIVE_PATH_MAX 4096
+#endif
+
+// D_INTERNAL_FILE_PATH_MAX
+//   resolved: the longest path this build constructs, in bytes of the text a
+// caller reads and writes. Honours an explicit D_CFG_FILE_PATH_MAX. Where the
+// build hands Windows UTF-16 (D_CFG_FILE_WIDE_PATHS), it is three bytes for
+// each of the platform's units -- a unit is at most three bytes of UTF-8, and
+// a surrogate pair four for two -- so that every path Windows can hold comes
+// back whole: 780 bytes, or 98301 behind the long-path prefix. Every other
+// build counts what the platform counts.
+#ifdef D_CFG_FILE_PATH_MAX
+    #define D_INTERNAL_FILE_PATH_MAX D_CFG_FILE_PATH_MAX
+#elif ( (D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)) &&                                 \
+        (D_CFG_IS_ON(D_CFG_FILE_WIDE_PATHS)) )
+    #define D_INTERNAL_FILE_PATH_MAX (3 * D_INTERNAL_FILE_NATIVE_PATH_MAX)
+#else
+    #define D_INTERNAL_FILE_PATH_MAX D_INTERNAL_FILE_NATIVE_PATH_MAX
 #endif  // D_CFG_FILE_PATH_MAX
 
 // 3.1.6
@@ -1135,6 +1154,12 @@ TABLE OF CONTENTS
     // code page, and only in a unit that has included it by now: the size of
     // d_name cannot hang on what a unit included first.
     #define D_INTERNAL_FILE_NAME_MAX 765
+#elif (D_INTERNAL_FILE_OS_DARWIN == 1)
+    // APFS and HFS+ count a name's characters, not its bytes, so a legal name
+    // runs past NAME_MAX's 255 bytes; Darwin's readdir hands back up to 1023
+    // (its d_name is MAXPATHLEN), and so does this, as ahead of NAME_MAX for
+    // the same reason as above
+    #define D_INTERNAL_FILE_NAME_MAX 1023
 #elif defined(NAME_MAX)
     #define D_INTERNAL_FILE_NAME_MAX NAME_MAX
 #else

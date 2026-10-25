@@ -14,17 +14,19 @@
 * encoded as MAJOR*10000 + MINOR*100 + PATCH, as in MYSQL_VERSION_ID.
 *   D_ENV_MYSQL_HAS_* are capability flags, D_ENV_MYSQL_VERSION_* the version
 * and its parts, and D_ENV_MYSQL_IS_* the release series and model. Sections 3
-* onward exist only when Oracle MySQL is detected. Settings live in
+* onward read Oracle MySQL when it is detected; without it, each of their
+* macros is defined as 0. Settings live in
 * cfg_env_mysql.h; D_CFG_ENV_MYSQL_CUSTOM switches to manual detection.
 *   The release model: 5.x and 8.0 are classic series; since 8.1, MySQL ships
-* quarterly innovation releases (8.1 to 8.3, then 9.x) alongside long-term
-* support series, the first of which is 8.4.
+* quarterly innovation releases (8.1 to 8.3, then 9.0 to 9.6) alongside
+* long-term support series: 8.4, and 9.7, released 2026.04.21. What follows
+* 9.7 is not classified here.
 *
 *
 * path:      /inc/djinterp/env/db/mysql/env_mysql.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -181,6 +183,12 @@ TABLE OF CONTENTS
 #define D_ENV_MYSQL_VERSION_8_4_0      80400
 #define D_ENV_MYSQL_VERSION_9_0_0      90000
 #define D_ENV_MYSQL_VERSION_9_1_0      90100
+#define D_ENV_MYSQL_VERSION_9_2_0      90200
+#define D_ENV_MYSQL_VERSION_9_3_0      90300
+#define D_ENV_MYSQL_VERSION_9_4_0      90400
+#define D_ENV_MYSQL_VERSION_9_5_0      90500
+#define D_ENV_MYSQL_VERSION_9_6_0      90600
+#define D_ENV_MYSQL_VERSION_9_7_0      90700
 
 // 2.2    Detected version
 //------------------------------------------------------------------------------
@@ -230,6 +238,54 @@ TABLE OF CONTENTS
         #define D_ENV_MYSQL_VERSION_PATCH                                      \
             D_ENV_MYSQL_COMMON_DECODE_PATCH(D_ENV_MYSQL_DETECTED_VERSION)
         #define D_ENV_MYSQL_VERSION_STRING     "manual"
+
+    #elif defined(D_ENV_MYSQL_DETECTED_9_7)
+        #define D_ENV_MYSQL_DETECTED           1
+        #define D_ENV_MYSQL_VERSION_ID         D_ENV_MYSQL_VERSION_9_7_0
+        #define D_ENV_MYSQL_VERSION_MAJOR      9
+        #define D_ENV_MYSQL_VERSION_MINOR      7
+        #define D_ENV_MYSQL_VERSION_PATCH      0
+        #define D_ENV_MYSQL_VERSION_STRING     "9.7.0"
+
+    #elif defined(D_ENV_MYSQL_DETECTED_9_6)
+        #define D_ENV_MYSQL_DETECTED           1
+        #define D_ENV_MYSQL_VERSION_ID         D_ENV_MYSQL_VERSION_9_6_0
+        #define D_ENV_MYSQL_VERSION_MAJOR      9
+        #define D_ENV_MYSQL_VERSION_MINOR      6
+        #define D_ENV_MYSQL_VERSION_PATCH      0
+        #define D_ENV_MYSQL_VERSION_STRING     "9.6.0"
+
+    #elif defined(D_ENV_MYSQL_DETECTED_9_5)
+        #define D_ENV_MYSQL_DETECTED           1
+        #define D_ENV_MYSQL_VERSION_ID         D_ENV_MYSQL_VERSION_9_5_0
+        #define D_ENV_MYSQL_VERSION_MAJOR      9
+        #define D_ENV_MYSQL_VERSION_MINOR      5
+        #define D_ENV_MYSQL_VERSION_PATCH      0
+        #define D_ENV_MYSQL_VERSION_STRING     "9.5.0"
+
+    #elif defined(D_ENV_MYSQL_DETECTED_9_4)
+        #define D_ENV_MYSQL_DETECTED           1
+        #define D_ENV_MYSQL_VERSION_ID         D_ENV_MYSQL_VERSION_9_4_0
+        #define D_ENV_MYSQL_VERSION_MAJOR      9
+        #define D_ENV_MYSQL_VERSION_MINOR      4
+        #define D_ENV_MYSQL_VERSION_PATCH      0
+        #define D_ENV_MYSQL_VERSION_STRING     "9.4.0"
+
+    #elif defined(D_ENV_MYSQL_DETECTED_9_3)
+        #define D_ENV_MYSQL_DETECTED           1
+        #define D_ENV_MYSQL_VERSION_ID         D_ENV_MYSQL_VERSION_9_3_0
+        #define D_ENV_MYSQL_VERSION_MAJOR      9
+        #define D_ENV_MYSQL_VERSION_MINOR      3
+        #define D_ENV_MYSQL_VERSION_PATCH      0
+        #define D_ENV_MYSQL_VERSION_STRING     "9.3.0"
+
+    #elif defined(D_ENV_MYSQL_DETECTED_9_2)
+        #define D_ENV_MYSQL_DETECTED           1
+        #define D_ENV_MYSQL_VERSION_ID         D_ENV_MYSQL_VERSION_9_2_0
+        #define D_ENV_MYSQL_VERSION_MAJOR      9
+        #define D_ENV_MYSQL_VERSION_MINOR      2
+        #define D_ENV_MYSQL_VERSION_PATCH      0
+        #define D_ENV_MYSQL_VERSION_STRING     "9.2.0"
 
     #elif defined(D_ENV_MYSQL_DETECTED_9_1)
         #define D_ENV_MYSQL_DETECTED           1
@@ -294,7 +350,8 @@ TABLE OF CONTENTS
 #endif  // D_CFG_ENV_MYSQL_CUSTOM
 
 
-// sections 3 to 18 exist only when D_ENV_MYSQL_DETECTED is 1; see 2.2.1
+// sections 3 to 18 read Oracle MySQL when D_ENV_MYSQL_DETECTED is 1 (see
+// 2.2.1), and define each of their macros as 0 when it is not
 #if D_ENV_MYSQL_DETECTED
 
 
@@ -344,7 +401,7 @@ TABLE OF CONTENTS
     // 3.2.1
     // D_ENV_MYSQL_IS_<SERIES>
     //   macro: 1 if the detected version is in that release series: 5.5, 5.6,
-    // 5.7, 8.0 or 8.4. D_ENV_MYSQL_IS_9_PLUS covers 9.0 and later.
+    // 5.7, 8.0, 8.4 or 9.7. D_ENV_MYSQL_IS_9_PLUS covers 9.0 and later.
     #define D_ENV_MYSQL_IS_5_5                                                 \
         D_ENV_MYSQL_VERSION_IN_RANGE(5, 5, 0, 5, 6, 0)
     #define D_ENV_MYSQL_IS_5_6                                                 \
@@ -357,18 +414,23 @@ TABLE OF CONTENTS
         D_ENV_MYSQL_VERSION_IN_RANGE(8, 4, 0, 8, 5, 0)
     #define D_ENV_MYSQL_IS_9_PLUS                                              \
         D_ENV_MYSQL_VERSION_AT_LEAST(9, 0, 0)
+    #define D_ENV_MYSQL_IS_9_7                                                 \
+        D_ENV_MYSQL_VERSION_IN_RANGE(9, 7, 0, 9, 8, 0)
 
 // 3.3    Release model
 //------------------------------------------------------------------------------
     // 3.3.1
     // D_ENV_MYSQL_IS_LTS / D_ENV_MYSQL_IS_INNOVATION
-    //   macro: D_ENV_MYSQL_IS_LTS is 1 for the 8.4 long-term-support series,
-    // and D_ENV_MYSQL_IS_INNOVATION for the innovation releases, 8.1 to 8.3 and
-    // 9.0 onward.
-    #define D_ENV_MYSQL_IS_LTS       ( D_ENV_MYSQL_IS_8_4 )
+    //   macro: D_ENV_MYSQL_IS_LTS is 1 for the long-term-support series, 8.4
+    // and 9.7, and D_ENV_MYSQL_IS_INNOVATION for the innovation releases, 8.1
+    // to 8.3 and 9.0 to 9.6; both are 0 for what follows 9.7, which this
+    // header does not classify.
+    #define D_ENV_MYSQL_IS_LTS                                                 \
+        ( (D_ENV_MYSQL_IS_8_4) ||                                              \
+          (D_ENV_MYSQL_IS_9_7) )
     #define D_ENV_MYSQL_IS_INNOVATION                                          \
         ( (D_ENV_MYSQL_VERSION_IN_RANGE(8, 1, 0, 8, 4, 0)) ||                  \
-          (D_ENV_MYSQL_IS_9_PLUS) )
+          (D_ENV_MYSQL_VERSION_IN_RANGE(9, 0, 0, 9, 7, 0)) )
 
 
 //==============================================================================
@@ -500,7 +562,7 @@ TABLE OF CONTENTS
     #endif  // D_ENV_MYSQL_HAS_OPTIONAL_RESULT_METADATA
 
     #ifndef D_ENV_MYSQL_HAS_QUERY_ATTRS
-        #if D_ENV_MYSQL_VERSION_AT_LEAST(8, 0, 25)
+        #if D_ENV_MYSQL_VERSION_AT_LEAST(8, 0, 23)
             #define D_ENV_MYSQL_HAS_QUERY_ATTRS 1
         #else
             #define D_ENV_MYSQL_HAS_QUERY_ATTRS 0
@@ -977,6 +1039,177 @@ TABLE OF CONTENTS
         D_ENV_MYSQL_VERSION_AT_LEAST(8, 0, 34)
 
 
+#else
+    // decision 92 of the register: without Oracle MySQL, every macro sections
+    // 3 to 18 define is defined, as 0, the comparisons for any version among
+    // them, so that #if and code may read each whatever the build; a flag
+    // a build may pre-define keeps its value
+    #define D_ENV_MYSQL_VERSION_AT_LEAST(major, minor, patch) 0
+    #define D_ENV_MYSQL_VERSION_BELOW(major, minor, patch) 0
+    #define D_ENV_MYSQL_VERSION_EXACT(major, minor, patch) 0
+    #define D_ENV_MYSQL_VERSION_IN_RANGE(min_maj,                              \
+                                         min_min,                              \
+                                         min_pat,                              \
+                                         max_maj,                              \
+                                         max_min,                              \
+                                         max_pat) 0
+    #define D_ENV_MYSQL_IS_5_5 0
+    #define D_ENV_MYSQL_IS_5_6 0
+    #define D_ENV_MYSQL_IS_5_7 0
+    #define D_ENV_MYSQL_IS_8_0 0
+    #define D_ENV_MYSQL_IS_8_4 0
+    #define D_ENV_MYSQL_IS_9_PLUS 0
+    #define D_ENV_MYSQL_IS_9_7 0
+    #define D_ENV_MYSQL_IS_LTS 0
+    #define D_ENV_MYSQL_IS_INNOVATION 0
+    #define D_ENV_MYSQL_HAS_CLIENT_LIB 0
+    #ifndef D_ENV_MYSQL_HAS_CONNECTOR_C
+        #define D_ENV_MYSQL_HAS_CONNECTOR_C 0
+    #endif  // D_ENV_MYSQL_HAS_CONNECTOR_C
+    #ifndef D_ENV_MYSQL_HAS_LIBMYSQLCLIENT
+        #define D_ENV_MYSQL_HAS_LIBMYSQLCLIENT 0
+    #endif  // D_ENV_MYSQL_HAS_LIBMYSQLCLIENT
+    #define D_ENV_MYSQL_HAS_EMBEDDED 0
+    #ifndef D_ENV_MYSQL_HAS_MYSQL_REAL_CONNECT_NONBLOCKING
+        #define D_ENV_MYSQL_HAS_MYSQL_REAL_CONNECT_NONBLOCKING 0
+    #endif  // D_ENV_MYSQL_HAS_MYSQL_REAL_CONNECT_NONBLOCKING
+    #ifndef D_ENV_MYSQL_HAS_ASYNC_API
+        #define D_ENV_MYSQL_HAS_ASYNC_API 0
+    #endif  // D_ENV_MYSQL_HAS_ASYNC_API
+    #ifndef D_ENV_MYSQL_HAS_RESET_CONNECTION
+        #define D_ENV_MYSQL_HAS_RESET_CONNECTION 0
+    #endif  // D_ENV_MYSQL_HAS_RESET_CONNECTION
+    #ifndef D_ENV_MYSQL_HAS_SESSION_TRACK
+        #define D_ENV_MYSQL_HAS_SESSION_TRACK 0
+    #endif  // D_ENV_MYSQL_HAS_SESSION_TRACK
+    #ifndef D_ENV_MYSQL_HAS_GET_OPTION
+        #define D_ENV_MYSQL_HAS_GET_OPTION 0
+    #endif  // D_ENV_MYSQL_HAS_GET_OPTION
+    #ifndef D_ENV_MYSQL_HAS_STMT_NEXT_RESULT
+        #define D_ENV_MYSQL_HAS_STMT_NEXT_RESULT 0
+    #endif  // D_ENV_MYSQL_HAS_STMT_NEXT_RESULT
+    #ifndef D_ENV_MYSQL_HAS_ZSTD_COMPRESSION
+        #define D_ENV_MYSQL_HAS_ZSTD_COMPRESSION 0
+    #endif  // D_ENV_MYSQL_HAS_ZSTD_COMPRESSION
+    #ifndef D_ENV_MYSQL_HAS_OPTIONAL_RESULT_METADATA
+        #define D_ENV_MYSQL_HAS_OPTIONAL_RESULT_METADATA 0
+    #endif  // D_ENV_MYSQL_HAS_OPTIONAL_RESULT_METADATA
+    #ifndef D_ENV_MYSQL_HAS_QUERY_ATTRS
+        #define D_ENV_MYSQL_HAS_QUERY_ATTRS 0
+    #endif  // D_ENV_MYSQL_HAS_QUERY_ATTRS
+    #ifndef D_ENV_MYSQL_HAS_SSL
+        #define D_ENV_MYSQL_HAS_SSL 0
+    #endif  // D_ENV_MYSQL_HAS_SSL
+    #define D_ENV_MYSQL_HAS_SSL_MODE 0
+    #define D_ENV_MYSQL_HAS_TLS_VERSION_OPTION 0
+    #define D_ENV_MYSQL_HAS_TLS_CIPHERSUITES 0
+    #ifndef D_ENV_MYSQL_HAS_SSL_FIPS_MODE
+        #define D_ENV_MYSQL_HAS_SSL_FIPS_MODE 0
+    #endif  // D_ENV_MYSQL_HAS_SSL_FIPS_MODE
+    #define D_ENV_MYSQL_HAS_GET_SSL_SESSION_REUSED 0
+    #define D_ENV_MYSQL_HAS_AUTH_NATIVE 0
+    #define D_ENV_MYSQL_AUTH_NATIVE_DEPRECATED 0
+    #define D_ENV_MYSQL_HAS_PLUGGABLE_AUTH 0
+    #define D_ENV_MYSQL_HAS_AUTH_SHA256 0
+    #define D_ENV_MYSQL_HAS_AUTH_CACHING_SHA2 0
+    #define D_ENV_MYSQL_DEFAULT_AUTH_IS_CACHING_SHA2 0
+    #define D_ENV_MYSQL_HAS_AUTH_LDAP_SIMPLE 0
+    #define D_ENV_MYSQL_HAS_AUTH_LDAP_SASL 0
+    #define D_ENV_MYSQL_HAS_AUTH_KERBEROS 0
+    #define D_ENV_MYSQL_HAS_AUTH_OCI 0
+    #define D_ENV_MYSQL_HAS_AUTH_FIDO 0
+    #define D_ENV_MYSQL_HAS_MULTI_FACTOR_AUTH 0
+    #define D_ENV_MYSQL_HAS_JSON_TYPE 0
+    #define D_ENV_MYSQL_HAS_JSON_TABLE 0
+    #define D_ENV_MYSQL_HAS_JSON_SCHEMA_VALIDATION 0
+    #define D_ENV_MYSQL_HAS_JSON_VALUE 0
+    #define D_ENV_MYSQL_HAS_JSON_ARRAYAGG 0
+    #define D_ENV_MYSQL_HAS_MULTI_VALUE_INDEX 0
+    #define D_ENV_MYSQL_HAS_GEOMETRY_TYPES 0
+    #define D_ENV_MYSQL_HAS_SRID_SUPPORT 0
+    #define D_ENV_MYSQL_HAS_INVISIBLE_COLUMNS 0
+    #define D_ENV_MYSQL_HAS_FUNCTIONAL_INDEX 0
+    #define D_ENV_MYSQL_HAS_DESCENDING_INDEX 0
+    #define D_ENV_MYSQL_HAS_GENERATED_COLUMNS 0
+    #define D_ENV_MYSQL_HAS_DEFAULT_EXPRESSION 0
+    #define D_ENV_MYSQL_HAS_CHECK_CONSTRAINTS 0
+    #define D_ENV_MYSQL_HAS_INNODB 0
+    #define D_ENV_MYSQL_HAS_MYISAM 0
+    #define D_ENV_MYSQL_HAS_MEMORY_ENGINE 0
+    #define D_ENV_MYSQL_HAS_NDB_CLUSTER 0
+    #define D_ENV_MYSQL_HAS_ARCHIVE_ENGINE 0
+    #define D_ENV_MYSQL_HAS_CSV_ENGINE 0
+    #define D_ENV_MYSQL_HAS_BLACKHOLE_ENGINE 0
+    #define D_ENV_MYSQL_HAS_FEDERATED_ENGINE 0
+    #define D_ENV_MYSQL_SYSTEM_TABLES_USE_INNODB 0
+    #define D_ENV_MYSQL_HAS_INNODB_FULLTEXT 0
+    #define D_ENV_MYSQL_HAS_INNODB_SPATIAL_INDEX 0
+    #define D_ENV_MYSQL_HAS_INNODB_ONLINE_DDL 0
+    #define D_ENV_MYSQL_HAS_INNODB_INSTANT_DDL 0
+    #define D_ENV_MYSQL_HAS_INNODB_TABLESPACE_ENCRYPTION 0
+    #define D_ENV_MYSQL_HAS_INNODB_REDO_LOG 0
+    #define D_ENV_MYSQL_HAS_INNODB_UNDO_TRUNCATION 0
+    #define D_ENV_MYSQL_HAS_INNODB_DEDICATED_SERVER 0
+    #define D_ENV_MYSQL_HAS_GTID 0
+    #define D_ENV_MYSQL_HAS_SEMI_SYNC_REPL 0
+    #define D_ENV_MYSQL_HAS_MULTI_SOURCE_REPL 0
+    #define D_ENV_MYSQL_HAS_GROUP_REPLICATION 0
+    #define D_ENV_MYSQL_HAS_INNODB_CLUSTER 0
+    #define D_ENV_MYSQL_HAS_INNODB_CLUSTERSET 0
+    #define D_ENV_MYSQL_HAS_INNODB_REPLICASET 0
+    #define D_ENV_MYSQL_HAS_CLONE_PLUGIN 0
+    #define D_ENV_MYSQL_HAS_REPL_CHANNELS 0
+    #define D_ENV_MYSQL_HAS_REPL_PRIVILEGE_CHECKS 0
+    #define D_ENV_MYSQL_HAS_X_PROTOCOL 0
+    #define D_ENV_MYSQL_HAS_X_DEVAPI 0
+    #ifndef D_ENV_MYSQL_HAS_MYSQLX_PLUGIN
+        #define D_ENV_MYSQL_HAS_MYSQLX_PLUGIN 0
+    #endif  // D_ENV_MYSQL_HAS_MYSQLX_PLUGIN
+    #define D_ENV_MYSQL_HAS_UTF8MB4 0
+    #define D_ENV_MYSQL_DEFAULT_CHARSET_IS_UTF8MB4 0
+    #define D_ENV_MYSQL_HAS_UTF8MB4_0900 0
+    #define D_ENV_MYSQL_UTF8_IS_UTF8MB3 0
+    #define D_ENV_MYSQL_HAS_DATA_DICTIONARY 0
+    #define D_ENV_MYSQL_HAS_RESOURCE_GROUPS 0
+    #define D_ENV_MYSQL_HAS_WINDOW_FUNCTIONS 0
+    #define D_ENV_MYSQL_HAS_CTE 0
+    #define D_ENV_MYSQL_HAS_LATERAL_DERIVED 0
+    #define D_ENV_MYSQL_HAS_HASH_JOIN 0
+    #define D_ENV_MYSQL_HAS_HISTOGRAMS 0
+    #define D_ENV_MYSQL_HAS_EXPLAIN_ANALYZE 0
+    #define D_ENV_MYSQL_HAS_EXPLAIN_FORMAT_TREE 0
+    #define D_ENV_MYSQL_HAS_OPTIMIZER_HINTS 0
+    #define D_ENV_MYSQL_HAS_PERFORMANCE_SCHEMA 0
+    #define D_ENV_MYSQL_HAS_SYS_SCHEMA 0
+    #define D_ENV_MYSQL_HAS_ROLES 0
+    #define D_ENV_MYSQL_HAS_PARTIAL_REVOKE 0
+    #define D_ENV_MYSQL_HAS_AUDIT_LOG 0
+    #define D_ENV_MYSQL_HAS_DATA_MASKING 0
+    #define D_ENV_MYSQL_HAS_PASSWORD_HISTORY 0
+    #define D_ENV_MYSQL_HAS_DUAL_PASSWORDS 0
+    #define D_ENV_MYSQL_HAS_RANDOM_PASSWORD 0
+    #define D_ENV_MYSQL_HAS_ATOMIC_DDL 0
+    #define D_ENV_MYSQL_HAS_UNIX_SOCKET_CONN 0
+    #define D_ENV_MYSQL_HAS_NAMED_PIPE 0
+    #define D_ENV_MYSQL_HAS_SHARED_MEMORY 0
+    #ifndef D_ENV_MYSQL_HAS_UNIX_SOCKET_AUTH
+        #define D_ENV_MYSQL_HAS_UNIX_SOCKET_AUTH 0
+    #endif  // D_ENV_MYSQL_HAS_UNIX_SOCKET_AUTH
+    #define D_ENV_MYSQL_HAS_MODERN_AUTH 0
+    #define D_ENV_MYSQL_HAS_MODERN_JSON 0
+    #define D_ENV_MYSQL_HAS_MODERN_DDL 0
+    #define D_ENV_MYSQL_HAS_MODERN_SQL 0
+    #define D_ENV_MYSQL_HAS_HA_SUITE 0
+    #define D_ENV_MYSQL_HAS_MODERN_SECURITY 0
+    #define D_ENV_MYSQL_HAS_MODERN_OPTIMIZER 0
+    #define D_ENV_MYSQL_IS_FULLY_MODERN 0
+    #define D_ENV_MYSQL_REMOVED_QUERY_CACHE 0
+    #define D_ENV_MYSQL_REMOVED_PARTITION_ENGINE 0
+    #define D_ENV_MYSQL_REMOVED_PASSWORD_FUNCTION 0
+    #define D_ENV_MYSQL_REMOVED_EMBEDDED_SERVER 0
+    #define D_ENV_MYSQL_REMOVED_FRM_FILES 0
+    #define D_ENV_MYSQL_DEPRECATED_UTF8MB3_ALIAS 0
+    #define D_ENV_MYSQL_DEPRECATED_MYSQL_NATIVE_PASSWORD 0
 #endif  // D_ENV_MYSQL_DETECTED
 
 

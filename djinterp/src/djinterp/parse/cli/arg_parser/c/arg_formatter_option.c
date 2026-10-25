@@ -15,7 +15,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_formatter_option.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_formatter.h"  // corresponding header
 // std
@@ -27,7 +27,7 @@
 #include "../../../../../../inc/djinterp/c/util/sink_common.h"  // d_pack_text
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_common.h"  // buffers, lists, statuses
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_option.h"  // d_arg_option
-#include "./arg_internal.h"  // spans, lists, help text
+#include "./arg_internal.h"  // spans, lists, help text, stored floats
 // re_std
 #include "../../../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t
 
@@ -209,12 +209,23 @@ d_arg_format_option_usage_default(
 // 2.  WHAT FOLLOWS THE NAMES
 //==============================================================================
 
-/*
-d_arg_internal_help_before
-  Whether one option's name sorts before another's, as std::string's `<`
-compares them: byte by byte, unsigned, a prefix first. The names are
-written into the two scratch buffers given.
-*/
+/**
+ * @brief Tells whether one option's name sorts before another's, as
+ *        std::string's `<` compares them.
+ *
+ * @param[in]     _first           the first option.
+ * @param[in]     _second          the second option.
+ * @param[in,out] _scratch_first   receives the first option's name, cleared
+ *                                 first.
+ * @param[in,out] _scratch_second  receives the second option's name, cleared
+ *                                 first.
+ * @return `true` when the first name sorts before the second; `false`
+ *         otherwise.
+ *
+ * Whether one option's name sorts before another's, as std::string's `<`
+ * compares them: byte by byte, unsigned, a prefix first. The names are
+ * written into the two scratch buffers given.
+ */
 D_STATIC bool
 d_arg_internal_help_before(
     const struct d_arg_option* _first,
@@ -246,13 +257,19 @@ d_arg_internal_help_before(
                (_scratch_first->length < _scratch_second->length) ) );
 }
 
-/*
-d_arg_internal_help_sorted
-  The options of a list in the order of their names, by insertion: each
-slid back past the names that sort after its own, so that options of the
-same name keep the order they were linked in, where CLI11's std::sort
-leaves it unspecified.
-*/
+/**
+ * @brief Lists options in the order of their names.
+ *
+ * @param[in]     _options  the options.
+ * @param[in,out] _sorted   the list, empty at first, that gains them in order.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when the list could not grow
+ *         or a name could not be written.
+ *
+ * The options of a list in the order of their names, by insertion: each
+ * slid back past the names that sort after its own, so that options of the
+ * same name keep the order they were linked in, where CLI11's std::sort
+ * leaves it unspecified.
+ */
 D_STATIC int
 d_arg_internal_help_sorted(
     const struct d_arg_option_list* _options,
@@ -299,12 +316,17 @@ d_arg_internal_help_sorted(
     return status;
 }
 
-/*
-d_arg_internal_help_linked
-  The options another needs or excludes, each after a space by its name, in
-the order of their names, as CLI11 sorts its pointer-ordered set for stable
-help.
-*/
+/**
+ * @brief Appends the names of the options another needs or excludes.
+ *
+ * @param[in]     _options  the options.
+ * @param[in,out] _out      the buffer that gains the names.
+ * @return D_ARG_OK, or the failure of the sorting or of the buffer.
+ *
+ * The options another needs or excludes, each after a space by its name, in
+ * the order of their names, as CLI11 sorts its pointer-ordered set for stable
+ * help.
+ */
 D_STATIC int
 d_arg_internal_help_linked(
     const struct d_arg_option_list* _options,
@@ -334,11 +356,17 @@ d_arg_internal_help_linked(
     return status;
 }
 
-/*
-d_arg_internal_help_typed
-  The type name, labelled, with the delimiter and "..." after it when values
-may be joined by one; nothing when there is no type name.
-*/
+/**
+ * @brief Appends an option's type name, labelled.
+ *
+ * @param[in]     _formatter  the formatter, whose labels apply.
+ * @param[in]     _option     the option.
+ * @param[in,out] _out        the buffer that gains the type name.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The type name, labelled, with the delimiter and "..." after it when values
+ * may be joined by one; nothing when there is no type name.
+ */
 D_STATIC int
 d_arg_internal_help_typed(
     const struct d_arg_formatter* _formatter,
@@ -381,11 +409,16 @@ d_arg_internal_help_typed(
     return status;
 }
 
-/*
-d_arg_internal_help_shown_default
-  An option's default in brackets, with the space after them CLI11 leaves;
-nothing when it has none.
-*/
+/**
+ * @brief Appends an option's default in brackets.
+ *
+ * @param[in]     _option  the option.
+ * @param[in,out] _out     the buffer that gains the default.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * An option's default in brackets, with the space after them CLI11 leaves;
+ * nothing when it has none.
+ */
 D_STATIC int
 d_arg_internal_help_shown_default(
     const struct d_arg_option* _option,
@@ -414,11 +447,16 @@ d_arg_internal_help_shown_default(
            : status;
 }
 
-/*
-d_arg_internal_help_shown_count
-  How many values an option takes, as make_option_opts shows it: " ..." for
-any number, " x N" for a fixed count above one.
-*/
+/**
+ * @brief Appends how many values an option takes, as make_option_opts shows it.
+ *
+ * @param[in]     _option  the option.
+ * @param[in,out] _out     the buffer that gains the count.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * How many values an option takes, as make_option_opts shows it: " ..." for
+ * any number, " x N" for a fixed count above one.
+ */
 D_STATIC int
 d_arg_internal_help_shown_count(
     const struct d_arg_option* _option,
@@ -448,11 +486,17 @@ d_arg_internal_help_shown_count(
     return status;
 }
 
-/*
-d_arg_internal_help_valued
-  What an option that takes values shows: its type, its default, its count,
-and the REQUIRED label.
-*/
+/**
+ * @brief Appends what an option that takes values shows.
+ *
+ * @param[in]     _formatter  the formatter, whose switches and labels apply.
+ * @param[in]     _option     the option.
+ * @param[in,out] _out        the buffer that gains the text.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * What an option that takes values shows: its type, its default, its count,
+ * and the REQUIRED label.
+ */
 D_STATIC int
 d_arg_internal_help_valued(
     const struct d_arg_formatter* _formatter,
@@ -493,10 +537,17 @@ d_arg_internal_help_valued(
     return status;
 }
 
-/*
-d_arg_internal_help_links
-  One kind of link: a space, the label and a colon, then the names.
-*/
+/**
+ * @brief Appends one kind of link: its label and the names linked.
+ *
+ * @param[in]     _formatter  the formatter, whose labels apply.
+ * @param[in]     _key        the label's key: `Needs` or `Excludes`.
+ * @param[in]     _options    the options linked.
+ * @param[in,out] _out        the buffer that gains the text.
+ * @return D_ARG_OK, or the failure of the sorting or of the buffer.
+ *
+ * One kind of link: a space, the label and a colon, then the names.
+ */
 D_STATIC int
 d_arg_internal_help_links(
     const struct d_arg_formatter*   _formatter,
@@ -524,11 +575,17 @@ d_arg_internal_help_links(
            : status;
 }
 
-/*
-d_arg_internal_help_environment
-  The environment variable an option reads, in parentheses after the Env
-label; nothing when it reads none.
-*/
+/**
+ * @brief Appends the environment variable an option reads.
+ *
+ * @param[in]     _formatter  the formatter, whose labels apply.
+ * @param[in]     _option     the option.
+ * @param[in,out] _out        the buffer that gains the text.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The environment variable an option reads, in parentheses after the Env
+ * label; nothing when it reads none.
+ */
 D_STATIC int
 d_arg_internal_help_environment(
     const struct d_arg_formatter* _formatter,
@@ -563,9 +620,9 @@ d_arg_internal_help_environment(
 /*
 d_arg_format_option_opts_default
   CLI11's make_option_opts: the option text alone, when there is one;
-otherwise, for an option whose type takes values, what d_arg_internal_help_
-valued writes, then for any option its environment variable and the
-options it needs and excludes.
+otherwise, for an option whose type takes values, what
+d_arg_internal_help_valued writes, then for any option its environment
+variable and the options it needs and excludes.
 */
 int
 d_arg_format_option_opts_default(
@@ -636,11 +693,16 @@ struct d_arg_internal_help_names
     size_t              long_count;
 };
 
-/*
-d_arg_internal_help_sort_name
-  One name into the short or the long list: long when it holds `--`
-anywhere, as CLI11's find("--") decides.
-*/
+/**
+ * @brief Sorts one name into the short or the long list.
+ *
+ * @param[in,out] _names  the lists.
+ * @param[in]     _name   the name.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * One name into the short or the long list: long when it holds `--`
+ * anywhere, as CLI11's find("--") decides.
+ */
 D_STATIC int
 d_arg_internal_help_sort_name(
     struct d_arg_internal_help_names* _names,
@@ -676,12 +738,17 @@ d_arg_internal_help_sort_name(
            : joint;
 }
 
-/*
-d_arg_internal_help_split_names
-  CLI11's split(names, ','): an empty text is one empty name; otherwise
-each piece up to a comma, the empty piece after a final comma not counted,
-as getline gives them.
-*/
+/**
+ * @brief Splits an option's names, as CLI11's split(names, ',').
+ *
+ * @param[in,out] _names  the lists that gain the names.
+ * @param[in]     _all    the names, joined by commas.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's split(names, ','): an empty text is one empty name; otherwise
+ * each piece up to a comma, the empty piece after a final comma not counted,
+ * as getline gives them.
+ */
 D_STATIC int
 d_arg_internal_help_split_names(
     struct d_arg_internal_help_names* _names,
@@ -715,20 +782,30 @@ d_arg_internal_help_split_names(
     return status;
 }
 
-/*
-d_arg_internal_help_scaled
-  CLI11's static_cast<int>(static_cast<float>(column_width_) * ratio): the
-product rounded to a float -- the cast forces it where the platform would
-keep more precision, so that 30 * 0.7f is 21 everywhere -- and truncated,
-held at INT_MAX where the int could not hold it.
-*/
+/**
+ * @brief Scales a column width, as CLI11's
+ *        static_cast<int>(static_cast<float>(column_width_) * ratio).
+ *
+ * @param[in] _width  the width.
+ * @param[in] _ratio  the ratio.
+ * @return the product, truncated; 0 for one not above 0, and INT_MAX for one an
+ *         `int` cannot hold.
+ *
+ * CLI11's static_cast<int>(static_cast<float>(column_width_) * ratio): the
+ * width and the product each rounded to a float, as CLI11's casts and its
+ * float operands round them -- through d_arg_internal_float_stored, since a
+ * compiler for the x87 unit may skip a cast's rounding, so that 30 * 0.7f is
+ * 21 everywhere -- and truncated, held at INT_MAX where the int could not
+ * hold it.
+ */
 D_STATIC int
 d_arg_internal_help_scaled(
     size_t _width,
     float  _ratio
 )
 {
-    const float scaled = (float)((float)_width * _ratio);
+    const float width  = d_arg_internal_float_stored((float)_width);
+    const float scaled = d_arg_internal_float_stored(width * _ratio);
 
     return (scaled >= (float)INT_MAX)
            ? INT_MAX
@@ -737,11 +814,18 @@ d_arg_internal_help_scaled(
              : 0;
 }
 
-/*
-d_arg_internal_help_wide
-  Whether a field written so far reaches a column width, as CLI11 compares
-them: a width below 1 is reached by anything.
-*/
+/**
+ * @brief Tells whether a field written so far reaches a column width, as CLI11
+ *        compares them.
+ *
+ * @param[in] _written  how much was written.
+ * @param[in] _width    the width.
+ * @return `true` when it reaches the width, or for a width below 1; `false`
+ *         otherwise.
+ *
+ * Whether a field written so far reaches a column width, as CLI11 compares
+ * them: a width below 1 is reached by anything.
+ */
 D_STATIC bool
 d_arg_internal_help_wide(
     size_t _written,
@@ -752,13 +836,22 @@ d_arg_internal_help_wide(
              (_written >= (size_t)_width) );
 }
 
-/*
-d_arg_internal_help_short_column
-  The short names' column: indented two, with the option's text when there
-are no long names, or a comma when there are, and a space when it reaches
-the column's width, padded to that width. Returns through `_over` how far
-it ran past.
-*/
+/**
+ * @brief Appends the short names' column.
+ *
+ * @param[in]     _names  the names, split.
+ * @param[in]     _opts   the option's text after its names.
+ * @param[in]     _width  the column's width.
+ * @param[out]    _over   receives how far the column ran past its width;
+ *                        untouched when it did not reach it.
+ * @param[in,out] _out    the buffer that gains the column.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The short names' column: indented two, with the option's text when there
+ * are no long names, or a comma when there are, and a space when it reaches
+ * the column's width, padded to that width. Returns through `_over` how far
+ * it ran past.
+ */
 D_STATIC int
 d_arg_internal_help_short_column(
     const struct d_arg_internal_help_names* _names,
@@ -809,11 +902,18 @@ d_arg_internal_help_short_column(
            : status;
 }
 
-/*
-d_arg_internal_help_long_column
-  The long names' column: the long names with the option's text, a space
-when they reach the column's width, padded to that width.
-*/
+/**
+ * @brief Appends the long names' column.
+ *
+ * @param[in]     _names  the names, split.
+ * @param[in]     _opts   the option's text after its names.
+ * @param[in]     _width  the column's width.
+ * @param[in,out] _out    the buffer that gains the column.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The long names' column: the long names with the option's text, a space
+ * when they reach the column's width, padded to that width.
+ */
 D_STATIC int
 d_arg_internal_help_long_column(
     const struct d_arg_internal_help_names* _names,
@@ -852,14 +952,24 @@ d_arg_internal_help_long_column(
            : status;
 }
 
-/*
-d_arg_internal_help_named_line
-  The non-positional half of CLI11's make_option: the names split into short
-and long, the short ones in a column the alignment ratio sizes, the long
-ones in the rest of the left column less however far the short ones ran
-past theirs, then the description -- on the next line when the two columns
-ran past the left one.
-*/
+/**
+ * @brief Appends the line of an option with names, as the non-positional half
+ *        of CLI11's make_option.
+ *
+ * @param[in]     _formatter  the formatter.
+ * @param[in]     _option     the option.
+ * @param[in,out] _parts      three scratch buffers, empty at first: the names,
+ *                            the option's text, and the description.
+ * @param[in,out] _names      the scratch lists of names, empty at first.
+ * @param[in,out] _out        the buffer that gains the line.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The non-positional half of CLI11's make_option: the names split into short
+ * and long, the short ones in a column the alignment ratio sizes, the long
+ * ones in the rest of the left column less however far the short ones ran
+ * past theirs, then the description -- on the next line when the two columns
+ * ran past the left one.
+ */
 D_STATIC int
 d_arg_internal_help_named_line(
     const struct d_arg_formatter*     _formatter,
@@ -920,12 +1030,21 @@ d_arg_internal_help_named_line(
            : status;
 }
 
-/*
-d_arg_internal_help_positional_line
-  The positional half of CLI11's make_option: two spaces, the positional
-name and what follows it, padded to the left column, then the description
--- on the next line when the left part fills the column.
-*/
+/**
+ * @brief Appends the line of a positional, as the positional half of CLI11's
+ *        make_option.
+ *
+ * @param[in]     _formatter    the formatter.
+ * @param[in]     _option       the option.
+ * @param[in,out] _description  scratch, empty at first, that receives the
+ *                              description.
+ * @param[in,out] _out          the buffer that gains the line.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The positional half of CLI11's make_option: two spaces, the positional
+ * name and what follows it, padded to the left column, then the description
+ * -- on the next line when the left part fills the column.
+ */
 D_STATIC int
 d_arg_internal_help_positional_line(
     const struct d_arg_formatter* _formatter,

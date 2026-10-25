@@ -11,8 +11,8 @@
 *******************************************************************************/
 // the extensions end to end: tree shape, file attributes, and the sheet's
 // findings on files whose violations are known in advance
-#include "../../inc/djinterp/tools/dawk/ext/dext_c.h"
-#include "../../inc/djinterp/tools/dawk/ext/dext_cpp.h"
+#include "../../inc/djinterp/tools/dawk/ext/check/dext_c.h"
+#include "../../inc/djinterp/tools/dawk/ext/check/dext_cpp.h"
 #include "../../inc/djinterp/tools/dawk/dmatch.h"
 #include "../../inc/djinterp/tools/dawk/dss.h"
 #include "../../inc/djinterp/tools/dawk/dproperty.h"

@@ -11,7 +11,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_option_link.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_option.h"  // corresponding header
 // std
@@ -28,12 +28,19 @@
 #include "./arg_internal.h"  // failures, lists, spans
 
 
-/*
-d_arg_internal_option_check_link
-  D_ARG_OK for two options of one parser; a link between two parsers'
-options is refused and recorded, for no parse could honour it and its
-pointers would outlive the other parser.
-*/
+/**
+ * @brief Checks that two options may be linked.
+ *
+ * @param[in] _option  the option linked from.
+ * @param[in] _other   the option linked to.
+ * @return D_ARG_OK for options of one parser;
+ *         D_ARG_ERROR_INCORRECT_CONSTRUCTION, recorded as a definition error,
+ *         otherwise.
+ *
+ * D_ARG_OK for two options of one parser; a link between two parsers'
+ * options is refused and recorded, for no parse could honour it and its
+ * pointers would outlive the other parser.
+ */
 D_STATIC int
 d_arg_internal_option_check_link(
     const struct d_arg_option* _option,
@@ -158,14 +165,22 @@ d_arg_option_excludes(
                                             NULL);
 }
 
-/*
-d_arg_internal_option_named
-  The option a needs or an excludes by name refers to, found as CLI11's
-get_option_no_throw finds it from the option's command, then -- for an
-option in an option group -- from the command the group belongs to, where
-CLI11 looks for an option moved into the group, since its option keeps the
-command it was made on; CLI11's MissingOption when neither has it.
-*/
+/**
+ * @brief Finds the option a needs or an excludes names.
+ *
+ * @param[in]  _option  the option that names it.
+ * @param[in]  _name    the name.
+ * @param[out] _status  receives D_ARG_OK, or
+ *                      D_ARG_ERROR_INCORRECT_CONSTRUCTION, recorded as a
+ *                      definition error, when no option has the name.
+ * @return the option named; NULL when there is none.
+ *
+ * The option a needs or an excludes by name refers to, found as CLI11's
+ * get_option_no_throw finds it from the option's command, then -- for an
+ * option in an option group -- from the command the group belongs to, where
+ * CLI11 looks for an option moved into the group, since its option keeps the
+ * command it was made on; CLI11's MissingOption when neither has it.
+ */
 D_STATIC struct d_arg_option*
 d_arg_internal_option_named(
     struct d_arg_option* _option,
@@ -289,11 +304,19 @@ d_arg_option_remove_excludes(
                                            _other)) );
 }
 
-/*
-d_arg_internal_option_name_validator
-  Gives a validator its name before it is stored; a refused name releases
-the validator, which is the option's to dispose of from the call on.
-*/
+/**
+ * @brief Gives a validator its name before it is stored.
+ *
+ * @param[in]     _option     the option it is for.
+ * @param[in,out] _validator  the validator, named, or released when the name is
+ *                            refused.
+ * @param[in]     _name       the name; NULL or empty for none.
+ * @return D_ARG_OK; otherwise the naming's failure, recorded as a definition
+ *         error, the validator then released.
+ *
+ * Gives a validator its name before it is stored; a refused name releases
+ * the validator, which is the option's to dispose of from the call on.
+ */
 D_STATIC int
 d_arg_internal_option_name_validator(
     struct d_arg_option*    _option,
@@ -325,12 +348,22 @@ d_arg_internal_option_name_validator(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_option_take_validator
-  What check and transform share: a failed validator becomes the option's
-definition error, the name is given, and the validator is stored first or
-last; the values return to PARSING so that they are validated again.
-*/
+/**
+ * @brief Stores a validator on an option, first or last.
+ *
+ * @param[in,out] _option     the option.
+ * @param[in]     _validator  the validator, which the option takes over either
+ *                            way.
+ * @param[in]     _name       its name; NULL or empty for none.
+ * @param[in]     _first      whether it goes before the others.
+ * @return D_ARG_OK; otherwise the validator's own failure, or the naming's or
+ *         the storing's, recorded as a definition error, the validator then
+ *         released.
+ *
+ * What check and transform share: a failed validator becomes the option's
+ * definition error, the name is given, and the validator is stored first or
+ * last; the values return to PARSING so that they are validated again.
+ */
 D_STATIC int
 d_arg_internal_option_take_validator(
     struct d_arg_option*   _option,
@@ -456,14 +489,22 @@ struct d_arg_internal_option_each_context
     d_arg_release_fn release;
 };
 
-/*
-d_arg_internal_option_each_validate
-  Runs the caller's function on the value, watching the parser's report: a
-status other than D_ARG_OK rejects the value with the message the function
-recorded through d_arg_option_fail, or the status's own, and is returned --
-so a validation error stands as the rejection CLI11 catches, and any other
-ends the parse as CLI11 lets anything else an each() function throws.
-*/
+/**
+ * @brief Runs an each() function on a value, as a validation.
+ *
+ * @param[in]     _validator   the validator, whose data is the each() record.
+ * @param[in,out] _validation  the validation, rejected when the function fails.
+ * @return D_ARG_OK when the value passes; otherwise the function's status, the
+ *         value rejected with its message, or D_ARG_ERROR_OUT_OF_MEMORY when
+ *         the rejection could not be kept.
+ *
+ * Runs the caller's function on the value, watching the parser's report: a
+ * status other than D_ARG_OK rejects the value with the message the function
+ * recorded through d_arg_option_fail, or else the status's own -- its
+ * d_arg_status_message, as a callback's failure reads -- and is returned, so
+ * a validation error stands as the rejection CLI11 catches, and any other
+ * ends the parse as CLI11 lets anything else an each() function throws.
+ */
 D_STATIC int
 d_arg_internal_option_each_validate(
     const struct d_arg_validator* _validator,
@@ -502,15 +543,18 @@ d_arg_internal_option_each_validate(
                              _validation,
                              recorded
                              ? d_arg_error_message(&watch.parser->error)
-                             : d_arg_status_name(status));
+                             : d_arg_status_message(status));
 
     return (rejected != D_ARG_OK) ? rejected : status;
 }
 
-/*
-d_arg_internal_option_each_release
-  Frees the caller's context through its function, then the record.
-*/
+/**
+ * @brief Frees an each() record and the context it owns.
+ *
+ * @param[in] _context  the record; NULL is ignored.
+ *
+ * Frees the caller's context through its function, then the record.
+ */
 D_STATIC void
 d_arg_internal_option_each_release(
     void* _context
@@ -537,11 +581,17 @@ d_arg_internal_option_each_release(
     return;
 }
 
-/*
-d_arg_internal_option_each_copy
-  Duplicates the record when the caller's context is borrowed; an owned
-context cannot be duplicated, so neither can the validator.
-*/
+/**
+ * @brief Copies an each() record whose context is borrowed.
+ *
+ * @param[in] _context  the record.
+ * @return the copy, which d_arg_internal_option_each_release frees; NULL for a
+ *         record that owns its context, or when the copy could not be
+ *         allocated.
+ *
+ * Duplicates the record when the caller's context is borrowed; an owned
+ * context cannot be duplicated, so neither can the validator.
+ */
 D_STATIC void*
 d_arg_internal_option_each_copy(
     const void* _context
@@ -569,11 +619,15 @@ d_arg_internal_option_each_copy(
     return copy;
 }
 
-/*
-d_arg_internal_option_each_free
-  Frees a caller's context that never reached a validator, through its
-release function, as the call promises to dispose of it.
-*/
+/**
+ * @brief Frees a context that never reached a validator.
+ *
+ * @param[in] _context  the context.
+ * @param[in] _release  frees it; NULL leaves it borrowed.
+ *
+ * Frees a caller's context that never reached a validator, through its
+ * release function, as the call promises to dispose of it.
+ */
 D_STATIC void
 d_arg_internal_option_each_free(
     void*            _context,
@@ -590,11 +644,18 @@ d_arg_internal_option_each_free(
     return;
 }
 
-/*
-d_arg_internal_option_each_make
-  The validator an each() runs as: the record around the caller's function,
-owned by the validator from the start, so every failure frees it once.
-*/
+/**
+ * @brief Makes the validator an each() runs as.
+ *
+ * @param[in] _each     the function.
+ * @param[in] _context  its context.
+ * @param[in] _release  frees `_context`; NULL leaves it borrowed.
+ * @return the validator, which owns the record; one without data, `_context`
+ *         then freed, when the record could not be allocated.
+ *
+ * The validator an each() runs as: the record around the caller's function,
+ * owned by the validator from the start, so every failure frees it once.
+ */
 D_STATIC struct d_arg_validator
 d_arg_internal_option_each_make(
     d_arg_each_fn    _each,
@@ -767,12 +828,18 @@ d_arg_option_set_callback(
     return;
 }
 
-/*
-d_arg_internal_option_write_target
-  The default function a bound variable is: its value as its type writes
-it, or nothing for a type that cannot write one, as CLI11's checked_to_string
-gives the empty string.
-*/
+/**
+ * @brief Writes the value of an option's bound variable, as its default.
+ *
+ * @param[in] _option   the option, bound to the variable.
+ * @param[in] _sink     receives the text.
+ * @param[in] _context  unused.
+ * @return D_ARG_OK, or the type's or the sink's failure.
+ *
+ * The default function a bound variable is: its value as its type writes
+ * it, or nothing for a type that cannot write one, as CLI11's checked_to_string
+ * gives the empty string.
+ */
 D_STATIC int
 d_arg_internal_option_write_target(
     const struct d_arg_option* _option,

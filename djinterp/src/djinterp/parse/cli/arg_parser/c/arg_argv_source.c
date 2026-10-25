@@ -8,13 +8,14 @@
 * response files, read whole -- a byte-order mark honoured -- split by the
 * parser's rules, and expanded on the parser's stack before the parse, each
 * `@file` in place and its words expanded in turn, as deep as the build
-* allows; and wide text converted to UTF-8, as wmain's arguments are.
+* allows; and wide text converted to UTF-8, as wmain's arguments are, and
+* back, as CLI11's widen converts a value.
 *
 *
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_argv_source.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_argv.h"  // corresponding header
 // std
@@ -39,11 +40,17 @@
 //   constant: CLI11's std::string::npos, the position of what is not there.
 static const size_t NPOS = (size_t)-1;
 
-/*
-d_arg_internal_program_space
-  CLI11's find_first_of(' ', _from): the position of the first space at or
-after `_from`, or NPOS.
-*/
+/**
+ * @brief Finds the first space at or after a position, as CLI11's
+ *        find_first_of(' ', _from).
+ *
+ * @param[in] _line  the line.
+ * @param[in] _from  where to look from.
+ * @return the space's position; NPOS when there is none.
+ *
+ * CLI11's find_first_of(' ', _from): the position of the first space at or
+ * after `_from`, or NPOS.
+ */
 D_STATIC size_t
 d_arg_internal_program_space(
     struct d_pack_text _line,
@@ -61,12 +68,21 @@ d_arg_internal_program_space(
            : NPOS;
 }
 
-/*
-d_arg_internal_program_is_file
-  CLI11's check_path(commandline.substr(0, _end).c_str()) == file: whether
-the line's first `_end` bytes -- all of it for NPOS -- name something that
-is not a directory, into `*_is_file`; a refused copy is the failure.
-*/
+/**
+ * @brief Tells whether the start of a line names a file, as CLI11's check_path
+ *        does.
+ *
+ * @param[in]     _line     the line.
+ * @param[in]     _end      how many of its bytes; NPOS for all.
+ * @param[in,out] _scratch  the buffer the path is copied into, cleared first.
+ * @param[out]    _is_file  receives whether they name something that is not a
+ *                          directory.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when the copy was refused.
+ *
+ * CLI11's check_path(commandline.substr(0, _end).c_str()) == file: whether
+ * the line's first `_end` bytes -- all of it for NPOS -- name something that
+ * is not a directory, into `*_is_file`; a refused copy is the failure.
+ */
 D_STATIC int
 d_arg_internal_program_is_file(
     struct d_pack_text   _line,
@@ -90,12 +106,19 @@ d_arg_internal_program_is_file(
     return status;
 }
 
-/*
-d_arg_internal_program_find
-  CLI11's search for the program: the line up to each space in turn, until
-one names a file; `*_end` receives that space's position, or NPOS, and
-`*_found` whether a file was named.
-*/
+/**
+ * @brief Searches a line for the program, as CLI11 does.
+ *
+ * @param[in]  _line   the line.
+ * @param[out] _end    receives the position of the space after the run of words
+ *                     that named a file; NPOS when the search reached the end.
+ * @param[out] _found  receives whether a file was named.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's search for the program: the line up to each space in turn, until
+ * one names a file; `*_end` receives that space's position, or NPOS, and
+ * `*_found` whether a file was named.
+ */
 D_STATIC int
 d_arg_internal_program_find(
     struct d_pack_text _line,
@@ -132,13 +155,19 @@ d_arg_internal_program_find(
     return status;
 }
 
-/*
-d_arg_internal_program_unescape
-  CLI11's find_and_replace(name, "\\" + key, key): each quote after a
-backslash written without it. The name is what a quote encloses, so its last
-byte is no backslash -- the quote after it would not have closed it -- and
-the bound only keeps the look at the next byte within the name.
-*/
+/**
+ * @brief Appends a quoted name with its escaped quotes unescaped.
+ *
+ * @param[in]     _name  the name: what the quotes enclose.
+ * @param[in]     _key   the quote.
+ * @param[in,out] _out   the buffer that gains the name.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's find_and_replace(name, "\\\\" + key, key): each quote after a
+ * backslash written without it. The name is what a quote encloses, so its last
+ * byte is no backslash -- the quote after it would not have closed it -- and
+ * the bound only keeps the look at the next byte within the name.
+ */
 D_STATIC int
 d_arg_internal_program_unescape(
     struct d_pack_text   _name,
@@ -166,16 +195,23 @@ d_arg_internal_program_unescape(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_program_quoted
-  CLI11's fallback for a line that opens with a quote: the next such quote
-that no backslash precedes closes it, and what it encloses is the name, its
-escaped quotes unescaped -- CLI11 unescapes only when the search passed one,
-but a name holding none comes out of the unescaping as it went in. `*_end`
-receives the position after the closing quote, or NPOS when it never
-closes. The line holds the opening quote, so each search, of what follows a
-quote, stays within it.
-*/
+/**
+ * @brief Reads the name a line opens with in quotes, as CLI11's fallback does.
+ *
+ * @param[in]     _line  the line, its first byte the opening quote.
+ * @param[in,out] _name  the buffer that gains the name.
+ * @param[out]    _end   receives the position after the closing quote; NPOS
+ *                       when it never closes.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's fallback for a line that opens with a quote: the next such quote
+ * that no backslash precedes closes it, and what it encloses is the name, its
+ * escaped quotes unescaped -- CLI11 unescapes only when the search passed one,
+ * but a name holding none comes out of the unescaping as it went in. `*_end`
+ * receives the position after the closing quote, or NPOS when it never
+ * closes. The line holds the opening quote, so each search, of what follows a
+ * quote, stays within it.
+ */
 D_STATIC int
 d_arg_internal_program_quoted(
     struct d_pack_text   _line,
@@ -218,13 +254,22 @@ d_arg_internal_program_quoted(
                _name);
 }
 
-/*
-d_arg_internal_program_name
-  CLI11's choice of the name once the search for a file is over: the run of
-words that named one; or else a quoted name; or else the first word -- the
-run, or the first word, less its trailing whitespace. `*_end` receives the
-position CLI11 continues from.
-*/
+/**
+ * @brief Chooses the program's name once the search for a file is over, as
+ *        CLI11 does.
+ *
+ * @param[in]     _line   the line.
+ * @param[in]     _found  whether a run of words named a file.
+ * @param[in,out] _name   the buffer that gains the name.
+ * @param[in,out] _end    the end of the run that named a file, or NPOS;
+ *                        receives the position CLI11 continues from.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's choice of the name once the search for a file is over: the run of
+ * words that named one; or else a quoted name; or else the first word -- the
+ * run, or the first word, less its trailing whitespace. `*_end` receives the
+ * position CLI11 continues from.
+ */
 D_STATIC int
 d_arg_internal_program_name(
     struct d_pack_text   _line,
@@ -336,12 +381,18 @@ d_arg_split_program_name(
 // 2.  RESPONSE FILES
 //==============================================================================
 
-/*
-d_arg_internal_response_utf16
-  A file's bytes after a UTF-16 byte-order mark, as UTF-8: each two bytes a
-unit, in the order the mark gave, an unpaired surrogate U+FFFD; and an odd
-byte at the end U+FFFD too.
-*/
+/**
+ * @brief Converts UTF-16 bytes to UTF-8.
+ *
+ * @param[in]     _bytes       the bytes after the byte-order mark.
+ * @param[in]     _big_endian  whether the mark gave big-endian order.
+ * @param[in,out] _out         the buffer that gains the UTF-8.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * A file's bytes after a UTF-16 byte-order mark, as UTF-8: each two bytes a
+ * unit, in the order the mark gave, an unpaired surrogate U+FFFD; and an odd
+ * byte at the end U+FFFD too.
+ */
 D_STATIC int
 d_arg_internal_response_utf16(
     struct d_pack_text   _bytes,
@@ -379,13 +430,19 @@ d_arg_internal_response_utf16(
            : status;
 }
 
-/*
-d_arg_internal_response_text
-  A response file's text as UTF-8: after UTF-8's byte-order mark, which is
-skipped; converted after UTF-16's, in either order, into `_converted`; or
-the bytes as they are. `*_text` receives a span of the bytes or of the
-conversion.
-*/
+/**
+ * @brief Finds a response file's text as UTF-8.
+ *
+ * @param[in]     _bytes      the file's bytes.
+ * @param[in,out] _converted  the buffer that gains a conversion from UTF-16.
+ * @param[out]    _text       receives a span of the bytes or of the conversion.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * A response file's text as UTF-8: after UTF-8's byte-order mark, which is
+ * skipped; converted after UTF-16's, in either order, into `_converted`; or
+ * the bytes as they are. `*_text` receives a span of the bytes or of the
+ * conversion.
+ */
 D_STATIC int
 d_arg_internal_response_text(
     struct d_pack_text   _bytes,
@@ -433,12 +490,22 @@ d_arg_internal_response_text(
     return status;
 }
 
-/*
-d_arg_internal_response_words
-  A file read whole, its text found, and split by the rules asked for, line
-breaks separating words, the words stored where they go; a file that cannot
-be read described as CLI11 describes a missing one.
-*/
+/**
+ * @brief Reads a response file's words.
+ *
+ * @param[in]     _path     the file's path.
+ * @param[in]     _quoting  the d_arg_quoting value the file is split by.
+ * @param[in]     _words    where the words go.
+ * @param[in,out] _error    receives a failure's description, appended; may be
+ *                          NULL.
+ * @return D_ARG_OK; D_ARG_ERROR_BAD_ARGUMENT for no path, no list, or a quoting
+ *         not known; D_ARG_ERROR_FILE for a file that cannot be read; otherwise
+ *         a status as d_arg_split_line's.
+ *
+ * A file read whole, its text found, and split by the rules asked for, line
+ * breaks separating words, the words stored where they go; a file that cannot
+ * be read described as CLI11 describes a missing one.
+ */
 D_STATIC int
 d_arg_internal_response_words(
     const char*                        _path,
@@ -524,19 +591,35 @@ struct d_arg_internal_response_walk
     bool                   ended;
 };
 
-// d_arg_internal_response_word
-//   declaration: one argument of an expansion, defined after the step it
-// takes for a file, whose words come back to it one level deeper.
+/**
+ * @brief Expands one argument met in order.
+ *
+ * @param[in,out] _walk   the walk, whose arguments gain the argument, or the
+ *                        words of the file it names.
+ * @param[in]     _word   the argument.
+ * @param[in]     _depth  how many files deep it was met.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * Declared ahead of its definition, which follows the step it takes for a
+ * file, whose words come back to it one level deeper.
+ */
 D_STATIC int
      d_arg_internal_response_word(struct d_arg_internal_response_walk* _walk,
                                   struct d_pack_text                   _word,
                                   int                                  _depth);
 
-/*
-d_arg_internal_response_refuse
-  A response file's words that break its rules, recorded with the path they
-came from; a refused copy recorded bare.
-*/
+/**
+ * @brief Records a response file's failure with its path.
+ *
+ * @param[in] _parser  the parser.
+ * @param[in] _path    the file's path.
+ * @param[in] _status  the failure.
+ * @param[in] _error   its description; empty for none.
+ * @return `_status`, recorded.
+ *
+ * A response file's words that break its rules, recorded with the path they
+ * came from; a refused copy recorded bare.
+ */
 D_STATIC int
 d_arg_internal_response_refuse(
     const struct d_arg_parser* _parser,
@@ -560,13 +643,20 @@ d_arg_internal_response_refuse(
                                _error->data);
 }
 
-/*
-d_arg_internal_response_read
-  The file an `@file` names, its words read into the parser's pool and
-their spans after the walk's, `*_read` set when they are there: a file that
-cannot be read kept as the argument, as GCC keeps one; words that break the
-file's rules a failure.
-*/
+/**
+ * @brief Reads the words of the file an `\@file` names.
+ *
+ * @param[in,out] _walk  the walk, whose words gain the file's, or whose
+ *                       arguments gain `_word` when the file cannot be read.
+ * @param[in]     _word  the argument: `@` and the path.
+ * @param[out]    _read  receives whether the file's words were read.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * The file an `\@file` names, its words read into the parser's pool and
+ * their spans after the walk's, `*_read` set when they are there: a file that
+ * cannot be read kept as the argument, as GCC keeps one; words that break the
+ * file's rules a failure.
+ */
 D_STATIC int
 d_arg_internal_response_read(
     struct d_arg_internal_response_walk* _walk,
@@ -608,11 +698,18 @@ d_arg_internal_response_read(
     return status;
 }
 
-/*
-d_arg_internal_response_file
-  An `@file` within the nesting allowed: its file's words read and each
-expanded one level deeper, in place; a file too deep a failure.
-*/
+/**
+ * @brief Expands an `\@file` within the nesting allowed.
+ *
+ * @param[in,out] _walk   the walk.
+ * @param[in]     _word   the argument: `@` and the path.
+ * @param[in]     _depth  how many files deep it was met.
+ * @return D_ARG_OK; D_ARG_ERROR_FILE, recorded, for a file nested too deep; or
+ *         another failure, recorded.
+ *
+ * An `\@file` within the nesting allowed: its file's words read and each
+ * expanded one level deeper, in place; a file too deep a failure.
+ */
 D_STATIC int
 d_arg_internal_response_file(
     struct d_arg_internal_response_walk* _walk,
@@ -828,5 +925,128 @@ d_arg_utf8_from_wide(
 }
 
 #endif  // WCHAR_MAX
+
+/**
+ * @brief Counts the `wchar_t` units UTF-8 text takes.
+ *
+ * @param[in] _text  the text.
+ * @return the count; NPOS when the text is not well-formed UTF-8.
+ *
+ * One unit for each code point, but two for one past U+FFFF where `wchar_t`
+ * has 16 bits; the first sequence that does not decode ends the count.
+ */
+D_STATIC size_t
+d_arg_internal_wide_units(
+    struct d_pack_text _text
+)
+{
+    const bool sixteen    = (WCHAR_MAX <= 0xFFFF);
+    size_t     at         = 0u;
+    size_t     units      = 0u;
+    uint32_t   code_point = 0u;
+
+    // each sequence in turn, refused at the first that is not one
+    while (at < _text.length)
+    {
+        if (!d_arg_internal_utf8_next(_text,
+                                      &at,
+                                      &code_point))
+        {
+            return NPOS;
+        }
+
+        units += ( (sixteen) &&
+                   (code_point > 0xFFFFu) )
+                 ? 2u
+                 : 1u;
+    }
+
+    return units;
+}
+
+/**
+ * @brief Writes well-formed UTF-8 text as `wchar_t` units.
+ *
+ * @param[in]  _text  the text, which d_arg_internal_wide_units counted.
+ * @param[out] _out   receives the units; room for as many as were counted.
+ *
+ * A code point past U+FFFF becomes a surrogate pair where `wchar_t` has 16
+ * bits, and stays whole where it has more.
+ */
+D_STATIC void
+d_arg_internal_wide_write(
+    struct d_pack_text _text,
+    wchar_t*           _out
+)
+{
+    const bool sixteen    = (WCHAR_MAX <= 0xFFFF);
+    size_t     at         = 0u;
+    size_t     out        = 0u;
+    uint32_t   code_point = 0u;
+
+    // each code point, a pair past U+FFFF where units have 16 bits
+    while ( (at < _text.length) &&
+            (d_arg_internal_utf8_next(_text,
+                                      &at,
+                                      &code_point)) )
+    {
+        if ( (sixteen) &&
+             (code_point > 0xFFFFu) )
+        {
+            _out[out++] = (wchar_t)(0xD800u +
+                                    ((code_point - 0x10000u) >> 10u));
+            code_point  = 0xDC00u + ((code_point - 0x10000u) & 0x3FFu);
+        }
+
+        _out[out++] = (wchar_t)code_point;
+    }
+
+    return;
+}
+
+/*
+d_arg_wide_from_utf8
+  Checked and counted first, so that a refusal writes nothing; then, when
+the units fit, written.
+*/
+int
+d_arg_wide_from_utf8(
+    const char* _text,
+    size_t      _length,
+    wchar_t*    _out,
+    size_t      _capacity,
+    size_t*     _needed
+)
+{
+    // validate the parameters
+    if ( (!_needed)              ||
+         ( (!_text) &&
+           (_length > 0u) )      ||
+         ( (!_out) &&
+           (_capacity > 0u) ) )
+    {
+        return D_ARG_ERROR_BAD_ARGUMENT;
+    }
+
+    const struct d_pack_text text  = { _text, _length };
+    const size_t             units = d_arg_internal_wide_units(text);
+
+    // text that is not UTF-8 converts to nothing
+    if (units == NPOS)
+    {
+        return D_ARG_ERROR_CONVERSION;
+    }
+
+    // the units, when there is room for them
+    if (units <= _capacity)
+    {
+        d_arg_internal_wide_write(text,
+                                  _out);
+    }
+
+    *_needed = units;
+
+    return D_ARG_OK;
+}
 
 #endif  // D_INTERNAL_ARG_PARSER_WIDE_ARGV

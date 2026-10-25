@@ -14,7 +14,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_parser.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_parser.h"  // corresponding header
 // std
@@ -1137,27 +1137,6 @@ d_arg_parser_set_suggestions(
 }
 
 #endif  // D_INTERNAL_ARG_PARSER_SUGGESTIONS
-
-/*
-d_arg_parser_set_empty_values
-  The switch.
-*/
-void
-d_arg_parser_set_empty_values(
-    struct d_arg_parser* _parser,
-    bool                 _enabled
-)
-{
-    // nothing to set without a parser
-    if (_parser != NULL)
-    {
-        _parser->flags = _enabled
-                         ? (_parser->flags | D_ARG_PARSER_EMPTY_VALUES)
-                         : (_parser->flags & ~D_ARG_PARSER_EMPTY_VALUES);
-    }
-
-    return;
-}
 
 //==============================================================================
 // 5.  ERRORS

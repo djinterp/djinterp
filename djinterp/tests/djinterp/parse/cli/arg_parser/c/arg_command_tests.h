@@ -19,7 +19,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_command_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_CLI_ARG_PARSER_C_ARG_COMMAND_TESTS_H
@@ -61,6 +61,7 @@ bool d_tests_arg_command_parsed(void);
 // 5.  UTILITIES
 bool d_tests_arg_command_triggers(void);
 bool d_tests_arg_command_lifecycle(void);
+bool d_tests_arg_command_deprecated_named(void);
 
 // 6.  DEPARTURES FROM CLI11
 bool d_tests_arg_command_unread_sums(void);

@@ -1,0 +1,4 @@
+rule r
+  command = c $in > $out
+build o1 o2 | io1: r i1 i2 | ii1 || oo1 |@ vv
+build io1x: r o1

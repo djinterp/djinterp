@@ -23,15 +23,21 @@
 * ISO C++98 refuses, and the headers are meant to be consumable from C++98
 * on.
 *
+*   A second knob says whether the layer calls SQLite's extension loading,
+* which a library may leave out: Apple's system SQLite has neither its
+* functions nor their declarations.
+*
 *   targets:  c/db/sqlite/sqlite_*.h and their sources ->
-*             D_INTERNAL_SQLITE, D_SQLITE_FLOOR_VERSION_NUMBER
+*             D_INTERNAL_SQLITE, D_SQLITE_FLOOR_VERSION_NUMBER;
+*             src/djinterp/c/db/sqlite/sqlite_internal.h ->
+*             D_INTERNAL_SQLITE_LOAD_EXTENSION
 *   requires: cfg_common.h, cfg_env_sqlite.h
 *
 *
 * path:      /inc/djinterp/config/c/db/sqlite/cfg_sqlite_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -41,6 +47,8 @@ TABLE OF CONTENTS
     -------
     1.  Environment-defaulted enable
          1.  D_CFG_SQLITE
+    2.  Extension loading
+         1.  D_CFG_SQLITE_LOAD_EXTENSION
 2.  DEPENDENCIES
     ------------
     1.  SQLite detection
@@ -100,6 +108,26 @@ TABLE OF CONTENTS
     #endif
 #endif  // D_CFG_SQLITE
 
+// 1.2    Extension loading
+//------------------------------------------------------------------------------
+// 1.2.1
+// D_CFG_SQLITE_LOAD_EXTENSION
+//   knob: whether the layer calls SQLite's extension loading --
+// sqlite3_load_extension and sqlite3_enable_load_extension -- (1), or answers
+// D_DB_UNSUPPORTED for it (0). Defaults to 0 on Apple's platforms, whose
+// system SQLite has neither function, in its library or its header, and to 1
+// elsewhere; define it as 1 there for an SQLite of the program's own. A
+// build whose SQLite leaves loading out (SQLITE_OMIT_LOAD_EXTENSION, which
+// the layer's build must then define too) answers D_DB_UNSUPPORTED whatever
+// this says.
+#ifndef D_CFG_SQLITE_LOAD_EXTENSION
+    #if defined(__APPLE__)
+        #define D_CFG_SQLITE_LOAD_EXTENSION 0
+    #else
+        #define D_CFG_SQLITE_LOAD_EXTENSION 1
+    #endif
+#endif  // D_CFG_SQLITE_LOAD_EXTENSION
+
 
 //==============================================================================
 // 2.  DEPENDENCIES
@@ -133,9 +161,13 @@ TABLE OF CONTENTS
 
 // 3.1    Knob validation
 //------------------------------------------------------------------------------
-// validation: #if reads the knob as a number, so it must be 0 or 1
+// validation: #if reads each knob as a number, so it must be 0 or 1
 #if !D_CFG_IS_BOOL(D_CFG_SQLITE)
     #error "D_CFG_SQLITE must be 0 or 1"
+#endif
+
+#if !D_CFG_IS_BOOL(D_CFG_SQLITE_LOAD_EXTENSION)
+    #error "D_CFG_SQLITE_LOAD_EXTENSION must be 0 or 1"
 #endif
 
 

@@ -19,7 +19,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/arg_parser_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.19
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_parser_tests.hpp"  // corresponding header
 // std
@@ -353,19 +353,6 @@ const char SUGGESTIONS[] =
     "cmd app n=1 miss=[--numbr|1] subs=[] order=[]\n";
 
 #endif  // D_INTERNAL_ARG_PARSER_SUGGESTIONS
-
-// EMPTY_VALUES
-//   constant: what the steps of d_tests_arg_cpp_parser_empty_values write:
-// CLI11's with the switch off, the module's own with it on.
-const char EMPTY_VALUES[] =
-    "off: 0\n"
-    "cmd app n=1 miss=[] subs=[] order=[--note]\n"
-    "opt note n=1 res=[--title=x]\n"
-    "opt title n=0 res=[]\n"
-    "on: 1\n"
-    "cmd app n=1 miss=[] subs=[] order=[--note|--title]\n"
-    "opt note n=1 res=[]\n"
-    "opt title n=1 res=[x]\n";
 
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
 
@@ -1344,48 +1331,6 @@ const std::size_t SUGGESTIONS_COUNT =
 
 #endif  // D_INTERNAL_ARG_PARSER_SUGGESTIONS
 
-/**
- * @brief EMPTY_VALUES 1: `--note=` before another option, with the switch
- *        off -- as the run makes its parser -- and on.
- *
- * @param[in,out] _run  the step's run.
- */
-void
-empty_values_given(
-    run& _run
-)
-{
-    static const char* const GIVEN[] = { "--note=", "--title=x" };
-
-    (void)_run.watch("note",
-                     _run.app().add_option("--note"));
-    (void)_run.watch("title",
-                     _run.app().add_option("--title"));
-    _run.note(std::string("off: ") +
-              (_run.app().get_empty_values() ? "1" : "0"));
-    _run.parse(GIVEN,
-               2u);
-    _run.app().empty_values();
-    _run.note(std::string("on: ") +
-              (_run.app().get_empty_values() ? "1" : "0"));
-    _run.parse(GIVEN,
-               2u);
-
-    return;
-}
-
-// EMPTY_VALUES_STEPS
-//   constant: the steps of d_tests_arg_cpp_parser_empty_values.
-const step_fn EMPTY_VALUES_STEPS[] =
-{
-    &empty_values_given
-};
-
-// EMPTY_VALUES_COUNT
-//   constant: how many steps EMPTY_VALUES_STEPS holds.
-const std::size_t EMPTY_VALUES_COUNT =
-    sizeof(EMPTY_VALUES_STEPS) / sizeof(EMPTY_VALUES_STEPS[0]);
-
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
 
 /**
@@ -1949,22 +1894,6 @@ d_tests_arg_cpp_parser_suggestions()
 
 #endif  // D_INTERNAL_ARG_PARSER_SUGGESTIONS
 
-/*
-d_tests_arg_cpp_parser_empty_values
-  `--name=` as getopt_long reads it, which CLI11 does not.
-  Tests the following:
-  - off at first: the argument after `--note=` taken as the note
-  - on: the empty value, and the argument after it its own option's
-*/
-bool
-d_tests_arg_cpp_parser_empty_values()
-{
-    return steps_hold("EMPTY_VALUES",
-                      EMPTY_VALUES_STEPS,
-                      EMPTY_VALUES_COUNT,
-                      EMPTY_VALUES);
-}
-
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
 
 /*
@@ -2095,8 +2024,6 @@ const d_tests_section d_tests_arg_cpp_parser[] =
     { "cpp_parser_suggestions",
       d_tests_arg_cpp_parser_suggestions },
 #endif
-    { "cpp_parser_empty_values",
-      d_tests_arg_cpp_parser_empty_values },
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
     { "cpp_parser_completion_flag",
       d_tests_arg_cpp_parser_completion_flag },

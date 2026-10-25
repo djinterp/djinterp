@@ -13,7 +13,7 @@
 * path:      /src/djinterp/c/filesys/file_link.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_link.h"  // corresponding header
 // std
@@ -164,41 +164,23 @@ d_internal_link_name(
     #define D_INTERNAL_LINK_MAKE CreateSymbolicLinkA
 #endif  // D_INTERNAL_FILE_WIDE == 1
 
-// D_INTERNAL_LINK_CODEPAGE
-//   macro: the text a link's UTF-16 name is given back in: UTF-8 where
-// the build hands Windows UTF-16, the ANSI code page the A calls speak
-// otherwise.
-#if (D_INTERNAL_FILE_WIDE == 1)
-    #define D_INTERNAL_LINK_CODEPAGE CP_UTF8
-#else
-    #define D_INTERNAL_LINK_CODEPAGE CP_ACP
-#endif  // D_INTERNAL_FILE_WIDE == 1
-
-// D_INTERNAL_LINK_CP_FLAGS
-//   macro: UTF-8 refuses a lone surrogate rather than write U+FFFD for
-// it; the code page has no such refusal to ask for.
-#if (D_INTERNAL_FILE_WIDE == 1)
-    #define D_INTERNAL_LINK_CP_FLAGS WC_ERR_INVALID_CHARS
-#else
-    #define D_INTERNAL_LINK_CP_FLAGS 0
-#endif  // D_INTERNAL_FILE_WIDE == 1
-
-// D_INTERNAL_LINK_CP_ERROR
-//   macro: a name the text cannot carry: EILSEQ for a lone surrogate,
-// as d_internal_file_from_native; EIO for a name outside the code page.
-#if (D_INTERNAL_FILE_WIDE == 1)
-    #define D_INTERNAL_LINK_CP_ERROR EILSEQ
-#else
-    #define D_INTERNAL_LINK_CP_ERROR EIO
-#endif  // D_INTERNAL_FILE_WIDE == 1
+// D_INTERNAL_LINK_CODEPAGE, D_INTERNAL_LINK_CP_FLAGS, D_INTERNAL_LINK_CP_ERROR
+//   macros: how a build that speaks the code page gives a link's UTF-16 name
+// back: in the ANSI code page the A calls speak, with no refusal to ask for,
+// and EIO for a name outside it, whose text would not be the link's. A build
+// that hands Windows UTF-16 spells the name in WTF-8 instead, which has a
+// spelling for every name (d_internal_file_utf16_to_wtf8).
+#define D_INTERNAL_LINK_CODEPAGE CP_ACP
+#define D_INTERNAL_LINK_CP_FLAGS 0
+#define D_INTERNAL_LINK_CP_ERROR EIO
 
 /*
 d_internal_link_convert
   A link's UTF-16 name in the text this build's paths are: UTF-8 where it
 hands Windows UTF-16, the ANSI code page the -A calls speak otherwise
 (D_INTERNAL_LINK_CODEPAGE), in a block the caller frees, its length in _made.
-A name the text cannot take fails: EILSEQ for a lone surrogate, EIO for a name
-outside the code page, whose text would not be the link's.
+UTF-8 here is WTF-8, which spells a lone surrogate too, so only the code page
+refuses a name: EIO for one outside it, whose text would not be the link's.
 */
 static char*
 d_internal_link_convert(
@@ -207,6 +189,33 @@ d_internal_link_convert(
     int*         _made
 )
 {
+#if (D_INTERNAL_FILE_WIDE == 1)
+    size_t need = 0;
+
+    // every sequence of units has a WTF-8 spelling: measure, then write
+    (void)d_internal_file_utf16_to_wtf8(_name,
+                                        _length,
+                                        NULL,
+                                        0,
+                                        &need);
+
+    char* const text = (char*)d_internal_file_alloc(need + 1);
+
+    // d_internal_file_alloc has already reported the failure
+    if (!text)
+    {
+        return NULL;
+    }
+
+    (void)d_internal_file_utf16_to_wtf8(_name,
+                                        _length,
+                                        text,
+                                        need + 1,
+                                        NULL);
+    *_made = (int)need;
+
+    return text;
+#else
     const int need = WideCharToMultiByte(D_INTERNAL_LINK_CODEPAGE,
                                          D_INTERNAL_LINK_CP_FLAGS,
                                          _name,
@@ -251,6 +260,7 @@ d_internal_link_convert(
     }
 
     return text;
+#endif  // D_INTERNAL_FILE_WIDE == 1
 }
 
 /*

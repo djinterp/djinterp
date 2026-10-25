@@ -12,7 +12,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_option.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.11
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_option.h"  // corresponding header
 // std
@@ -79,14 +79,23 @@ d_arg_internal_option_replace_text(
 // NAMES
 //==============================================================================
 
-/*
-d_arg_internal_option_take_short
-  The single-dash branch of CLI11's get_names: one valid character is a
-short name; one invalid character is CLI11's OneCharName; several are
-MissingDash unless the command allows non-standard names, when they are a
-short name if valid and BadLongName -- naming them without the dash, as
-CLI11 does -- if not.
-*/
+/**
+ * @brief Takes a name that starts with one dash.
+ *
+ * @param[in,out] _option        the option, which gains the short name.
+ * @param[in]     _name          the name, with its dash.
+ * @param[in]     _non_standard  whether the command allows non-standard option
+ *                               names.
+ * @return D_ARG_OK; D_ARG_ERROR_BAD_NAME, recorded as a definition error, for a
+ *         name CLI11 refuses; D_ARG_ERROR_OUT_OF_MEMORY with the option
+ *         unchanged.
+ *
+ * The single-dash branch of CLI11's get_names: one valid character is a
+ * short name; one invalid character is CLI11's OneCharName; several are
+ * MissingDash unless the command allows non-standard names, when they are a
+ * short name if valid and BadLongName -- naming them without the dash, as
+ * CLI11 does -- if not.
+ */
 D_STATIC int
 d_arg_internal_option_take_short(
     struct d_arg_option* _option,
@@ -147,11 +156,18 @@ d_arg_internal_option_take_short(
                                       NULL);
 }
 
-/*
-d_arg_internal_option_take_long
-  The double-dash branch of CLI11's get_names: the rest must be a valid
-name, and is named without its dashes when it is not.
-*/
+/**
+ * @brief Takes a name that starts with two dashes.
+ *
+ * @param[in,out] _option  the option, which gains the long name.
+ * @param[in]     _name    the name, with its dashes.
+ * @return D_ARG_OK; D_ARG_ERROR_BAD_NAME, recorded as a definition error, for a
+ *         name that is not valid; D_ARG_ERROR_OUT_OF_MEMORY with the option
+ *         unchanged.
+ *
+ * The double-dash branch of CLI11's get_names: the rest must be a valid
+ * name, and is named without its dashes when it is not.
+ */
 D_STATIC int
 d_arg_internal_option_take_long(
     struct d_arg_option* _option,
@@ -178,11 +194,18 @@ d_arg_internal_option_take_long(
                                       NULL);
 }
 
-/*
-d_arg_internal_option_take_positional
-  The last branches of CLI11's get_names: the three reserved words are
-refused, then a second positional name, then an invalid one.
-*/
+/**
+ * @brief Takes a name without a dash as the positional name.
+ *
+ * @param[in,out] _option  the option, which gains the positional name.
+ * @param[in]     _name    the name.
+ * @return D_ARG_OK; D_ARG_ERROR_BAD_NAME, recorded as a definition error, for a
+ *         reserved word, a second positional name, or a name that is not valid;
+ *         D_ARG_ERROR_OUT_OF_MEMORY with the option unchanged.
+ *
+ * The last branches of CLI11's get_names: the three reserved words are
+ * refused, then a second positional name, then an invalid one.
+ */
 D_STATIC int
 d_arg_internal_option_take_positional(
     struct d_arg_option* _option,
@@ -238,11 +261,18 @@ d_arg_internal_option_take_positional(
            : D_ARG_ERROR_OUT_OF_MEMORY;
 }
 
-/*
-d_arg_internal_option_take_name
-  One piece of CLI11's get_names, dispatched in CLI11's order of tests:
-`-x`, then `--name`, then everything else.
-*/
+/**
+ * @brief Takes one name of an option, by its dashes.
+ *
+ * @param[in,out] _option        the option, which gains the name.
+ * @param[in]     _name          the name, trimmed.
+ * @param[in]     _non_standard  whether the command allows non-standard option
+ *                               names.
+ * @return a status, as the branch that took it returns.
+ *
+ * One piece of CLI11's get_names, dispatched in CLI11's order of tests:
+ * `-x`, then `--name`, then everything else.
+ */
 D_STATIC int
 d_arg_internal_option_take_name(
     struct d_arg_option* _option,
@@ -273,12 +303,20 @@ d_arg_internal_option_take_name(
                                                  _name);
 }
 
-/*
-d_arg_internal_option_take_names
-  CLI11's split_names: the text is cut at every comma, each piece trimmed,
-and an empty piece -- between two commas, or the whole of an empty text --
-names nothing.
-*/
+/**
+ * @brief Takes an option's names, as CLI11's split_names reads them.
+ *
+ * @param[in,out] _option        the option, which gains the names.
+ * @param[in]     _names         the names, separated by commas.
+ * @param[in]     _non_standard  whether the command allows non-standard option
+ *                               names.
+ * @return D_ARG_OK, or the failure of the first piece refused, which ends the
+ *         taking.
+ *
+ * CLI11's split_names: the text is cut at every comma, each piece trimmed,
+ * and an empty piece -- between two commas, or the whole of an empty text --
+ * names nothing.
+ */
 D_STATIC int
 d_arg_internal_option_take_names(
     struct d_arg_option* _option,
@@ -324,11 +362,15 @@ d_arg_internal_option_take_names(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_option_defaults
-  CLI11's Option member defaults: one value per item, one item expected,
-policy THROW, NORMAL priority, the configured integer rule, configurable.
-*/
+/**
+ * @brief Gives a new option CLI11's member defaults.
+ *
+ * @param[out] _option   the option, all of it written.
+ * @param[in]  _command  the command it belongs to.
+ *
+ * CLI11's Option member defaults: one value per item, one item expected,
+ * policy THROW, NORMAL priority, the configured integer rule, configurable.
+ */
 D_STATIC void
 d_arg_internal_option_defaults(
     struct d_arg_option*  _option,
@@ -475,11 +517,19 @@ struct d_arg_internal_name_writer
     bool                 flag_values;
 };
 
-/*
-d_arg_internal_option_append_names
-  The names of one list, each with its dashes and, when asked, the value a
-flag name stands for in braces, each after a comma but the first written.
-*/
+/**
+ * @brief Writes the names of one of an option's lists.
+ *
+ * @param[in]     _option  the option.
+ * @param[in]     _names   the list.
+ * @param[in]     _dashes  the dashes each name is written with.
+ * @param[in,out] _writer  the writer: the buffer, whether a name was written
+ *                         already, and whether flag values are written.
+ * @return D_ARG_OK, or the buffer's failure.
+ *
+ * The names of one list, each with its dashes and, when asked, the value a
+ * flag name stands for in braces, each after a comma but the first written.
+ */
 D_STATIC int
 d_arg_internal_option_append_names(
     const struct d_arg_option*         _option,
@@ -536,12 +586,18 @@ d_arg_internal_option_append_names(
     return _writer->out->failed ? D_ARG_ERROR_OUT_OF_MEMORY : D_ARG_OK;
 }
 
-/*
-d_arg_internal_option_name_all
-  The list form of CLI11's get_name: the positional name only when asked
-for or when it is the only name, and flag values only for an option that
-expects no values and has flag names at all.
-*/
+/**
+ * @brief Writes all of an option's names, as the list form of CLI11's get_name.
+ *
+ * @param[in]     _option  the option.
+ * @param[in]     _form    the D_ARG_NAME_* switches.
+ * @param[in,out] _out     the buffer that gains the names.
+ * @return D_ARG_OK, or the buffer's failure.
+ *
+ * The list form of CLI11's get_name: the positional name only when asked
+ * for or when it is the only name, and flag values only for an option that
+ * expects no values and has flag names at all.
+ */
 D_STATIC int
 d_arg_internal_option_name_all(
     const struct d_arg_option* _option,
@@ -801,13 +857,19 @@ d_arg_option_check_flag_name(
               >= 0L) );
 }
 
-/*
-d_arg_internal_option_matching_dashed
-  The first two loops of CLI11's matching_name: this option's short names
-against the other's short names -- and long names, when both are
-configurable -- then its long names against the other's long names, and a
-one-character long name against its short names.
-*/
+/**
+ * @brief Finds a dashed name of an option's that another option matches.
+ *
+ * @param[in] _option             the option.
+ * @param[in] _other              the other option.
+ * @param[in] _both_configurable  whether both options are configurable.
+ * @return the name of `_option`'s that matches; NULL when none does.
+ *
+ * The first two loops of CLI11's matching_name: this option's short names
+ * against the other's short names -- and long names, when both are
+ * configurable -- then its long names against the other's long names, and a
+ * one-character long name against its short names.
+ */
 D_STATIC const char*
 d_arg_internal_option_matching_dashed(
     const struct d_arg_option* _option,
@@ -851,13 +913,19 @@ d_arg_internal_option_matching_dashed(
     return NULL;
 }
 
-/*
-d_arg_internal_option_matching_positional
-  CLI11's two positional tests: a configurable option known only by its
-positional name collides with any name of the other's, and the other's
-positional name -- when it has no short or flag names, as CLI11 tests --
-with any of this option's.
-*/
+/**
+ * @brief Finds a positional name on which two options collide.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _other   the other option.
+ * @return the positional name that collides, `_option`'s or `_other`'s; NULL
+ *         when none does.
+ *
+ * CLI11's two positional tests: a configurable option known only by its
+ * positional name collides with any name of the other's, and the other's
+ * positional name -- when it has no short or flag names, as CLI11 tests --
+ * with any of this option's.
+ */
 D_STATIC const char*
 d_arg_internal_option_matching_positional(
     const struct d_arg_option* _option,

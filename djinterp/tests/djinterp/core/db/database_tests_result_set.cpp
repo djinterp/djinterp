@@ -5,8 +5,12 @@
 * path:      /tests/djinterp/core/db/database_tests_result_set.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.23
 *******************************************************************************/
+#include "../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
 // djinterp
 // tests for db/database.hpp section V (result_set CRTP base)
 #include "database_tests.hpp"
@@ -118,8 +122,8 @@ namespace testing
         const result_set<mock_result_set>& rs = mock;
 
         value v = rs.get_value(std::size_t{5});
-        D_DB_CHECK(std::holds_alternative<std::int64_t>(v));
-        D_DB_CHECK(std::get<std::int64_t>(v) == 5);
+        D_DB_CHECK(std::holds_alternative<re_std::int64_t>(v));
+        D_DB_CHECK(std::get<re_std::int64_t>(v) == 5);
         D_DB_CHECK(probe.last_index == 5);
 
         D_DB_CHECK(rs.is_null(std::size_t{2}) == true);
@@ -212,7 +216,7 @@ namespace testing
         row current = rs.get_current_row();
         D_DB_CHECK(probe.get_current_row_calls == 1);
         D_DB_CHECK(current.count("k") == 1);
-        D_DB_CHECK(std::get<std::int32_t>(current.at("k")) == k_rs_int_by_index);
+        D_DB_CHECK(std::get<re_std::int32_t>(current.at("k")) == k_rs_int_by_index);
 
         result_rows all = rs.get_all_rows();
         D_DB_CHECK(probe.get_all_rows_calls == 1);
@@ -268,3 +272,5 @@ namespace testing
 
 }   // namespace testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

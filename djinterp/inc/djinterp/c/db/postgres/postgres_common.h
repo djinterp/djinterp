@@ -55,7 +55,7 @@
 * path:      /inc/djinterp/c/db/postgres/postgres_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -68,6 +68,7 @@ TABLE OF CONTENTS
          2.  d_postgres_statement
     2.  Features
          1.  d_postgres_feature
+         2.  d_postgres_client_feature
 2.  FLAGS
     -----
     1.  Vendor flags
@@ -161,7 +162,22 @@ enum d_postgres_feature
     D_POSTGRES_FEATURE_VIRTUAL_COLUMNS,       // GENERATED ALWAYS AS (...)
                                               // VIRTUAL                 [18]
     D_POSTGRES_FEATURE_UUIDV7,                // uuidv7()                [18]
-    D_POSTGRES_FEATURE_RETURNING_OLD_NEW      // RETURNING old.*, new.*  [18]
+    D_POSTGRES_FEATURE_RETURNING_OLD_NEW,     // RETURNING old.*, new.*  [18]
+    D_POSTGRES_FEATURE_JSONPATH               // SQL/JSON path language,
+                                              // jsonb_path_query, @?    [12]
+};
+
+// 1.2.2
+// d_postgres_client_feature
+//   enum: what libpq can do that arrived after the layer's floor, libpq 10,
+// each with the release that brought it in brackets. The layer needs both the
+// header it was compiled against and the library loaded to have it.
+enum d_postgres_client_feature
+{
+    D_POSTGRES_CLIENT_PIPELINE = 0,   // pipeline mode                   [14]
+    D_POSTGRES_CLIENT_CHUNKED_ROWS,   // results read in chunks of rows  [17]
+    D_POSTGRES_CLIENT_CLOSE_PREPARED  // a statement closed by the
+                                      // protocol's own message          [17]
 };
 
 
@@ -245,9 +261,9 @@ enum d_postgres_feature
 // its constant. The functions return int, so that every code fits.
 enum d_postgres_sqlstate
 {
-    // class 08: connection exception -- three of the four codes the layer
-    // gives itself (53200, out of memory, is the fourth), and the server's
-    // 08P01
+    // class 08: connection exception -- three of the five codes the layer
+    // gives itself (53200, out of memory, and 58030, a client's file, are
+    // the others), and the server's 08P01
     D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION =
         D_POSTGRES_SQLSTATE('0', '8', '0', '0', '0'),  // a connection that
                                                        // cannot run a
@@ -333,7 +349,8 @@ enum d_postgres_sqlstate
                                                        // view, index,
                                                        // sequence -- of that
                                                        // name
-    // class 53, 55, 57, XX: resources, state, intervention, the server itself
+    // class 53, 55, 57, 58, XX: resources, state, intervention, the system,
+    // the server itself
     D_POSTGRES_SQLSTATE_OUT_OF_MEMORY =
         D_POSTGRES_SQLSTATE('5', '3', '2', '0', '0'),
     D_POSTGRES_SQLSTATE_OBJECT_IN_USE =
@@ -342,6 +359,10 @@ enum d_postgres_sqlstate
         D_POSTGRES_SQLSTATE('5', '5', 'P', '0', '3'),
     D_POSTGRES_SQLSTATE_QUERY_CANCELED =
         D_POSTGRES_SQLSTATE('5', '7', '0', '1', '4'),
+    D_POSTGRES_SQLSTATE_IO_ERROR =
+        D_POSTGRES_SQLSTATE('5', '8', '0', '3', '0'),  // a file that could
+                                                       // not be read or
+                                                       // written
     D_POSTGRES_SQLSTATE_INTERNAL_ERROR =
         D_POSTGRES_SQLSTATE('X', 'X', '0', '0', '0')
 };
@@ -358,7 +379,7 @@ bool         d_postgres_result_sqlstate(int  _result,
                                         char _sqlstate[6]) D_NOTHROW;
 int          d_postgres_result_from_sqlstate(const char* _sqlstate) D_NOTHROW;
 // result messages -- an English description of a result the layer returns:
-// db_common.h's own words for its values; the layer's own for the four
+// db_common.h's own words for its values; the layer's own for the five
 // SQLSTATEs it gives itself; the PostgreSQL manual's for the conditions
 // section 3.2 names ("undefined table" for 42P01); and for any other
 // SQLSTATE, the manual's words for its class ("syntax error or access rule
@@ -375,8 +396,13 @@ const char*  d_postgres_result_message(int _result) D_NOTHROW;
 // 4.1    Client
 //------------------------------------------------------------------------------
 // client -- the loaded libpq's version, as PQlibVersion gives it (160004 for
-// 16.4); 0 in a build without libpq. It cannot fail.
+// 16.4), and whether the layer can do what libpq added after 10: the header
+// the layer was compiled against declares it, and the library loaded is of
+// its release or later; 0 and false in a build without libpq, and false for a
+// value outside enum d_postgres_client_feature. Neither can fail.
 int          d_postgres_client_version_number(void) D_NOTHROW;
+bool         d_postgres_client_supports(enum d_postgres_client_feature
+                                            _feature) D_NOTHROW;
 
 
 //==============================================================================
@@ -435,6 +461,32 @@ const char*  d_postgres_parameter_status(const struct pg_conn* _db,
 // "" for none, or for NULL. A result of the layer's own, negative, leaves it
 // as it was. libpq's buffer, valid until the next call on the connection.
 const char*  d_postgres_error_message(const struct pg_conn* _db) D_NOTHROW;
+/**
+ * @brief Says whether a result is the layer's own: given before anything was
+ *        sent on the connection, which then says nothing about it.
+ *
+ * @note The layer answers on its own for a connection a run holds
+ *       (08000: postgres_statement.h 3.3), a transaction already open
+ *       (25001), a failed one (25P02), no current schema to create in
+ *       (3F000), a parameter a statement does not have (42P02), memory
+ *       (53200), and a client's file it could not read or write (58030:
+ *       postgres_protocol.h 5.1); the server and libpq give the same codes,
+ *       with their own
+ *       message. For the layer's own, d_postgres_error_message is about an
+ *       older failure, and d_postgres_result_message describes the result;
+ *       otherwise the connection's message is this failure's. The answer
+ *       holds for the latest call on the connection made on this thread.
+ *       Where the compiler has no thread-local storage, every result of the
+ *       seven codes is reported as the layer's own.
+ *
+ * @param[in] _db      the connection the result came from; may be NULL.
+ * @param[in] _result  the result.
+ * @return `true` for every negative result, for 53200, and for a result of
+ *         the other six codes the layer gave on its own; `false` otherwise.
+ */
+bool         d_postgres_result_is_own(const struct pg_conn* _db,
+                                      int                   _result)
+                                      D_NOTHROW;
 
 
 D_EXTERN_C_END

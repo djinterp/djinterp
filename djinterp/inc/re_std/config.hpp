@@ -18,7 +18,7 @@
 * path:      /inc/re_std/config.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.01
-*                                                            revised: 2026.10.19
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -401,9 +401,22 @@ TABLE OF CONTENTS
 #define RE_STD_INTERNAL_STATIC_ASSERT_UID __LINE__
 
 // 4.6.2
+// RE_STD_INTERNAL_UNUSED
+//   macro (internal): GCC's and Clang's unused attribute, so that the C++98
+// fallback below draws no unused-local-typedef warning in a function body;
+// nothing elsewhere, as no other compiler warns of an unused typedef.
+#if ( (defined(__GNUC__)) ||                                                   \
+      (defined(__clang__)) )
+    #define RE_STD_INTERNAL_UNUSED __attribute__((unused))
+#else
+    #define RE_STD_INTERNAL_UNUSED
+#endif
+
+// 4.6.3
 // RE_STD_STATIC_ASSERT
 //   macro: a compile-time assertion: static_assert from C++11; below, a
-// typedef of an array whose size is negative when the condition is false.
+// typedef of an array whose size is negative when the condition is false,
+// marked unused (RE_STD_INTERNAL_UNUSED).
 #ifndef RE_STD_STATIC_ASSERT
     #if RE_STD_LANG_IS_CPP11_OR_HIGHER
         #define RE_STD_STATIC_ASSERT(cond, msg) static_assert((cond), msg)
@@ -411,7 +424,8 @@ TABLE OF CONTENTS
         #define RE_STD_STATIC_ASSERT(cond, msg)                                \
             typedef char RE_STD_INTERNAL_CONCAT(                               \
                 re_std_static_assertion_failed_,                               \
-                RE_STD_INTERNAL_STATIC_ASSERT_UID)[(cond) ? 1 : -1]
+                RE_STD_INTERNAL_STATIC_ASSERT_UID)[(cond) ? 1 : -1]            \
+                RE_STD_INTERNAL_UNUSED
     #endif
 #endif  // RE_STD_STATIC_ASSERT
 

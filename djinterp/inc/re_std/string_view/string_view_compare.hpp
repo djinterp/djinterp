@@ -10,9 +10,9 @@
 * type_identity_t.
 *
 *   PORTABILITY:
-*   On C++11 through C++17 all six legacy operators (==, !=, <, <=, >,
+*   On C++98 through C++17 all six legacy operators (==, !=, <, <=, >,
 * >=) are provided (std shipped them in C++17; re_std back-ports to
-* C++11). On C++20+ only operator== and operator<=> are defined; the
+* C++98). On C++20+ only operator== and operator<=> are defined; the
 * other four are synthesised by the compiler from those two, matching
 * the standard's C++20 rewrite. operator<=> yields strong_ordering
 * directly (the C++20 Traits::comparison_category hook is not
@@ -22,7 +22,7 @@
 * path:      /inc/re_std/string_view/string_view_compare.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef RE_STD_STRING_VIEW_STRING_VIEW_COMPARE_HPP
@@ -30,9 +30,6 @@
 
 // re_std
 #include "../config.hpp"  // RE_STD_* configuration
-
-
-#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 // re_std
@@ -174,9 +171,6 @@ operator>=(
 
 
 }  // re_std
-
-
-#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 #endif  // RE_STD_STRING_VIEW_STRING_VIEW_COMPARE_HPP

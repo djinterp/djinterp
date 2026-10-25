@@ -8,22 +8,22 @@
 *   The record text is the file's path.  A path is what a file node's
 * to_string would return, so a program written against this source stays
 * written correctly when the source is replaced by a real node tree.
-*   What a directory holds and what a path names are asked of dfs.h, so this
-* unit is ISO C.  dfs.c, which answers, is not, and the conformance build
-* links neither.
+*   This translation unit uses POSIX directory reading and is therefore not
+* part of the conforming core.  The conformance build never links it.
 *
 *
 * path:      /src/djinterp/tools/dawk/dtree.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.10.10
+*                                                            revised: 2026.09.20
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dtree.h"  // corresponding header
 // std
 #include <stdlib.h>  // malloc, realloc, free, qsort
 #include <string.h>  // strcmp, strlen, memcpy
-// djinterp
-#include "../../../../inc/djinterp/tools/dawk/dfs.h"  // d_fs_names, d_fs_kind
+// posix
+#include <dirent.h>     // DIR, opendir, readdir, closedir
+#include <sys/stat.h>   // struct stat, stat, S_ISDIR
 
 
 // d_internal_tree
@@ -138,12 +138,10 @@ d_internal_tree_join(
 
 /*
 d_internal_tree_expand
-  Reads one directory, sorts its entries, and pushes them so that the first
-entry by name is popped first.  The system gives the names in no order, and
-not the same order on every system; the sort is what makes a run the same
-twice and the same everywhere.  A directory that cannot be opened is skipped
-rather than fatal: an unreadable corner of a tree should not end a run over
-the rest of it.
+  Reads one directory, sorts its entries, pushes them so that the first entry
+by name is popped first, and reports whether the read succeeded.  A directory
+that cannot be opened is skipped rather than fatal: an unreadable corner of a
+tree should not end a run over the rest of it.
 */
 static void
 d_internal_tree_expand(
@@ -151,39 +149,66 @@ d_internal_tree_expand(
     const char*             _dir
 )
 {
-    char** names = NULL;
-    size_t count = 0;
+    DIR* const handle = opendir(_dir);
 
     // an unreadable directory contributes no records and is not an error
-    if (!d_fs_names(_dir, &names, &count))
+    if (!handle)
     {
         return;
     }
 
-    size_t kept = 0;
+    char** names    = NULL;
+    size_t count    = 0;
+    size_t capacity = 0;
 
-    // each name gives way to its path beneath this directory; one that
-    // memory has no room for is left out, as an unreadable one would be
-    for (size_t at = 0; at < count; ++at)
+    for (const struct dirent* entry = readdir(handle);
+         entry;
+         entry = readdir(handle))
     {
-        char* const joined = d_internal_tree_join(_dir, names[at]);
-
-        free(names[at]);
-
-        if (joined)
+        // the two navigation entries would make the walk cyclic
+        if ( (strcmp(entry->d_name, ".")  == 0) ||
+             (strcmp(entry->d_name, "..") == 0) )
         {
-            names[kept] = joined;
-            ++kept;
+            continue;
         }
+
+        if (count == capacity)
+        {
+            const size_t grown_capacity = (capacity == 0) ? 16u
+                                                          : (capacity * 2u);
+
+            char** const grown = realloc(names,
+                                         grown_capacity * sizeof(char*));
+
+            if (!grown)
+            {
+                break;
+            }
+
+            names    = grown;
+            capacity = grown_capacity;
+        }
+
+        char* const joined = d_internal_tree_join(_dir, entry->d_name);
+
+        if (!joined)
+        {
+            break;
+        }
+
+        names[count] = joined;
+        ++count;
     }
 
-    if (kept > 1)
+    (void)closedir(handle);
+
+    if (count > 1)
     {
-        qsort(names, kept, sizeof(char*), d_internal_tree_compare);
+        qsort(names, count, sizeof(char*), d_internal_tree_compare);
     }
 
     // pushed in reverse so the first name by sort order is popped first
-    for (size_t at = kept; at > 0; --at)
+    for (size_t at = count; at > 0; --at)
     {
         if (!d_internal_tree_push(_tree, names[at - 1u]))
         {
@@ -218,16 +243,16 @@ d_internal_tree_next(
 
         char* const path = tree->pending[tree->pending_count];
 
-        const enum d_fs_kind kind = d_fs_kind_of(path);
+        struct stat info;
 
-        // a path that names nothing is skipped along with its subtree
-        if (kind == D_FS_KIND_NONE)
+        // a path that cannot be stat'd is skipped along with its subtree
+        if (stat(path, &info) != 0)
         {
             free(path);
             continue;
         }
 
-        if (kind == D_FS_KIND_DIRECTORY)
+        if (S_ISDIR(info.st_mode))
         {
             d_internal_tree_expand(tree, path);
             free(path);
@@ -244,7 +269,6 @@ d_internal_tree_next(
             if (!grown)
             {
                 free(path);
-
                 return false;
             }
 
@@ -324,7 +348,6 @@ d_awk_source_tree_init(
     if (!seed)
     {
         free(tree);
-
         return false;
     }
 
@@ -334,7 +357,6 @@ d_awk_source_tree_init(
     {
         free(seed);
         d_internal_tree_release(tree);
-
         return false;
     }
 

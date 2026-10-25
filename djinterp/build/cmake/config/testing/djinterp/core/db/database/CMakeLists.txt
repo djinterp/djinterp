@@ -1,9 +1,17 @@
 # =============================================================================
 # djinterp/core/db :: database.hpp unit-test leaf
 #
-#   Header-only module (recipe R1): no production `src/` is compiled in, since
-# database.hpp is header-only. The executable links the runner (which owns
-# main()) against every `database_tests_*.cpp` section translation unit.
+#   database.hpp's tests, built with the module's production sources (recipe
+# R2, approach A). Since chunk 4.2 (db_audit 9.6) database.hpp is no longer
+# header-only: its out-of-line definitions -- the exceptions, the
+# configurations' defaults, the utilities -- are in
+# src/djinterp/core/db/database.cpp, which reads values through the C
+# layers' common code, c/db/db_common.c, and its private helpers,
+# c/db/db_internal.c. The three are named explicitly rather than globbed:
+# core/db's other sources are the vendors', and need their client
+# libraries, which these tests do not. The executable links the runner
+# (which owns main()) against every `database_tests_*.cpp` section
+# translation unit and the three sources.
 #
 #   Naming (per the test-authoring guide):
 #     - exe / CTest target : database_tests   (ctest -R database_tests)
@@ -22,6 +30,7 @@
 # =============================================================================
 
 set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/core/db")
+set(_src_dir   "${DJINTERP_SRC_ROOT}/djinterp")
 
 # all section TUs for this component; the runner is added explicitly below.
 # EXCLUDE any legacy `_main.cpp` so it can never collide with the runner's
@@ -29,10 +38,17 @@ set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/core/db")
 file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/database_tests_*.cpp")
 list(FILTER _sources EXCLUDE REGEX "_main\\.cpp$")
 
+# production sources compiled into this exe (recipe R2, approach A)
+set(_prod
+    "${_src_dir}/core/db/database.cpp"
+    "${_src_dir}/c/db/db_common.c"
+    "${_src_dir}/c/db/db_internal.c")
+
 djinterp_add_test_executable(database_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/database_tests_runner.cpp"
         ${_sources}
+        ${_prod}
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/core/db"
         "${_tests_dir}")

@@ -15,7 +15,7 @@
 * path:      /src/djinterp/c/filesys/file_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_common.h"  // corresponding header
 // std
@@ -626,40 +626,10 @@ d_internal_file_is_link_win32(
 #if (D_INTERNAL_FILE_WIDE == 1)
 
 /*
-d_internal_file_utf_errno
-  The errno for a failed conversion: _too_long when the buffer was too small
--- ENAMETOOLONG for a path on its way in, ERANGE for text on its way out --
-EILSEQ for text with no form in the other encoding, and the Win32 table's word
-for anything else.
-*/
-static int
-d_internal_file_utf_errno(
-    DWORD _error,
-    int   _too_long
-)
-{
-    // the buffer was too small
-    if (_error == ERROR_INSUFFICIENT_BUFFER)
-    {
-        return _too_long;
-    }
-
-    // text that is not UTF-8, or UTF-16 with a lone surrogate
-    if (_error == ERROR_NO_UNICODE_TRANSLATION)
-    {
-        return EILSEQ;
-    }
-
-    return d_internal_file_errno_win32(_error);
-}
-
-/*
 d_internal_file_to_native_text
-  MultiByteToWideChar from UTF-8, told to refuse what is not UTF-8
-(MB_ERR_INVALID_CHARS) -- a stray byte, an overlong form, an encoded surrogate
--- rather than put U+FFFD in its place. A capacity past what an int counts is
-offered as INT_MAX characters, and one of 0, which would only ask the size
-needed, is refused.
+  d_internal_file_wtf8_to_utf16 rather than MultiByteToWideChar, which can
+neither take a lone surrogate's three bytes nor be told to: a name read from
+Windows must go back to it unchanged.
 */
 const d_internal_file_nchar_t*
 d_internal_file_to_native_text(
@@ -668,26 +638,17 @@ d_internal_file_to_native_text(
     size_t                   _count
 )
 {
-    const int capacity = (_count > (size_t)INT_MAX) ? INT_MAX
-                                                    : (int)_count;
+    const int result = d_internal_file_wtf8_to_utf16(_text,
+                                                     D_INTERNAL_FILE_TERMINATED,
+                                                     _buf,
+                                                     _count,
+                                                     NULL);
 
-    // the conversion, terminator included, into a buffer that has room
-    if ( (capacity == 0) ||
-         (MultiByteToWideChar(CP_UTF8,
-                              MB_ERR_INVALID_CHARS,
-                              _text,
-                              -1,
-                              _buf,
-                              capacity) == 0) )
+    // text that is not WTF-8, or no room for it and its terminator
+    if (result != 0)
     {
-        const int code = (capacity == 0)
-                             ? ENAMETOOLONG
-                             : d_internal_file_utf_errno(GetLastError(),
-                                                         ENAMETOOLONG);
-
-        // named only by errno, which a build may not report through
-        D_INTERNAL_FILE_SET_ERR(code);
-        (void)code;
+        D_INTERNAL_FILE_SET_ERR( (result < 0) ? EILSEQ
+                                              : ENAMETOOLONG );
 
         return NULL;
     }
@@ -873,9 +834,9 @@ d_internal_file_to_native(
 
 /*
 d_internal_file_from_native
-  WideCharToMultiByte to UTF-8, told to refuse a lone surrogate
-(WC_ERR_INVALID_CHARS) rather than put U+FFFD in its place. A failure may
-leave part of the text in _out, so an empty string is put over it.
+  d_internal_file_utf16_to_wtf8, which has a spelling for every sequence of
+units, so that the only failure left is room. A failure puts an empty string
+over whatever part of the text was written.
 */
 int
 d_internal_file_from_native(
@@ -884,33 +845,20 @@ d_internal_file_from_native(
     size_t                         _size
 )
 {
-    const int capacity = (_size > (size_t)INT_MAX) ? INT_MAX
-                                                   : (int)_size;
-
-    // a capacity of 0 has no room even for the empty string
-    if (capacity == 0)
+    // no room for the text and its terminator, or none even for the latter
+    if ( (_size == 0) ||
+         (d_internal_file_utf16_to_wtf8(_native,
+                                        D_INTERNAL_FILE_TERMINATED,
+                                        _out,
+                                        _size,
+                                        NULL) != 0) )
     {
+        if (_size > 0)
+        {
+            _out[0] = '\0';
+        }
+
         D_INTERNAL_FILE_SET_ERR(ERANGE);
-
-        return -1;
-    }
-
-    // the conversion, terminator included
-    if (WideCharToMultiByte(CP_UTF8,
-                            WC_ERR_INVALID_CHARS,
-                            _native,
-                            -1,
-                            _out,
-                            capacity,
-                            NULL,
-                            NULL) == 0)
-    {
-        const int code = d_internal_file_utf_errno(GetLastError(),
-                                                   ERANGE);
-
-        _out[0] = '\0';
-        D_INTERNAL_FILE_SET_ERR(code);
-        (void)code;
 
         return -1;
     }
@@ -1178,4 +1126,243 @@ d_internal_file_native_of(
     }
 
     return path;
+}
+
+
+/*
+d_internal_file_wtf8_to_utf16
+  One pass measures and, given somewhere to put it, writes. Each lead byte
+says how many continuation bytes follow; the code point they make must take
+exactly that many (no overlong form) and stay at or below U+10FFFF. A three-
+byte surrogate is WTF-8's lone one, but a high one followed at once by a low
+one is a pair in the wrong spelling, and refused, so that no two spellings
+reach the same name. Compiled on every platform, so the tests can run where
+Windows is not.
+*/
+int
+d_internal_file_wtf8_to_utf16(
+    const char*            _in,
+    size_t                 _in_size,
+    d_internal_file_u16_t* _out,
+    size_t                 _count,
+    size_t*                _made
+)
+{
+    const unsigned char* const in        = (const unsigned char*)_in;
+    size_t                     at        = 0;
+    size_t                     made      = 0;
+    int                        lone_high = 0;
+
+    while ( (at < _in_size) &&
+            (in[at] != 0) )
+    {
+        const unsigned char lead  = in[at];
+        unsigned long       point = 0;
+        size_t              size  = 0;
+
+        // the lead byte: one to four bytes, C0, C1 and F5 up never lead
+        if (lead < 0x80)
+        {
+            point = lead;
+            size  = 1;
+        }
+        else if ( (lead >= 0xC2) &&
+                  (lead <= 0xDF) )
+        {
+            point = (unsigned long)(lead & 0x1F);
+            size  = 2;
+        }
+        else if ( (lead >= 0xE0) &&
+                  (lead <= 0xEF) )
+        {
+            point = (unsigned long)(lead & 0x0F);
+            size  = 3;
+        }
+        else if ( (lead >= 0xF0) &&
+                  (lead <= 0xF4) )
+        {
+            point = (unsigned long)(lead & 0x07);
+            size  = 4;
+        }
+        else
+        {
+            return -1;
+        }
+
+        // the continuation bytes, inside the text and each 10xxxxxx
+        for (size_t next = 1; next < size; ++next)
+        {
+            if ( ((at + next) >= _in_size) ||
+                 ((in[at + next] & 0xC0) != 0x80) )
+            {
+                return -1;
+            }
+
+            point = (point << 6) | (unsigned long)(in[at + next] & 0x3F);
+        }
+
+        // the shortest form only, and nothing past U+10FFFF
+        if ( ( (size == 3) &&
+               (point < 0x800UL) )         ||
+             ( (size == 4) &&
+               ( (point < 0x10000UL) ||
+                 (point > 0x10FFFFUL) ) ) )
+        {
+            return -1;
+        }
+
+        // a pair written as two three-byte forms has another spelling
+        if ( (lone_high)             &&
+             (point >= 0xDC00UL)     &&
+             (point <= 0xDFFFUL) )
+        {
+            return -1;
+        }
+
+        lone_high = ( (point >= 0xD800UL) &&
+                      (point <= 0xDBFFUL) );
+
+        const size_t units = (point >= 0x10000UL) ? 2 : 1;
+
+        // the units, with room left for the terminator
+        if (_out)
+        {
+            if ((made + units) >= _count)
+            {
+                return 1;
+            }
+
+            if (units == 1)
+            {
+                _out[made] = (d_internal_file_u16_t)point;
+            }
+            else
+            {
+                const unsigned long rest = point - 0x10000UL;
+
+                _out[made]     = (d_internal_file_u16_t)(0xD800UL | (rest >> 10));
+                _out[made + 1] = (d_internal_file_u16_t)(0xDC00UL | (rest & 0x3FFUL));
+            }
+        }
+
+        made += units;
+        at   += size;
+    }
+
+    // the terminator
+    if (_out)
+    {
+        if (made >= _count)
+        {
+            return 1;
+        }
+
+        _out[made] = 0;
+    }
+
+    if (_made)
+    {
+        *_made = made;
+    }
+
+    return 0;
+}
+
+/*
+d_internal_file_utf16_to_wtf8
+  A high surrogate and the low one after it make one code point and four
+bytes; any other unit, a lone surrogate included, is its own code point in one
+to three. Nothing is refused, so the result is 1 only for want of room.
+*/
+int
+d_internal_file_utf16_to_wtf8(
+    const d_internal_file_u16_t* _in,
+    size_t                       _in_count,
+    char*                        _out,
+    size_t                       _size,
+    size_t*                      _made
+)
+{
+    size_t at   = 0;
+    size_t made = 0;
+
+    while ( (at < _in_count) &&
+            (_in[at] != 0) )
+    {
+        unsigned long point = (unsigned long)_in[at];
+        size_t        used  = 1;
+
+        // a high surrogate and the low one after it are one code point
+        if ( (point >= 0xD800UL)                          &&
+             (point <= 0xDBFFUL)                          &&
+             ((at + 1) < _in_count)                       &&
+             ((unsigned long)_in[at + 1] >= 0xDC00UL)     &&
+             ((unsigned long)_in[at + 1] <= 0xDFFFUL) )
+        {
+            point = 0x10000UL                                     +
+                    ((point - 0xD800UL) << 10)                    +
+                    ((unsigned long)_in[at + 1] - 0xDC00UL);
+            used  = 2;
+        }
+
+        const size_t size = (point < 0x80UL)    ? 1
+                          : (point < 0x800UL)   ? 2
+                          : (point < 0x10000UL) ? 3
+                                                : 4;
+
+        // the bytes, with room left for the terminator
+        if (_out)
+        {
+            unsigned char* const out = (unsigned char*)_out + made;
+
+            if ((made + size) >= _size)
+            {
+                return 1;
+            }
+
+            if (size == 1)
+            {
+                out[0] = (unsigned char)point;
+            }
+            else if (size == 2)
+            {
+                out[0] = (unsigned char)(0xC0UL | (point >> 6));
+                out[1] = (unsigned char)(0x80UL | (point & 0x3FUL));
+            }
+            else if (size == 3)
+            {
+                out[0] = (unsigned char)(0xE0UL | (point >> 12));
+                out[1] = (unsigned char)(0x80UL | ((point >> 6) & 0x3FUL));
+                out[2] = (unsigned char)(0x80UL | (point & 0x3FUL));
+            }
+            else
+            {
+                out[0] = (unsigned char)(0xF0UL | (point >> 18));
+                out[1] = (unsigned char)(0x80UL | ((point >> 12) & 0x3FUL));
+                out[2] = (unsigned char)(0x80UL | ((point >> 6) & 0x3FUL));
+                out[3] = (unsigned char)(0x80UL | (point & 0x3FUL));
+            }
+        }
+
+        made += size;
+        at   += used;
+    }
+
+    // the terminator
+    if (_out)
+    {
+        if (made >= _size)
+        {
+            return 1;
+        }
+
+        _out[made] = '\0';
+    }
+
+    if (_made)
+    {
+        *_made = made;
+    }
+
+    return 0;
 }

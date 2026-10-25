@@ -1,0 +1,4 @@
+ninja_required_version = 1.2
+rule r
+  command = c
+build a: r

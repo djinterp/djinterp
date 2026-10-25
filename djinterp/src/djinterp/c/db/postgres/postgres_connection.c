@@ -17,7 +17,7 @@
 * path:      /src/djinterp/c/db/postgres/postgres_connection.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -29,7 +29,8 @@
 #include <stddef.h>  // size_t, NULL
 #include <stdio.h>   // snprintf
 #include <stdlib.h>  // getenv, malloc, free
-#include <string.h>  // memcpy, strcat, strchr, strlen, strncmp
+#include <string.h>  // memcpy, strcat, strchr, strlen, strncmp,
+                     // strcmp, strstr
 // djinterp
 #include "../../../../../inc/djinterp/c/db/db_common.h"  // D_DB_*
 #include "../../../../../inc/djinterp/config/c/db/postgres/cfg_postgres_common.h"  // D_INTERNAL_POSTGRES
@@ -106,40 +107,47 @@ d_internal_postgres_unset(
 
 /*
 d_internal_postgres_startup
-  "-c client_min_messages=<level>", and PGOPTIONS after it, whose own -c
-settings then win; NULL when the build leaves the level to the server, and
-53200 when memory ran out.
+  "-c extra_float_digits=3", which makes a server before 12 write a double
+with every digit it needs to be read back exactly, as 12 and later do by
+default; "-c client_min_messages=<level>" where the build names a level; and
+PGOPTIONS after them, whose own -c settings then win. 53200 when memory ran
+out.
 */
 static int
 d_internal_postgres_startup(
     char** _startup
 )
 {
-    static const char  prefix[] = "-c client_min_messages=";
+    static const char  digits[] = "-c extra_float_digits=3";
+    static const char  prefix[] = " -c client_min_messages=";
     const char* const  level    = D_INTERNAL_POSTGRES_CLIENT_MIN_MESSAGES;
     const char* const  more     = getenv("PGOPTIONS");
+    const size_t       leveled  = (level[0] != '\0')
+                                      ? (sizeof(prefix) - 1u) + strlen(level)
+                                      : 0u;
     const size_t       extra    = ( (more) && (more[0] != '\0') )
                                       ? strlen(more) + 1u
                                       : 0u;
+    const size_t       length   = (sizeof(digits) - 1u) + leveled;
+    char* const        text     = (char*)malloc(length + extra + 1u);
 
     *_startup = NULL;
-
-    // the server's own level
-    if (level[0] == '\0')
-    {
-        return 0;
-    }
-
-    const size_t length = (sizeof(prefix) - 1u) + strlen(level);
-    char* const  text   = (char*)malloc(length + extra + 1u);
 
     if (!text)
     {
         return D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
     }
 
-    memcpy(text, prefix, sizeof(prefix) - 1u);
-    memcpy(text + sizeof(prefix) - 1u, level, strlen(level));
+    memcpy(text, digits, sizeof(digits) - 1u);
+
+    // the build's level, where it names one
+    if (leveled)
+    {
+        memcpy(text + sizeof(digits) - 1u, prefix, sizeof(prefix) - 1u);
+        memcpy(text + sizeof(digits) - 1u + sizeof(prefix) - 1u,
+               level,
+               strlen(level));
+    }
 
     // PGOPTIONS after the layer's, so that its settings win
     if (extra)
@@ -253,6 +261,49 @@ d_internal_postgres_copy_message(
 }
 
 /*
+d_internal_postgres_float_digits
+  The options a connection was made with are the layer's, which set
+extra_float_digits, unless the caller named options of its own, which
+replace them; then, unless they set it themselves, the layer sets it to 3 on
+the connection, so that every double the server writes reads back exactly.
+*/
+static int
+d_internal_postgres_float_digits(
+    PGconn* _native
+)
+{
+    PQconninfoOption* const options = PQconninfo(_native);
+    bool                    named   = false;
+
+    // libpq could not describe the connection: memory
+    if (!options)
+    {
+        return D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
+    }
+
+    for (const PQconninfoOption* option = options;
+         (option) && (option->keyword);
+         ++option)
+    {
+        if ( (strcmp(option->keyword, "options") == 0) &&
+             (option->val) &&
+             (strstr(option->val, "extra_float_digits")) )
+        {
+            named = true;
+
+            break;
+        }
+    }
+
+    PQconninfoFree(options);
+
+    return (named) ? 0
+                   : d_internal_postgres_send(_native,
+                                              "SET extra_float_digits = 3",
+                                              NULL);
+}
+
+/*
 d_internal_postgres_connected
   What PQconnectdbParams made, kept when it works and finished when it does
 not, its reason copied out first where the caller wants it.
@@ -282,6 +333,22 @@ d_internal_postgres_connected(
         PQfinish(_native);
 
         return D_POSTGRES_SQLSTATE_CANNOT_CONNECT;
+    }
+
+    // the caller's own options replaced the layer's: the digits, by SET
+    const int digits = d_internal_postgres_float_digits(_native);
+
+    if (digits != 0)
+    {
+        if (_message)
+        {
+            *_message = d_internal_postgres_copy_message(
+                            PQerrorMessage(_native));
+        }
+
+        PQfinish(_native);
+
+        return digits;
     }
 
     *_db = _native;

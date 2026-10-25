@@ -56,7 +56,6 @@
 #include "djinterp/config/core/container/table/cfg_table.h"  // the table DSL subframework
 #include "djinterp/config/parse/cfg_parse.h"        // the parse substrate
 #include "djinterp/config/parse/cli/arg_parser/cfg_arg_parser.h"  // the argument parser
-#include "djinterp/config/parse/cli/cfg_cli.h"      // the command-line kit
 #include "djinterp/config/parsegen/cfg_parsegen.h"  // parser generation (after parse)
 #include "djinterp/config/net/cfg_net.h"            // net foundation
 #include "djinterp/config/net/curl/cfg_curl.h"      // libcurl binding
@@ -66,6 +65,20 @@
 #include "djinterp/config/net/starttls/cfg_starttls.h"  // STARTTLS upgrade
 #include "djinterp/config/net/tcp/cfg_tcp.h"        // TCP transport
 #include "djinterp/config/net/http/cfg_http.h"      // HTTP
+// the SQLite layer, after env's SQLite config: resolving everything leaves
+// D_CFG_ENV_USING_SQLITE as env's config decided it, off unless set
+#include "djinterp/config/c/db/sqlite/cfg_sqlite_common.h"  // SQLite layer
+#include "djinterp/config/c/db/sqlite/cfg_sqlite_connection.h"  // its opens
+// the MariaDB/MySQL layer, likewise after env's MariaDB config, which leaves
+// D_CFG_ENV_USING_MARIADB off unless set
+#include "djinterp/config/c/db/mariadb/cfg_mariadb_common.h"  // MariaDB layer
+#include "djinterp/config/c/db/mariadb/cfg_mariadb_connection.h"  // connects
+// the PostgreSQL layer, likewise after env's PostgreSQL config, which leaves
+// D_CFG_ENV_USING_POSTGRESQL off unless set
+#include "djinterp/config/c/db/postgres/cfg_postgres_common.h"  // PostgreSQL
+#include "djinterp/config/c/db/postgres/cfg_postgres_connection.h"  // connects
+// the layers' C++ faces, which read nothing above
+#include "djinterp/config/c/db/cfg_db_face.h"  // the faces' format check
 // #include "core/<sub>/cfg_<sub>.h"  // <- add future subframeworks here
 
 

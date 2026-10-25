@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_config_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_config_tests.h"  // corresponding header
 // std
@@ -9173,7 +9173,8 @@ d_tests_arg_config_e46(
                                                            "--a");
 
     (void)d_arg_option_check(a,
-                             d_arg_validator_range_long(1, 5),
+                             d_arg_validator_range_long(1,
+                                                        5),
                              NULL);
 
     return;
@@ -14746,7 +14747,8 @@ d_tests_arg_config_w16(
     d_arg_option_set_multi_option_policy(n,
                                          (int)D_ARG_MULTI_SUM);
     (void)d_arg_option_check(n,
-                             d_arg_validator_range_long(0, 5),
+                             d_arg_validator_range_long(0,
+                                                        5),
                              NULL);
 
     // ARGS

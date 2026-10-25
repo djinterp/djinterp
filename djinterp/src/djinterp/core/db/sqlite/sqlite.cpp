@@ -14,17 +14,20 @@
 * path:      /src/djinterp/core/db/sqlite/sqlite.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 #include "../../../../../inc/djinterp/core/db/sqlite/sqlite.hpp"  // corresponding header
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
-#include <cstring>  // std::strcmp
-#include <string>   // std::string, std::to_string
-#include <utility>  // std::pair
-#include <vector>   // std::vector
+#include <cstddef>      // std::size_t
+#include <cstring>      // std::strcmp
+#include <memory>       // std::unique_ptr
+#include <string>       // std::string, std::to_string
+#include <string_view>  // std::string_view
+#include <utility>      // std::pair
+#include <vector>       // std::vector
 // djinterp
 #include "../../../../../inc/djinterp/c/db/sqlite/sqlite.h"  // d_sqlite_*,
                                                               // D_SQLITE_*
@@ -95,6 +98,40 @@ journal_mode_from_name(
 }
 
 /**
+ * @brief Compares a name with another, ignoring ASCII case, as SQLite
+ *        compares the names of databases.
+ *
+ * @param[in] _name   the name.
+ * @param[in] _other  the other, in lower case.
+ * @return `true` when they differ only in ASCII case.
+ */
+bool
+equals_ignoring_case(
+    const std::string& _name,
+    const char*        _other
+) noexcept
+{
+    std::size_t i = 0u;
+
+    // each character, folded
+    for (; i < _name.size(); ++i)
+    {
+        const char c = ( (_name[i] >= 'A') &&
+                         (_name[i] <= 'Z') )
+                           ? static_cast<char>(_name[i] - 'A' + 'a')
+                           : _name[i];
+
+        if ( (_other[i] == '\0') ||
+             (c != _other[i]) )
+        {
+            return false;
+        }
+    }
+
+    return (_other[i] == '\0');
+}
+
+/**
  * @brief The layer's transaction mode for a configured one.
  *
  * @param[in] _mode  the configured mode.
@@ -150,7 +187,7 @@ check_opening(
 }  // namespace
 
 //==============================================================================
-// VIII. SQLITE CONNECTION
+// 8.  SQLITE CONNECTION
 //==============================================================================
 
 /*
@@ -207,11 +244,13 @@ sqlite_layer::raise(
 }
 
 template class prepared_statement<sqlite_layer>;
+template class streaming_result_set<sqlite_layer>;
 
 sqlite_connection::sqlite_connection()
     : base_type(),
       m_sqlite_config(),
-      m_db()
+      m_db(),
+      m_main_deserialized(false)
 {}
 
 sqlite_connection::sqlite_connection(
@@ -219,7 +258,8 @@ sqlite_connection::sqlite_connection(
 )
     : base_type(_config),
       m_sqlite_config(_config.database),
-      m_db()
+      m_db(),
+      m_main_deserialized(false)
 {}
 
 sqlite_connection::sqlite_connection(
@@ -227,7 +267,8 @@ sqlite_connection::sqlite_connection(
 )
     : base_type(),
       m_sqlite_config(_config),
-      m_db()
+      m_db(),
+      m_main_deserialized(false)
 {
     this->m_config.database = _config.file_path;
 }
@@ -237,7 +278,8 @@ sqlite_connection::sqlite_connection(
 )
     : base_type(),
       m_sqlite_config(_file_path),
-      m_db()
+      m_db(),
+      m_main_deserialized(false)
 {
     this->m_config.database = _file_path;
 }
@@ -624,10 +666,148 @@ sqlite_connection::backup_from(
     return;
 }
 
-const sqlite_connect_config&
-sqlite_connection::get_sqlite_config() const noexcept
+/*
+sqlite_connection::serialize
+  Not const: an empty database is given its first page, by a transaction.
+*/
+std::vector<re_std::uint8_t>
+sqlite_connection::serialize(
+    const std::string& _schema
+)
 {
-    return m_sqlite_config;
+    return this->run_guarded(
+        [this, &_schema]() -> std::vector<re_std::uint8_t>
+        {
+            void*       bytes = nullptr;
+            std::size_t size  = 0u;
+
+            internal::refuse_nul(_schema, "serialize", "the database's name");
+            m_check(m_db.serialize(_schema, bytes, size),
+                    failure_kind::query,
+                    "serialize");
+
+            // the layer's copy, released once it is the vector's
+            const std::unique_ptr<void, void (*)(void*)> held(bytes,
+                                                              &d_db_free);
+            const re_std::uint8_t* const first =
+                static_cast<const re_std::uint8_t*>(bytes);
+
+            return std::vector<re_std::uint8_t>(first, first + size);
+        });
+}
+
+/*
+sqlite_connection::deserialize
+  "main" by any ASCII case is the connection's own database, whose bytes then
+stand in for the file until the next open, as is_in_memory reports.
+*/
+void
+sqlite_connection::deserialize(
+    const std::vector<re_std::uint8_t>& _data,
+    const std::string&                  _schema,
+    bool                                _read_only
+)
+{
+    this->run_guarded(
+        [this, &_data, &_schema, _read_only]() -> void
+        {
+            internal::refuse_nul(_schema,
+                                 "deserialize",
+                                 "the database's name");
+            m_check(m_db.deserialize(_schema,
+                                     _data.data(),
+                                     _data.size(),
+                                     _read_only),
+                    failure_kind::query,
+                    "deserialize");
+
+            // the connection's own database, now bytes
+            if (equals_ignoring_case(_schema, "main"))
+            {
+                m_main_deserialized = true;
+            }
+
+            return;
+        });
+
+    return;
+}
+
+/*
+sqlite_connection::load_extension
+  The layer's message is SQLite's description of the failure, which the
+connection's own message (sqlite3_errmsg) is not, and so is the exception's.
+*/
+void
+sqlite_connection::load_extension(
+    const std::string& _path,
+    const std::string& _entry_point
+)
+{
+    this->run_guarded(
+        [this, &_path, &_entry_point]() -> void
+        {
+            std::string said;
+
+            internal::refuse_nul(_path, "load_extension", "the path");
+            internal::refuse_nul(_entry_point,
+                                 "load_extension",
+                                 "the entry point");
+
+            const int result = m_db.load_extension(
+                _path,
+                (_entry_point.empty()) ? face::string_arg()
+                                       : face::string_arg(_entry_point),
+                said);
+
+            // SQLite's words, where it gave any
+            if ( (result != 0) &&
+                 (!said.empty()) )
+            {
+                throw query_exception("SQLite load_extension: " + said +
+                                          " (" + std::to_string(result) + ")",
+                                      result);
+            }
+
+            m_check(result, failure_kind::query, "load_extension");
+
+            return;
+        });
+
+    return;
+}
+
+void
+sqlite_connection::enable_load_extension(
+    bool _enabled
+)
+{
+    this->run_guarded(
+        [this, _enabled]() -> void
+        {
+            m_check(m_db.enable_load_extension(_enabled),
+                    failure_kind::query,
+                    "enable_load_extension");
+
+            return;
+        });
+
+    return;
+}
+
+/*
+sqlite_connection::get_sqlite_config
+  The file is the generic configuration's `database`, which connect(config)
+and open change; the copy kept in the settings is only what was set.
+*/
+sqlite_connect_config
+sqlite_connection::get_sqlite_config() const
+{
+    sqlite_connect_config config = m_sqlite_config;
+
+    config.file_path = this->m_config.database;
+
+    return config;
 }
 
 void
@@ -644,9 +824,46 @@ sqlite_connection::set_sqlite_config(
 bool
 sqlite_connection::is_in_memory() const noexcept
 {
-    return ( (m_sqlite_config.file_path == ":memory:") ||
-             ( (static_cast<int>(m_sqlite_config.open_flags) &
-                static_cast<int>(sqlite_open_flag::memory)) != 0 ) );
+    const std::string_view path  = this->m_config.database;
+    const int              flags = static_cast<int>(m_sqlite_config.open_flags);
+
+    // the name, or the flag, or bytes in the file's place
+    if ( (m_main_deserialized)  ||
+         (path == ":memory:") ||
+         ((flags & static_cast<int>(sqlite_open_flag::memory)) != 0) )
+    {
+        return true;
+    }
+
+    // a URI, read as one only with the flag
+    if ( ((flags & static_cast<int>(sqlite_open_flag::uri)) == 0) ||
+         (path.substr(0u, 5u) != "file:") )
+    {
+        return false;
+    }
+
+    const std::string_view::size_type query = path.find('?');
+
+    // its path names memory
+    if (path.substr(5u, query - 5u) == ":memory:")
+    {
+        return true;
+    }
+
+    // or one of its parameters, separated by '&', is mode=memory
+    for (std::string_view::size_type at = query;
+         at != std::string_view::npos;
+         at = path.find('&', at + 1u))
+    {
+        const std::string_view::size_type end = path.find('&', at + 1u);
+
+        if (path.substr(at + 1u, end - at - 1u) == "mode=memory")
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 face::sqlite&
@@ -662,7 +879,7 @@ sqlite_connection::get_face() const noexcept
 }
 
 /*
-sqlite_connection::connect_helper
+sqlite_connection::connect_impl
   The file opens into a face of its own, the settings are applied there, and
 only then does the connection take it: a setting that fails leaves the old
 state, and the face that failed closes as it goes. The configuration's
@@ -670,7 +887,7 @@ state, and the face that failed closes as it goes. The configuration's
 own defaults already give are not run again.
 */
 void
-sqlite_connection::connect_helper()
+sqlite_connection::connect_impl()
 {
     const std::string path   = this->m_config.database;
     unsigned          flags  =
@@ -787,12 +1004,13 @@ sqlite_connection::connect_helper()
 
     m_db.swap(opened);
     m_sqlite_config.file_path = path;
+    m_main_deserialized       = false;
 
     return;
 }
 
 void
-sqlite_connection::disconnect_helper() noexcept
+sqlite_connection::disconnect_impl() noexcept
 {
     (void)m_db.close();
 
@@ -800,19 +1018,19 @@ sqlite_connection::disconnect_helper() noexcept
 }
 
 bool
-sqlite_connection::is_connected_helper() const noexcept
+sqlite_connection::is_connected_impl() const noexcept
 {
     return m_db.is_open();
 }
 
 bool
-sqlite_connection::ping_helper() const noexcept
+sqlite_connection::ping_impl() const noexcept
 {
     return m_db.is_open();
 }
 
 face::rows
-sqlite_connection::execute_query_helper(
+sqlite_connection::execute_query_impl(
     const std::string& _query
 )
 {
@@ -826,7 +1044,7 @@ sqlite_connection::execute_query_helper(
 }
 
 re_std::int64_t
-sqlite_connection::execute_update_helper(
+sqlite_connection::execute_update_impl(
     const std::string& _query
 )
 {
@@ -840,7 +1058,7 @@ sqlite_connection::execute_update_helper(
 }
 
 face::sqlite_statement
-sqlite_connection::prepare_helper(
+sqlite_connection::prepare_impl(
     const std::string& _query
 )
 {
@@ -854,7 +1072,7 @@ sqlite_connection::prepare_helper(
 }
 
 std::string
-sqlite_connection::get_server_version_helper() const
+sqlite_connection::get_server_version_impl() const
 {
     const char* const version = face::sqlite::library_version();
 
@@ -863,13 +1081,13 @@ sqlite_connection::get_server_version_helper() const
 }
 
 re_std::int64_t
-sqlite_connection::get_last_insert_id_helper() const noexcept
+sqlite_connection::get_last_insert_id_impl() const noexcept
 {
     return m_db.last_insert_id();
 }
 
 void
-sqlite_connection::begin_transaction_helper()
+sqlite_connection::begin_transaction_impl()
 {
     m_check(m_db.begin_transaction(layer_transaction_mode(
                 m_sqlite_config.default_transaction_mode)),
@@ -880,25 +1098,25 @@ sqlite_connection::begin_transaction_helper()
 }
 
 /*
-sqlite_connection::begin_transaction_helper (isolation_level)
+sqlite_connection::begin_transaction_impl (isolation_level)
   SQLite runs every transaction serializable, which every level asked for is
 satisfied by, so the level changes nothing; read_uncommitted, which SQLite
 has only for a shared cache, is set_isolation_level's, for the session.
 */
 void
-sqlite_connection::begin_transaction_helper(
+sqlite_connection::begin_transaction_impl(
     isolation_level _isolation
 )
 {
     static_cast<void>(_isolation);
 
-    begin_transaction_helper();
+    begin_transaction_impl();
 
     return;
 }
 
 void
-sqlite_connection::commit_helper()
+sqlite_connection::commit_impl()
 {
     m_check(m_db.commit(), failure_kind::transaction, "commit");
 
@@ -906,7 +1124,7 @@ sqlite_connection::commit_helper()
 }
 
 void
-sqlite_connection::rollback_helper()
+sqlite_connection::rollback_impl()
 {
     m_check(m_db.rollback(), failure_kind::transaction, "rollback");
 
@@ -914,13 +1132,13 @@ sqlite_connection::rollback_helper()
 }
 
 bool
-sqlite_connection::in_transaction_helper() const noexcept
+sqlite_connection::in_transaction_impl() const noexcept
 {
     return m_db.in_transaction();
 }
 
 isolation_level
-sqlite_connection::get_isolation_level_helper() const
+sqlite_connection::get_isolation_level_impl() const
 {
     std::string setting;
 
@@ -933,7 +1151,7 @@ sqlite_connection::get_isolation_level_helper() const
 }
 
 void
-sqlite_connection::set_isolation_level_helper(
+sqlite_connection::set_isolation_level_impl(
     isolation_level _level
 )
 {
@@ -949,7 +1167,7 @@ sqlite_connection::set_isolation_level_helper(
 }
 
 void
-sqlite_connection::create_savepoint_helper(
+sqlite_connection::create_savepoint_impl(
     const std::string& _name
 )
 {
@@ -961,7 +1179,7 @@ sqlite_connection::create_savepoint_helper(
 }
 
 void
-sqlite_connection::release_savepoint_helper(
+sqlite_connection::release_savepoint_impl(
     const std::string& _name
 )
 {
@@ -973,7 +1191,7 @@ sqlite_connection::release_savepoint_helper(
 }
 
 void
-sqlite_connection::rollback_to_savepoint_helper(
+sqlite_connection::rollback_to_savepoint_impl(
     const std::string& _name
 )
 {
@@ -985,7 +1203,7 @@ sqlite_connection::rollback_to_savepoint_helper(
 }
 
 struct ::sqlite3*
-sqlite_connection::native_handle_helper() const noexcept
+sqlite_connection::native_handle_impl() const noexcept
 {
     return m_db.handle();
 }

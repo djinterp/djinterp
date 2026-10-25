@@ -20,8 +20,8 @@
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
 *                                                            revised: 2026.09.28
 *******************************************************************************/
-#include "../../inc/djinterp/tools/dawk/ext/dext_c.h"    // d_ext_c_build
-#include "../../inc/djinterp/tools/dawk/ext/dext_cpp.h"  // d_ext_cpp_build
+#include "../../inc/djinterp/tools/dawk/ext/check/dext_c.h"    // d_ext_c_build
+#include "../../inc/djinterp/tools/dawk/ext/check/dext_cpp.h"  // d_ext_cpp_build
 // std
 #include "../../inc/djinterp/tools/dawk/dsymbol.h"
 #include <stdio.h>   // printf, fopen

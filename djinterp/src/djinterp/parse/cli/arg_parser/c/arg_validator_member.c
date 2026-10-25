@@ -10,20 +10,24 @@
 * it converts to, widened for an arithmetic type and written back as the
 * type writes it for any other, so that `08` finds 8 and -0 finds 0. The
 * search is CLI11's: the members' own keys first, made once when the set is
-* made, then each member filtered and keyed in turn.
+* made, then each member filtered and keyed in turn. A value that does not
+* convert to the set's type is told apart from a filter that fails: the
+* first is CLI11's answer for such a value, the second stops the validation
+* with the filter's status, as CLI11's filter throwing does.
 *   Without D_INTERNAL_ARG_PARSER_EXTRA_VALIDATORS nothing here is compiled.
 *
 *
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_validator_member.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_validator_extra.h"  // corresponding header
 // std
-#include <stddef.h>  // size_t, NULL
-#include <stdlib.h>  // calloc, malloc, free
-#include <string.h>  // memcpy, strlen
+#include <stdbool.h>  // bool, true, false
+#include <stddef.h>   // size_t, NULL
+#include <stdlib.h>   // calloc, malloc, free
+#include <string.h>   // memcpy, strlen
 // djinterp
 #include "../../../../../../inc/djinterp/c/djinterp.h"  // framework root
 #include "../../../../../../inc/djinterp/c/util/sink_common.h"  // d_pack_text
@@ -87,6 +91,16 @@ struct d_arg_internal_member_key
 {
     struct d_arg_internal_number number;
     struct d_pack_text           form;
+};
+
+// d_arg_internal_member_scratch
+//   struct: the buffers keying a text through a set's filter takes: the
+// filtered text, and the text the set's type writes its value as; a search
+// keeps one for all the members it keys.
+struct d_arg_internal_member_scratch
+{
+    struct d_arg_buffer filtered;
+    struct d_arg_buffer form;
 };
 
 // d_arg_internal_member_source
@@ -153,11 +167,24 @@ static const struct d_arg_internal_member_key KEY_NONE =
     { "", 0u }                   // form
 };
 
-/*
-d_arg_internal_member_filters
-  Whether a set filters: a built-in filter among its flags, or a function. A
-filter with neither is none, and a match through none replaces nothing.
-*/
+// SCRATCH_NONE
+//   constant: a scratch that holds nothing yet.
+static const struct d_arg_internal_member_scratch SCRATCH_NONE =
+{
+    D_ARG_BUFFER_INIT,  // filtered
+    D_ARG_BUFFER_INIT   // form
+};
+
+/**
+ * @brief Tells whether a set filters.
+ *
+ * @param[in] _set  the set.
+ * @return `true` for a built-in filter among its flags, or a function; `false`
+ *         otherwise.
+ *
+ * Whether a set filters: a built-in filter among its flags, or a function. A
+ * filter with neither is none, and a match through none replaces nothing.
+ */
 D_STATIC bool
 d_arg_internal_member_filters(
     const struct d_arg_internal_members* _set
@@ -167,10 +194,15 @@ d_arg_internal_member_filters(
              (_set->filter.function != NULL) );
 }
 
-/*
-d_arg_internal_member_text
-  The text one of a set's slices covers.
-*/
+/**
+ * @brief Gives the text one of a set's slices covers.
+ *
+ * @param[in] _set    the set.
+ * @param[in] _slice  the slice.
+ * @return the text, a span of the set's own.
+ *
+ * The text one of a set's slices covers.
+ */
 D_STATIC struct d_pack_text
 d_arg_internal_member_text(
     const struct d_arg_internal_members* _set,
@@ -181,11 +213,15 @@ d_arg_internal_member_text(
                                      _slice);
 }
 
-/*
-d_arg_internal_member_release
-  The filter's context, when the set owns its copy, then the members, their
-text and the record; the validator's release function.
-*/
+/**
+ * @brief Frees a set: the filter's context it owns, the members, their text and
+ *        the record, as its validator's release function.
+ *
+ * @param[in] _context  the set; NULL is ignored.
+ *
+ * The filter's context, when the set owns its copy, then the members, their
+ * text and the record; the validator's release function.
+ */
 D_STATIC void
 d_arg_internal_member_release(
     void* _context
@@ -214,12 +250,17 @@ d_arg_internal_member_release(
     return;
 }
 
-/*
-d_arg_internal_member_duplicate
-  A copy of a set's record, members and text, whole, which their slices
-make enough; its filter's context is the set's, borrowed. NULL, with
-nothing kept, when an allocation is refused.
-*/
+/**
+ * @brief Copies a set's record, members and text.
+ *
+ * @param[in] _set  the set.
+ * @return the copy, whose filter's context is the set's, borrowed; NULL, with
+ *         nothing kept, when an allocation is refused.
+ *
+ * A copy of a set's record, members and text, whole, which their slices
+ * make enough; its filter's context is the set's, borrowed. NULL, with
+ * nothing kept, when an allocation is refused.
+ */
 D_STATIC struct d_arg_internal_members*
 d_arg_internal_member_duplicate(
     const struct d_arg_internal_members* _set
@@ -260,12 +301,17 @@ d_arg_internal_member_duplicate(
     return copy;
 }
 
-/*
-d_arg_internal_member_copy
-  The validator's copy function: the set duplicated, then a context the set
-owns copied with the filter's own function, for the copy to own; NULL, with
-nothing kept, when any of it is refused.
-*/
+/**
+ * @brief Copies a set, as its validator's copy function.
+ *
+ * @param[in] _context  the set; NULL for none.
+ * @return the copy, which owns a copy of a context the set owns; NULL for no
+ *         set, or, with nothing kept, when any of it is refused.
+ *
+ * The validator's copy function: the set duplicated, then a context the set
+ * owns copied with the filter's own function, for the copy to own; NULL, with
+ * nothing kept, when any of it is refused.
+ */
 D_STATIC void*
 d_arg_internal_member_copy(
     const void* _context
@@ -307,12 +353,19 @@ d_arg_internal_member_copy(
 // 2.  FILTERS AND KEYS
 //==============================================================================
 
-/*
-d_arg_internal_member_builtin
-  CLI11's ignore_case, ignore_underscore and ignore_space, whichever the
-flags hold, in one pass, since they commute: each character kept, lowered,
-or dropped.
-*/
+/**
+ * @brief Filters text by the built-in filters, as CLI11's ignore_case,
+ *        ignore_underscore and ignore_space.
+ *
+ * @param[in]     _flags  the D_ARG_FILTER_* flags.
+ * @param[in]     _text   the text.
+ * @param[in,out] _out    the buffer that gains the filtered text.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's ignore_case, ignore_underscore and ignore_space, whichever the
+ * flags hold, in one pass, since they commute: each character kept, lowered,
+ * or dropped.
+ */
 D_STATIC int
 d_arg_internal_member_builtin(
     uint32_t             _flags,
@@ -351,12 +404,18 @@ d_arg_internal_member_builtin(
     return status;
 }
 
-/*
-d_arg_internal_member_filter
-  A text filtered as the set filters, into the empty buffer `_out`: the
-built-in filters first, then the function, if any, on what they left, as
-CLI11 nests the filters it is given.
-*/
+/**
+ * @brief Filters text as a set filters it.
+ *
+ * @param[in]     _filter  the set's filter.
+ * @param[in]     _text    the text.
+ * @param[in,out] _out     the empty buffer that receives the filtered text.
+ * @return D_ARG_OK, or the function's or the buffer's failure.
+ *
+ * A text filtered as the set filters, into the empty buffer `_out`: the
+ * built-in filters first, then the function, if any, on what they left, as
+ * CLI11 nests the filters it is given.
+ */
 D_STATIC int
 d_arg_internal_member_filter(
     const struct d_arg_filter* _filter,
@@ -388,13 +447,24 @@ d_arg_internal_member_filter(
            : status;
 }
 
-/*
-d_arg_internal_member_key_of
-  The key a text compares by: the text itself in a set of text; else the
-text converted to the set's type, under `_context`'s rule, then widened for
-an arithmetic type, or written back as the type writes it, into `_form`,
-for any other. D_ARG_ERROR_CONVERSION when the text does not convert.
-*/
+/**
+ * @brief Makes the key a text compares by.
+ *
+ * @param[in]     _set      the set.
+ * @param[in]     _text     the text.
+ * @param[in]     _context  the conversion's context; NULL for the configured
+ *                          integer rule.
+ * @param[out]    _key      receives the key.
+ * @param[in,out] _form     the buffer that receives the text the type writes,
+ *                          for a set that compares so.
+ * @return D_ARG_OK; D_ARG_ERROR_CONVERSION when the text does not convert; or
+ *         the status the conversion or the writing stopped with.
+ *
+ * The key a text compares by: the text itself in a set of text; else the
+ * text converted to the set's type, under `_context`'s rule, then widened for
+ * an arithmetic type, or written back as the type writes it, into `_form`,
+ * for any other. D_ARG_ERROR_CONVERSION when the text does not convert.
+ */
 D_STATIC int
 d_arg_internal_member_key_of(
     const struct d_arg_internal_members* _set,
@@ -453,10 +523,15 @@ d_arg_internal_member_key_of(
     return status;
 }
 
-/*
-d_arg_internal_member_stored
-  A member's own key, as the set made it.
-*/
+/**
+ * @brief Gives a member's own key.
+ *
+ * @param[in] _set    the set.
+ * @param[in] _index  the member's place.
+ * @return the key, as the set made it.
+ *
+ * A member's own key, as the set made it.
+ */
 D_STATIC struct d_arg_internal_member_key
 d_arg_internal_member_stored(
     const struct d_arg_internal_members* _set,
@@ -474,12 +549,19 @@ d_arg_internal_member_stored(
     return key;
 }
 
-/*
-d_arg_internal_member_same
-  Whether two keys are one: numbers compared as the type compares them, so
-that -0 is 0 and a NaN is nothing, as with CLI11's `==`; texts byte for
-byte.
-*/
+/**
+ * @brief Tells whether two keys are one.
+ *
+ * @param[in] _set  the set, which says how they compare.
+ * @param[in] _a    one key.
+ * @param[in] _b    the other.
+ * @return `true` when they are one, numbers compared as the type compares them
+ *         and texts byte for byte; `false` otherwise.
+ *
+ * Whether two keys are one: numbers compared as the type compares them, so
+ * that -0 is 0 and a NaN is nothing, as with CLI11's `==`; texts byte for
+ * byte.
+ */
 D_STATIC bool
 d_arg_internal_member_same(
     const struct d_arg_internal_members*    _set,
@@ -494,50 +576,80 @@ d_arg_internal_member_same(
                                   _b->form);
 }
 
-/*
-d_arg_internal_member_filtered
-  A member's key through the set's filter: its text filtered, then keyed as
-the members' texts were when the set was made, under the configured
-integer rule.
-*/
+/**
+ * @brief Makes a member's key through the set's filter.
+ *
+ * @param[in]     _set       the set.
+ * @param[in]     _index     the member's place.
+ * @param[in,out] _scratch   receives the filtered text and the text the type
+ *                           writes, which the key's text may be.
+ * @param[out]    _key       receives the key.
+ * @param[out]    _converts  receives whether the filtered text converts.
+ * @return D_ARG_OK, also for a text that does not convert; otherwise the
+ *         filter's failure, as it is, or the status the keying stopped with.
+ *
+ * A member's key through the set's filter: its text filtered, then keyed as
+ * the members' texts were when the set was made, under the configured
+ * integer rule. A filtered text that does not convert is D_ARG_OK with
+ * `*_converts` false; the filter's failure is returned as it is, whatever it
+ * is, and never read so.
+ */
 D_STATIC int
 d_arg_internal_member_filtered(
-    const struct d_arg_internal_members* _set,
-    size_t                               _index,
-    struct d_arg_buffer*                 _filtered,
-    struct d_arg_internal_member_key*    _key,
-    struct d_arg_buffer*                 _form
+    const struct d_arg_internal_members*  _set,
+    size_t                                _index,
+    struct d_arg_internal_member_scratch* _scratch,
+    struct d_arg_internal_member_key*     _key,
+    bool*                                 _converts
 )
 {
-    d_arg_buffer_clear(_filtered);
-    d_arg_buffer_clear(_form);
+    d_arg_buffer_clear(&_scratch->filtered);
+    d_arg_buffer_clear(&_scratch->form);
+    *_converts = true;
 
-    const int status = d_arg_internal_member_filter(
-                           &_set->filter,
-                           d_arg_internal_member_text(
-                               _set,
-                               _set->members[_index].from),
-                           _filtered);
+    const int filtered = d_arg_internal_member_filter(
+                             &_set->filter,
+                             d_arg_internal_member_text(
+                                 _set,
+                                 _set->members[_index].from),
+                             &_scratch->filtered);
 
-    return (status == D_ARG_OK)
-           ? d_arg_internal_member_key_of(_set,
-                                          d_arg_buffer_text(_filtered),
-                                          NULL,
-                                          _key,
-                                          _form)
-           : status;
+    // the filter's failure stops the search
+    if (filtered != D_ARG_OK)
+    {
+        return filtered;
+    }
+
+    const int keyed = d_arg_internal_member_key_of(
+                          _set,
+                          d_arg_buffer_text(&_scratch->filtered),
+                          NULL,
+                          _key,
+                          &_scratch->form);
+
+    *_converts = (keyed != D_ARG_ERROR_CONVERSION);
+
+    return (*_converts) ? keyed : D_ARG_OK;
 }
 
 //==============================================================================
 // 3.  SEARCH
 //==============================================================================
 
-/*
-d_arg_internal_member_search_filtered
-  CLI11's second search: each member filtered and keyed in turn, the first
-whose key is the value's found; a member whose filtered text does not
-convert matches nothing.
-*/
+/**
+ * @brief Searches a set's members through its filter, as CLI11's second search.
+ *
+ * @param[in]     _set    the set.
+ * @param[in]     _key    the value's key.
+ * @param[in,out] _found  receives the first member that matches; untouched when
+ *                        none does.
+ * @return D_ARG_OK, or the failure that stopped the search, the count then in
+ *         `*_found`.
+ *
+ * CLI11's second search: each member filtered and keyed in turn, the first
+ * whose key is the value's found; a member whose filtered text does not
+ * convert matches nothing, and a filter that fails stops the search.
+ */
 D_STATIC int
 d_arg_internal_member_search_filtered(
     const struct d_arg_internal_members*    _set,
@@ -545,23 +657,24 @@ d_arg_internal_member_search_filtered(
     size_t*                                 _found
 )
 {
-    struct d_arg_buffer filtered = D_ARG_BUFFER_INIT;
-    struct d_arg_buffer form     = D_ARG_BUFFER_INIT;
-    int                 status   = D_ARG_OK;
+    struct d_arg_internal_member_scratch scratch = SCRATCH_NONE;
+    int                                  status  = D_ARG_OK;
 
     // each member until one matches
     for (size_t index = 0u; index < _set->count; ++index)
     {
-        struct d_arg_internal_member_key member = KEY_NONE;
-        const int                        keyed  =
+        struct d_arg_internal_member_key member   = KEY_NONE;
+        bool                             converts = true;
+        const int                        keyed    =
             d_arg_internal_member_filtered(_set,
                                            index,
-                                           &filtered,
+                                           &scratch,
                                            &member,
-                                           &form);
+                                           &converts);
 
         // a member that does not convert matches nothing
-        if (keyed == D_ARG_ERROR_CONVERSION)
+        if ( (keyed == D_ARG_OK) &&
+             (!converts) )
         {
             continue;
         }
@@ -579,18 +692,25 @@ d_arg_internal_member_search_filtered(
         }
     }
 
-    d_arg_buffer_release(&form);
-    d_arg_buffer_release(&filtered);
+    d_arg_buffer_release(&scratch.form);
+    d_arg_buffer_release(&scratch.filtered);
 
     return status;
 }
 
-/*
-d_arg_internal_member_search
-  CLI11's search: the members' own keys first, compared with the value's;
-then, when the set filters, each member filtered and keyed in turn. The
-first member that matches, or the count for none, in `*_found`.
-*/
+/**
+ * @brief Searches a set's members for a key, as CLI11's search.
+ *
+ * @param[in]  _set    the set.
+ * @param[in]  _key    the value's key.
+ * @param[out] _found  receives the first member that matches; the count for
+ *                     none.
+ * @return D_ARG_OK, or the failure that stopped the search.
+ *
+ * CLI11's search: the members' own keys first, compared with the value's;
+ * then, when the set filters, each member filtered and keyed in turn. The
+ * first member that matches, or the count for none, in `*_found`.
+ */
 D_STATIC int
 d_arg_internal_member_search(
     const struct d_arg_internal_members*    _set,
@@ -625,61 +745,118 @@ d_arg_internal_member_search(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_member_find
-  The member a value matches: its text filtered when the set filters, keyed
-under the validation's rule, then searched for; `*_found` the member's
-index, or the count for none. D_ARG_ERROR_CONVERSION when the value does not
-convert to the set's type.
-*/
+/**
+ * @brief Keys a value as its set's members are keyed: its text filtered when
+ *        the set filters, then keyed under the validation's rule.
+ *
+ * @param[in]     _set         the set.
+ * @param[in]     _validation  the validation: the value and its rule.
+ * @param[in,out] _scratch     receives the filtered text and the text the
+ *                             type writes, which the key's text may be.
+ * @param[out]    _key         receives the key.
+ * @param[out]    _converts    receives whether the value converts to the
+ *                             set's type.
+ * @return D_ARG_OK, also for a value that does not convert; otherwise the
+ *         filter's failure, as it is, or memory's.
+ *
+ * A value that does not convert is D_ARG_OK with `*_converts` false; the
+ * filter's failure is returned whatever its status, and so never read as a
+ * value that does not convert.
+ */
 D_STATIC int
-d_arg_internal_member_find(
-    const struct d_arg_internal_members* _set,
-    const struct d_arg_validation*       _validation,
-    size_t*                              _found
+d_arg_internal_member_value_key(
+    const struct d_arg_internal_members*  _set,
+    const struct d_arg_validation*        _validation,
+    struct d_arg_internal_member_scratch* _scratch,
+    struct d_arg_internal_member_key*     _key,
+    bool*                                 _converts
 )
 {
-    const struct d_arg_convert_context context  =
+    const struct d_arg_convert_context context =
     {
         _validation->integer_rule,  // integer_rule
         _validation->option,        // option
         NULL                        // message
     };
-    const bool                         filters  =
+    const bool                         filters =
         d_arg_internal_member_filters(_set);
-    struct d_arg_buffer                filtered = D_ARG_BUFFER_INIT;
-    struct d_arg_buffer                form     = D_ARG_BUFFER_INIT;
-    struct d_arg_internal_member_key   key      = KEY_NONE;
-    int                                status   =
+    int                                status  =
         (filters) ? d_arg_internal_member_filter(&_set->filter,
                                                  _validation->value,
-                                                 &filtered)
+                                                 &_scratch->filtered)
                   : D_ARG_OK;
 
-    *_found = _set->count;
+    *_converts = true;
 
     // the value's key
     if (status == D_ARG_OK)
     {
         status = d_arg_internal_member_key_of(
                      _set,
-                     (filters) ? d_arg_buffer_text(&filtered)
+                     (filters) ? d_arg_buffer_text(&_scratch->filtered)
                                : _validation->value,
                      &context,
-                     &key,
-                     &form);
+                     _key,
+                     &_scratch->form);
+
+        // a value that does not convert matches nothing
+        if (status == D_ARG_ERROR_CONVERSION)
+        {
+            *_converts = false;
+            status     = D_ARG_OK;
+        }
     }
 
+    return status;
+}
+
+/**
+ * @brief Finds the member a value matches.
+ *
+ * @param[in]  _set         the set.
+ * @param[in]  _validation  the validation: the value and its rule.
+ * @param[out] _found       receives the member's place; the count for none.
+ * @param[out] _converts    receives whether the value converts to the set's
+ *                          type.
+ * @return D_ARG_OK, also for a value that does not convert; otherwise the
+ *         filter's failure, as it is, or memory's.
+ *
+ * The member a value matches: the value keyed as the members are, then
+ * searched for; `*_found` the member's index, or the count for none, and
+ * `*_converts` false, with D_ARG_OK, for a value that does not convert to
+ * the set's type. A failure -- the filter's, whatever its status, or
+ * memory's -- is returned as it is.
+ */
+D_STATIC int
+d_arg_internal_member_find(
+    const struct d_arg_internal_members* _set,
+    const struct d_arg_validation*       _validation,
+    size_t*                              _found,
+    bool*                                _converts
+)
+{
+    struct d_arg_internal_member_scratch scratch = SCRATCH_NONE;
+    struct d_arg_internal_member_key     key     = KEY_NONE;
+    int                                  status  =
+        d_arg_internal_member_value_key(_set,
+                                        _validation,
+                                        &scratch,
+                                        &key,
+                                        _converts);
+
+    *_found = _set->count;
+
     // the member it matches
-    if (status == D_ARG_OK)
+    if ( (status == D_ARG_OK) &&
+         (*_converts) )
     {
         status = d_arg_internal_member_search(_set,
                                               &key,
                                               _found);
     }
 
-    d_arg_buffer_release(&form);
-    d_arg_buffer_release(&filtered);
+    d_arg_buffer_release(&scratch.form);
+    d_arg_buffer_release(&scratch.filtered);
 
     return status;
 }
@@ -688,10 +865,15 @@ d_arg_internal_member_find(
 // 4.  VALIDATORS
 //==============================================================================
 
-/*
-d_arg_internal_member_write_set
-  CLI11's generate_set: the members between braces, joined by commas.
-*/
+/**
+ * @brief Appends a set's members, as CLI11's generate_set.
+ *
+ * @param[in]     _set  the set.
+ * @param[in,out] _out  the buffer that gains them.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's generate_set: the members between braces, joined by commas.
+ */
 D_STATIC int
 d_arg_internal_member_write_set(
     const struct d_arg_internal_members* _set,
@@ -716,11 +898,16 @@ d_arg_internal_member_write_set(
                                     '}');
 }
 
-/*
-d_arg_internal_member_write_map
-  CLI11's generate_map: each pair as `from->to`, between braces, joined by
-commas.
-*/
+/**
+ * @brief Appends a mapping's pairs, as CLI11's generate_map.
+ *
+ * @param[in]     _set  the mapping.
+ * @param[in,out] _out  the buffer that gains them.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's generate_map: each pair as `from->to`, between braces, joined by
+ * commas.
+ */
 D_STATIC int
 d_arg_internal_member_write_map(
     const struct d_arg_internal_members* _set,
@@ -751,11 +938,16 @@ d_arg_internal_member_write_map(
                                     '}');
 }
 
-/*
-d_arg_internal_member_write_checked
-  CLI11's CheckedTransformer description: "value in " and the map, then
-" OR " and the values the pairs map to, between braces, joined by commas.
-*/
+/**
+ * @brief Appends a CheckedTransformer's description, as CLI11 writes it.
+ *
+ * @param[in]     _set  the mapping.
+ * @param[in,out] _out  the buffer that gains it.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's CheckedTransformer description: "value in " and the map, then
+ * " OR " and the values the pairs map to, between braces, joined by commas.
+ */
 D_STATIC int
 d_arg_internal_member_write_checked(
     const struct d_arg_internal_members* _set,
@@ -784,30 +976,43 @@ d_arg_internal_member_write_checked(
                                     '}');
 }
 
-/*
-d_arg_internal_member_set_validate
-  CLI11's IsMember: a member found through a filter puts itself, as written,
-in the value's place, and one found without a filter leaves the value
-alone; a value that does not convert to the set's type stops validation
-with the value itself as the message, as CLI11 throws it; any other value
-is rejected with "<value> not in {<members>}".
-*/
+/**
+ * @brief Judges a value by a set, as CLI11's IsMember.
+ *
+ * @param[in]     _validator   the validator, whose data is the set.
+ * @param[in,out] _validation  the validation, whose value is replaced by a
+ *                             member found through a filter, or rejected when
+ *                             no member matches.
+ * @return D_ARG_OK once a verdict is reached; D_ARG_ERROR_VALIDATION, the value
+ *         its message, for a value that does not convert; otherwise the failure
+ *         that stopped the search, or the buffer's.
+ *
+ * CLI11's IsMember: a member found through a filter puts itself, as written,
+ * in the value's place, and one found without a filter leaves the value
+ * alone; a value that does not convert to the set's type stops validation
+ * with the value itself as the message, as CLI11 throws it; a failure stops
+ * it with its status; any other value is rejected with "<value> not in
+ * {<members>}".
+ */
 D_STATIC int
 d_arg_internal_member_set_validate(
     const struct d_arg_validator* _validator,
     struct d_arg_validation*      _validation
 )
 {
-    const struct d_arg_internal_members* const set    =
+    const struct d_arg_internal_members* const set      =
         (const struct d_arg_internal_members*)_validator->data;
-    size_t                                     found  = 0u;
-    const int                                  status =
+    size_t                                     found    = 0u;
+    bool                                       converts = true;
+    const int                                  status   =
         d_arg_internal_member_find(set,
                                    _validation,
-                                   &found);
+                                   &found,
+                                   &converts);
 
     // a value that does not convert, thrown as it is
-    if (status == D_ARG_ERROR_CONVERSION)
+    if ( (status == D_ARG_OK) &&
+         (!converts) )
     {
         return d_arg_internal_validator_stop(_validation,
                                              "",
@@ -837,10 +1042,15 @@ d_arg_internal_member_set_validate(
                                            &_validation->message);
 }
 
-/*
-d_arg_internal_member_set_describe
-  CLI11's IsMember description: the members, as generate_set writes them.
-*/
+/**
+ * @brief Describes an IsMember, as CLI11 does.
+ *
+ * @param[in]     _validator  the validator, whose data is the set.
+ * @param[in,out] _out        the buffer that gains the members.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's IsMember description: the members, as generate_set writes them.
+ */
 D_STATIC int
 d_arg_internal_member_set_describe(
     const struct d_arg_validator* _validator,
@@ -852,25 +1062,34 @@ d_arg_internal_member_set_describe(
                _out);
 }
 
-/*
-d_arg_internal_member_transform_validate
-  CLI11's Transformer: a value matching a pair's key becomes the pair's
-value; anything else -- a value that does not convert to the type among it
--- stands.
-*/
+/**
+ * @brief Transforms a value by a mapping, as CLI11's Transformer.
+ *
+ * @param[in]     _validator   the validator, whose data is the mapping.
+ * @param[in,out] _validation  the validation, whose value is replaced by the
+ *                             value of the pair whose key it matches.
+ * @return D_ARG_OK once a verdict is reached; otherwise the failure that
+ *         stopped the search, or the replacement's.
+ *
+ * CLI11's Transformer: a value matching a pair's key becomes the pair's
+ * value; anything else -- a value that does not convert to the type among it
+ * -- stands; a failure stops the validation with its status.
+ */
 D_STATIC int
 d_arg_internal_member_transform_validate(
     const struct d_arg_validator* _validator,
     struct d_arg_validation*      _validation
 )
 {
-    const struct d_arg_internal_members* const set    =
+    const struct d_arg_internal_members* const set      =
         (const struct d_arg_internal_members*)_validator->data;
-    size_t                                     found  = 0u;
-    const int                                  status =
+    size_t                                     found    = 0u;
+    bool                                       converts = true;
+    const int                                  status   =
         d_arg_internal_member_find(set,
                                    _validation,
-                                   &found);
+                                   &found,
+                                   &converts);
 
     // a pair's key: its value replaces the value
     if ( (status == D_ARG_OK) &&
@@ -882,15 +1101,18 @@ d_arg_internal_member_transform_validate(
                                               set->members[found].to));
     }
 
-    return (status == D_ARG_ERROR_CONVERSION)
-           ? D_ARG_OK
-           : status;
+    return status;
 }
 
-/*
-d_arg_internal_member_transform_describe
-  CLI11's Transformer description: the map, as generate_map writes it.
-*/
+/**
+ * @brief Describes a Transformer, as CLI11 does.
+ *
+ * @param[in]     _validator  the validator, whose data is the mapping.
+ * @param[in,out] _out        the buffer that gains the map.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's Transformer description: the map, as generate_map writes it.
+ */
 D_STATIC int
 d_arg_internal_member_transform_describe(
     const struct d_arg_validator* _validator,
@@ -902,11 +1124,16 @@ d_arg_internal_member_transform_describe(
                _out);
 }
 
-/*
-d_arg_internal_member_is_target
-  Whether a value is, as text, what some pair maps to: CLI11's last chance
-for a checked transformer's value.
-*/
+/**
+ * @brief Tells whether a value is, as text, what some pair maps to.
+ *
+ * @param[in] _set    the mapping.
+ * @param[in] _value  the value.
+ * @return `true` when it is; `false` otherwise.
+ *
+ * Whether a value is, as text, what some pair maps to: CLI11's last chance
+ * for a checked transformer's value.
+ */
 D_STATIC bool
 d_arg_internal_member_is_target(
     const struct d_arg_internal_members* _set,
@@ -929,30 +1156,40 @@ d_arg_internal_member_is_target(
     return false;
 }
 
-/*
-d_arg_internal_member_checked_validate
-  CLI11's CheckedTransformer: a value matching a pair's key becomes the
-pair's value; one equal, as text, to a pair's value stands; any other --
-one that does not convert to the type among it -- is rejected with "Check
-<value> value in {...} OR {...} FAILED".
-*/
+/**
+ * @brief Transforms a value by a mapping, as CLI11's CheckedTransformer.
+ *
+ * @param[in]     _validator   the validator, whose data is the mapping.
+ * @param[in,out] _validation  the validation, whose value is replaced by the
+ *                             value of the pair whose key it matches, or
+ *                             rejected when it is neither a key nor a value.
+ * @return D_ARG_OK once a verdict is reached; otherwise the failure that
+ *         stopped the search, or the buffer's.
+ *
+ * CLI11's CheckedTransformer: a value matching a pair's key becomes the
+ * pair's value; one equal, as text, to a pair's value stands; any other --
+ * one that does not convert to the type among it -- is rejected with "Check
+ * <value> value in {...} OR {...} FAILED"; a failure stops the validation
+ * with its status.
+ */
 D_STATIC int
 d_arg_internal_member_checked_validate(
     const struct d_arg_validator* _validator,
     struct d_arg_validation*      _validation
 )
 {
-    const struct d_arg_internal_members* const set    =
+    const struct d_arg_internal_members* const set      =
         (const struct d_arg_internal_members*)_validator->data;
-    size_t                                     found  = 0u;
-    const int                                  status =
+    size_t                                     found    = 0u;
+    bool                                       converts = true;
+    const int                                  status   =
         d_arg_internal_member_find(set,
                                    _validation,
-                                   &found);
+                                   &found,
+                                   &converts);
 
-    // stopped by more than a value that does not convert
-    if ( (status != D_ARG_OK) &&
-         (status != D_ARG_ERROR_CONVERSION) )
+    // stopped
+    if (status != D_ARG_OK)
     {
         return status;
     }
@@ -984,10 +1221,15 @@ d_arg_internal_member_checked_validate(
                                     " FAILED");
 }
 
-/*
-d_arg_internal_member_checked_describe
-  CLI11's CheckedTransformer description.
-*/
+/**
+ * @brief Describes a CheckedTransformer, as CLI11 does.
+ *
+ * @param[in]     _validator  the validator, whose data is the mapping.
+ * @param[in,out] _out        the buffer that gains the description.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's CheckedTransformer description.
+ */
 D_STATIC int
 d_arg_internal_member_checked_describe(
     const struct d_arg_validator* _validator,
@@ -999,11 +1241,18 @@ d_arg_internal_member_checked_describe(
                _out);
 }
 
-/*
-d_arg_internal_member_each_from
-  The values a set accepts, or the keys a mapping's pairs are found by, in
-the order given.
-*/
+/**
+ * @brief Lists the values a set accepts, or the keys of a mapping's pairs.
+ *
+ * @param[in] _validator  the validator, whose data is the set.
+ * @param[in] _each       receives each value.
+ * @param[in] _context    `_each`'s context.
+ * @return D_ARG_OK, or the first status other than D_ARG_OK that `_each`
+ *         returned.
+ *
+ * The values a set accepts, or the keys a mapping's pairs are found by, in
+ * the order given.
+ */
 D_STATIC int
 d_arg_internal_member_each_from(
     const struct d_arg_validator* _validator,
@@ -1028,11 +1277,18 @@ d_arg_internal_member_each_from(
     return status;
 }
 
-/*
-d_arg_internal_member_listed
-  Whether a text is a pair's key, or the value of a pair before `_index`:
-listed already, among a checked transformer's choices.
-*/
+/**
+ * @brief Tells whether a text is already among a checked transformer's choices.
+ *
+ * @param[in] _set    the mapping.
+ * @param[in] _index  the pair whose value is listed next.
+ * @param[in] _text   the text.
+ * @return `true` for a pair's key, or the value of a pair before `_index`;
+ *         `false` otherwise.
+ *
+ * Whether a text is a pair's key, or the value of a pair before `_index`:
+ * listed already, among a checked transformer's choices.
+ */
 D_STATIC bool
 d_arg_internal_member_listed(
     const struct d_arg_internal_members* _set,
@@ -1064,11 +1320,19 @@ d_arg_internal_member_listed(
     return false;
 }
 
-/*
-d_arg_internal_member_each_value
-  The values a checked transformer accepts: the keys, then each value a pair
-maps to that is not listed already.
-*/
+/**
+ * @brief Lists the values a checked transformer accepts: the keys, then each
+ *        value not listed already.
+ *
+ * @param[in] _validator  the validator, whose data is the mapping.
+ * @param[in] _each       receives each value.
+ * @param[in] _context    `_each`'s context.
+ * @return D_ARG_OK, or the first status other than D_ARG_OK that `_each`
+ *         returned.
+ *
+ * The values a checked transformer accepts: the keys, then each value a pair
+ * maps to that is not listed already.
+ */
 D_STATIC int
 d_arg_internal_member_each_value(
     const struct d_arg_validator* _validator,
@@ -1136,13 +1400,18 @@ static const struct d_arg_internal_member_kind MEMBER_CHECKED =
 // 5.  CONSTRUCTION
 //==============================================================================
 
-/*
-d_arg_internal_member_compare_of
-  How a set of a type compares: as text for none, or for a text type; as
-numbers for an arithmetic type; as the text it writes for any other type
-whose values convert, plain, and are written back; -1 for a type it cannot
-compare.
-*/
+/**
+ * @brief Tells how a set of a type compares.
+ *
+ * @param[in] _type  the type; NULL for none.
+ * @return COMPARE_TEXT, COMPARE_NUMBER or COMPARE_FORM; -1 for a type it cannot
+ *         compare.
+ *
+ * How a set of a type compares: as text for none, or for a text type; as
+ * numbers for an arithmetic type; as the text it writes for any other type
+ * whose values convert, plain, and are written back; -1 for a type it cannot
+ * compare.
+ */
 D_STATIC int
 d_arg_internal_member_compare_of(
     const struct d_arg_type* _type
@@ -1172,10 +1441,15 @@ d_arg_internal_member_compare_of(
            : -1;
 }
 
-/*
-d_arg_internal_member_source_from
-  A source's member, or its pair's key.
-*/
+/**
+ * @brief Gives a source's member, or its pair's key.
+ *
+ * @param[in] _source  the source.
+ * @param[in] _index   the member's place.
+ * @return the text, the caller's.
+ *
+ * A source's member, or its pair's key.
+ */
 D_STATIC const char*
 d_arg_internal_member_source_from(
     const struct d_arg_internal_member_source* _source,
@@ -1187,10 +1461,15 @@ d_arg_internal_member_source_from(
            : _source->values[_index];
 }
 
-/*
-d_arg_internal_member_source_to
-  A source's pair's value; a member maps to nothing.
-*/
+/**
+ * @brief Gives a source's pair's value.
+ *
+ * @param[in] _source  the source.
+ * @param[in] _index   the member's place.
+ * @return the text, the caller's; empty for a member, which maps to nothing.
+ *
+ * A source's pair's value; a member maps to nothing.
+ */
 D_STATIC const char*
 d_arg_internal_member_source_to(
     const struct d_arg_internal_member_source* _source,
@@ -1202,10 +1481,15 @@ d_arg_internal_member_source_to(
            : "";
 }
 
-/*
-d_arg_internal_member_given
-  Whether a source has every text it promises, and a count memory can hold.
-*/
+/**
+ * @brief Tells whether a source has every text it promises, and a count memory
+ *        can hold.
+ *
+ * @param[in] _source  the source.
+ * @return `true` when it does; `false` otherwise.
+ *
+ * Whether a source has every text it promises, and a count memory can hold.
+ */
 D_STATIC bool
 d_arg_internal_member_given(
     const struct d_arg_internal_member_source* _source
@@ -1237,13 +1521,22 @@ d_arg_internal_member_given(
     return true;
 }
 
-/*
-d_arg_internal_member_one
-  One member's texts gathered into the buffer -- `from`, then `to` -- and its
-key: `from` itself in a set of text; else `from` converted under the
-configured integer rule, widened, or written back as its type writes it,
-after the other two.
-*/
+/**
+ * @brief Gathers one member's texts and key into a buffer.
+ *
+ * @param[in,out] _set     the set, whose member is written.
+ * @param[in]     _source  the source.
+ * @param[in]     _index   the member's place.
+ * @param[in,out] _text    the buffer that gains `from`, `to`, and the key's
+ *                         text when it has its own.
+ * @return D_ARG_OK; D_ARG_ERROR_CONVERSION for a member that does not convert;
+ *         or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * One member's texts gathered into the buffer -- `from`, then `to` -- and its
+ * key: `from` itself in a set of text; else `from` converted under the
+ * configured integer rule, widened, or written back as its type writes it,
+ * after the other two.
+ */
 D_STATIC int
 d_arg_internal_member_one(
     struct d_arg_internal_members*             _set,
@@ -1300,12 +1593,18 @@ d_arg_internal_member_one(
            : status;
 }
 
-/*
-d_arg_internal_member_body
-  Every member's texts and key gathered into one buffer, a NUL after them so
-that the text is never empty and always has storage, which the set then
-owns. D_ARG_ERROR_BAD_ARGUMENT for a member that does not convert.
-*/
+/**
+ * @brief Gathers every member's texts and keys into the text a set owns.
+ *
+ * @param[in,out] _set     the set, whose members and text are written.
+ * @param[in]     _source  the source.
+ * @return D_ARG_OK; D_ARG_ERROR_BAD_ARGUMENT for a member that does not
+ *         convert; or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * Every member's texts and key gathered into one buffer, a NUL after them so
+ * that the text is never empty and always has storage, which the set then
+ * owns. D_ARG_ERROR_BAD_ARGUMENT for a member that does not convert.
+ */
 D_STATIC int
 d_arg_internal_member_body(
     struct d_arg_internal_members*             _set,
@@ -1344,12 +1643,18 @@ d_arg_internal_member_body(
            : status;
 }
 
-/*
-d_arg_internal_member_take_filter
-  The filter the set keeps: none when none is given; else a copy of it, its
-context duplicated -- and owned -- when the filter can copy it, borrowed
-when it cannot.
-*/
+/**
+ * @brief Gives a set the filter it keeps.
+ *
+ * @param[in,out] _set     the set.
+ * @param[in]     _filter  the filter; NULL for none.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when its context could not be
+ *         copied.
+ *
+ * The filter the set keeps: none when none is given; else a copy of it, its
+ * context duplicated -- and owned -- when the filter can copy it, borrowed
+ * when it cannot.
+ */
 D_STATIC int
 d_arg_internal_member_take_filter(
     struct d_arg_internal_members* _set,
@@ -1381,11 +1686,20 @@ d_arg_internal_member_take_filter(
            : D_ARG_ERROR_OUT_OF_MEMORY;
 }
 
-/*
-d_arg_internal_member_make
-  The record: how it compares, its members' texts and keys, and its filter;
-nothing is kept on failure.
-*/
+/**
+ * @brief Makes a set's record.
+ *
+ * @param[in]  _type    the type the set compares by; NULL for text.
+ * @param[in]  _source  the members, or the pairs.
+ * @param[in]  _filter  the filter; NULL for none.
+ * @param[out] _out     receives the record; untouched on failure.
+ * @return D_ARG_OK; D_ARG_ERROR_BAD_ARGUMENT for a type it cannot compare by, a
+ *         text missing, or a member that does not convert; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY; nothing kept on failure.
+ *
+ * The record: how it compares, its members' texts and keys, and its filter;
+ * nothing is kept on failure.
+ */
 D_STATIC int
 d_arg_internal_member_make(
     const struct d_arg_type*                   _type,
@@ -1445,11 +1759,20 @@ d_arg_internal_member_make(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_member_build
-  One of CLI11's three over a source: the record made, then given to a
-validator of the kind's functions, which owns, copies and frees it.
-*/
+/**
+ * @brief Makes one of CLI11's IsMember, Transformer and CheckedTransformer over
+ *        a source.
+ *
+ * @param[in] _type    the type the set compares by; NULL for text.
+ * @param[in] _source  the members, or the pairs.
+ * @param[in] _filter  the filter; NULL for none.
+ * @param[in] _kind    the kind's functions.
+ * @return the validator, which owns, copies and frees the record; a failed
+ *         validator holding the status when the record could not be made.
+ *
+ * One of CLI11's three over a source: the record made, then given to a
+ * validator of the kind's functions, which owns, copies and frees it.
+ */
 D_STATIC struct d_arg_validator
 d_arg_internal_member_build(
     const struct d_arg_type*                   _type,

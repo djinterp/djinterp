@@ -22,9 +22,9 @@
 #include <stdlib.h>   // malloc, free
 #include <string.h>   // memcmp, memset
 // djinterp
-#include "../../../../inc/djinterp/tools/dawk/dss.h"              // D_DSS_NO_INDEX
-#include "../../../../inc/djinterp/tools/dawk/ext/dext_source.h"  // d_ext_source_generated
-#include "./dline_width.h"                                         // width tables
+#include "../../../../inc/djinterp/tools/dawk/dss.h"                    // D_DSS_NO_INDEX
+#include "../../../../inc/djinterp/tools/dawk/ext/check/dext_source.h"  // d_ext_source_generated
+#include "./dline_width.h"                                              // width tables
 
 
 // D_INTERNAL_DLINE_NUMBER_MAX

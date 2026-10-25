@@ -12,7 +12,9 @@
 * says so (D_ARG_VALIDATOR_NUMBER) or a bound type -- and files otherwise.
 * What help hides -- an option or subcommand in the empty group, a disabled
 * subcommand or option group -- the script leaves out, but for a hidden
-* positional, which it counts, completing nothing for it.
+* positional, which it counts, completing nothing for it. A name is listed
+* once under a command, for the option the parse finds it in first: its
+* own options before its option groups'.
 *   The script holds the tree as data and walks the words before the cursor
 * as the parse takes them: subcommands, with subcommand fallthrough and the
 * most subcommands a command takes; options found by fallthrough; the values
@@ -39,7 +41,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_completion.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.17
 *******************************************************************************/
 
 /*

@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/net/net_tests_sa_url.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "./net_tests_sa.h"  // the suite
 // std
@@ -274,18 +274,18 @@ d_tests_url_kinds_hold(void)
 
     return ( (d_tests_url_parse_cstr("http://10.0.0.1/",
                                      &ipv4,
-                                     NULL) == D_NET_URL_OK)        &&
-             (ipv4.host_kind == D_NET_URL_HOST_IPV4)               &&
+                                     NULL) == D_NET_URL_OK) &&
+             (ipv4.host_kind == D_NET_URL_HOST_IPV4)        &&
              (d_tests_url_parse_cstr("http://[fe80::1%25en0]:9/",
                                      &ipv6,
-                                     NULL) == D_NET_URL_OK)        &&
-             (ipv6.host_kind == D_NET_URL_HOST_IPV6)               &&
+                                     NULL) == D_NET_URL_OK) &&
+             (ipv6.host_kind == D_NET_URL_HOST_IPV6)        &&
              (d_tests_url_text_is(ipv6.host,
-                                  "fe80::1%25en0"))                &&
-             (ipv6.port == 9u)                                     &&
+                                  "fe80::1%25en0"))         &&
+             (ipv6.port == 9u)                              &&
              (d_tests_url_parse_cstr("http://[v7.a:b]/",
                                      &future,
-                                     NULL) == D_NET_URL_OK)        &&
+                                     NULL) == D_NET_URL_OK) &&
              (future.host_kind == D_NET_URL_HOST_IPVFUTURE) );
 }
 
@@ -347,25 +347,25 @@ d_tests_sa_net_url_components(
     const bool full = ( (d_tests_url_parse_cstr(
                              "https://user:pw@Example.COM:8443/a/b;p?q=1#f",
                              &url,
-                             NULL) == D_NET_URL_OK)      &&
+                             NULL) == D_NET_URL_OK)            &&
                         (d_tests_url_parts_are(&url,
-                                               &FULL))   &&
-                        (url.port == 8443u)              &&
+                                               &FULL))         &&
+                        (url.port == 8443u)                    &&
                         (url.host_kind == D_NET_URL_HOST_NAME) &&
                         (d_net_url_is_absolute(&url)) );
 
-    result = d_assert_standalone(full,
-                                 TEST,
-                                 "a full URL splits into its components",
-                                 _counter) && result;
-    result = d_assert_standalone(d_tests_url_kinds_hold(),
-                                 TEST,
-                                 "names, IPv4, zoned IPv6, IPvFuture",
-                                 _counter) && result;
-    result = d_assert_standalone(d_tests_url_marks_hold(),
-                                 TEST,
-                                 "absent parts are told from empty ones",
-                                 _counter) && result;
+    result = d_tests_net_assert(full,
+                                TEST,
+                                "a full URL splits into its components",
+                                _counter) && result;
+    result = d_tests_net_assert(d_tests_url_kinds_hold(),
+                                TEST,
+                                "names, IPv4, zoned IPv6, IPvFuture",
+                                _counter) && result;
+    result = d_tests_net_assert(d_tests_url_marks_hold(),
+                                TEST,
+                                "absent parts are told from empty ones",
+                                _counter) && result;
 
     return result;
 }
@@ -432,41 +432,41 @@ d_tests_sa_net_url_authority(
     struct d_net_url user   = { .port = 0u };
     bool             result = true;
 
-    result = d_assert_standalone(
-                 (d_tests_url_authority_ok("example.com:8080",
-                                           "example.com",
-                                           8080u,
-                                           D_NET_URL_HOST_NAME))        &&
-                 (d_tests_url_authority_ok("[::1]:443",
-                                           "::1",
-                                           443u,
-                                           D_NET_URL_HOST_IPV6))        &&
-                 (d_tests_url_authority_ok("",
-                                           "",
-                                           0u,
-                                           D_NET_URL_HOST_NAME))        &&
-                 (d_net_url_parse_authority(d_tests_url_cstr("user@h"),
-                                            &user,
-                                            NULL) == D_NET_URL_OK)      &&
-                 (user.has_userinfo)                                    &&
-                 (d_tests_url_text_is(user.userinfo,
-                                      "user")),
-                 "d_net_url_parse_authority",
-                 "names, IPv6, userinfo, and the empty authority",
-                 _counter) && result;
-    result = d_assert_standalone(
-                 (d_tests_url_authority_refused("h/x",
-                                                D_NET_URL_ERROR_HOST,
-                                                1u))                    &&
-                 (d_tests_url_authority_refused("h:99999",
-                                                D_NET_URL_ERROR_PORT,
-                                                2u))                    &&
-                 (d_tests_url_authority_refused("[::1",
-                                                D_NET_URL_ERROR_IP_LITERAL,
-                                                0u)),
-                 "d_net_url_parse_authority",
-                 "refusals name their error and offset",
-                 _counter) && result;
+    result = d_tests_net_assert(
+                (d_tests_url_authority_ok("example.com:8080",
+                                          "example.com",
+                                          8080u,
+                                          D_NET_URL_HOST_NAME))   &&
+                (d_tests_url_authority_ok("[::1]:443",
+                                          "::1",
+                                          443u,
+                                          D_NET_URL_HOST_IPV6))   &&
+                (d_tests_url_authority_ok("",
+                                          "",
+                                          0u,
+                                          D_NET_URL_HOST_NAME))   &&
+                (d_net_url_parse_authority(d_tests_url_cstr("user@h"),
+                                           &user,
+                                           NULL) == D_NET_URL_OK) &&
+                (user.has_userinfo)                               &&
+                (d_tests_url_text_is(user.userinfo,
+                                     "user")),
+                "d_net_url_parse_authority",
+                "names, IPv6, userinfo, and the empty authority",
+                _counter) && result;
+    result = d_tests_net_assert(
+                (d_tests_url_authority_refused("h/x",
+                                               D_NET_URL_ERROR_HOST,
+                                               1u)) &&
+                (d_tests_url_authority_refused("h:99999",
+                                               D_NET_URL_ERROR_PORT,
+                                               2u)) &&
+                (d_tests_url_authority_refused("[::1",
+                                               D_NET_URL_ERROR_IP_LITERAL,
+                                               0u)),
+                "d_net_url_parse_authority",
+                "refusals name their error and offset",
+                _counter) && result;
 
     return result;
 }
@@ -521,20 +521,20 @@ d_tests_sa_net_url_refusals(
         }
     }
 
-    result = d_assert_standalone(matched == count,
-                                 TEST,
-                                 message,
-                                 _counter) && result;
-    result = d_assert_standalone(
-                 (d_net_url_parse(d_tests_url_cstr("x"),
-                                  NULL,
-                                  NULL) == D_NET_URL_ERROR_ARGUMENT) &&
-                 (d_net_url_parse(NO_TEXT,
-                                  &url,
-                                  NULL) == D_NET_URL_ERROR_ARGUMENT),
-                 TEST,
-                 "NULL arguments are refused",
-                 _counter) && result;
+    result = d_tests_net_assert(matched == count,
+                                TEST,
+                                message,
+                                _counter) && result;
+    result = d_tests_net_assert(
+                (d_net_url_parse(d_tests_url_cstr("x"),
+                                 NULL,
+                                 NULL) == D_NET_URL_ERROR_INVALID_ARGUMENT) &&
+                (d_net_url_parse(NO_TEXT,
+                                 &url,
+                                 NULL) == D_NET_URL_ERROR_INVALID_ARGUMENT),
+                TEST,
+                "NULL arguments are refused",
+                _counter) && result;
 
     return result;
 }
@@ -600,30 +600,30 @@ d_tests_sa_net_url_hosts(
                                    "1.2.3.4.5", "example.com" };
     bool              result   = true;
 
-    result = d_assert_standalone(
-                 d_tests_url_count_valid(IPV6_VALID,
-                                         valid,
-                                         D_NET_URL_HOST_IPV6) == valid,
-                 TEST,
-                 "every valid IPv6 literal parses as IPv6",
-                 _counter) && result;
-    result = d_assert_standalone(
-                 d_tests_url_count_valid(IPV6_INVALID,
-                                         invalid,
-                                         D_NET_URL_HOST_IPV6) == 0u,
-                 TEST,
-                 "no malformed IPv6 literal parses",
-                 _counter) && result;
-    result = d_assert_standalone(
-                 (d_tests_url_count_valid(ipv4,
-                                          3u,
-                                          D_NET_URL_HOST_IPV4) == 3u) &&
-                 (d_tests_url_count_valid(names,
-                                          5u,
-                                          D_NET_URL_HOST_NAME) == 5u),
-                 TEST,
-                 "strict dotted-decimal is IPv4; the rest are names",
-                 _counter) && result;
+    result = d_tests_net_assert(
+                d_tests_url_count_valid(IPV6_VALID,
+                                        valid,
+                                        D_NET_URL_HOST_IPV6) == valid,
+                TEST,
+                "every valid IPv6 literal parses as IPv6",
+                _counter) && result;
+    result = d_tests_net_assert(
+                d_tests_url_count_valid(IPV6_INVALID,
+                                        invalid,
+                                        D_NET_URL_HOST_IPV6) == 0u,
+                TEST,
+                "no malformed IPv6 literal parses",
+                _counter) && result;
+    result = d_tests_net_assert(
+                (d_tests_url_count_valid(ipv4,
+                                         3u,
+                                         D_NET_URL_HOST_IPV4) == 3u) &&
+                (d_tests_url_count_valid(names,
+                                         5u,
+                                         D_NET_URL_HOST_NAME) == 5u),
+                TEST,
+                "strict dotted-decimal is IPv4; the rest are names",
+                _counter) && result;
 
     return result;
 }
@@ -632,7 +632,7 @@ d_tests_sa_net_url_hosts(
 d_tests_sa_net_url_format
   Tests the following:
   - each of ROUND_TRIPS recomposes to its own text, empty parts kept
-  - a buffer too small reports BUFFER and the exact length
+  - a buffer too small reports BUFFER_TOO_SMALL and the exact length
 */
 bool
 d_tests_sa_net_url_format(
@@ -659,7 +659,7 @@ d_tests_sa_net_url_format(
              (d_net_url_format(&url,
                                text,
                                sizeof(text),
-                               &length) == D_NET_URL_OK) &&
+                               &length) == D_NET_URL_OK)    &&
              (strcmp(text,
                      ROUND_TRIPS[i]) == 0) )
         {
@@ -674,17 +674,17 @@ d_tests_sa_net_url_format(
                                            NULL,
                                            0u,
                                            &length) ==
-                          D_NET_URL_ERROR_BUFFER) &&
+                          D_NET_URL_ERROR_BUFFER_TOO_SMALL)             &&
                          (length == strlen(ROUND_TRIPS[0])) );
 
-    result = d_assert_standalone(same == count,
-                                 TEST,
-                                 "every reference recomposes to itself",
-                                 _counter) && result;
-    result = d_assert_standalone(sized,
-                                 TEST,
-                                 "a sizing call reports the exact length",
-                                 _counter) && result;
+    result = d_tests_net_assert(same == count,
+                                TEST,
+                                "every reference recomposes to itself",
+                                _counter) && result;
+    result = d_tests_net_assert(sized,
+                                TEST,
+                                "a sizing call reports the exact length",
+                                _counter) && result;
 
     return result;
 }
@@ -707,23 +707,24 @@ d_tests_url_resolve_edges(
 
     return ( (d_tests_url_parse_cstr("../g",
                                      &ref,
-                                     NULL) == D_NET_URL_OK)           &&
+                                     NULL) == D_NET_URL_OK)       &&
              (d_net_url_resolve(&ref,
                                 &ref,
                                 target,
                                 sizeof(target),
-                                &length) == D_NET_URL_ERROR_BASE)     &&
+                                &length) == D_NET_URL_ERROR_BASE) &&
              (d_net_url_resolve(_base,
                                 &ref,
                                 NULL,
                                 0u,
-                                &length) == D_NET_URL_ERROR_BUFFER)   &&
-             (length >= strlen("http://a/b/g"))                       &&
+                                &length) ==
+              D_NET_URL_ERROR_BUFFER_TOO_SMALL)                   &&
+             (length >= strlen("http://a/b/g"))                   &&
              (d_net_url_resolve(_base,
                                 &ref,
                                 target,
                                 length + 1u,
-                                &length) == D_NET_URL_OK)             &&
+                                &length) == D_NET_URL_OK)         &&
              (strcmp(target,
                      "http://a/b/g") == 0) );
 }
@@ -767,7 +768,7 @@ d_tests_sa_net_url_resolve(
                                 &ref,
                                 target,
                                 sizeof(target),
-                                &length) == D_NET_URL_OK) &&
+                                &length) == D_NET_URL_OK)   &&
              (strcmp(target,
                      RESOLUTIONS[i].expected) == 0) )
         {
@@ -783,14 +784,14 @@ d_tests_sa_net_url_resolve(
         }
     }
 
-    result = d_assert_standalone(right == count,
-                                 TEST,
-                                 message,
-                                 _counter) && result;
-    result = d_assert_standalone(d_tests_url_resolve_edges(&base),
-                                 TEST,
-                                 "a relative base is refused; sizing works",
-                                 _counter) && result;
+    result = d_tests_net_assert(right == count,
+                                TEST,
+                                message,
+                                _counter) && result;
+    result = d_tests_net_assert(d_tests_url_resolve_edges(&base),
+                                TEST,
+                                "a relative base is refused; sizing works",
+                                _counter) && result;
 
     return result;
 }
@@ -848,11 +849,11 @@ d_tests_sa_net_url_normalize(
 {
     const size_t count = sizeof(NORMALIZATIONS) / sizeof(NORMALIZATIONS[0]);
 
-    return d_assert_standalone(d_tests_url_matches(NORMALIZATIONS,
-                                                   count) == count,
-                               "d_net_url_normalize",
-                               "every reference takes its normal form",
-                               _counter);
+    return d_tests_net_assert(d_tests_url_matches(NORMALIZATIONS,
+                                                  count) == count,
+                              "d_net_url_normalize",
+                              "every reference takes its normal form",
+                              _counter);
 }
 
 /*
@@ -923,12 +924,12 @@ d_tests_url_sizes_exactly(void)
                                D_NET_URL_PART_QUERY,
                                NULL,
                                0u,
-                               &encoded) == D_NET_URL_ERROR_BUFFER) &&
-             (encoded == strlen("a%20b/c?d%23e%25f"))               &&
+                               &encoded) == D_NET_URL_ERROR_BUFFER_TOO_SMALL) &&
+             (encoded == strlen("a%20b/c?d%23e%25f"))                         &&
              (d_net_url_decode(d_tests_url_cstr("%41%42"),
                                NULL,
                                0u,
-                               &decoded) == D_NET_URL_ERROR_BUFFER) &&
+                               &decoded) == D_NET_URL_ERROR_BUFFER_TOO_SMALL) &&
              (decoded == 2u) );
 }
 
@@ -961,26 +962,26 @@ d_tests_sa_net_url_percent(
                                                     D_NET_URL_PART_QUERY,
                                                     "a%20b/c?d%23e%25f")) );
     const bool reversed = ( (d_tests_url_decodes_to("a%20b%2Fc%3Fd%23e%25f",
-                                                    RAW))    &&
+                                                    RAW))  &&
                             (d_tests_url_decodes_to("%41%42",
-                                                    "AB"))   &&
+                                                    "AB")) &&
                             (d_tests_url_decodes_to("%zz",
-                                                    NULL))   &&
+                                                    NULL)) &&
                             (d_tests_url_decodes_to("%4",
                                                     NULL)) );
 
-    result = d_assert_standalone(encoded,
-                                 TEST,
-                                 "each part encodes what it must",
-                                 _counter) && result;
-    result = d_assert_standalone(reversed,
-                                 TEST,
-                                 "decoding reverses; bad escapes refused",
-                                 _counter) && result;
-    result = d_assert_standalone(d_tests_url_sizes_exactly(),
-                                 TEST,
-                                 "sizing calls report exact lengths",
-                                 _counter) && result;
+    result = d_tests_net_assert(encoded,
+                                TEST,
+                                "each part encodes what it must",
+                                _counter) && result;
+    result = d_tests_net_assert(reversed,
+                                TEST,
+                                "decoding reverses; bad escapes refused",
+                                _counter) && result;
+    result = d_tests_net_assert(d_tests_url_sizes_exactly(),
+                                TEST,
+                                "sizing calls report exact lengths",
+                                _counter) && result;
 
     return result;
 }
@@ -1004,12 +1005,12 @@ d_tests_url_reaches(void)
         // parsed, reached, and exactly as listed
         if ( (d_tests_url_parse_cstr(ENDPOINTS[i].url,
                                      &url,
-                                     NULL) == D_NET_URL_OK)             &&
+                                     NULL) == D_NET_URL_OK) &&
              (d_net_url_endpoint(&url,
-                                 &endpoint) == D_NET_ERROR_NONE)       &&
+                                 &endpoint) == D_NET_OK)    &&
              (strcmp(endpoint.host,
-                     ENDPOINTS[i].host) == 0)                           &&
-             (endpoint.port == ENDPOINTS[i].port)                       &&
+                     ENDPOINTS[i].host) == 0)               &&
+             (endpoint.port == ENDPOINTS[i].port)           &&
              (endpoint.protocol == D_NET_PROTOCOL_TCP) )
         {
             reached += 1u;
@@ -1067,30 +1068,92 @@ d_tests_sa_net_url_endpoints(
     bool              result = true;
 
     const bool schemes = ( (d_net_url_default_port(
-                                d_tests_url_cstr("HTTPS")) == 443u)   &&
+                                d_tests_url_cstr("HTTPS")) == 443u) &&
                            (d_net_url_default_port(
-                                d_tests_url_cstr("gopher")) == 0u)    &&
+                                d_tests_url_cstr("gopher")) == 0u)  &&
                            (d_net_url_scheme_is_tls(
-                                d_tests_url_cstr("Wss")))             &&
+                                d_tests_url_cstr("Wss")))           &&
                            (!d_net_url_scheme_is_tls(
                                 d_tests_url_cstr("http"))) );
 
-    result = d_assert_standalone(
-                 d_tests_url_reaches() ==
-                 sizeof(ENDPOINTS) / sizeof(ENDPOINTS[0]),
-                 TEST,
-                 "hosts and ports reach their endpoints",
-                 _counter) && result;
-    result = d_assert_standalone(
-                 d_tests_url_unreachable() ==
-                 sizeof(UNREACHABLE) / sizeof(UNREACHABLE[0]),
-                 TEST,
-                 "URLs naming no reachable host are refused",
-                 _counter) && result;
-    result = d_assert_standalone(schemes,
-                                 TEST,
-                                 "default ports and TLS, without case",
-                                 _counter) && result;
+    result = d_tests_net_assert(
+                d_tests_url_reaches() ==
+                sizeof(ENDPOINTS) / sizeof(ENDPOINTS[0]),
+                TEST,
+                "hosts and ports reach their endpoints",
+                _counter) && result;
+    result = d_tests_net_assert(
+                d_tests_url_unreachable() ==
+                sizeof(UNREACHABLE) / sizeof(UNREACHABLE[0]),
+                TEST,
+                "URLs naming no reachable host are refused",
+                _counter) && result;
+    result = d_tests_net_assert(schemes,
+                                TEST,
+                                "default ports and TLS, without case",
+                                _counter) && result;
+
+    return result;
+}
+
+// d_tests_net_url_mapping
+//   struct: an error, and the d_net_error it maps to.
+struct d_tests_net_url_mapping
+{
+    enum d_net_url_error error;
+    enum d_net_error     net;
+};
+
+/*
+d_tests_sa_net_url_errors_to_net
+  Tests the following:
+  - each error maps onto the d_net_error net.h's rules give it
+  - a value outside the enum maps to D_NET_ERROR_UNKNOWN
+*/
+bool
+d_tests_sa_net_url_errors_to_net(
+    struct d_test_counter* _counter
+)
+{
+    const struct d_tests_net_url_mapping MAP[] =
+    {
+        { D_NET_URL_OK,                     D_NET_OK                     },
+        { D_NET_URL_ERROR_INVALID_ARGUMENT, D_NET_ERROR_INVALID_ARGUMENT },
+        { D_NET_URL_ERROR_SCHEME,           D_NET_ERROR_ADDRESS_INVALID  },
+        { D_NET_URL_ERROR_USERINFO,         D_NET_ERROR_ADDRESS_INVALID  },
+        { D_NET_URL_ERROR_HOST,             D_NET_ERROR_ADDRESS_INVALID  },
+        { D_NET_URL_ERROR_IP_LITERAL,       D_NET_ERROR_ADDRESS_INVALID  },
+        { D_NET_URL_ERROR_PORT,             D_NET_ERROR_ADDRESS_INVALID  },
+        { D_NET_URL_ERROR_PATH,             D_NET_ERROR_ADDRESS_INVALID  },
+        { D_NET_URL_ERROR_QUERY,            D_NET_ERROR_ADDRESS_INVALID  },
+        { D_NET_URL_ERROR_FRAGMENT,         D_NET_ERROR_ADDRESS_INVALID  },
+        { D_NET_URL_ERROR_PERCENT,          D_NET_ERROR_ADDRESS_INVALID  },
+        { D_NET_URL_ERROR_BASE,             D_NET_ERROR_ADDRESS_INVALID  },
+        { D_NET_URL_ERROR_BUFFER_TOO_SMALL, D_NET_ERROR_INVALID_ARGUMENT }
+    };
+    const size_t count  = sizeof(MAP) / sizeof(MAP[0]);
+    bool         mapped = true;
+    bool         result = true;
+
+    // each error against the table
+    for (size_t i = 0u; i < count; ++i)
+    {
+        mapped = ( (mapped) &&
+                   (d_net_url_error_to_net(MAP[i].error) == MAP[i].net) );
+    }
+
+    const bool outside =
+        (d_net_url_error_to_net((enum d_net_url_error)99) ==
+         D_NET_ERROR_UNKNOWN);
+
+    result = d_tests_net_assert(mapped,
+                                "d_net_url_error_to_net",
+                                "each error maps by net.h's rules",
+                                _counter) && result;
+    result = d_tests_net_assert(outside,
+                                "d_net_url_error_to_net",
+                                "a value outside the enum is unknown",
+                                _counter) && result;
 
     return result;
 }

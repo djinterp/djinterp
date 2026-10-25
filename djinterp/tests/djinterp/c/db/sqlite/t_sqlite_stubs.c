@@ -17,7 +17,7 @@
 * path:      /tests/djinterp/c/db/sqlite/t_sqlite_stubs.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 // std
 #include <stdio.h>   // printf
@@ -107,12 +107,15 @@ d_tests_sqlite_stubs_common(
     D_TESTS_SQLITE_STUBS_CHECK(!d_sqlite_library_at_least(0, 0, 0));
     D_TESTS_SQLITE_STUBS_CHECK(!d_sqlite_library_at_least(3, 7, 17));
 
-    for (int f = D_SQLITE_FEATURE_PARTIAL_INDEX; f <= D_SQLITE_FEATURE_RTREE;
+    for (int f = D_SQLITE_FEATURE_PARTIAL_INDEX;
+         f <= D_SQLITE_FEATURE_LOAD_EXTENSION;
          ++f)
     {
         D_TESTS_SQLITE_STUBS_CHECK(
             !d_sqlite_supports((enum d_sqlite_feature)f));
     }
+
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_library_threadsafe() == 0);
 
     D_TESTS_SQLITE_STUBS_CHECK(
         strcmp(d_sqlite_result_message(D_DB_EXISTS), "already exists") == 0);
@@ -147,6 +150,7 @@ d_tests_sqlite_stubs_connection
   Tests the following:
   - every open fails and leaves the handle NULL, whatever it held
   - closing NULL succeeds; the queries answer with nothing
+  - no extension loads, and nothing is said of it
 */
 static void
 d_tests_sqlite_stubs_connection(
@@ -180,6 +184,13 @@ d_tests_sqlite_stubs_connection(
     D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_last_insert_id(db) == 0);
     D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_changes(db) == 0);
     D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_total_changes(db) == 0);
+
+    char* message = (char*)&marker;
+
+    D_TESTS_SQLITE_STUBS_UNSUPPORTED(
+        d_sqlite_load_extension(db, "x", NULL, &message));
+    D_TESTS_SQLITE_STUBS_CHECK(message == NULL);
+    D_TESTS_SQLITE_STUBS_UNSUPPORTED(d_sqlite_enable_load_extension(db, true));
 
     return;
 }
@@ -245,7 +256,8 @@ d_tests_sqlite_stubs_statement
   Tests the following:
   - preparing fails, leaving the statement NULL as a failed prepare does
   - finalizing succeeds; the describers answer 0 and NULL
-  - every bind, clear and run fails, the count and the rows untouched
+  - every bind, clear and run fails, the count and the rows untouched; so
+    does every cursor call
 */
 static void
 d_tests_sqlite_stubs_statement(
@@ -290,6 +302,9 @@ d_tests_sqlite_stubs_statement(
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(
         d_sqlite_execute_update(statement, &changes));
     D_TESTS_SQLITE_STUBS_UNSUPPORTED(d_sqlite_execute_query(statement, &rows));
+    D_TESTS_SQLITE_STUBS_UNSUPPORTED(d_sqlite_open_cursor(statement));
+    D_TESTS_SQLITE_STUBS_UNSUPPORTED(d_sqlite_fetch_rows(statement, 2u, &rows));
+    D_TESTS_SQLITE_STUBS_UNSUPPORTED(d_sqlite_close_cursor(statement));
     D_TESTS_SQLITE_STUBS_CHECK(changes == 42);
     D_TESTS_SQLITE_STUBS_CHECK( (rows.column_count == 7u) &&
                                 (rows.row_count == 7u) );
@@ -299,11 +314,12 @@ d_tests_sqlite_stubs_statement(
 
 /*
 d_tests_sqlite_stubs_database
-  Attached databases and database files.
+  Attached databases, database files, and databases as bytes.
   Tests the following:
   - no database exists; has_database_s says so and fails
   - attaching, detaching and listing fail, the list untouched
   - creating and deleting a file fail; no file is a database
+  - serializing and deserializing fail, nothing written
 */
 static void
 d_tests_sqlite_stubs_database(
@@ -331,6 +347,16 @@ d_tests_sqlite_stubs_database(
         d_sqlite_delete_database_file("t_sqlite_stubs.db", D_DB_IF_EXISTS));
     D_TESTS_SQLITE_STUBS_CHECK(!d_sqlite_is_database_file("t_sqlite_stubs.db"));
 
+    void*  bytes = NULL;
+    size_t size  = 3u;
+
+    D_TESTS_SQLITE_STUBS_UNSUPPORTED(
+        d_sqlite_serialize(db, NULL, &bytes, &size));
+    D_TESTS_SQLITE_STUBS_CHECK( (bytes == NULL) &&
+                                (size == 3u) );
+    D_TESTS_SQLITE_STUBS_UNSUPPORTED(
+        d_sqlite_deserialize(db, NULL, "x", 1u, false));
+
     return;
 }
 
@@ -348,7 +374,7 @@ d_tests_sqlite_stubs_tables(
 {
     static const struct d_db_column column =
     {
-        "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL
+        "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL, 0u
     };
     struct sqlite3*         db      = NULL;
     struct d_db_name_list   names   = { 7u, NULL };

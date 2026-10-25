@@ -89,10 +89,18 @@ include(CTest)
 # 3. shared C runtime - linked into every test/non-test exe
 # -----------------------------------------------------------------------------
 add_library(djinterp_c_runtime STATIC
-    "${DJINTERP_SRC_ROOT}/djinterp/core/env/env.c"
-    "${DJINTERP_SRC_ROOT}/djinterp/core/env/env_archive.c"
-    "${DJINTERP_SRC_ROOT}/djinterp/core/env/env_compress.c"
+    # env moved from core/env/ to the top of the tree; its archive and
+    # compress units are the util/ ones, whose headers the tree includes
+    "${DJINTERP_SRC_ROOT}/djinterp/env/env.c"
+    "${DJINTERP_SRC_ROOT}/djinterp/env/util/archive/env_archive.c"
+    "${DJINTERP_SRC_ROOT}/djinterp/env/util/compress/env_compress.c"
     "${DJINTERP_SRC_ROOT}/djinterp/c/djinterp.c"
+    # the compression options every DTest runner reaches, through the report
+    # writer's archive (test_defaults.hpp): d_compress_options_init and its
+    # kin, which the thread suites and others failed to link without
+    "${DJINTERP_SRC_ROOT}/djinterp/c/util/compress/compress_common.c"
+    # and the sinks compress_common.c writes through
+    "${DJINTERP_SRC_ROOT}/djinterp/c/util/sink_common.c"
 )
 
 # ---------------------------------------------------------------------------

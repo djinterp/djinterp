@@ -15,7 +15,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_parse_option.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -37,10 +37,8 @@
 // d_arg_internal_parse_split
 //   struct: an option argument as CLI11's _parse_arg splits it: the whole
 // argument; the name, without its dashes or slash; the value after `=` or
-// `:`; what follows a short name; the class it was recognized as; and
-// whether a long or Windows-style name was followed by `=` or `:`, which
-// tells `--name=` from `--name`. Each part is a span of the argument, or of
-// the parser's pool.
+// `:`; what follows a short name; and the class it was recognized as. Each
+// part is a span of the argument, or of the parser's pool.
 struct d_arg_internal_parse_split
 {
     struct d_pack_text argument;
@@ -48,7 +46,6 @@ struct d_arg_internal_parse_split
     struct d_pack_text value;
     struct d_pack_text rest;
     int                classifier;
-    bool               separated;
 };
 
 // SPLIT_NONE
@@ -104,40 +101,28 @@ d_arg_internal_parse_split_arg(
     // `--name` and its value
     if (_class == (int)D_ARG_CLASS_LONG)
     {
-        if (!d_arg_internal_parse_split_long(argument,
-                                             &_split->name,
-                                             &_split->value))
-        {
-            return d_arg_internal_fail(_command,
-                                       NULL,
-                                       D_ARG_ERROR_HORRIBLE,
-                                       "Long parsed but missing (you should "
-                                       "not see this):%.*s",
-                                       d_arg_internal_print_length(argument),
-                                       argument.data);
-        }
-
-        // `--` and the name, and anything after them is `=` and the value
-        _split->separated = (_split->name.length + 2u < argument.length);
-
-        return D_ARG_OK;
+        return d_arg_internal_parse_split_long(argument,
+                                               &_split->name,
+                                               &_split->value)
+               ? D_ARG_OK
+               : d_arg_internal_fail(_command,
+                                     NULL,
+                                     D_ARG_ERROR_HORRIBLE,
+                                     "Long parsed but missing (you should "
+                                     "not see this):%.*s",
+                                     d_arg_internal_print_length(argument),
+                                     argument.data);
     }
 
-    if (!d_arg_internal_parse_split_windows(argument,
-                                            &_split->name,
-                                            &_split->value))
-    {
-        return d_arg_internal_fail(_command,
-                                   NULL,
-                                   D_ARG_ERROR_HORRIBLE,
-                                   "windows option parsed but missing! You "
-                                   "should not see this");
-    }
-
-    // `/` and the name, and anything after them is `:` and the value
-    _split->separated = (_split->name.length + 1u < argument.length);
-
-    return D_ARG_OK;
+    return d_arg_internal_parse_split_windows(argument,
+                                              &_split->name,
+                                              &_split->value)
+           ? D_ARG_OK
+           : d_arg_internal_fail(_command,
+                                 NULL,
+                                 D_ARG_ERROR_HORRIBLE,
+                                 "windows option parsed but missing! You "
+                                 "should not see this");
 }
 
 /**
@@ -917,9 +902,8 @@ d_arg_internal_parse_flag(
  * @return D_ARG_OK, or the failure, recorded.
  *
  * CLI11's first value of an option argument: a flag's value for an option
- * that takes none; else the value after `=` -- an empty one too, where the
- * parser takes `--name=` as one (d_arg_parser_set_empty_values); else what
- * follows a short name, which is then used up.
+ * that takes none; else the value after `=`; else what follows a short name,
+ * which is then used up.
  */
 D_STATIC int
 d_arg_internal_parse_first(
@@ -935,11 +919,8 @@ d_arg_internal_parse_first(
                                          split->value);
     }
 
-    // `--name=value`; `--name=`, an empty value, where the parser says so
-    if ( (split->value.length > 0u) ||
-         ( (split->separated) &&
-           ( (_take->command->parser->flags &
-              D_ARG_PARSER_EMPTY_VALUES) != 0u ) ) )
+    // `--name=value`
+    if (split->value.length > 0u)
     {
         return d_arg_internal_parse_collect(_take,
                                             split->value);

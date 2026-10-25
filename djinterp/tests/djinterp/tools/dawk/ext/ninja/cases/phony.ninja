@@ -1,0 +1,7 @@
+rule r
+  command = c
+build a: phony a b
+build b: phony
+build c: phony c | d
+build d: r
+build e: phony e

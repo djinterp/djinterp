@@ -2,11 +2,11 @@
 * djinterp [parse]                                            arg_common_tests.h
 *
 * The suite of the argument parser's shared vocabulary (arg_common.h).
-*   Statuses, their names and the exit codes CLI11 gives them; the byte
-* buffer every message and help text is built in; the sinks output goes
-* through; the error report a parser keeps; and the lists the records keep
-* their parts in. Every section works on storage it declares, so each holds
-* in every configuration.
+*   Statuses, their names, the messages they carry and the exit codes CLI11
+* gives them; the byte buffer every message and help text is built in; the
+* sinks output goes through; the error report a parser keeps; and the lists
+* the records keep their parts in. Every section works on storage it
+* declares, so each holds in every configuration.
 *   The suite is a table of sections, defined in arg_common_tests.c beside
 * the sections themselves, so its length is the number of sections this
 * build has.
@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_common_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_CLI_ARG_PARSER_C_ARG_COMMON_TESTS_H
@@ -30,6 +30,7 @@
 
 // 1.  STATUS
 bool d_tests_arg_common_status_names(void);
+bool d_tests_arg_common_status_messages(void);
 bool d_tests_arg_common_status_exit_codes(void);
 bool d_tests_arg_common_status_is_error(void);
 

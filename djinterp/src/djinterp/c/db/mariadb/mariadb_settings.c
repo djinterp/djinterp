@@ -9,13 +9,15 @@
 * knows. The isolation level's variable was renamed: MySQL 5.7.20 added
 * transaction_isolation and 8.0 removed tx_isolation, and MariaDB has had the
 * new name only since 11.1.1, so the getter asks for whichever the server
-* has.
+* has. The session's changes are the client's record, which the layer reads
+* only where it is the reply to the layer's last command (2.4 of
+* mariadb_internal.h).
 *
 *
 * path:      /src/djinterp/c/db/mariadb/mariadb_settings.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 // D_INTERNAL_MARIADB_SOURCE
 //   macro: this file is one of the MariaDB layer's own sources, for which
@@ -356,7 +358,8 @@ d_mariadb_get_lock_wait_timeout(
 d_mariadb_set_charset
   mysql_set_character_set, which sets the session's character set and the
 client's together, so values are escaped for the new one; SET NAMES would
-change only the session's.
+change only the session's. Its SET NAMES is a query, which takes the query
+attributes set for the next one.
 */
 int
 d_mariadb_set_charset(
@@ -371,9 +374,22 @@ d_mariadb_set_charset(
         return D_DB_INVALID_ARGUMENT;
     }
 
-    return (mysql_set_character_set(_db->native, _charset) == 0)
-               ? 0
-               : (int)mysql_errno(_db->native);
+    const int idle = d_internal_mariadb_idle(_db);
+
+    // nothing is sent while a statement's rows are still arriving
+    if (idle != 0)
+    {
+        return idle;
+    }
+
+    const int result = (mysql_set_character_set(_db->native, _charset) == 0)
+                           ? 0
+                           : (int)mysql_errno(_db->native);
+
+    d_internal_mariadb_attributes_sent(_db);
+    d_internal_mariadb_replied(_db, (result == 0));
+
+    return result;
 }
 
 /*
@@ -517,6 +533,93 @@ d_mariadb_get_variable(
     }
 
     return d_internal_mariadb_get_text(_db, _name, _value);
+}
+
+//==============================================================================
+// 5.  SESSION STATE
+//==============================================================================
+
+// 5.1    Changes reported
+//------------------------------------------------------------------------------
+/*
+d_mariadb_session_track
+  The client's record, entry by entry, where it is the reply to the layer's
+last command; none otherwise. Each entry is the client's bytes and length,
+terminated in a scratch buffer before the list copies it. The kinds number
+as the protocol's, which both clients' enum_session_state_type follows.
+*/
+int
+d_mariadb_session_track(
+    struct d_mariadb*      _db,
+    enum d_mariadb_track   _kind,
+    struct d_db_name_list* _entries
+)
+{
+    // parameter validation
+    if ( (!_db)      ||
+         (!_entries) ||
+         ((unsigned)_kind >
+          (unsigned)D_MARIADB_TRACK_TRANSACTION_STATE) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    // a server, or a client, without session tracking
+    if (!d_mariadb_supports(_db, D_MARIADB_FEATURE_SESSION_TRACKING))
+    {
+        return D_DB_UNSUPPORTED;
+    }
+
+#if (D_INTERNAL_MARIADB_SESSION_TRACK == 1)
+    struct d_internal_db_names builder =
+    {
+        { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u
+    };
+    struct d_internal_db_buffer        entry  = { NULL, 0u, 0u };
+    const enum enum_session_state_type type   =
+        (enum enum_session_state_type)_kind;
+    const char*                        data   = NULL;
+    size_t                             length = 0u;
+    bool                               ok     = true;
+
+    // each entry of the reply's, where the reply carried them
+    for (int more = (_db->tracked)
+                        ? mysql_session_track_get_first(_db->native,
+                                                        type,
+                                                        &data,
+                                                        &length)
+                        : 1;
+         (ok) && (more == 0);
+         more = mysql_session_track_get_next(_db->native,
+                                             type,
+                                             &data,
+                                             &length))
+    {
+        entry.length = 0u;
+        ok           = ( (d_internal_db_buffer_append(&entry,
+                                                      data,
+                                                      (data) ? length
+                                                             : 0u)) &&
+                         (d_internal_db_buffer_append(&entry, "", 1u)) &&
+                         (d_internal_db_names_add(&builder, entry.data)) );
+    }
+
+    d_internal_db_buffer_release(&entry);
+
+    // finishing releases the builder whether it succeeds or not
+    if (!ok)
+    {
+        d_internal_db_names_release(&builder);
+
+        return D_INTERNAL_MARIADB_OUT_OF_MEMORY;
+    }
+
+    return (d_internal_db_names_finish(&builder, _entries))
+               ? 0
+               : D_INTERNAL_MARIADB_OUT_OF_MEMORY;
+#else
+    return D_DB_UNSUPPORTED;
+#endif  // D_INTERNAL_MARIADB_SESSION_TRACK
 }
 
 #else
@@ -768,6 +871,24 @@ d_mariadb_get_variable(
     (void)_db;
     (void)_name;
     (void)_value;
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_mariadb_session_track
+  Without a client, D_DB_UNSUPPORTED, and nothing written.
+*/
+int
+d_mariadb_session_track(
+    struct d_mariadb*      _db,
+    enum d_mariadb_track   _kind,
+    struct d_db_name_list* _entries
+)
+{
+    (void)_db;
+    (void)_kind;
+    (void)_entries;
 
     return D_DB_UNSUPPORTED;
 }

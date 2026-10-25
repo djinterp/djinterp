@@ -1,17 +1,17 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                 dsection.c
+* djinterp [tools]                                                    dsection.c
 *
 * Section-delimiter extension:
-*   A delimiter is `//`, then optionally one space, then at least twenty of a
-* single fill character, `=` or `-`, and nothing else.  Twenty is the floor
-* because a short run is a comment that happens to contain dashes, and the
-* cost of mistaking one for a delimiter is rewriting prose.
-*
+*   A delimiter is a line comment's opening -- `//`, or `#` in a CMake file --
+* then optionally one space, then at least twenty of a single fill character,
+* `=` or `-`, and nothing else.  Twenty is the floor because a short run is a
+* comment that happens to contain dashes, and the cost of mistaking one for a
+* delimiter is rewriting prose.
 *
 * path:      /src/djinterp/tools/dawk/dsection.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.21
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dsection.h"  // corresponding header
 // std
@@ -27,6 +27,10 @@
 #define D_SECTION_FILL_MIN 20u
 
 
+/*
+d_section_build
+  C's delimiters, which open with `//`.
+*/
 uint32_t
 d_section_build(
     struct d_node_tree* _tree,
@@ -34,11 +38,34 @@ d_section_build(
     const char*         _path
 )
 {
+    return d_section_build_marked(_tree, _file, _path, "//");
+}
+
+
+/*
+d_section_build_marked
+  Every line that is the comment opening, an optional space, and a run of
+fill; the opening is `//` for C and `#` for CMake.
+*/
+uint32_t
+d_section_build_marked(
+    struct d_node_tree* _tree,
+    uint32_t            _file,
+    const char*         _path,
+    const char*         _comment
+)
+{
     // parameter validation first
-    if ((!_tree) || (!_path) || (_file == D_DSS_NO_INDEX))
+    if ( (!_tree)                    ||
+         (!_path)                    ||
+         (!_comment)                 ||
+         (_comment[0] == '\0')       ||
+         (_file == D_DSS_NO_INDEX) )
     {
         return 0;
     }
+
+    const size_t opening = strlen(_comment);
 
     FILE* const handle = fopen(_path, "rb");
 
@@ -57,13 +84,13 @@ d_section_build(
 
         const size_t length = d_edit_trim_end(buffer, strlen(buffer));
 
-        if ((length < 2u) || (strncmp(buffer, "//", 2u) != 0))
+        if ((length < opening) || (strncmp(buffer, _comment, opening) != 0))
         {
             continue;
         }
 
-        const bool   spaced = ((length > 2u) && (buffer[2] == ' '));
-        const size_t from   = spaced ? 3u : 2u;
+        const bool   spaced = ((length > opening) && (buffer[opening] == ' '));
+        const size_t from   = spaced ? (opening + 1u) : opening;
 
         if (from >= length)
         {

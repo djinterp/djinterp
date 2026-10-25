@@ -1,0 +1,6 @@
+rule r
+  command = c $in > $out
+build a: r
+build b: r a
+build c: r
+default c a

@@ -4,7 +4,7 @@
 * The connection every djinterp C++17 database connection derives from, its
 * operations written once for every vendor.
 *   database_connection implements connection's operations over hooks of the
-* vendor's class -- connect_helper, execute_update_helper, and so on, each
+* vendor's class -- connect_impl, execute_update_impl, and so on, each
 * named after its operation -- and around each call keeps what every vendor
 * shares: the connection's state, the error each failure threw, the rows the
 * latest statement changed, and the session its prepared statements belong
@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/core/db/database_connection.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -46,7 +46,7 @@ TABLE OF CONTENTS
 #define DJINTERP_DB_DATABASE_CONNECTION_HPP 1
 
 // djinterp
-#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: the floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
@@ -83,27 +83,27 @@ NS_DJINTERP
 // database_connection
 //   class template: the connection, for the vendor DbType, over the hooks of
 // Derived, which derives from it. Derived provides:
-//     layer_type                  the layer's description, as
-//                                 database_statement.hpp says
-//     connect_helper()            opens the connection the configuration
-//                                 names, or throws
-//     disconnect_helper()         closes it; noexcept
-//     is_connected_helper()       whether it is open; const, noexcept
-//     ping_helper()               whether the database answers; const
-//     execute_query_helper(sql)   runs one statement: its face::rows
-//     execute_update_helper(sql)  runs SQL: the rows it changed
-//     prepare_helper(sql)         prepares one statement: a statement_face
-//     get_server_version_helper() the server's or library's version; const
-//     get_last_insert_id_helper() the latest generated id; const
-//     begin_transaction_helper(), commit_helper(), rollback_helper()
-//     in_transaction_helper()     whether a transaction is open; const,
-//                                 noexcept
-//     native_handle_helper()      the handle (connection_template)
+//     layer_type                the layer's description, as
+//                               database_statement.hpp says
+//     connect_impl()            opens the connection the configuration
+//                               names, or throws
+//     disconnect_impl()         closes it; noexcept
+//     is_connected_impl()       whether it is open; const, noexcept
+//     ping_impl()               whether the database answers; const
+//     execute_query_impl(sql)   runs one statement: its face::rows
+//     execute_update_impl(sql)  runs SQL: the rows it changed
+//     prepare_impl(sql)         prepares one statement: a statement_face
+//     get_server_version_impl() the server's or library's version; const
+//     get_last_insert_id_impl() the latest generated id; const
+//     begin_transaction_impl(), commit_impl(), rollback_impl()
+//     in_transaction_impl()     whether a transaction is open; const,
+//                               noexcept
+//     native_handle_impl()      the handle (connection_template)
 // and, for the gated operations, which exist where their hooks do:
-//     begin_transaction_helper(isolation_level), get_isolation_level_helper(),
-//     set_isolation_level_helper(isolation_level), create_savepoint_helper(
-//     name), release_savepoint_helper(name), rollback_to_savepoint_helper(
-//     name), set_auto_commit_helper(bool), get_auto_commit_helper(); and
+//     begin_transaction_impl(isolation_level), get_isolation_level_impl(),
+//     set_isolation_level_impl(isolation_level), create_savepoint_impl(
+//     name), release_savepoint_impl(name), rollback_to_savepoint_impl(
+//     name), set_auto_commit_impl(bool), get_auto_commit_impl(); and
 //     get_face(), the layer's face, const and not, through which run_layer
 //     and ask_layer call the layer, raising through layer_type's raise.
 // A hook reports a failure by throwing, through its layer's raise. Not
@@ -199,7 +199,8 @@ public:
      * @brief Runs SQL, as execute_update does.
      *
      * @param[in] _query  the SQL.
-     * @return true; a failure throws, as execute_update's does.
+     * @return true; a failure throws, as execute_update's does, and names
+     *         execute.
      */
     bool execute(const std::string& _query);
 
@@ -215,11 +216,31 @@ public:
     auto prepare(const std::string& _query);
 
     /**
+     * @brief Runs a query whose rows are read a page at a time, as the
+     *        stream's cursor reaches them, over a statement of its own; gated
+     *        (a vendor with a layer).
+     *
+     * @note On MariaDB, MySQL and PostgreSQL the run holds the connection
+     *       until it ends: every other operation throws query_exception
+     *       meanwhile (streaming_result_set).
+     *
+     * @param[in] _query      one statement.
+     * @param[in] _page_size  the most rows a page holds; 1 or more.
+     * @return the stream, which holds its statement; closing the connection
+     *         closes it.
+     * @throws as prepare(); and as prepared_statement's execute_stream.
+     */
+    template<typename Type = Derived,
+             typename      = internal::face_hook_t<Type>>
+    auto stream_query(const std::string& _query,
+                      std::size_t        _page_size = stream_page_size);
+
+    /**
      * @brief Runs a query, and reads the first column of its first row.
      *
      * @param[in] _query  the query.
      * @return the value, NULL among them; std::nullopt when there is no row.
-     * @throws as execute_query.
+     * @throws as execute_query, the failure naming execute_scalar.
      */
     std::optional<value> execute_scalar(const std::string& _query);
 
@@ -228,7 +249,7 @@ public:
      *
      * @param[in] _query  the query.
      * @return the row; std::nullopt when there is none.
-     * @throws as execute_query.
+     * @throws as execute_query, the failure naming execute_single_row.
      */
     std::optional<row> execute_single_row(const std::string& _query);
 
@@ -393,7 +414,8 @@ protected:
     database_connection& operator=(database_connection&& _other) noexcept;
 
     // ensure_connected -- connection_exception unless the connection is open
-    // and no statement found it lost
+    // and no statement found it lost; query_exception, with the layer's
+    // busy_code, while a stream's run holds it
     void ensure_connected() const;
 
     // capture_error -- records a failure as the latest, for vendor members
@@ -433,6 +455,11 @@ protected:
     // get_affected_rows() then answers
     void record_changes(re_std::int64_t _changes) noexcept;
 
+    // close_statements -- closes every statement prepared on the
+    // connection, which stays open: for a vendor operation that ends the
+    // session's statements without closing the connection, as a reset does
+    void close_statements() noexcept;
+
     /**
      * @brief Closes every statement prepared on the connection, and marks it
      *        disconnected, without calling a hook: for the destructor of the
@@ -445,6 +472,11 @@ protected:
 private:
     // m_close_quietly -- the statements, then the connection; nothing thrown
     void m_close_quietly() noexcept;
+
+    // m_query_as -- execute_query_impl, for an operation of another name:
+    // its rows, or its failure under `_operation`
+    face::rows m_query_as(const char*        _operation,
+                          const std::string& _query);
 
     // m_refuse_nul_settings -- connection_exception with
     // D_DB_INVALID_ARGUMENT for a setting of the generic configuration that
@@ -608,7 +640,7 @@ database_connection<Derived, DbType>::connect()
     try
     {
         m_refuse_nul_settings();
-        m_self().connect_helper();
+        m_self().connect_impl();
     }
     catch (const exception& _e)
     {
@@ -631,7 +663,7 @@ database_connection<Derived, DbType>::connect()
 
     try
     {
-        m_server_version = m_self().get_server_version_helper();
+        m_server_version = m_self().get_server_version_impl();
     }
     catch (...)
     {
@@ -729,7 +761,7 @@ database_connection<Derived, DbType>::is_connected() const noexcept
 
     try
     {
-        return m_self().is_connected_helper();
+        return m_self().is_connected_impl();
     }
     catch (...)
     {
@@ -750,7 +782,7 @@ database_connection<Derived, DbType>::ping() const noexcept
 
     try
     {
-        return m_self().ping_helper();
+        return m_self().ping_impl();
     }
     catch (...)
     {
@@ -779,7 +811,7 @@ database_connection<Derived, DbType>::execute_query(
             internal::refuse_nul(_query, "execute_query", "the SQL");
 
             return std::make_unique<buffered_result_set>(
-                m_self().execute_query_helper(_query));
+                m_self().execute_query_impl(_query));
         });
 }
 
@@ -796,7 +828,7 @@ database_connection<Derived, DbType>::execute_update(
             internal::refuse_nul(_query, "execute_update", "the SQL");
 
             const re_std::int64_t changes =
-                m_self().execute_update_helper(_query);
+                m_self().execute_update_impl(_query);
 
             m_session->record(changes);
 
@@ -804,6 +836,12 @@ database_connection<Derived, DbType>::execute_update(
         });
 }
 
+/*
+database_connection::execute
+  Runs the hook execute_update runs, under its own name: the vendor's hook
+labels its failures execute_update, which internal::relabel turns into
+execute.
+*/
 template<typename      Derived,
          database_type DbType>
 bool
@@ -811,7 +849,26 @@ database_connection<Derived, DbType>::execute(
     const std::string& _query
 )
 {
-    (void)execute_update(_query);
+    run_guarded(
+        [this, &_query]() -> void
+        {
+            internal::refuse_nul(_query, "execute", "the SQL");
+
+            re_std::int64_t changes = 0;
+
+            try
+            {
+                changes = m_self().execute_update_impl(_query);
+            }
+            catch (const exception& _e)
+            {
+                internal::relabel(_e, "execute_update", "execute");
+            }
+
+            m_session->record(changes);
+
+            return;
+        });
 
     return true;
 }
@@ -838,7 +895,36 @@ database_connection<Derived, DbType>::prepare(
 
             return std::make_unique<statement_type>(
                 m_session,
-                m_self().prepare_helper(_query));
+                m_self().prepare_impl(_query));
+        });
+}
+
+/*
+database_connection::stream_query
+  The statement is prepared as prepare() prepares any, then handed to the
+stream, which outlives the call; the run is one of the connection's
+operations, its failure recorded as theirs are.
+*/
+template<typename      Derived,
+         database_type DbType>
+template<typename Type,
+         typename>
+auto
+database_connection<Derived, DbType>::stream_query(
+    const std::string& _query,
+    std::size_t        _page_size
+)
+{
+    using layer_type     = typename Derived::layer_type;
+    using statement_type = prepared_statement<layer_type>;
+
+    std::unique_ptr<statement_type> statement = prepare(_query);
+
+    return run_guarded(
+        [&statement, _page_size]()
+            -> std::unique_ptr<streaming_result_set<layer_type>>
+        {
+            return statement_type::stream(std::move(statement), _page_size);
         });
 }
 
@@ -849,16 +935,20 @@ database_connection<Derived, DbType>::execute_scalar(
     const std::string& _query
 )
 {
-    std::unique_ptr<buffered_result_set> found = execute_query(_query);
+    return run_guarded(
+        [this, &_query]() -> std::optional<value>
+        {
+            buffered_result_set found(m_query_as("execute_scalar", _query));
 
-    // the first column of the first row, when there is a row
-    if ( (found->next()) &&
-         (found->column_count() > 0u) )
-    {
-        return found->get_value(static_cast<std::size_t>(0));
-    }
+            // the first column of the first row, when there is a row
+            if ( (found.next()) &&
+                 (found.column_count() > 0u) )
+            {
+                return found.get_value(static_cast<std::size_t>(0));
+            }
 
-    return std::nullopt;
+            return std::nullopt;
+        });
 }
 
 template<typename      Derived,
@@ -868,15 +958,20 @@ database_connection<Derived, DbType>::execute_single_row(
     const std::string& _query
 )
 {
-    std::unique_ptr<buffered_result_set> found = execute_query(_query);
+    return run_guarded(
+        [this, &_query]() -> std::optional<row>
+        {
+            buffered_result_set found(m_query_as("execute_single_row",
+                                                 _query));
 
-    // the first row, when there is one
-    if (found->next())
-    {
-        return found->get_current_row();
-    }
+            // the first row, when there is one
+            if (found.next())
+            {
+                return found.get_current_row();
+            }
 
-    return std::nullopt;
+            return std::nullopt;
+        });
 }
 
 template<typename      Derived,
@@ -953,7 +1048,7 @@ database_connection<Derived, DbType>::begin_transaction()
     run_guarded(
         [this]() -> void
         {
-            m_self().begin_transaction_helper();
+            m_self().begin_transaction_impl();
 
             return;
         });
@@ -975,7 +1070,7 @@ database_connection<Derived, DbType>::begin_transaction(
     run_guarded(
         [this, _isolation]() -> void
         {
-            m_self().begin_transaction_helper(_isolation);
+            m_self().begin_transaction_impl(_isolation);
 
             return;
         });
@@ -993,7 +1088,7 @@ database_connection<Derived, DbType>::commit()
     run_guarded(
         [this]() -> void
         {
-            m_self().commit_helper();
+            m_self().commit_impl();
 
             return;
         });
@@ -1011,7 +1106,7 @@ database_connection<Derived, DbType>::rollback()
     run_guarded(
         [this]() -> void
         {
-            m_self().rollback_helper();
+            m_self().rollback_impl();
 
             return;
         });
@@ -1037,7 +1132,7 @@ database_connection<Derived, DbType>::in_transaction() const noexcept
                               Derived>::value)
     {
         return ( (m_effective_state() == connection_state::connected) &&
-                 (m_self().in_transaction_helper()) );
+                 (m_self().in_transaction_impl()) );
     }
     else
     {
@@ -1055,7 +1150,7 @@ database_connection<Derived, DbType>::get_isolation_level() const
     return ask_guarded(
         [this]() -> isolation_level
         {
-            return m_self().get_isolation_level_helper();
+            return m_self().get_isolation_level_impl();
         });
 }
 
@@ -1071,7 +1166,7 @@ database_connection<Derived, DbType>::set_isolation_level(
     run_guarded(
         [this, _level]() -> void
         {
-            m_self().set_isolation_level_helper(_level);
+            m_self().set_isolation_level_impl(_level);
 
             return;
         });
@@ -1092,7 +1187,7 @@ database_connection<Derived, DbType>::create_savepoint(
         [this, &_name]() -> void
         {
             internal::refuse_nul(_name, "create_savepoint", "the name");
-            m_self().create_savepoint_helper(_name);
+            m_self().create_savepoint_impl(_name);
 
             return;
         });
@@ -1113,7 +1208,7 @@ database_connection<Derived, DbType>::release_savepoint(
         [this, &_name]() -> void
         {
             internal::refuse_nul(_name, "release_savepoint", "the name");
-            m_self().release_savepoint_helper(_name);
+            m_self().release_savepoint_impl(_name);
 
             return;
         });
@@ -1134,7 +1229,7 @@ database_connection<Derived, DbType>::rollback_to_savepoint(
         [this, &_name]() -> void
         {
             internal::refuse_nul(_name, "rollback_to_savepoint", "the name");
-            m_self().rollback_to_savepoint_helper(_name);
+            m_self().rollback_to_savepoint_impl(_name);
 
             return;
         });
@@ -1166,7 +1261,7 @@ database_connection<Derived, DbType>::get_last_insert_id() const
     return ask_guarded(
         [this]() -> re_std::int64_t
         {
-            return m_self().get_last_insert_id_helper();
+            return m_self().get_last_insert_id_impl();
         });
 }
 
@@ -1191,7 +1286,7 @@ database_connection<Derived, DbType>::set_auto_commit(
     run_guarded(
         [this, _enabled]() -> void
         {
-            m_self().set_auto_commit_helper(_enabled);
+            m_self().set_auto_commit_impl(_enabled);
 
             return;
         });
@@ -1224,7 +1319,7 @@ database_connection<Derived, DbType>::get_auto_commit() const
         return ask_guarded(
             [this]() -> bool
             {
-                return m_self().get_auto_commit_helper();
+                return m_self().get_auto_commit_impl();
             });
     }
     else
@@ -1318,6 +1413,17 @@ database_connection<Derived, DbType>::ensure_connected() const
     {
         throw connection_exception(std::string("not connected to ") +
                                    traits_type::display_name);
+    }
+
+    // nor while a stream's run holds it, which the layer would refuse
+    if ( (m_session) &&
+         (m_session->holder() != nullptr) )
+    {
+        throw query_exception(std::string("a stream's run holds the "
+                                          "connection to ") +
+                              traits_type::display_name +
+                              " until it is read to its end or closed",
+                              m_session->busy_code());
     }
 
     return;
@@ -1471,6 +1577,20 @@ database_connection<Derived, DbType>::record_changes(
 template<typename      Derived,
          database_type DbType>
 void
+database_connection<Derived, DbType>::close_statements() noexcept
+{
+    // only a connection that ran something has statements to close
+    if (m_session)
+    {
+        m_session->close_all();
+    }
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
 database_connection<Derived, DbType>::close_session_noexcept() noexcept
 {
     // the statements go while the connection they run on is still there
@@ -1555,7 +1675,7 @@ database_connection<Derived, DbType>::m_close_quietly() noexcept
 
     try
     {
-        m_self().disconnect_helper();
+        m_self().disconnect_impl();
     }
     catch (...)
     {
@@ -1563,6 +1683,31 @@ database_connection<Derived, DbType>::m_close_quietly() noexcept
     }
 
     return;
+}
+
+/*
+database_connection::m_query_as
+  The caller runs it inside run_guarded, which records the failure as
+relabeled here.
+*/
+template<typename      Derived,
+         database_type DbType>
+face::rows
+database_connection<Derived, DbType>::m_query_as(
+    const char*        _operation,
+    const std::string& _query
+)
+{
+    internal::refuse_nul(_query, _operation, "the SQL");
+
+    try
+    {
+        return m_self().execute_query_impl(_query);
+    }
+    catch (const exception& _e)
+    {
+        internal::relabel(_e, "execute_query", _operation);
+    }
 }
 
 template<typename      Derived,

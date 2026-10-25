@@ -9,12 +9,13 @@
 * path:      /tests/djinterp/net/net_tests_sa_vocabulary.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "./net_tests_sa.h"  // corresponding header
 // std
-#include <stdint.h>  // SIZE_MAX, uint32_t
 #include <string.h>  // memcmp, memset, strcmp, strlen
+// re_std
+#include "../../../inc/re_std/cstdint/dstdint.h"  // SIZE_MAX
 
 
 /*
@@ -86,6 +87,7 @@ d_tests_sa_net_errors
   Tests the following:
   - every error has a phrase, and no two share one
   - the phrases are the ones the C++ layer has always returned
+  - PROTOCOL, the newest, reads "protocol violation"
   - a value outside the enum reads as "unknown error"
 */
 bool
@@ -97,15 +99,15 @@ d_tests_sa_net_errors(
     bool              distinct = true;
     bool              result   = true;
 
-    // compare every pair of enumerators' phrases
-    for (int i = 0; i <= (int)D_NET_ERROR_UNKNOWN; ++i)
+    // compare every pair of enumerators' phrases; PROTOCOL is the last
+    for (int i = 0; i <= (int)D_NET_ERROR_PROTOCOL; ++i)
     {
-        for (int j = i + 1; j <= (int)D_NET_ERROR_UNKNOWN; ++j)
+        for (int j = i + 1; j <= (int)D_NET_ERROR_PROTOCOL; ++j)
         {
             const char* const a = d_net_error_string((enum d_net_error)i);
             const char* const b = d_net_error_string((enum d_net_error)j);
 
-            distinct = ( (distinct) &&
+            distinct = ( (distinct)  &&
                          (a != NULL) &&
                          (b != NULL) &&
                          (strcmp(a,
@@ -113,30 +115,36 @@ d_tests_sa_net_errors(
         }
     }
 
-    const bool phrases = ( (d_tests_net_phrase_is(D_NET_ERROR_NONE,
-                                                  "none")) &&
-                           (d_tests_net_phrase_is(D_NET_ERROR_WOULD_BLOCK,
-                                                  "would block")) &&
-                           (d_tests_net_phrase_is(
-                                D_NET_ERROR_TOO_MANY_OPEN_FILES,
-                                "too many open files")) &&
-                           (d_tests_net_phrase_is(D_NET_ERROR_UNKNOWN,
-                                                  "unknown error")) );
-    const bool outside = d_tests_net_phrase_is((enum d_net_error)99,
-                                               "unknown error");
+    const bool phrases  = ( (d_tests_net_phrase_is(D_NET_OK,
+                                                   "none"))        &&
+                            (d_tests_net_phrase_is(D_NET_ERROR_WOULD_BLOCK,
+                                                   "would block")) &&
+                            (d_tests_net_phrase_is(
+                                 D_NET_ERROR_TOO_MANY_OPEN_FILES,
+                                 "too many open files"))           &&
+                            (d_tests_net_phrase_is(D_NET_ERROR_UNKNOWN,
+                                                   "unknown error")) );
+    const bool protocol = d_tests_net_phrase_is(D_NET_ERROR_PROTOCOL,
+                                                "protocol violation");
+    const bool outside  = d_tests_net_phrase_is((enum d_net_error)99,
+                                                "unknown error");
 
-    result = d_assert_standalone(distinct,
-                                 TEST,
-                                 "every error has a phrase of its own",
-                                 _counter) && result;
-    result = d_assert_standalone(phrases,
-                                 TEST,
-                                 "the phrases are the C++ layer's",
-                                 _counter) && result;
-    result = d_assert_standalone(outside,
-                                 TEST,
-                                 "a value outside the enum is unknown",
-                                 _counter) && result;
+    result = d_tests_net_assert(distinct,
+                                TEST,
+                                "every error has a phrase of its own",
+                                _counter) && result;
+    result = d_tests_net_assert(phrases,
+                                TEST,
+                                "the phrases are the C++ layer's",
+                                _counter) && result;
+    result = d_tests_net_assert(protocol,
+                                TEST,
+                                "PROTOCOL reads as a protocol violation",
+                                _counter) && result;
+    result = d_tests_net_assert(outside,
+                                TEST,
+                                "a value outside the enum is unknown",
+                                _counter) && result;
 
     return result;
 }
@@ -156,37 +164,37 @@ d_tests_sa_net_results(
     const char* const            TEST  = "d_net_io_result";
     const struct d_net_io_result moved =
         d_net_io_result_make(5u,
-                             D_NET_ERROR_NONE);
+                             D_NET_OK);
     const struct d_net_io_result ended =
         d_net_io_result_make(0u,
-                             D_NET_ERROR_NONE);
+                             D_NET_OK);
     const struct d_net_io_result torn  =
         d_net_io_result_make(3u,
                              D_NET_ERROR_CONNECTION_RESET);
     bool                         result = true;
 
-    const bool ok  = ( (moved.count == 5u) &&
+    const bool ok  = ( (moved.count == 5u)         &&
                        (d_net_io_result_ok(moved)) &&
                        (!d_net_io_result_eof(moved)) );
     const bool end = ( (d_net_io_result_ok(ended)) &&
                        (d_net_io_result_eof(ended)) );
-    const bool err = ( (torn.count == 3u) &&
+    const bool err = ( (torn.count == 3u)                           &&
                        (torn.error == D_NET_ERROR_CONNECTION_RESET) &&
-                       (!d_net_io_result_ok(torn)) &&
+                       (!d_net_io_result_ok(torn))                  &&
                        (!d_net_io_result_eof(torn)) );
 
-    result = d_assert_standalone(ok,
-                                 TEST,
-                                 "bytes without an error are ok",
-                                 _counter) && result;
-    result = d_assert_standalone(end,
-                                 TEST,
-                                 "nothing moved is the end of the stream",
-                                 _counter) && result;
-    result = d_assert_standalone(err,
-                                 TEST,
-                                 "bytes with an error are counted, not ok",
-                                 _counter) && result;
+    result = d_tests_net_assert(ok,
+                                TEST,
+                                "bytes without an error are ok",
+                                _counter) && result;
+    result = d_tests_net_assert(end,
+                                TEST,
+                                "nothing moved is the end of the stream",
+                                _counter) && result;
+    result = d_tests_net_assert(err,
+                                TEST,
+                                "bytes with an error are counted, not ok",
+                                _counter) && result;
 
     return result;
 }
@@ -210,17 +218,17 @@ d_tests_net_port_format(
                           (d_net_port_format(65535u,
                                              text,
                                              5u) == 5u) &&
-                          (text[0] == '\0') &&
+                          (text[0] == '\0')             &&
                           (d_net_port_format(65535u,
                                              text,
                                              6u) == 5u) &&
                           (strcmp(text,
                                   "65535") == 0) );
 
-    return d_assert_standalone(format,
-                               TEST,
-                               "ports format all or nothing, and measure",
-                               _counter);
+    return d_tests_net_assert(format,
+                              TEST,
+                              "ports format all or nothing, and measure",
+                              _counter);
 }
 
 /*
@@ -247,20 +255,20 @@ d_tests_sa_net_ports(
     bool                     result    = true;
 
     const bool parsed = ( (d_net_port_parse(d_tests_net_text("00080"),
-                                            &port) == D_NET_ERROR_NONE) &&
-                          (port == 80u) &&
+                                            &port) == D_NET_OK) &&
+                          (port == 80u)                         &&
                           (d_net_port_parse(d_tests_net_text("65535"),
-                                            &port) == D_NET_ERROR_NONE) &&
-                          (port == 65535u) &&
+                                            &port) == D_NET_OK) &&
+                          (port == 65535u)                      &&
                           (d_net_port_parse(d_tests_net_text("0"),
-                                            &port) == D_NET_ERROR_NONE) &&
+                                            &port) == D_NET_OK) &&
                           (port == 0u) );
 
     // every malformed text is refused, and the output keeps its value
     for (size_t i = 0u; i < (sizeof(BAD) / sizeof(BAD[0])); ++i)
     {
         port    = 7u;
-        refused = ( (refused) &&
+        refused = ( (refused)                     &&
                     (d_net_port_parse(d_tests_net_text(BAD[i]),
                                       &port) ==
                      D_NET_ERROR_ADDRESS_INVALID) &&
@@ -274,18 +282,18 @@ d_tests_sa_net_ports(
                                            &port) ==
                           D_NET_ERROR_INVALID_ARGUMENT) );
 
-    result = d_assert_standalone(parsed,
-                                 TEST,
-                                 "ports parse from 0 to 65535",
-                                 _counter) && result;
-    result = d_assert_standalone(refused,
-                                 TEST,
-                                 "malformed ports are refused untouched",
-                                 _counter) && result;
-    result = d_assert_standalone(nulls,
-                                 TEST,
-                                 "NULL arguments are refused",
-                                 _counter) && result;
+    result = d_tests_net_assert(parsed,
+                                TEST,
+                                "ports parse from 0 to 65535",
+                                _counter) && result;
+    result = d_tests_net_assert(refused,
+                                TEST,
+                                "malformed ports are refused untouched",
+                                _counter) && result;
+    result = d_tests_net_assert(nulls,
+                                TEST,
+                                "NULL arguments are refused",
+                                _counter) && result;
 
     return d_tests_net_port_format(_counter) && result;
 }
@@ -306,26 +314,26 @@ d_tests_net_endpoint_equality(
     struct d_net_endpoint other = *_endpoint;
 
     const bool equal = ( (d_net_endpoint_equal(_endpoint,
-                                               &other)) &&
+                                               &other))   &&
                          (d_net_endpoint_equal(NULL,
-                                               NULL)) &&
+                                               NULL))     &&
                          (!d_net_endpoint_equal(_endpoint,
-                                                NULL)) &&
+                                                NULL))    &&
                          (d_net_endpoint_set_local(&other,
                                                    d_tests_net_text("")) ==
-                          D_NET_ERROR_ADDRESS_INVALID) &&
+                          D_NET_ERROR_ADDRESS_INVALID)    &&
                          (d_net_endpoint_set_local(&other,
                                                    d_tests_net_text("/d.s")) ==
-                          D_NET_ERROR_NONE) &&
+                          D_NET_OK)                       &&
                          (d_net_endpoint_is_unix(&other)) &&
-                         (other.port == 0u) &&
+                         (other.port == 0u)               &&
                          (!d_net_endpoint_equal(_endpoint,
                                                 &other)) );
 
-    return d_assert_standalone(equal,
-                               TEST,
-                               "set_local stores paths; equal compares",
-                               _counter);
+    return d_tests_net_assert(equal,
+                              TEST,
+                              "set_local stores paths; equal compares",
+                              _counter);
 }
 
 /*
@@ -355,49 +363,49 @@ d_tests_sa_net_endpoint_records(
                           D_NET_HOST_MAX + 1u);
     d_net_endpoint_init(&endpoint);
 
-    const bool stored = ( (endpoint.host[0] == '\0') &&
-                          (endpoint.port == 0u) &&
+    const bool stored = ( (endpoint.host[0] == '\0')                &&
+                          (endpoint.port == 0u)                     &&
                           (endpoint.protocol == D_NET_PROTOCOL_TCP) &&
                           (d_net_endpoint_set(&endpoint,
                                               d_tests_net_text(""),
                                               0u,
                                               D_NET_PROTOCOL_UDP) ==
-                           D_NET_ERROR_NONE) &&
+                           D_NET_OK)                                &&
                           (d_net_endpoint_set(&endpoint,
                                               d_tests_net_text("a.example"),
                                               443u,
                                               D_NET_PROTOCOL_TCP) ==
-                           D_NET_ERROR_NONE) &&
+                           D_NET_OK)                                &&
                           (strcmp(endpoint.host,
-                                  "a.example") == 0) &&
+                                  "a.example") == 0)                &&
                           (endpoint.port == 443u) );
     const bool refused = ( (d_net_endpoint_set(&endpoint,
                                                d_tests_net_text(too_long),
                                                1u,
                                                D_NET_PROTOCOL_TCP) ==
-                            D_NET_ERROR_ADDRESS_INVALID) &&
+                            D_NET_ERROR_ADDRESS_INVALID)  &&
                            (d_net_endpoint_set(&endpoint,
                                                with_nul,
                                                1u,
                                                D_NET_PROTOCOL_TCP) ==
-                            D_NET_ERROR_ADDRESS_INVALID) &&
+                            D_NET_ERROR_ADDRESS_INVALID)  &&
                            (d_net_endpoint_set(&endpoint,
                                                d_tests_net_text("h"),
                                                1u,
                                                (enum d_net_protocol)7) ==
                             D_NET_ERROR_INVALID_ARGUMENT) &&
                            (strcmp(endpoint.host,
-                                   "a.example") == 0) &&
+                                   "a.example") == 0)     &&
                            (endpoint.port == 443u) );
 
-    result = d_assert_standalone(stored,
-                                 TEST,
-                                 "records start empty; set stores a host",
-                                 _counter) && result;
-    result = d_assert_standalone(refused,
-                                 TEST,
-                                 "a refused set leaves the record alone",
-                                 _counter) && result;
+    result = d_tests_net_assert(stored,
+                                TEST,
+                                "records start empty; set stores a host",
+                                _counter) && result;
+    result = d_tests_net_assert(refused,
+                                TEST,
+                                "a refused set leaves the record alone",
+                                _counter) && result;
 
     return d_tests_net_endpoint_equality(_counter,
                                          &endpoint) && result;
@@ -431,9 +439,9 @@ d_tests_net_parse_records(
     const bool filled = ( (d_net_endpoint_parse(d_tests_net_text("[::1]:53"),
                                                 D_NET_PROTOCOL_UDP,
                                                 &endpoint) ==
-                           D_NET_ERROR_NONE) &&
+                           D_NET_OK)             &&
                           (strcmp(endpoint.host,
-                                  "::1") == 0) &&
+                                  "::1") == 0)   &&
                           (endpoint.port == 53u) &&
                           (endpoint.protocol == D_NET_PROTOCOL_UDP) );
     const bool refused = ( (d_net_endpoint_parse(d_tests_net_text("h:1"),
@@ -443,18 +451,18 @@ d_tests_net_parse_records(
                            (d_net_endpoint_parse(d_tests_net_text(too_long),
                                                  D_NET_PROTOCOL_TCP,
                                                  &endpoint) ==
-                            D_NET_ERROR_ADDRESS_INVALID) &&
+                            D_NET_ERROR_ADDRESS_INVALID)  &&
                            (strcmp(endpoint.host,
                                    "::1") == 0) );
 
-    result = d_assert_standalone(filled,
-                                 TEST,
-                                 "parse fills a record",
-                                 _counter) && result;
-    result = d_assert_standalone(refused,
-                                 TEST,
-                                 "parse refuses what a record cannot be",
-                                 _counter) && result;
+    result = d_tests_net_assert(filled,
+                                TEST,
+                                "parse fills a record",
+                                _counter) && result;
+    result = d_tests_net_assert(refused,
+                                TEST,
+                                "parse refuses what a record cannot be",
+                                _counter) && result;
 
     return result;
 }
@@ -488,23 +496,23 @@ d_tests_sa_net_endpoint_parse(
     const bool split = ( (d_net_endpoint_parse_parts(
                               d_tests_net_text("example.com:80"),
                               &host,
-                              &port) == D_NET_ERROR_NONE) &&
+                              &port) == D_NET_OK)             &&
                          (d_tests_net_text_is(host,
                                               "example.com")) &&
-                         (port == 80u) &&
+                         (port == 80u)                        &&
                          (d_net_endpoint_parse_parts(zoned,
                                                      &host,
                                                      &port) ==
-                          D_NET_ERROR_NONE) &&
+                          D_NET_OK)                           &&
                          (d_tests_net_text_is(host,
-                                              "fe80::1%e0")) &&
-                         (host.data == zoned.data + 1) &&
+                                              "fe80::1%e0"))  &&
+                         (host.data == zoned.data + 1)        &&
                          (port == 443u) );
 
     // every malformed form is refused, and the outputs keep their values
     for (size_t i = 0u; i < (sizeof(BAD) / sizeof(BAD[0])); ++i)
     {
-        refused = ( (refused) &&
+        refused = ( (refused)                     &&
                     (d_net_endpoint_parse_parts(d_tests_net_text(BAD[i]),
                                                 &host,
                                                 &port) ==
@@ -521,15 +529,15 @@ d_tests_sa_net_endpoint_parse(
                                                        &port) ==
                             D_NET_ERROR_INVALID_ARGUMENT) );
 
-    result = d_assert_standalone(split,
+    result = d_tests_net_assert(split,
+                                TEST,
+                                "names and bracketed literals split",
+                                _counter) && result;
+    result = d_tests_net_assert( ( (refused) &&
+                                   (guarded) ),
                                  TEST,
-                                 "names and bracketed literals split",
+                                 "malformed text is refused untouched",
                                  _counter) && result;
-    result = d_assert_standalone( ( (refused) &&
-                                    (guarded) ),
-                                  TEST,
-                                  "malformed text is refused untouched",
-                                  _counter) && result;
 
     return d_tests_net_parse_records(_counter) && result;
 }
@@ -565,10 +573,10 @@ d_tests_net_format_edges(
                                                 text,
                                                 sizeof(text)) == 11u) &&
                          (strcmp(text,
-                                 "/run/d.sock") == 0) &&
+                                 "/run/d.sock") == 0)                 &&
                          (d_net_endpoint_format(NULL,
                                                 text,
-                                                sizeof(text)) == 0u) &&
+                                                sizeof(text)) == 0u)  &&
                          (text[0] == '\0') );
     const bool longest = (d_net_endpoint_format_parts(d_tests_net_text(host),
                                                       65535u,
@@ -577,14 +585,14 @@ d_tests_net_format_edges(
                                                       sizeof(text)) ==
                           D_NET_ENDPOINT_TEXT_MAX);
 
-    result = d_assert_standalone(local,
-                                 TEST,
-                                 "paths format bare; NULL formats nothing",
-                                 _counter) && result;
-    result = d_assert_standalone(longest,
-                                 TEST,
-                                 "the text limit holds the longest endpoint",
-                                 _counter) && result;
+    result = d_tests_net_assert(local,
+                                TEST,
+                                "paths format bare; NULL formats nothing",
+                                _counter) && result;
+    result = d_tests_net_assert(longest,
+                                TEST,
+                                "the text limit holds the longest endpoint",
+                                _counter) && result;
 
     return result;
 }
@@ -617,28 +625,28 @@ d_tests_sa_net_endpoint_format(
 
     const bool plain = ( (d_net_endpoint_format(&endpoint,
                                                 NULL,
-                                                0u) == 10u) &&
+                                                0u) == 10u)  &&
                          (d_net_endpoint_format(&endpoint,
                                                 text,
                                                 10u) == 10u) &&
-                         (text[0] == '\0') &&
+                         (text[0] == '\0')                   &&
                          (d_net_endpoint_format(&endpoint,
                                                 text,
                                                 11u) == 10u) &&
                          (strcmp(text,
-                                 "[::1]:8080") == 0) &&
+                                 "[::1]:8080") == 0)         &&
                          (d_net_endpoint_parse_parts(d_tests_net_text(text),
                                                      &back,
                                                      &port) ==
-                          D_NET_ERROR_NONE) &&
+                          D_NET_OK)                          &&
                          (d_tests_net_text_is(back,
-                                              "::1")) &&
+                                              "::1"))        &&
                          (port == 8080u) );
 
-    result = d_assert_standalone(plain,
-                                 TEST,
-                                 "brackets, measures, and parses back",
-                                 _counter) && result;
+    result = d_tests_net_assert(plain,
+                                TEST,
+                                "brackets, measures, and parses back",
+                                _counter) && result;
 
     return d_tests_net_format_edges(_counter) && result;
 }
@@ -680,9 +688,9 @@ d_tests_sa_net_frame_codec(
     const bool edges = ( (d_net_frame_header_decode(header) == 0xFFFFFFFFu) &&
                          (d_net_frame_header_decode(NULL) == 0u) );
     const bool check = ( (d_net_frame_check(10u,
-                                            10u) == D_NET_ERROR_NONE) &&
+                                            10u) == D_NET_OK) &&
                          (d_net_frame_check(0u,
-                                            0u) == D_NET_ERROR_NONE) &&
+                                            0u) == D_NET_OK)  &&
                          (d_net_frame_check(11u,
                                             10u) ==
                           D_NET_ERROR_MESSAGE_TOO_LARGE) );
@@ -694,19 +702,19 @@ d_tests_sa_net_frame_codec(
                                   SIZE_MAX) == D_NET_ERROR_MESSAGE_TOO_LARGE);
     }
 
-    result = d_assert_standalone( ( (order) &&
-                                    (edges) ),
-                                  TEST,
-                                  "headers are big-endian and round-trip",
-                                  _counter) && result;
-    result = d_assert_standalone(check,
+    result = d_tests_net_assert( ( (order) &&
+                                   (edges) ),
                                  TEST,
-                                 "the check holds payloads to the ceiling",
+                                 "headers are big-endian and round-trip",
                                  _counter) && result;
-    result = d_assert_standalone(wide,
-                                 TEST,
-                                 "the check holds payloads to 32 bits",
-                                 _counter) && result;
+    result = d_tests_net_assert(check,
+                                TEST,
+                                "the check holds payloads to the ceiling",
+                                _counter) && result;
+    result = d_tests_net_assert(wide,
+                                TEST,
+                                "the check holds payloads to 32 bits",
+                                _counter) && result;
 
     return result;
 }

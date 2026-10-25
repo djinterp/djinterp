@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/config/c/filesys/cfg_file_stat.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -214,12 +214,24 @@ TABLE OF CONTENTS
 // against one that says yes and lies.
 //   Windows' CRT ctime IS creation, Apple's systems expose st_birthtime, and
 // Linux now qualifies through statx. One term per delivery mechanism, in one
-// place -- and the BSDs have none yet: file_stat.c does not read their
-// st_birthtim, so they do not get a term that would say it does.
+// place -- FreeBSD and NetBSD through their stat (D_INTERNAL_FILE_STAT_BSD_BIRTH,
+// 2026.10.21); OpenBSD and DragonFly record no creation time, and get no term
+// that would say they do.
+#if ( (defined(D_ENV_OS_ID)) &&                                                \
+      (D_ENV_OS_ID == D_ENV_OS_FLAG_BSD_FREE) )
+    #define D_INTERNAL_FILE_STAT_BSD_BIRTH 1
+#elif ( (defined(D_ENV_OS_ID)) &&                                              \
+        (D_ENV_OS_ID == D_ENV_OS_FLAG_BSD_NET) )
+    #define D_INTERNAL_FILE_STAT_BSD_BIRTH 2
+#else
+    #define D_INTERNAL_FILE_STAT_BSD_BIRTH 0
+#endif
+
 #if ( (D_CFG_IS_ON(D_CFG_FILE_STAT_BIRTHTIME)) &&                              \
       (D_CFG_IS_ON(D_CFG_FILE_HAS_BIRTHTIME)) &&                               \
       ( (D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)) ||                                 \
         (D_INTERNAL_FILE_OS_DARWIN == 1) ||                                    \
+        (D_INTERNAL_FILE_STAT_BSD_BIRTH != 0) ||                               \
         (D_INTERNAL_FILE_STAT_STATX == 1) ) )
     #define D_INTERNAL_FILE_STAT_BIRTHTIME 1
 #else

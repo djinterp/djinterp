@@ -45,7 +45,7 @@ namespace
 //   a table's columns, for the column-array pair.
 const struct d_db_column g_columns[] =
 {
-    { "id", D_DB_TYPE_BIG_INTEGER, D_DB_COLUMN_PRIMARY_KEY, 0, 0u, 0u, 0 }
+    { "id", D_DB_TYPE_BIG_INTEGER, D_DB_COLUMN_PRIMARY_KEY, 0, 0u, 0u, 0, 0u }
 };
 
 }  // namespace

@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/db/sqlite/sqlite_connection.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 // D_INTERNAL_SQLITE_SOURCE
 //   macro: this file is one of the SQLite layer's own sources, for which
@@ -20,7 +20,9 @@
 
 #include "../../../../../inc/djinterp/c/db/sqlite/sqlite_connection.h"  // corresponding header
 // std
-#include <stddef.h>  // NULL
+#include <stddef.h>  // NULL, size_t
+#include <stdlib.h>  // malloc
+#include <string.h>  // memcpy, strlen
 // djinterp
 #include "../../../../../inc/djinterp/config/c/db/sqlite/cfg_sqlite_common.h"  // D_INTERNAL_SQLITE
 #include "../../../../../inc/djinterp/config/c/db/sqlite/cfg_sqlite_connection.h"  // defaults
@@ -382,6 +384,148 @@ d_sqlite_total_changes(
     return (int64_t)D_INTERNAL_SQLITE_TOTAL_CHANGES(_db);
 }
 
+//==============================================================================
+// 2.  EXTENSIONS
+//==============================================================================
+
+// 2.1    Loading
+//------------------------------------------------------------------------------
+/*
+d_sqlite_load_extension
+  From 3.13.0 the C API has a switch of its own, which is read, turned on for
+the call, and put back as it was; SQL's load_extension() has the other switch,
+which only d_sqlite_enable_load_extension touches. SQLite's message is in its
+own memory, and is copied into the C runtime's, for d_db_free.
+*/
+int
+d_sqlite_load_extension(
+    sqlite3*    _db,
+    const char* _path,
+    const char* _entry_point,
+    char**      _message
+)
+{
+    // nothing said yet
+    if (_message)
+    {
+        *_message = NULL;
+    }
+
+    // parameter validation
+    if ( (!_db) ||
+         (!_path) )
+    {
+        return SQLITE_MISUSE;
+    }
+
+    // a library, and a build, with it
+    if (!d_sqlite_supports(D_SQLITE_FEATURE_LOAD_EXTENSION))
+    {
+        return D_DB_UNSUPPORTED;
+    }
+
+#if (D_INTERNAL_SQLITE_LOAD_EXTENSION == 1)
+    char* error  = NULL;
+    int   result = SQLITE_OK;
+
+#if defined(SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION)
+    int was = 1;  // the C API's switch, as the call found it
+
+    // the C API's own switch, on for this call
+    if (d_internal_sqlite_runtime_at_least(3013000))
+    {
+        result = sqlite3_db_config(_db,
+                                   SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION,
+                                   -1,
+                                   &was);
+
+        if ( (result == SQLITE_OK) &&
+             (was == 0) )
+        {
+            result = sqlite3_db_config(_db,
+                                       SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION,
+                                       1,
+                                       (int*)NULL);
+        }
+
+        if (result != SQLITE_OK)
+        {
+            return result;
+        }
+    }
+#endif  // SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION
+
+    result = sqlite3_load_extension(_db, _path, _entry_point, &error);
+
+#if defined(SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION)
+    // the switch as it was
+    if (was == 0)
+    {
+        sqlite3_db_config(_db,
+                          SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION,
+                          0,
+                          (int*)NULL);
+    }
+#endif  // SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION
+
+    // SQLite's words, in memory d_db_free releases
+    if ( (result != SQLITE_OK) &&
+         (error)               &&
+         (_message) )
+    {
+        const size_t length = strlen(error);
+
+        *_message = (char*)malloc(length + 1u);
+
+        if (*_message)
+        {
+            memcpy(*_message, error, length + 1u);
+        }
+    }
+
+    sqlite3_free(error);
+
+    return result;
+#else
+    (void)_entry_point;
+
+    return D_DB_UNSUPPORTED;
+#endif  // D_INTERNAL_SQLITE_LOAD_EXTENSION
+}
+
+// 2.2    Allowing SQL to load
+//------------------------------------------------------------------------------
+/*
+d_sqlite_enable_load_extension
+  SQLite's own switch, for SQL and the C API together.
+*/
+int
+d_sqlite_enable_load_extension(
+    sqlite3* _db,
+    bool     _enabled
+)
+{
+    // parameter validation
+    if (!_db)
+    {
+        return SQLITE_MISUSE;
+    }
+
+    // a library, and a build, with it
+    if (!d_sqlite_supports(D_SQLITE_FEATURE_LOAD_EXTENSION))
+    {
+        return D_DB_UNSUPPORTED;
+    }
+
+#if (D_INTERNAL_SQLITE_LOAD_EXTENSION == 1)
+    return sqlite3_enable_load_extension(_db, (_enabled) ? 1 : 0);
+#else
+    (void)_enabled;
+
+    return D_DB_UNSUPPORTED;
+#endif  // D_INTERNAL_SQLITE_LOAD_EXTENSION
+}
+
 #else
 
 //==============================================================================
@@ -580,6 +724,46 @@ d_sqlite_total_changes(
     (void)_db;
 
     return 0;
+}
+
+/*
+d_sqlite_load_extension
+  Without SQLite, D_DB_UNSUPPORTED; nothing said.
+*/
+int
+d_sqlite_load_extension(
+    struct sqlite3* _db,
+    const char*     _path,
+    const char*     _entry_point,
+    char**          _message
+)
+{
+    (void)_db;
+    (void)_path;
+    (void)_entry_point;
+
+    if (_message)
+    {
+        *_message = NULL;
+    }
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_sqlite_enable_load_extension
+  Without SQLite, D_DB_UNSUPPORTED.
+*/
+int
+d_sqlite_enable_load_extension(
+    struct sqlite3* _db,
+    bool            _enabled
+)
+{
+    (void)_db;
+    (void)_enabled;
+
+    return D_DB_UNSUPPORTED;
 }
 
 #endif  // D_INTERNAL_SQLITE

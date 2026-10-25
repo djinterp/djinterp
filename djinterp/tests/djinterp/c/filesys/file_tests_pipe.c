@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_pipe.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 // std
@@ -41,7 +41,7 @@ d_fs_tests_pipe
     dtest_block(_suite, "d_pipe_open / d_pipe_close");
 
     dtest_test(_suite, "reads a command's output");
-    pipe    = d_pipe_open("printf hello", "r");
+    pipe    = d_pipe_open(T_PRINT("hello"), "r");
     read_ok = false;
 
     if (pipe)
@@ -60,7 +60,7 @@ d_fs_tests_pipe
     D_FS_CHECK(_suite, read_ok);
 
     dtest_test(_suite, "streams into a command's input");
-    pipe     = d_pipe_open("cat > /dev/null", "w");
+    pipe     = d_pipe_open(T_SINK, "w");
     wrote_ok = false;
 
     if (pipe)
@@ -80,7 +80,7 @@ d_fs_tests_pipe
 
     dtest_test(_suite, "a mode that is neither read nor write -> NULL, EINVAL");
     errno = 0;
-    D_FS_CHECK(_suite, d_pipe_open("printf hi", "q") == NULL);
+    D_FS_CHECK(_suite, d_pipe_open(T_PRINT("hi"), "q") == NULL);
     D_FS_CHECK(_suite, errno == EINVAL);
 
 #if D_FILE_VALIDATE_IS_ACTIVE

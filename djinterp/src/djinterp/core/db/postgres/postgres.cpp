@@ -16,7 +16,7 @@
 * path:      /src/djinterp/core/db/postgres/postgres.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 #include "../../../../../inc/djinterp/core/db/postgres/postgres.hpp"  // corresponding header
 
@@ -249,30 +249,6 @@ core_isolation(
 }
 
 /**
- * @brief Whether the layer may answer a result without the server, or
- *        libpq, describing it on the connection, whose message may then be
- *        about an older failure.
- *
- * @param[in] _result  the result.
- * @return `true` for every negative result, for out of memory (53200), and
- *         for the SQLSTATEs the layer answers on its own: 25001 (a
- *         transaction already open), 25P02 (a failed one), 3F000 (no current
- *         schema) and 42P02 (no such parameter).
- */
-bool
-layer_may_answer(
-    int _result
-) noexcept
-{
-    return ( (_result <= 0)                                                 ||
-             (_result == D_POSTGRES_SQLSTATE_OUT_OF_MEMORY)                 ||
-             (_result == D_POSTGRES_SQLSTATE_ACTIVE_SQL_TRANSACTION)        ||
-             (_result == D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION)     ||
-             (_result == D_POSTGRES_SQLSTATE_INVALID_SCHEMA_NAME)           ||
-             (_result == D_POSTGRES_SQLSTATE_UNDEFINED_PARAMETER) );
-}
-
-/**
  * @brief A message of libpq's or the server's, cut at its first line, with
  *        the severity the server writes before it ("ERROR:  ") left out.
  *
@@ -491,14 +467,15 @@ connect_failure(
 }  // namespace
 
 //==============================================================================
-// VII. POSTGRESQL CONNECTION
+// 7.  POSTGRESQL CONNECTION
 //==============================================================================
 
 /*
 postgres_layer::describe
   The connection's message is about the latest failure libpq or the server
-reported; a result the layer may answer on its own leaves an older message
-in place, so for those the result's own description stands in. The
+reported; a result the layer gave on its own (d_postgres_result_is_own)
+leaves an older message in place, so for those the result's own description
+stands in, and for the same codes from the server, its message. The
 server's message comes as several lines -- the message, then any DETAIL,
 HINT or the statement's position -- which the description keeps, the
 SQLSTATE after the first. libpq adds its refusal of a call, 08000 ("no COPY
@@ -512,9 +489,10 @@ postgres_layer::describe(
     int         _result
 )
 {
-    const char* const said = ( (!layer_may_answer(_result)) &&
-                               (_db) ) ? d_postgres_error_message(_db)
-                                       : nullptr;
+    const char* const said = ( (_db) &&
+                               (!d_postgres_result_is_own(_db, _result)) )
+                                 ? d_postgres_error_message(_db)
+                                 : nullptr;
     std::string       rest;
     std::string       line;
 
@@ -595,6 +573,7 @@ postgres_layer::raise(
 }
 
 template class prepared_statement<postgres_layer>;
+template class streaming_result_set<postgres_layer>;
 
 pg_connection::pg_connection()
     : base_type(pg_connect_config().base),
@@ -684,6 +663,172 @@ bool
 pg_connection::is_busy() const noexcept
 {
     return m_db.is_busy();
+}
+
+void
+pg_connection::set_chunked_rows_mode(
+    int _chunk_size
+)
+{
+    this->run_guarded(
+        [this, _chunk_size]() -> void
+        {
+            m_check(m_db.set_chunked_rows(_chunk_size),
+                    failure_kind::query,
+                    "set_chunked_rows_mode");
+
+            return;
+        });
+
+    return;
+}
+
+void
+pg_connection::enter_pipeline()
+{
+    this->run_guarded(
+        [this]() -> void
+        {
+            m_check(m_db.enter_pipeline(),
+                    failure_kind::query,
+                    "enter_pipeline");
+
+            return;
+        });
+
+    return;
+}
+
+void
+pg_connection::exit_pipeline()
+{
+    this->run_guarded(
+        [this]() -> void
+        {
+            m_check(m_db.exit_pipeline(), failure_kind::query, "exit_pipeline");
+
+            return;
+        });
+
+    return;
+}
+
+void
+pg_connection::pipeline_sync()
+{
+    this->run_guarded(
+        [this]() -> void
+        {
+            m_check(m_db.pipeline_sync(), failure_kind::query, "pipeline_sync");
+
+            return;
+        });
+
+    return;
+}
+
+void
+pg_connection::pipeline_flush()
+{
+    this->run_guarded(
+        [this]() -> void
+        {
+            m_check(m_db.pipeline_flush(),
+                    failure_kind::query,
+                    "pipeline_flush");
+
+            return;
+        });
+
+    return;
+}
+
+/*
+pg_connection::get_pipeline_status
+  The layer's three states, one for one; a connection not open has none.
+*/
+pg_pipeline_status
+pg_connection::get_pipeline_status() const noexcept
+{
+    // only an open connection can be in the mode
+    if (!this->is_connected())
+    {
+        return pg_pipeline_status::off;
+    }
+
+    switch (m_db.pipeline_status())
+    {
+        case D_POSTGRES_PIPELINE_ON:
+            return pg_pipeline_status::on;
+
+        case D_POSTGRES_PIPELINE_ABORTED:
+            return pg_pipeline_status::aborted;
+
+        case D_POSTGRES_PIPELINE_OFF:
+        default:
+            return pg_pipeline_status::off;
+    }
+}
+
+void
+pg_connection::close_prepared(
+    const std::string& _stmt_name
+)
+{
+    internal::refuse_nul(_stmt_name, "close_prepared", "the name");
+
+    this->run_guarded(
+        [this, &_stmt_name]() -> void
+        {
+            m_check(m_db.close_prepared(_stmt_name),
+                    failure_kind::query,
+                    "close_prepared");
+
+            return;
+        });
+
+    return;
+}
+
+unsigned int
+pg_connection::lo_import(
+    const std::string& _path
+)
+{
+    internal::refuse_nul(_path, "lo_import", "the path");
+
+    return this->run_guarded(
+        [this, &_path]() -> unsigned int
+        {
+            unsigned int oid = 0u;
+
+            m_check(m_db.lo_import(_path, oid),
+                    failure_kind::query,
+                    "lo_import");
+
+            return oid;
+        });
+}
+
+void
+pg_connection::lo_export(
+    unsigned int       _oid,
+    const std::string& _path
+)
+{
+    internal::refuse_nul(_path, "lo_export", "the path");
+
+    this->run_guarded(
+        [this, _oid, &_path]() -> void
+        {
+            m_check(m_db.lo_export(_oid, _path),
+                    failure_kind::query,
+                    "lo_export");
+
+            return;
+        });
+
+    return;
 }
 
 bool
@@ -1095,10 +1240,19 @@ pg_connection::list_tables() const
         });
 }
 
-const pg_connect_config&
-pg_connection::get_pg_config() const noexcept
+/*
+pg_connection::get_pg_config
+  base is the connection's generic configuration, which connect(config)
+replaces; the copy kept here is only what was last set or connected with.
+*/
+pg_connect_config
+pg_connection::get_pg_config() const
 {
-    return m_pg_config;
+    pg_connect_config config = m_pg_config;
+
+    config.base = this->m_config;
+
+    return config;
 }
 
 void
@@ -1125,7 +1279,7 @@ pg_connection::get_face() const noexcept
 }
 
 /*
-pg_connection::connect_helper
+pg_connection::connect_impl
   The fields go to libpq as keywords, base's first, then the PostgreSQL
 ones, then base.custom_options and extra_params, each where it holds a
 value; the connection string follows them, and overrides them, in
@@ -1135,7 +1289,7 @@ object take it, so that a failure at any step leaves the old state and the
 new connection closed.
 */
 void
-pg_connection::connect_helper()
+pg_connection::connect_impl()
 {
     const connection_config& config = this->m_config;
     connect_keywords         keywords;
@@ -1292,7 +1446,7 @@ pg_connection::connect_helper()
 }
 
 void
-pg_connection::disconnect_helper() noexcept
+pg_connection::disconnect_impl() noexcept
 {
     (void)m_db.close();
 
@@ -1300,20 +1454,20 @@ pg_connection::disconnect_helper() noexcept
 }
 
 bool
-pg_connection::is_connected_helper() const noexcept
+pg_connection::is_connected_impl() const noexcept
 {
     return m_db.is_open();
 }
 
 /*
-pg_connection::ping_helper
+pg_connection::ping_impl
   A ping is a round trip that changes nothing a caller can see, and the
 face's is not const, so the face is reached through const_cast. With SQL
 sent, or a COPY, still running, a round trip would end it; reading what the
 server has sent says as much.
 */
 bool
-pg_connection::ping_helper() const noexcept
+pg_connection::ping_impl() const noexcept
 {
     face::postgres& db = const_cast<face::postgres&>(m_db);
 
@@ -1327,7 +1481,7 @@ pg_connection::ping_helper() const noexcept
 }
 
 face::rows
-pg_connection::execute_query_helper(
+pg_connection::execute_query_impl(
     const std::string& _query
 )
 {
@@ -1341,7 +1495,7 @@ pg_connection::execute_query_helper(
 }
 
 re_std::int64_t
-pg_connection::execute_update_helper(
+pg_connection::execute_update_impl(
     const std::string& _query
 )
 {
@@ -1355,7 +1509,7 @@ pg_connection::execute_update_helper(
 }
 
 face::postgres_statement
-pg_connection::prepare_helper(
+pg_connection::prepare_impl(
     const std::string& _query
 )
 {
@@ -1367,7 +1521,7 @@ pg_connection::prepare_helper(
 }
 
 std::string
-pg_connection::get_server_version_helper() const
+pg_connection::get_server_version_impl() const
 {
     const char* const version = m_db.server_version();
 
@@ -1376,14 +1530,14 @@ pg_connection::get_server_version_helper() const
 }
 
 /*
-pg_connection::get_last_insert_id_helper
+pg_connection::get_last_insert_id_impl
   PostgreSQL keeps no id beside the connection; lastval() is the value the
 session's latest nextval() gave, a serial column's or an identity's among
 them, and the layer reads it without risking the transaction. None yet
 answers 0, as the other vendors do.
 */
 re_std::int64_t
-pg_connection::get_last_insert_id_helper() const
+pg_connection::get_last_insert_id_impl() const
 {
     re_std::int64_t last   = 0;
     const int       result =
@@ -1401,7 +1555,7 @@ pg_connection::get_last_insert_id_helper() const
 }
 
 void
-pg_connection::begin_transaction_helper()
+pg_connection::begin_transaction_impl()
 {
     m_check(m_db.begin_transaction(D_POSTGRES_TRANSACTION_DEFAULT),
             failure_kind::transaction,
@@ -1411,7 +1565,7 @@ pg_connection::begin_transaction_helper()
 }
 
 void
-pg_connection::begin_transaction_helper(
+pg_connection::begin_transaction_impl(
     isolation_level _isolation
 )
 {
@@ -1423,7 +1577,7 @@ pg_connection::begin_transaction_helper(
 }
 
 void
-pg_connection::commit_helper()
+pg_connection::commit_impl()
 {
     m_check(m_db.commit(), failure_kind::transaction, "commit");
 
@@ -1431,7 +1585,7 @@ pg_connection::commit_helper()
 }
 
 void
-pg_connection::rollback_helper()
+pg_connection::rollback_impl()
 {
     m_check(m_db.rollback(), failure_kind::transaction, "rollback");
 
@@ -1439,13 +1593,13 @@ pg_connection::rollback_helper()
 }
 
 bool
-pg_connection::in_transaction_helper() const noexcept
+pg_connection::in_transaction_impl() const noexcept
 {
     return m_db.in_transaction();
 }
 
 isolation_level
-pg_connection::get_isolation_level_helper() const
+pg_connection::get_isolation_level_impl() const
 {
     enum d_postgres_isolation level = D_POSTGRES_ISOLATION_READ_COMMITTED;
 
@@ -1457,12 +1611,12 @@ pg_connection::get_isolation_level_helper() const
 }
 
 /*
-pg_connection::set_isolation_level_helper
+pg_connection::set_isolation_level_impl
   The level the session's transactions begin at; default_level returns it
 to the server's own default, whatever that is configured as.
 */
 void
-pg_connection::set_isolation_level_helper(
+pg_connection::set_isolation_level_impl(
     isolation_level _level
 )
 {
@@ -1484,7 +1638,7 @@ pg_connection::set_isolation_level_helper(
 }
 
 void
-pg_connection::create_savepoint_helper(
+pg_connection::create_savepoint_impl(
     const std::string& _name
 )
 {
@@ -1496,7 +1650,7 @@ pg_connection::create_savepoint_helper(
 }
 
 void
-pg_connection::release_savepoint_helper(
+pg_connection::release_savepoint_impl(
     const std::string& _name
 )
 {
@@ -1508,7 +1662,7 @@ pg_connection::release_savepoint_helper(
 }
 
 void
-pg_connection::rollback_to_savepoint_helper(
+pg_connection::rollback_to_savepoint_impl(
     const std::string& _name
 )
 {
@@ -1520,7 +1674,7 @@ pg_connection::rollback_to_savepoint_helper(
 }
 
 struct ::pg_conn*
-pg_connection::native_handle_helper() const noexcept
+pg_connection::native_handle_impl() const noexcept
 {
     return m_db.handle();
 }
@@ -1539,6 +1693,25 @@ pg_connection::m_check(
     }
 
     return;
+}
+
+bool
+pg_connection::m_supports(
+    d_postgres_feature _feature
+) const noexcept
+{
+    return ( (this->is_connected()) &&
+             (m_db.supports(_feature)) );
+}
+
+bool
+pg_connection::m_server_at_least(
+    unsigned _major,
+    unsigned _minor
+) const noexcept
+{
+    return ( (this->is_connected()) &&
+             (m_db.server_at_least(_major, _minor)) );
 }
 
 std::unique_ptr<buffered_result_set>

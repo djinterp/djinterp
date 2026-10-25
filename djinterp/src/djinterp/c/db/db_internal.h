@@ -20,7 +20,7 @@
 * path:      /src/djinterp/c/db/db_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -50,6 +50,9 @@ TABLE OF CONTENTS
 4.  VALUES
     ------
     1.  Numbers
+5.  COLUMN DEFINITIONS
+    ------------------
+    1.  Primary keys
 */
 
 #ifndef DJINTERP_C_DB_DB_INTERNAL_H
@@ -376,6 +379,26 @@ bool   d_internal_db_parse_integer(const char* _text,
                                    int64_t*    _value);
 bool   d_internal_db_parse_real(const char* _text,
                                 double*     _value);
+
+
+//==============================================================================
+// 5.  COLUMN DEFINITIONS
+//==============================================================================
+
+
+// 5.1    Primary keys
+//------------------------------------------------------------------------------
+// primary keys -- a column set's key, in the order struct d_db_column's
+// key_place gives it. _places_ok says whether the places are sound: every
+// key_place 0, or the key's columns, and only they, numbered 1 to their
+// count, each once. _key_column answers the index of the column at a place,
+// from 1, among places _places_ok accepted: the place-th key column in the
+// set's order where every key_place is 0; `_count` for none.
+bool   d_internal_db_key_places_ok(const struct d_db_column* _columns,
+                                   size_t                    _count);
+size_t d_internal_db_key_column(const struct d_db_column* _columns,
+                                size_t                    _count,
+                                size_t                    _place);
 
 
 #endif  // DJINTERP_C_DB_DB_INTERNAL_H

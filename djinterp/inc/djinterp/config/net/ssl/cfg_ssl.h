@@ -8,13 +8,13 @@
 *   targets:  net/ssl/ssl.h -> D_INTERNAL_SSL_IO_BUFFER,
 *             D_INTERNAL_SSL_PINS_MAX, D_INTERNAL_SSL_ALLOW_LEGACY,
 *             D_INTERNAL_SSL_KEYLOG, D_INTERNAL_SSL_OPENSSL
-*   requires: cfg_common.h; env/net/env_ssl.h (engine defaults)
+*   requires: cfg_common.h; env/net/ssl/env_ssl.h (engine defaults)
 *
 *
 * path:      /inc/djinterp/config/net/ssl/cfg_ssl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -89,7 +89,7 @@ TABLE OF CONTENTS
 // 1.2.1
 // D_CFG_SSL_ALLOW_LEGACY
 //   brief: permit TLS 1.0 and 1.1 as a configuration's minimum version (1),
-// or refuse such configurations with D_SSL_STATUS_UNSUPPORTED (0, the
+// or refuse such configurations with D_SSL_ERROR_UNSUPPORTED (0, the
 // default). RFC 8996 deprecates both versions. A build that must reach old
 // servers opts in here, and even then each configuration must ask for them
 // explicitly. SSL 3.0 is refused regardless (RFC 7568).
@@ -100,7 +100,7 @@ TABLE OF CONTENTS
 // 1.2.2
 // D_CFG_SSL_KEYLOG
 //   brief: honour d_ssl_config.keylog (1), or refuse configurations that set
-// it with D_SSL_STATUS_UNSUPPORTED (0, the default). A key log records the
+// it with D_SSL_ERROR_UNSUPPORTED (0, the default). A key log records the
 // secrets that decrypt a session, in the NSS key-log format packet analyzers
 // read. It is a debugging aid, and a build must ask for it.
 #ifndef D_CFG_SSL_KEYLOG
@@ -131,6 +131,7 @@ TABLE OF CONTENTS
 //==============================================================================
 // 3.  VALIDATION
 //==============================================================================
+
 
 // 3.1    Knob validation
 //------------------------------------------------------------------------------

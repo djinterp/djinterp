@@ -1,0 +1,8 @@
+# top
+rule r
+  # inside
+  command = c
+  # more
+
+  # indented at top
+build a: r

@@ -5,7 +5,7 @@
 * path:      /inc/djinterp/c/text/number_to_string_en.h
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 #ifndef DJINTERP_C_TEXT_NUMBER_TO_STRING_EN_H
 #define DJINTERP_C_TEXT_NUMBER_TO_STRING_EN_H
@@ -16,10 +16,11 @@
 #include "../../../re_std/cstdint/dstdint.h"  // int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict
-// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
-// ruling of 2026.10.03 on round 3's question 1, (a)).
-#if defined(INT64_MAX)
+// declares only where the build can spell one. Below it -- ISO strict C++98
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
+// question 1, (a)).
+#if RE_STD_HAS_INT64
 
 #ifdef __cplusplus
 extern "C" {
@@ -107,6 +108,6 @@ nts_ordinal_abbrev_i64(
 }
 #endif
 
-#endif  // defined(INT64_MAX)
+#endif  // RE_STD_HAS_INT64
 
 #endif /* DJINTERP_C_TEXT_NUMBER_TO_STRING_EN_H */

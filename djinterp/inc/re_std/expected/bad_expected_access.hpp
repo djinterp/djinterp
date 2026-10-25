@@ -22,7 +22,7 @@
 * path:      /inc/re_std/expected/bad_expected_access.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.05.19
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef RE_STD_EXPECTED_BAD_EXPECTED_ACCESS_HPP
@@ -31,11 +31,9 @@
 // re_std
 #include "../config.hpp"  // RE_STD_* configuration
 
-// gate: the entire <expected> module is C++11+. bad_expected_access
-// uses ref-qualified accessors (C++11 feature) and is only thrown
-// by expected, so we gate consistently.
-#if RE_STD_LANG_IS_CPP11_OR_HIGHER
-
+// levels: C++98 and up, as expected is. The void base is written for
+// both; the derived class's ref-qualified accessors are C++11's, and below
+// C++11 it takes and hands back its error by copy.
 
 // ===========================================================================
 // 0.   CONDITIONAL INCLUDES
@@ -77,6 +75,8 @@ public:
     what() const RE_STD_NOEXCEPT
 #if RE_STD_LANG_IS_CPP11_OR_HIGHER
         override
+#else
+        throw()
 #endif
     {
         return "bad expected access";
@@ -120,6 +120,7 @@ template<typename E>
 class bad_expected_access : public bad_expected_access<void>
 {
 public:
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
     // ctor (forwarding) — store the error.
     explicit bad_expected_access(E _e)
         : m_error(static_cast<E&&>(_e))
@@ -148,6 +149,27 @@ public:
     {
         return static_cast<E const&&>(m_error);
     }
+#else
+    // ctor — store a copy of the error.
+    explicit bad_expected_access(const E& _e)
+        : m_error(_e)
+    {}
+
+    // dtor — as no-throw as the base's, which C++98 checks: an implicit
+    // destructor would take E's looser specification.
+    ~bad_expected_access() throw() {}
+
+    // error — access the stored error.
+    E& error() RE_STD_NOEXCEPT
+    {
+        return m_error;
+    }
+
+    E const& error() const RE_STD_NOEXCEPT
+    {
+        return m_error;
+    }
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 private:
     E m_error;
@@ -155,9 +177,6 @@ private:
 
 
 }  // re_std
-
-
-#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 #endif  // RE_STD_EXPECTED_BAD_EXPECTED_ACCESS_HPP

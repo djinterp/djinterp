@@ -77,7 +77,7 @@
 * path:      /inc/djinterp/core/container/buffer/byte_buffer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.18
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -105,6 +105,7 @@ II.   Factory Functions and Aliases
 // 2's rule). The owner's ruling: compile at every level first; port down only
 // where something needs it.
 #include "../../../env/env.h"  // D_ENV_LANG_*
+#include "../../../env/cpp/env_cpp98.h"  // D_ENV_CPP98_HAS_EXCEPTION
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
@@ -115,6 +116,7 @@ II.   Factory Functions and Aliases
 #include <limits>
 #include <new>
 #include <ostream>
+#include <cstdlib>  // std::abort
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -666,8 +668,7 @@ public:
     {
         if (_pos >= this->size())
         {
-            throw std::out_of_range(
-                "byte_buffer::at: index out of range");
+            out_of_range_("byte_buffer::at: index out of range");
         }
 
         return content_begin_mut_()[_pos];
@@ -677,8 +678,7 @@ public:
     {
         if (_pos >= this->size())
         {
-            throw std::out_of_range(
-                "byte_buffer::at: index out of range");
+            out_of_range_("byte_buffer::at: index out of range");
         }
 
         return content_begin_()[_pos];
@@ -837,6 +837,23 @@ private:
         }
     }
 
+    // out_of_range_
+    //   throws std::out_of_range where the build has exceptions, and aborts
+    // where it has none, as the standard library's own at() does: clang
+    // rejects a throw without exceptions even in a template no one
+    // instantiates (decision 136 of the register).
+#if (D_ENV_CPP98_HAS_EXCEPTION == 1)
+    [[noreturn]] static void out_of_range_(const char* _what)
+    {
+        throw std::out_of_range(_what);
+    }
+#else
+    [[noreturn]] static void out_of_range_(const char*)
+    {
+        std::abort();
+    }
+#endif  // D_ENV_CPP98_HAS_EXCEPTION
+
     // grow
     //   reallocates so that usable capacity is at least _new_capacity bytes.
     // No terminator is reserved (binary data is self-measured), so the
@@ -850,13 +867,12 @@ private:
             return true;
         }
 
-        char* _new_data = nullptr;
+        // nothrow: a failed allocation returns null with or without
+        // exceptions, where a catch needed them (decision 130)
+        char* _new_data = new (std::nothrow) char[_new_capacity];
 
-        try
-        {
-            _new_data = new char[_new_capacity];
-        }
-        catch (const std::bad_alloc&)
+        // the buffer is left as it was
+        if (_new_data == nullptr)
         {
             return false;
         }

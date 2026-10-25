@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                     dlex.h
+* djinterp [tools]                                                        dlex.h
 *
 *   Tokeniser for POSIX awk.
 *     Two rules here are not obvious from the grammar. A slash begins a regular
@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/tools/dawk/dlex.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -30,6 +30,7 @@ TABLE OF CONTENTS
     ----------
     1.  Scanning
     2.  Diagnostics
+    3.  String escapes
 */
 
 #ifndef DJINTERP_TOOLS_DAWK_DLEX_H
@@ -168,6 +169,24 @@ const char*         d_awk_lexer_error(const struct d_awk_lexer* _lexer);
 size_t              d_awk_lexer_line(const struct d_awk_lexer* _lexer);
 size_t              d_awk_lexer_column(const struct d_awk_lexer* _lexer);
 const char*         d_awk_token_name(enum d_awk_token_kind _kind);
+
+// 2.3    String escapes
+//------------------------------------------------------------------------------
+/**
+ * @brief Decodes awk's string escapes, as a STRING token's text is decoded.
+ *
+ * @note A backslash before a newline is a line continuation and decodes to
+ *       nothing; a backslash ending the text is kept as it is.
+ *
+ * @param[in]  _text    the text to decode; need not be terminated.
+ * @param[in]  _length  the number of bytes of `_text` to decode.
+ * @param[out] _out     receives the decoded bytes, unterminated; it must hold
+ *                      `_length` bytes, since decoding never lengthens.
+ * @return the number of bytes written to `_out`.
+ */
+size_t              d_awk_unescape(const char* _text,
+                                   size_t      _length,
+                                   char*       _out);
 
 
 #endif  // DJINTERP_TOOLS_DAWK_DLEX_H

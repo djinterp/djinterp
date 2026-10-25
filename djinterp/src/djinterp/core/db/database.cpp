@@ -16,7 +16,7 @@
 * path:      /src/djinterp/core/db/database.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "../../../../inc/djinterp/core/db/database.hpp"  // corresponding header
 
@@ -1666,6 +1666,61 @@ int
 exception::error_code() const noexcept
 {
     return m_error_code;
+}
+
+// 2.2    Refusals
+//------------------------------------------------------------------------------
+/*
+internal::relabel
+  The exception is thrown again as a new object of its own type, the most
+derived of the four kinds, since a message cannot change in place; a type
+derived from them elsewhere would arrive as the kind it derives from.
+*/
+void
+internal::relabel(
+    const exception& _e,
+    const char*      _from,
+    const char*      _to
+)
+{
+    std::string       message = _e.what();
+    const std::string label   = std::string(_from) + ": ";
+    const std::size_t at      = message.find(label);
+    const bool        placed  = ( (at == 0u) ||
+                                  ( (at != std::string::npos)     &&
+                                    (message[at - 1u] == ' ')     &&
+                                    (message.find(' ') == at - 1u) ) );
+
+    // the label where a label stands: first, or after the vendor's name
+    if (placed)
+    {
+        message.replace(at, label.size(), std::string(_to) + ": ");
+    }
+
+    const int code = _e.error_code();
+
+    // the same kind, as the most derived of the four
+    if (dynamic_cast<const connection_exception*>(&_e))
+    {
+        throw connection_exception(message, code);
+    }
+
+    if (dynamic_cast<const transaction_exception*>(&_e))
+    {
+        throw transaction_exception(message, code);
+    }
+
+    if (dynamic_cast<const type_conversion_exception*>(&_e))
+    {
+        throw type_conversion_exception(message, code);
+    }
+
+    if (dynamic_cast<const query_exception*>(&_e))
+    {
+        throw query_exception(message, code);
+    }
+
+    throw exception(message, code);
 }
 
 //==============================================================================

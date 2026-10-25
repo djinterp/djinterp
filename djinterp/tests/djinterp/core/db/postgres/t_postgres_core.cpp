@@ -7,10 +7,11 @@
 * (t_db_core.hpp), database_table among them, in a schema of its own, and
 * then what pg_connection adds: how a configuration and a connection string
 * combine, the session's settings, failed transactions, SQL sent without
-* waiting, parameters, COPY, notifications, escaping, the server's
-* parameters and the connection's state, and a connection the server ends;
-* and what postgres_table adds: a schema off the search path, commits by
-* COPY, and upkeep.
+* waiting, parameters, COPY, notifications, rows a few at a time, pipelines,
+* statements closed by name, escaping, the server's parameters and the
+* connection's state, and a connection the server ends; and what
+* postgres_table adds: a schema off the search path, commits by COPY, and
+* upkeep.
 *   Server: DJINTERP_TEST_POSTGRES_HOST (default 127.0.0.1), _PORT (5432),
 * _USER (postgres), _PASSWORD (none) and _DATABASE (postgres) say where; the
 * user needs to make and drop schemas, and to end its own sessions. Without
@@ -28,21 +29,25 @@
 * path:      /tests/djinterp/core/db/postgres/t_postgres_core.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // djinterp
 #include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 // std
-#include <cstdio>  // std::printf
+#include <cstdio>  // std::printf, std::remove
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
-#include <chrono>    // std::chrono::system_clock
-#include <cstdlib>   // std::strtoul
-#include <optional>  // std::optional, std::nullopt
-#include <string>    // std::string, std::to_string
-#include <vector>    // std::vector
+#include <chrono>       // std::chrono::system_clock
+#include <cstdlib>      // std::strtoul
+#include <cstring>      // std::strstr
+#include <fstream>      // std::ifstream, std::ofstream
+#include <iterator>     // std::istreambuf_iterator
+#include <optional>     // std::optional, std::nullopt
+#include <string>       // std::string, std::to_string
+#include <type_traits>  // std::is_same_v
+#include <vector>       // std::vector
 // djinterp
 #include "../../../../../inc/djinterp/core/db/postgres/postgres.hpp"  // under
                                                                        // test
@@ -55,6 +60,79 @@ namespace
 
 namespace db   = djinterp;
 namespace core = d_tests_db_core;
+
+// the concepts (C++20) -- djinterp::concepts' own, the class's among them,
+// and a former name, which forwards to its concept for one release
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+static_assert(db::concepts::pg_connection<db::pg_connection>);
+static_assert(db::concepts::pg_connection<db::pg_connection&>);
+static_assert(!db::concepts::pg_connection<int>);
+static_assert(db::concepts::non_postgres_connection<int>);
+static_assert(db::Pg_connection<db::pg_connection>);
+static_assert(!db::Pg_connection<int>);
+
+// every concept of the family, against the class (C8): one the class
+// failed would name a member it does not have; the non_ concepts fail it
+// by design
+static_assert(db::concepts::postgres_connection<db::pg_connection>);
+static_assert(db::concepts::pg_connection<db::pg_connection>);
+static_assert(!db::concepts::non_postgres_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_async_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_pipeline_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_copy_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_listen_notify_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_diagnostics_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_escape_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_large_object_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_schema_query_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_send_query_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_result_polling_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_busy_state_query<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_input_consuming_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_pipeline_enterable_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_pipeline_exitable_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_pipeline_sync_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_pipeline_flush_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_copy_in_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_copy_data_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_copy_end_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_listenable_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_notifiable_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_notification_query_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_parameterized_execution_connection<
+                  db::pg_connection>);
+static_assert(db::concepts::postgres_backend_pid_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_transaction_status_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_parameter_status_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_has_table_query<db::pg_connection>);
+static_assert(db::concepts::postgres_table_names_query<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_escape_literal_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_escape_identifier_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_lo_import_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_lo_export_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_async_dispatchable<db::pg_connection>);
+static_assert(db::concepts::postgres_pipelined_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_copy_protocol_connection<db::pg_connection>);
+static_assert(
+    db::concepts::postgres_listen_notifiable_connection<db::pg_connection>);
+static_assert(db::concepts::postgres_full_connection<db::pg_connection>);
+static_assert(db::concepts::pg_full_connection<db::pg_connection>);
+#endif
 
 /*
 unique_violation
@@ -166,6 +244,8 @@ settings.
     a comma, a search path
   - a keyword libpq does not know, D_DB_INVALID_ARGUMENT in libpq's words;
     one it knows passes; a wrong password, 08001 in libpq's words
+  - get_pg_config's base is the generic configuration connect(config) put
+    in place, though an open connection did not reconnect
 */
 void
 d_tests_postgres_core_configuring(
@@ -201,6 +281,9 @@ d_tests_postgres_core_configuring(
     from_uri.connect();
     D_TESTS_DB_CORE_CHECK(from_uri.get_parameter_status("application_name") ==
                           "from_uri");
+    from_uri.connect(base.base);
+    D_TESTS_DB_CORE_CHECK(
+        from_uri.get_pg_config().base.custom_options.empty());
     uri.host = base.base.host + ":" + std::to_string(base.base.port) + "," +
                base.base.host + ":" + std::to_string(base.base.port);
 
@@ -282,6 +365,8 @@ d_tests_postgres_core_transactions
   - a commit of a failed transaction rolls it back and throws, 25P02, the
     transaction ended
   - beginning inside a transaction, transaction_exception with 25001
+  - the server's words for 25P02 and 3F000, which the layer gives on its own
+    too, when the server gave them
   - READ COMMITTED by default; the session's level set, and returned to
     the server's default; a transaction at REPEATABLE READ
   - no auto-commit mode to turn off: set_auto_commit does not exist
@@ -304,7 +389,16 @@ d_tests_postgres_core_transactions(
         D_TESTS_DB_CORE_THROWS(_db.execute("SELECT 1"),
                                db::query_exception,
                                D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION);
+        D_TESTS_DB_CORE_CHECK(_db.get_last_error().find("aborted") !=
+                              std::string::npos);
     }
+
+    D_TESTS_DB_CORE_THROWS(_db.execute("CREATE TABLE d_tests_none.t "
+                                       "(a integer)"),
+                           db::query_exception,
+                           D_POSTGRES_SQLSTATE_INVALID_SCHEMA_NAME);
+    D_TESTS_DB_CORE_CHECK(_db.get_last_error().find("d_tests_none") !=
+                          std::string::npos);
 
     D_TESTS_DB_CORE_CHECK( (_db.get_transaction_status() == 'I') &&
                            (!_db.in_transaction()) );
@@ -355,6 +449,9 @@ d_tests_postgres_core_protocol
   - LISTEN and NOTIFY: the connection's own notification, with its payload
     and its backend's process id; none after it; unlisten by channel and
     all; an empty channel refused; a payload too long, 22023
+  - large objects: a file in and out again, byte for byte; an OID no object
+    has, 42704; a file that is not there, D_DB_NOT_FOUND; a path holding a
+    NUL refused; the large-object traits (C++17) and concepts (C++20)
 */
 void
 d_tests_postgres_core_protocol(
@@ -449,6 +546,272 @@ d_tests_postgres_core_protocol(
                            db::query_exception,
                            D_POSTGRES_SQLSTATE_INVALID_PARAMETER_VALUE);
 
+    // large objects
+    const std::string in   = "d_tests_postgres_core_lo_in.bin";
+    const std::string out  = "d_tests_postgres_core_lo_out.bin";
+    std::string       data;
+
+    for (int i = 0; i < 70000; ++i)
+    {
+        data.push_back(static_cast<char>(i % 251));
+    }
+
+    {
+        std::ofstream file(in, std::ios::binary);
+
+        file.write(data.data(), static_cast<std::streamsize>(data.size()));
+    }
+
+    const unsigned int oid = _db.lo_import(in);
+
+    _db.lo_export(oid, out);
+
+    {
+        std::ifstream     file(out, std::ios::binary);
+        const std::string back((std::istreambuf_iterator<char>(file)),
+                               std::istreambuf_iterator<char>());
+
+        D_TESTS_DB_CORE_CHECK( (oid != 0u) && (back == data) );
+    }
+
+    D_TESTS_DB_CORE_THROWS(_db.lo_export(0u, out),
+                           db::query_exception,
+                           D_POSTGRES_SQLSTATE('4', '2', '7', '0', '4'));
+    D_TESTS_DB_CORE_THROWS((void)_db.lo_import("d_tests_no_such_file"),
+                           db::query_exception,
+                           D_DB_NOT_FOUND);
+    D_TESTS_DB_CORE_THROWS((void)_db.lo_import(std::string("a\0b", 3)),
+                           db::query_exception,
+                           D_DB_INVALID_ARGUMENT);
+    _db.execute("SELECT lo_unlink(" + std::to_string(oid) + ")");
+    (void)std::remove(in.c_str());
+    (void)std::remove(out.c_str());
+    static_assert(db::has_pg_large_objects_v<db::pg_connection>,
+                  "pg_connection copies large objects");
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+    static_assert(db::concepts::postgres_large_object_connection<
+                      db::pg_connection>);
+    static_assert(db::concepts::postgres_lo_import_connection<
+                      db::pg_connection>);
+    static_assert(!db::concepts::postgres_large_object_connection<int>);
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+    return;
+}
+
+/*
+d_tests_postgres_core_pipelines
+  Rows a few at a time, pipelines, and statements closed by name.
+  Tests the following:
+  - rows a row a result, then the statement's end, which counts them; asked
+    for with nothing sent, 08000; fewer than one row refused; more than one
+    by libpq's release (17)
+  - where libpq has pipelines (14): statements queued and synchronized,
+    their results in order -- rows; a failure, its SQLSTATE and its message;
+    25P02 for one skipped -- nullptr at each synchronization point, the mode
+    aborted until it; an operation that waits for its result, 08000; rows a
+    row a result for the statement asked for; a statement after the last
+    point, read once waited for, or polled for once asked for; leaving, and
+    synchronizing or asking outside the mode, 08000
+  - where it has none: D_DB_UNSUPPORTED, the mode off
+  - a statement PREPARE made, closed by its name, and closed again; an empty
+    name, or one holding a NUL, refused
+  - the pipeline concepts (C++20)
+*/
+void
+d_tests_postgres_core_pipelines(
+    db::pg_connection& _db
+)
+{
+    std::printf("rows a few at a time, pipelines\n");
+
+    // the rows of a statement a row a result, then its end
+    D_TESTS_DB_CORE_CHECK(_db.send_query("SELECT generate_series(1, 2)"));
+    _db.set_chunked_rows_mode(1);
+
+    for (int r = 0; r < 2; ++r)
+    {
+        std::unique_ptr<db::buffered_result_set> row = _db.get_result();
+
+        D_TESTS_DB_CORE_CHECK( (row) && (row->row_count() == 1) );
+    }
+
+    std::unique_ptr<db::buffered_result_set> end = _db.get_result();
+
+    D_TESTS_DB_CORE_CHECK( (end) &&
+                           (end->row_count() == 0) &&
+                           (end->column_count() == 1u) &&
+                           (_db.get_affected_rows() == 2) );
+    D_TESTS_DB_CORE_CHECK(!_db.get_result());
+    D_TESTS_DB_CORE_THROWS(_db.set_chunked_rows_mode(1),
+                           db::query_exception,
+                           D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    D_TESTS_DB_CORE_THROWS(_db.set_chunked_rows_mode(0),
+                           db::query_exception,
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_DB_CORE_CHECK(db::pg_connection::supports_chunked_rows() ==
+                          (db::face::postgres::client_version_number() >=
+                           170000));
+
+    if (!db::pg_connection::supports_chunked_rows())
+    {
+        D_TESTS_DB_CORE_THROWS(_db.set_chunked_rows_mode(2),
+                               db::query_exception,
+                               D_DB_UNSUPPORTED);
+    }
+
+    D_TESTS_DB_CORE_CHECK(_db.get_pipeline_status() ==
+                          db::pg_pipeline_status::off);
+
+    if (db::pg_connection::supports_pipeline())
+    {
+        _db.enter_pipeline();
+        D_TESTS_DB_CORE_CHECK(_db.get_pipeline_status() ==
+                              db::pg_pipeline_status::on);
+
+        // a batch with a failure, and one after it
+        _db.send_query("SELECT 1");
+        _db.send_query("SELECT * FROM no_table");
+        _db.send_query("SELECT 2");
+        _db.pipeline_sync();
+        _db.send_query("SELECT 3");
+        _db.pipeline_sync();
+        D_TESTS_DB_CORE_THROWS(_db.execute("SELECT 9"),
+                               db::query_exception,
+                               D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+        D_TESTS_DB_CORE_CHECK(_db.get_result() != nullptr);
+
+        try
+        {
+            (void)_db.get_result();
+            D_TESTS_DB_CORE_CHECK(false);
+        }
+        catch (const db::query_exception& e)
+        {
+            D_TESTS_DB_CORE_CHECK( (e.error_code() ==
+                                    D_POSTGRES_SQLSTATE_UNDEFINED_TABLE) &&
+                                   (std::strstr(e.what(), "no_table") !=
+                                    nullptr) );
+        }
+
+        D_TESTS_DB_CORE_CHECK(_db.get_pipeline_status() ==
+                              db::pg_pipeline_status::aborted);
+        D_TESTS_DB_CORE_THROWS(
+            (void)_db.get_result(),
+            db::query_exception,
+            D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION);
+        D_TESTS_DB_CORE_CHECK(!_db.get_result());
+        D_TESTS_DB_CORE_CHECK(_db.get_pipeline_status() ==
+                              db::pg_pipeline_status::on);
+
+        std::unique_ptr<db::buffered_result_set> third = _db.get_result();
+
+        D_TESTS_DB_CORE_CHECK( (third) &&
+                               (third->next()) &&
+                               (third->get_int(0u).value_or(0) == 3) );
+        D_TESTS_DB_CORE_CHECK(!_db.get_result());
+        D_TESTS_DB_CORE_CHECK(!_db.get_result());
+
+        // a row a result, for the statement asked for
+        _db.send_query("SELECT generate_series(1, 2)");
+        _db.send_query("SELECT generate_series(1, 2)");
+        _db.pipeline_sync();
+        _db.set_chunked_rows_mode(1);
+
+        std::unique_ptr<db::buffered_result_set> one = _db.get_result();
+
+        D_TESTS_DB_CORE_CHECK( (one) && (one->row_count() == 1) );
+        D_TESTS_DB_CORE_CHECK(_db.get_result() != nullptr);
+        D_TESTS_DB_CORE_CHECK(_db.get_result() != nullptr);
+
+        std::unique_ptr<db::buffered_result_set> both = _db.get_result();
+
+        D_TESTS_DB_CORE_CHECK( (both) && (both->row_count() == 2) );
+        D_TESTS_DB_CORE_CHECK(!_db.get_result());
+
+        // after the last synchronization point: waited for, then polled for
+        _db.send_query("SELECT 42");
+
+        std::unique_ptr<db::buffered_result_set> waited = _db.get_result();
+
+        D_TESTS_DB_CORE_CHECK( (waited) &&
+                               (waited->next()) &&
+                               (waited->get_int(0u).value_or(0) == 42) );
+        D_TESTS_DB_CORE_CHECK(!_db.get_result());
+        _db.send_query("SELECT 43");
+        _db.pipeline_flush();
+
+        unsigned long waits = 0u;
+
+        while ( (_db.is_busy()) &&
+                (waits < 100000000u) )
+        {
+            (void)_db.consume_input();
+            ++waits;
+        }
+
+        std::unique_ptr<db::buffered_result_set> polled = _db.get_result();
+
+        D_TESTS_DB_CORE_CHECK( (polled) &&
+                               (polled->next()) &&
+                               (polled->get_int(0u).value_or(0) == 43) );
+        _db.pipeline_sync();
+        D_TESTS_DB_CORE_CHECK(!_db.get_result());
+
+        _db.exit_pipeline();
+        D_TESTS_DB_CORE_CHECK(_db.get_pipeline_status() ==
+                              db::pg_pipeline_status::off);
+        D_TESTS_DB_CORE_THROWS(_db.pipeline_sync(),
+                               db::query_exception,
+                               D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+        D_TESTS_DB_CORE_THROWS(_db.pipeline_flush(),
+                               db::query_exception,
+                               D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+        D_TESTS_DB_CORE_CHECK(std::get<re_std::int32_t>(
+                                  *_db.execute_scalar("SELECT 5")) == 5);
+    }
+    else
+    {
+        D_TESTS_DB_CORE_THROWS(_db.enter_pipeline(),
+                               db::query_exception,
+                               D_DB_UNSUPPORTED);
+        D_TESTS_DB_CORE_THROWS(_db.pipeline_sync(),
+                               db::query_exception,
+                               D_DB_UNSUPPORTED);
+        D_TESTS_DB_CORE_THROWS(_db.pipeline_flush(),
+                               db::query_exception,
+                               D_DB_UNSUPPORTED);
+        D_TESTS_DB_CORE_CHECK(_db.get_pipeline_status() ==
+                              db::pg_pipeline_status::off);
+    }
+
+    // a statement PREPARE made, closed by its name
+    _db.execute("PREPARE core_named AS SELECT 1");
+    _db.close_prepared("core_named");
+    D_TESTS_DB_CORE_THROWS(_db.execute("EXECUTE core_named"),
+                           db::query_exception,
+                           D_POSTGRES_SQLSTATE('2', '6', '0', '0', '0'));
+    _db.close_prepared("core_named");
+    D_TESTS_DB_CORE_THROWS(_db.close_prepared(""),
+                           db::query_exception,
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_DB_CORE_THROWS(_db.close_prepared(std::string("a\0b", 3)),
+                           db::query_exception,
+                           D_DB_INVALID_ARGUMENT);
+
+    // the pipeline concepts
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+    static_assert(db::concepts::postgres_pipeline_connection<
+                      db::pg_connection>);
+    static_assert(db::concepts::postgres_pipeline_flush_connection<
+                      db::pg_connection>);
+    static_assert(db::concepts::postgres_pipelined_connection<
+                      db::pg_connection>);
+    static_assert(!db::concepts::postgres_pipeline_flush_connection<int>);
+#endif
+    static_assert(db::has_pg_pipeline_v<db::pg_connection>,
+                  "pg_connection has pipelines");
+
     return;
 }
 
@@ -529,6 +892,8 @@ path is `_schema`.
     a row the server refuses failing the whole commit, which is rolled back
   - VACUUM, VACUUM FULL, ANALYZE and REINDEX through the layer, CONCURRENTLY
     from 12; VACUUM inside a transaction refused, 25001
+  - rows exchanging keys under a DEFERRABLE key: written, the key deferred
+    for the updates; inside the program's transaction as well
 */
 void
 d_tests_postgres_core_tables(
@@ -667,6 +1032,105 @@ d_tests_postgres_core_tables(
     _db.execute("DROP SCHEMA " + other + " CASCADE");
     D_TESTS_DB_CORE_CHECK(!events.exists());
 
+    // rows exchanging keys under a DEFERRABLE key, deferred for the
+    // updates, in the program's transaction too (no foreign key can
+    // reference a deferrable one)
+    _db.execute("CREATE TABLE swapped (id integer PRIMARY KEY DEFERRABLE, "
+                "name text)");
+    _db.execute("INSERT INTO swapped VALUES (1, 'one'), (2, 'two')");
+
+    db::postgres_table<> exchanged(_db, std::string("swapped"));
+
+    exchanged.fetch_schema();
+    exchanged.set_order("id");
+    exchanged.refresh();
+    exchanged.update_cell(0u, "id", db::value(re_std::int32_t(2)));
+    exchanged.update_cell(1u, "id", db::value(re_std::int32_t(1)));
+    exchanged.commit();
+    D_TESTS_DB_CORE_CHECK(std::get<std::string>(*_db.execute_scalar(
+                              "SELECT name FROM swapped WHERE id = 2")) ==
+                          "one");
+
+    {
+        db::transaction<db::pg_connection> work(_db);
+
+        exchanged.update_cell(0u, "id", db::value(re_std::int32_t(1)));
+        exchanged.update_cell(1u, "id", db::value(re_std::int32_t(2)));
+        exchanged.commit();
+        work.commit();
+    }
+
+    D_TESTS_DB_CORE_CHECK(std::get<std::string>(*_db.execute_scalar(
+                              "SELECT name FROM swapped WHERE id = 1")) ==
+                          "one");
+    _db.execute("DROP TABLE swapped");
+
+    return;
+}
+
+/*
+d_tests_postgres_core_support
+  What the server connected and the libpq loaded have, asked at run time.
+  Tests the following:
+  - before connecting, nothing of the server's
+  - each server feature by the server's release: JSONB, logical
+    replication, partitioning and parallel query on every server the layer
+    takes; the JSON path language (12), multiranges (14), MERGE (15); each
+    composite with the release that completes it (15, 16)
+  - pipelines by libpq's release (14), with or without a connection
+  - the compile-time struct by its name, and by its former names
+*/
+void
+d_tests_postgres_core_support(
+    const std::string& _schema
+)
+{
+    std::printf("support\n");
+
+    db::pg_connection db(server_config(_schema));
+
+    D_TESTS_DB_CORE_CHECK( (!db.supports_jsonb()) &&
+                           (!db.supports_merge()) &&
+                           (!db.supports_modern_sql()) );
+    D_TESTS_DB_CORE_CHECK(db::pg_connection::supports_pipeline() ==
+                          (db::face::postgres::client_version_number() >=
+                           140000));
+    db.connect();
+
+    const auto at_least = [&db](unsigned _major) -> bool
+    {
+        return db.get_face().server_at_least(_major, 0u);
+    };
+
+    D_TESTS_DB_CORE_CHECK( (db.supports_jsonb()) &&
+                           (db.supports_logical_repl()) &&
+                           (db.supports_partitioning()) &&
+                           (db.supports_parallel_query()) &&
+                           (db.supports_jsonpath() == at_least(12u)) &&
+                           (db.supports_multirange() == at_least(14u)) &&
+                           (db.supports_merge() == at_least(15u)) &&
+                           (db.supports_modern_sql() == at_least(15u)) &&
+                           (db.supports_modern_json() == at_least(16u)) );
+    db.disconnect();
+    D_TESTS_DB_CORE_CHECK(!db.supports_jsonb());
+
+    // the compile-time struct, and its former names
+    static_assert(std::is_same_v<db::pg_connection::client_capabilities,
+                                 db::pg_client_capabilities>,
+                  "client_capabilities is the compile-time struct");
+#if defined(__GNUC__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+    static_assert( (std::is_same_v<db::pg_type_support,
+                                   db::pg_client_capabilities>) &&
+                   (std::is_same_v<db::pg_feature_support,
+                                   db::pg_client_capabilities>),
+                  "the former names are the struct's");
+#if defined(__GNUC__)
+    #pragma GCC diagnostic pop
+#endif
+
     return;
 }
 
@@ -676,6 +1140,7 @@ d_tests_postgres_core_stubs
   Tests the following:
   - connect throws connection_exception with D_DB_UNSUPPORTED, and leaves
     the connection in error; the state is 'U'
+  - no libpq to support pipelines
 */
 void
 d_tests_postgres_core_stubs(
@@ -693,6 +1158,8 @@ d_tests_postgres_core_stubs(
                            (db.get_transaction_status() == 'U') );
     D_TESTS_DB_CORE_THROWS_ANY(db.execute("SELECT 1"),
                                db::connection_exception);
+    D_TESTS_DB_CORE_CHECK( (!db::pg_connection::supports_pipeline()) &&
+                           (!db.supports_jsonb()) );
 
     return;
 }
@@ -751,6 +1218,7 @@ main(
         core::statements(db, g_dialect);
         core::transactions(db);
         core::errors(db, g_dialect);
+        core::streams(db, g_dialect);
         core::lifetimes<db::pg_connection>(
             [&schema]() { return db::pg_connection(server_config(schema)); });
         core::tables<db::database_table<db::pg_connection>>(
@@ -763,8 +1231,10 @@ main(
                 db.get_face().server_at_least(12u, 0u)
             });
         d_tests_postgres_core_configuring(schema);
+        d_tests_postgres_core_support(schema);
         d_tests_postgres_core_transactions(db);
         d_tests_postgres_core_protocol(db);
+        d_tests_postgres_core_pipelines(db);
         d_tests_postgres_core_session(db, schema);
         d_tests_postgres_core_tables(db, schema);
     }

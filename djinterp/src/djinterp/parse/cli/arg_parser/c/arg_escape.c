@@ -11,7 +11,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_escape.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -43,11 +43,18 @@ D_STATIC_ASSERT( sizeof(ESCAPE_CODES) == sizeof(ESCAPE_CHARACTERS),
 // writes them.
 static const char HEX_DIGITS[] = "0123456789abcdef";
 
-/*
-d_arg_internal_escape_fail
-  Records CLI11's message for a malformed escape -- a prefix and the whole
-text -- and returns the validation status the caller passes up.
-*/
+/**
+ * @brief Records CLI11's message for a malformed escape.
+ *
+ * @param[in,out] _error   the buffer that gains the message.
+ * @param[in]     _prefix  the message's words before the text.
+ * @param[in]     _text    the whole text.
+ * @return D_ARG_ERROR_VALIDATION, or the buffer's status when the message could
+ *         not be written.
+ *
+ * Records CLI11's message for a malformed escape -- a prefix and the whole
+ * text -- and returns the validation status the caller passes up.
+ */
 D_STATIC int
 d_arg_internal_escape_fail(
     struct d_arg_buffer* _error,
@@ -64,10 +71,16 @@ d_arg_internal_escape_fail(
     return (status == D_ARG_OK) ? D_ARG_ERROR_VALIDATION : status;
 }
 
-/*
-d_arg_internal_codepoint_fail
-  Records one of CLI11's two code-point messages, which name no text.
-*/
+/**
+ * @brief Records one of CLI11's two messages for a code point that is not one.
+ *
+ * @param[in,out] _error    the buffer that gains the message.
+ * @param[in]     _message  the message.
+ * @return D_ARG_ERROR_VALIDATION, or the buffer's status when the message could
+ *         not be written.
+ *
+ * Records one of CLI11's two code-point messages, which name no text.
+ */
 D_STATIC int
 d_arg_internal_codepoint_fail(
     struct d_arg_buffer* _error,
@@ -80,11 +93,18 @@ d_arg_internal_codepoint_fail(
     return (status == D_ARG_OK) ? D_ARG_ERROR_VALIDATION : status;
 }
 
-/*
-d_arg_internal_append_codepoint
-  CLI11's append_codepoint: one to four bytes of UTF-8, refusing the
-surrogates, which are not characters, and anything past U+10FFFF.
-*/
+/**
+ * @brief Appends a code point as UTF-8, as CLI11's append_codepoint.
+ *
+ * @param[in,out] _out    the buffer that gains the bytes.
+ * @param[in,out] _error  the buffer that gains the message of a refusal.
+ * @param[in]     _code   the code point.
+ * @return D_ARG_OK; D_ARG_ERROR_VALIDATION for a surrogate or a value past
+ *         U+10FFFF; or a buffer's status.
+ *
+ * CLI11's append_codepoint: one to four bytes of UTF-8, refusing the
+ * surrogates, which are not characters, and anything past U+10FFFF.
+ */
 D_STATIC int
 d_arg_internal_append_codepoint(
     struct d_arg_buffer* _out,
@@ -99,14 +119,16 @@ d_arg_internal_append_codepoint(
     if ( (_code >= 0xD800u) &&
          (_code <= 0xDFFFu) )
     {
-        return d_arg_internal_codepoint_fail(_error,
+        return d_arg_internal_codepoint_fail(
+                   _error,
                    "[0xD800, 0xDFFF] are not valid code points.");
     }
 
     // nor is anything past Unicode
     if (_code >= 0x110000u)
     {
-        return d_arg_internal_codepoint_fail(_error,
+        return d_arg_internal_codepoint_fail(
+                   _error,
                    "values above 0x10FFFF are not valid code points.");
     }
 
@@ -142,12 +164,22 @@ d_arg_internal_append_codepoint(
                                length);
 }
 
-/*
-d_arg_internal_unicode_escape
-  Reads the `_digits` hexadecimal digits after `\u` or `\U` at `_index` and
-appends their code point; CLI11 reports a short or non-hexadecimal sequence
-with one message per form.
-*/
+/**
+ * @brief Reads a `\\u` or `\\U` escape and appends its code point.
+ *
+ * @param[in]     _text    the whole text.
+ * @param[in]     _index   where the escape's backslash is.
+ * @param[in]     _digits  how many hexadecimal digits it takes: 4 for `\\u`, 8
+ *                         for `\\U`.
+ * @param[in,out] _out     the buffer that gains the code point's bytes.
+ * @param[in,out] _error   the buffer that gains the message of a refusal.
+ * @return D_ARG_OK; D_ARG_ERROR_VALIDATION for a short or non-hexadecimal
+ *         sequence, or a code point refused; or a buffer's status.
+ *
+ * Reads the `_digits` hexadecimal digits after `\\u` or `\\U` at `_index` and
+ * appends their code point; CLI11 reports a short or non-hexadecimal sequence
+ * with one message per form.
+ */
 D_STATIC int
 d_arg_internal_unicode_escape(
     struct d_pack_text   _text,
@@ -191,12 +223,18 @@ d_arg_internal_unicode_escape(
                                            code);
 }
 
-/*
-d_arg_internal_escape_code
-  The character a one-letter escape stands for, written to `*_out`; false
-when the letter is not one of CLI11's codes. NUL is never a code, though
-memchr would find the table's terminator.
-*/
+/**
+ * @brief Finds the character a one-letter escape stands for.
+ *
+ * @param[in]  _code  the letter.
+ * @param[out] _out   receives the character.
+ * @return `true` for one of CLI11's codes; `false` otherwise, `*_out` then
+ *         unchanged.
+ *
+ * The character a one-letter escape stands for, written to `*_out`; false
+ * when the letter is not one of CLI11's codes. NUL is never a code, though
+ * memchr would find the table's terminator.
+ */
 D_STATIC bool
 d_arg_internal_escape_code(
     char  _code,
@@ -221,11 +259,15 @@ d_arg_internal_escape_code(
     return true;
 }
 
-/*
-d_arg_internal_escape_index
-  The position of a character among those CLI11 escapes, or -1; NUL is not
-one of them, though memchr would find the table's terminator.
-*/
+/**
+ * @brief Finds a character among those CLI11 escapes.
+ *
+ * @param[in] _c  the character.
+ * @return its position in the table; -1 when it is not escaped.
+ *
+ * The position of a character among those CLI11 escapes, or -1; NUL is not
+ * one of them, though memchr would find the table's terminator.
+ */
 D_STATIC int
 d_arg_internal_escape_index(
     char _c
@@ -243,11 +285,15 @@ d_arg_internal_escape_index(
            : -1;
 }
 
-/*
-d_arg_internal_printable
-  C's isprint in the "C" locale, which CLI11's binary strings rely on: a
-byte from the space to the tilde.
-*/
+/**
+ * @brief Tells whether a byte prints, as C's isprint does in the "C" locale.
+ *
+ * @param[in] _c  the byte.
+ * @return `true` for a byte from the space to the tilde; `false` otherwise.
+ *
+ * C's isprint in the "C" locale, which CLI11's binary strings rely on: a
+ * byte from the space to the tilde.
+ */
 D_STATIC bool
 d_arg_internal_printable(
     char _c
@@ -257,11 +303,16 @@ d_arg_internal_printable(
              ((unsigned char)_c <= 0x7Eu) );
 }
 
-/*
-d_arg_internal_binary_byte
-  A byte as a binary string's escape, `\x` and two lowercase hexadecimal
-digits.
-*/
+/**
+ * @brief Appends a byte as a binary string's escape.
+ *
+ * @param[in]     _byte  the byte.
+ * @param[in,out] _out   the buffer that gains `\\x` and two lowercase
+ *                       hexadecimal digits.
+ *
+ * A byte as a binary string's escape, `\\x` and two lowercase hexadecimal
+ * digits.
+ */
 D_STATIC void
 d_arg_internal_binary_byte(
     unsigned char        _byte,
@@ -279,12 +330,19 @@ d_arg_internal_binary_byte(
     return;
 }
 
-/*
-d_arg_internal_binary_bounds
-  The lengths of a binary string's opening and closing delimiters, or false
-when the text is not one. The sizes keep the two delimiters from
-overlapping, so `B"()"` is the shortest.
-*/
+/**
+ * @brief Measures the delimiters of a binary string.
+ *
+ * @param[in]  _text   the text.
+ * @param[out] _start  receives the length of the opening delimiter.
+ * @param[out] _tail   receives the length of the closing delimiter.
+ * @return `true` when the text is a binary string; `false` otherwise, the
+ *         lengths then unwritten.
+ *
+ * The lengths of a binary string's opening and closing delimiters, or false
+ * when the text is not one. The sizes keep the two delimiters from
+ * overlapping, so `B"()"` is the shortest.
+ */
 D_STATIC bool
 d_arg_internal_binary_bounds(
     struct d_pack_text _text,
@@ -332,12 +390,22 @@ d_arg_internal_binary_bounds(
 // 5.  ESCAPES
 //==============================================================================
 
-/*
-d_arg_internal_unescape_one
-  The escape at `_index`, a backslash with a byte after it: a code letter,
-a NUL, a Unicode escape -- delegated -- or CLI11's "unrecognized escape
-sequence". `*_consumed` receives how many bytes it spans.
-*/
+/**
+ * @brief Reads one escape and appends what it stands for.
+ *
+ * @param[in]     _text      the whole text.
+ * @param[in]     _index     where the escape's backslash is, a byte following
+ *                           it.
+ * @param[in,out] _out       the buffer that gains what the escape stands for.
+ * @param[in,out] _error     the buffer that gains the message of a refusal.
+ * @param[out]    _consumed  receives how many bytes the escape spans.
+ * @return D_ARG_OK; D_ARG_ERROR_VALIDATION for an escape CLI11 does not
+ *         recognize, or a malformed Unicode escape; or a buffer's status.
+ *
+ * The escape at `_index`, a backslash with a byte after it: a code letter,
+ * a NUL, a Unicode escape -- delegated -- or CLI11's "unrecognized escape
+ * sequence". `*_consumed` receives how many bytes it spans.
+ */
 D_STATIC int
 d_arg_internal_unescape_one(
     struct d_pack_text   _text,
@@ -580,12 +648,17 @@ d_arg_internal_extract_binary(
     return status;
 }
 
-/*
-d_arg_internal_binary_escaped
-  The loop of CLI11's binary_escape_string: a byte that does not print as
-`\xHH`, an `x` or `X` after a backslash as its own escape, any other byte as
-it is.
-*/
+/**
+ * @brief Appends text with the escapes of CLI11's binary_escape_string.
+ *
+ * @param[in]     _text  the text.
+ * @param[in,out] _out   the buffer that gains it, its failure kept in the
+ *                       buffer.
+ *
+ * The loop of CLI11's binary_escape_string: a byte that does not print as
+ * `\\xHH`, an `x` or `X` after a backslash as its own escape, any other byte as
+ * it is.
+ */
 D_STATIC void
 d_arg_internal_binary_escaped(
     struct d_pack_text   _text,

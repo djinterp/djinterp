@@ -17,16 +17,18 @@
 *     expected_swap.hpp           - non-member swap
 *
 *   PORTABILITY:
-*   The entire module is gated on C++11+. There is no C++98/03
-* back-port path; the design requires variadic templates, rvalue
-* refs, defaulted/deleted special members, and union-with-non-trivial-
-* members (all C++11 features).
+*   C++98 and up, in two tiers. From C++11 the classes use variadic
+* templates, rvalue refs, defaulted/deleted special members, and a
+* union with non-trivial members. Below C++11 a C++98 tier gives the
+* same names and states by copy, over raw aligned storage; it omits
+* what C++98 cannot spell (moves, in_place, the monadic operations,
+* operator bool), so code written to it means the same at every level.
 *
 *
 * path:      /inc/re_std/expected/expected_umbrella
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.05.19
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef RE_STD_EXPECTED_EXPECTED_UMBRELLA

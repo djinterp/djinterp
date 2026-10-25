@@ -4,23 +4,24 @@
 * Environment detection for the command-line argument parser.
 *   What the platform decides for a command line: whether `/option` is the
 * native option syntax, which quoting rules its shells and tools use, which
-* character separates path components, where the true command line can be
-* read from, how environment variables are read and files opened without a
-* deprecation diagnostic, how a file's status is asked for, how the
-* terminal's width is asked for, how the C runtime turns
-* a `long double` into text and back, and, under C++, whether exceptions are
-* enabled -- the one fact the C++ face needs to keep every call from C into
-* C++ from throwing.
+* character separates path components, whether the system's own text is
+* wide, where the true command line can be read from, how environment
+* variables are read and files opened without a deprecation diagnostic, how
+* a file's status is asked for, how the terminal's width is asked for, how
+* the C runtime turns a `long double` into text and back, and, under C++,
+* whether exceptions are enabled -- the fact the C++ face needs to keep
+* every call from C into C++ from throwing.
 *   It includes no system header. Each fact is derived from env.h's OS and
 * compiler classification -- and, on Windows, env_windows.h's toolchain
 * classification -- is #ifndef-guarded so a build may define it first, and
-* is read only by cfg_arg_parser.h and the module's sources.
+* is read only by cfg_arg_parser.h and the module's sources and C++
+* headers.
 *
 *
 * path:      /inc/djinterp/env/parse/cli/arg_parser/env_arg_parser.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.17
 *******************************************************************************/
 
 /*
@@ -38,6 +39,7 @@ TABLE OF CONTENTS
     3.  Paths
          1.  D_ENV_ARG_PARSER_PATH_SEPARATOR
          2.  D_ENV_ARG_PARSER_PATH_SEPARATORS
+         3.  D_ENV_ARG_PARSER_WIDE_NATIVE
 2.  PROCESS INTERFACE
     -----------------
     1.  Command line
@@ -175,6 +177,21 @@ TABLE OF CONTENTS
         #define D_ENV_ARG_PARSER_PATH_SEPARATORS "/"
     #endif
 #endif  // D_ENV_ARG_PARSER_PATH_SEPARATORS
+
+// 1.3.3
+// D_ENV_ARG_PARSER_WIDE_NATIVE
+//   detection: 1 where the system's own text is wide -- Windows, whose calls
+// take UTF-16, as its std::filesystem::path holds it -- and 0 elsewhere. The
+// C++ face then makes a value of a type made from both a std::string and a
+// std::wstring from the wide one, its UTF-8 converted exactly, as CLI11
+// makes it under MSVC.
+#ifndef D_ENV_ARG_PARSER_WIDE_NATIVE
+    #if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
+        #define D_ENV_ARG_PARSER_WIDE_NATIVE 1
+    #else
+        #define D_ENV_ARG_PARSER_WIDE_NATIVE 0
+    #endif
+#endif  // D_ENV_ARG_PARSER_WIDE_NATIVE
 
 
 //==============================================================================

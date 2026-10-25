@@ -15,9 +15,11 @@
 *   commit() writes the cache back as one unit: in a transaction of its own,
 * or, inside one the program began, under a savepoint, so that a failure
 * leaves the database as it was and the program's transaction usable. With
-* a primary key it is differential: a row whose key the cache no longer
-* holds is deleted, a changed row is updated, a new row is inserted, and no
-* other row is touched. Without one it replaces the rows refresh() read --
+* a primary key it is differential: each row read stays the row of the
+* database it was read as (table_row), so a row the cache no longer holds is
+* deleted, a changed row is updated -- its key too, in place, so that the
+* key's ON UPDATE rules apply, not its ON DELETE ones -- a new row is
+* inserted, and no other row is touched. Without one it replaces the rows refresh() read --
 * those the filter selected, or every row -- and refuses rows read a page
 * at a time, which it could not name. Rows the cache never read are
 * inserted. A NULL in a column that refuses NULL, or in a key, is left out
@@ -32,7 +34,7 @@
 * path:      /inc/djinterp/core/db/database_table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.18
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -49,6 +51,8 @@ TABLE OF CONTENTS
          2.  table_schema
     3.  Synchronization
          1.  sync_config
+    4.  Rows
+         1.  table_row
 2.  DIALECT
     -------
     1.  Clauses
@@ -69,26 +73,29 @@ TABLE OF CONTENTS
 #define DJINTERP_DB_DATABASE_TABLE_HPP 1
 
 // djinterp
-#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: the floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
-#include <algorithm>    // std::find, std::sort
-#include <chrono>       // std::chrono::steady_clock, milliseconds
-#include <cstddef>      // std::size_t, std::ptrdiff_t
-#include <limits>       // std::numeric_limits
-#include <map>          // std::map
-#include <memory>       // std::allocator, std::unique_ptr
-#include <optional>     // std::optional
-#include <set>          // std::set
-#include <stdexcept>    // std::out_of_range
-#include <string>       // std::string, std::to_string
-#include <string_view>  // std::string_view
-#include <type_traits>  // std::is_same_v, std::decay_t
-#include <utility>      // std::move, std::pair, std::declval
-#include <variant>      // std::visit, std::monostate
-#include <vector>       // std::vector
+#include <algorithm>         // std::find, std::sort
+#include <atomic>            // std::atomic
+#include <chrono>            // std::chrono::steady_clock, milliseconds
+#include <cstddef>           // std::size_t, std::ptrdiff_t
+#include <initializer_list>  // std::initializer_list
+#include <limits>            // std::numeric_limits
+#include <map>               // std::map
+#include <memory>            // std::allocator, std::unique_ptr
+#include <optional>          // std::optional
+#include <set>               // std::set
+#include <stdexcept>         // std::out_of_range
+#include <string>            // std::string, std::to_string
+#include <string_view>       // std::string_view
+#include <type_traits>       // std::is_same_v, std::decay_t
+#include <unordered_map>     // std::unordered_map
+#include <utility>           // std::move, std::pair, std::declval
+#include <variant>           // std::visit, std::monostate
+#include <vector>            // std::vector
 // djinterp
 #include "../../djinterp.hpp"       // framework root
 #include "../../c/db/db_face.hpp"   // face::string_arg, face::column_list,
@@ -99,7 +106,7 @@ TABLE OF CONTENTS
 #include "./database_statement.hpp" // buffered_result_set
 // re_std
 #include "../../../re_std/cstdint/cstdint.hpp"  // re_std::int64_t, int32_t,
-                                                // uint8_t
+                                                // uint8_t, uint64_t
 
 
 NS_DJINTERP
@@ -317,6 +324,108 @@ struct sync_config
     }
 };
 
+// 1.4    Rows
+//------------------------------------------------------------------------------
+NS_INTERNAL
+
+    // next_row_origins
+    //   function: `_count` numbers for the rows a table reads, the first
+    // returned: never the same twice in a program, so that a row carried into
+    // another table, or kept past a refresh, stands for no row there.
+    inline re_std::uint64_t
+    next_row_origins(
+        std::size_t _count
+    ) noexcept
+    {
+        static std::atomic<re_std::uint64_t> next{ 1u };
+
+        return next.fetch_add(static_cast<re_std::uint64_t>(_count));
+    }
+
+NS_END  // internal
+
+// 1.4.1
+// table_row
+//   class template: a row of a database_table's cache -- its cells, a
+// std::vector of them -- and the row of the database it was read as, which
+// travels with it through copies, moves, swaps and sorts, so that a commit
+// updates that row, its key with it, rather than deleting it and inserting
+// another. A row made from cells stands for none, and is inserted.
+// Assigning cells, a std::vector, keeps the row a table_row stands for;
+// assigning another table_row takes that one's. Where two rows of a cache
+// stand for the same row, as after a copy, the first keeps it and the
+// others are new.
+template<typename ValueType>
+class table_row : public std::vector<ValueType>
+{
+public:
+    using cells_type = std::vector<ValueType>;
+
+    using cells_type::cells_type;
+
+    table_row() = default;
+
+    table_row(
+        const cells_type& _cells
+    )
+        : cells_type(_cells)
+    {}
+
+    table_row(
+        cells_type&& _cells
+    ) noexcept
+        : cells_type(std::move(_cells))
+    {}
+
+    table_row(const table_row&)                = default;
+    table_row(table_row&&) noexcept            = default;
+    table_row& operator=(const table_row&)     = default;
+    table_row& operator=(table_row&&) noexcept = default;
+
+    ~table_row() = default;
+
+    // assigning cells -- the row stands for what it stood for
+    table_row&
+    operator=(
+        const cells_type& _cells
+    )
+    {
+        cells_type::operator=(_cells);
+
+        return *this;
+    }
+
+    table_row&
+    operator=(
+        cells_type&& _cells
+    ) noexcept
+    {
+        cells_type::operator=(std::move(_cells));
+
+        return *this;
+    }
+
+    table_row&
+    operator=(
+        std::initializer_list<ValueType> _cells
+    )
+    {
+        cells_type::operator=(_cells);
+
+        return *this;
+    }
+
+private:
+    template<typename,
+             typename,
+             typename>
+    friend class database_table;
+
+    // m_origin -- the row read that this one stands for, by its number; 0 for
+    // none
+    re_std::uint64_t m_origin = 0u;
+};
+
 
 //==============================================================================
 // 2.  DIALECT
@@ -480,6 +589,8 @@ NS_INTERNAL
      *                        it must outlive the description.
      * @param[in] _key        whether the column belongs to the primary key.
      * @param[in] _operation  the operation's name, for a refusal's message.
+     * @param[in] _key_place  its place in a composite key, from 1; 0 for the
+     *                        columns' order.
      * @return the description.
      * @throws query_exception with D_DB_INVALID_ARGUMENT for text holding a
      *         NUL, which the layer would read cut short, or a length or scale
@@ -490,7 +601,8 @@ NS_INTERNAL
     to_layer_column(
         const column_info& _column,
         bool               _key,
-        const char*        _operation
+        const char*        _operation,
+        unsigned           _key_place = 0u
     )
     {
         const std::size_t most = std::numeric_limits<unsigned>::max();
@@ -544,7 +656,8 @@ NS_INTERNAL
             static_cast<unsigned>(_column.scale.value_or(0u)),
             ( (_column.sql_type.has_value()) &&
               (!_column.sql_type->empty()) ) ? _column.sql_type->c_str()
-                                             : nullptr
+                                             : nullptr,
+            _key_place
         };
 
         return described;
@@ -558,8 +671,12 @@ NS_INTERNAL
      *                        it must outlive them.
      * @param[in] _operation  the operation's name, for a refusal's message.
      * @return the descriptions, in the schema's order; a column is a key
-     *         column when it is marked so or primary_key_columns names it.
-     * @throws as to_layer_column.
+     *         column when it is marked so or primary_key_columns names it,
+     *         and the key's order is primary_key_columns', then the order of
+     *         the columns marked so that it leaves out.
+     * @throws as to_layer_column; and query_exception with
+     *         D_DB_INVALID_ARGUMENT when primary_key_columns names a column
+     *         the schema does not describe, or one twice.
      */
     inline std::vector<d_db_column>
     to_layer_columns(
@@ -567,21 +684,49 @@ NS_INTERNAL
         const char*         _operation
     )
     {
-        std::vector<d_db_column> described;
+        const std::vector<std::string>& listed = _schema.primary_key_columns;
+        std::vector<d_db_column>        described;
+        unsigned                        next   =
+            static_cast<unsigned>(listed.size());
+
+        // the key's columns, each named once, each the schema's
+        for (std::size_t i = 0; i < listed.size(); ++i)
+        {
+            if ( (!_schema.column_by_name(listed[i])) ||
+                 (std::find(listed.begin(),
+                            listed.begin() +
+                                static_cast<std::ptrdiff_t>(i),
+                            listed[i]) !=
+                  listed.begin() + static_cast<std::ptrdiff_t>(i)) )
+            {
+                throw query_exception(std::string(_operation) +
+                                          ": primary_key_columns names '" +
+                                          listed[i] + "' twice, or a column "
+                                          "the schema does not describe",
+                                      D_DB_INVALID_ARGUMENT);
+            }
+        }
 
         described.reserve(_schema.columns.size());
 
-        // each column, keyed where either list says so
+        // each column, keyed where either list says so, at its place
         for (const column_info& column : _schema.columns)
         {
-            const bool key =
-                ( (column.is_primary_key) ||
-                  (std::find(_schema.primary_key_columns.begin(),
-                             _schema.primary_key_columns.end(),
-                             column.name) !=
-                   _schema.primary_key_columns.end()) );
+            const auto     found = std::find(listed.begin(),
+                                             listed.end(),
+                                             column.name);
+            const bool     key   = ( (column.is_primary_key) ||
+                                     (found != listed.end()) );
+            const unsigned place =
+                (found != listed.end())
+                    ? static_cast<unsigned>(found - listed.begin()) + 1u
+                    : ( (key) && (!listed.empty()) ) ? ++next
+                                                     : 0u;
 
-            described.push_back(to_layer_column(column, key, _operation));
+            described.push_back(to_layer_column(column,
+                                                 key,
+                                                 _operation,
+                                                 place));
         }
 
         return described;
@@ -648,12 +793,12 @@ public:
     using allocator_type  = std::allocator<value_type>;
 
     // identity -- the table, its connection and description, and its rows,
-    // each a vector of cells in the schema's column order
+    // each a table_row of cells in the schema's column order
     using self_type       = database_table<Connection, ValueType, Config>;
     using config_type     = Config;
     using connection_type = Connection;
     using schema_type     = table_schema;
-    using row_type        = std::vector<value_type>;
+    using row_type        = table_row<value_type>;
     using storage_type    = std::vector<row_type>;
 
     // iteration -- over rows; a cell is reached through its row
@@ -1078,8 +1223,9 @@ public:
     }
 
     // update_cell -- sets a cell, by index or by the column's name;
-    // std::out_of_range for a cell the table lacks, otherwise throws as
-    // insert_row
+    // std::out_of_range for a cell the table lacks, query_exception with
+    // D_DB_UNSUPPORTED for a generated column's, which the database
+    // computes, otherwise throws as insert_row
     void
     update_cell(
         size_type         _row,
@@ -1089,6 +1235,15 @@ public:
     {
         validate_mutable("update_cell");
         check_bounds(_row, _col, "update_cell");
+
+        // a column the database computes takes nothing written
+        if (m_schema.columns[_col].is_generated)
+        {
+            throw query_exception("database_table::update_cell: column '" +
+                                      m_schema.columns[_col].name + "' is "
+                                      "generated; the database computes it",
+                                  D_DB_UNSUPPORTED);
+        }
 
         m_data[_row][_col] = _value;
         mark_dirty(modify_action::update_cell);
@@ -1419,10 +1574,15 @@ public:
         return;
     }
 
+    // is_dirty -- whether the cache holds what commit() would write: a
+    // change through the table's members, or a cell or a row changed
+    // through the references and iterators element access gives, compared
+    // with the rows read; rows only reordered are no change
     bool
-    is_dirty() const noexcept
+    is_dirty() const
     {
-        return m_dirty;
+        return ( (m_dirty) ||
+                 (m_cache_differs()) );
     }
 
     bool
@@ -1641,15 +1801,26 @@ public:
      * @brief Writes the cache's changes to the table, as one unit, as the
      *        banner describes.
      *
+     * @note A row keeps the row read it stands for (table_row) through
+     *       element access, sorts and copies, so a changed key is an UPDATE
+     *       of that row, in an order that frees each new key before it is
+     *       taken; rows exchanging keys are written only under a key the
+     *       database can defer (PostgreSQL's DEFERRABLE).
+     *
      * @throws connection_exception when the table has no open connection;
      *         query_exception for a view's cache; with D_DB_UNSUPPORTED
-     *         without a primary key for rows read a page at a time, and for
-     *         rows read from the table's history (mariadb_table); with
-     *         D_DB_MISMATCH when the key is not the one the rows were read
-     *         with; with D_DB_INVALID_ARGUMENT when two rows hold the same
-     *         key; and what the statements throw, the layer's result with it,
-     *         after the unit is rolled back; transaction_exception when the
-     *         unit cannot begin or end.
+     *         without a primary key for rows read a page at a time, for rows
+     *         read from the table's history (mariadb_table), for a changed
+     *         generated column's cell, for rows exchanging keys under a key
+     *         the database cannot defer, and for a changed or removed row
+     *         read with a NULL in its key; with D_DB_MISMATCH when the key is
+     *         not the one the rows were read with; with D_DB_INVALID_ARGUMENT
+     *         when two rows hold the same key; with D_DB_NOT_FOUND for a row
+     *         whose key changed that another session deleted; and what the
+     *         statements throw, the layer's result with it, after the unit is
+     *         rolled back; transaction_exception when the unit cannot begin
+     *         or end. Every refusal but the last three comes before anything
+     *         is written.
      * @post On success the cache is not dirty, and is what the next commit()
      *       compares with; a cache that left values to the database, or held
      *       rows the table had not been read for, is read again. On failure
@@ -1785,9 +1956,10 @@ public:
      * @brief Creates the table the schema describes, in its schema, through
      *        the vendor's layer, which spells each column's type.
      *
-     * @note A composite primary key takes its columns in the table's order,
-     *       whatever order primary_key_columns lists them in. MariaDB and
-     *       MySQL commit an open transaction before it.
+     * @note A composite primary key takes its columns in the order
+     *       primary_key_columns lists them, then any other column marked
+     *       is_primary_key, in the table's order. MariaDB and MySQL commit an
+     *       open transaction before it.
      *
      * @param[in] _if_not_exists  whether a table already there is a success.
      * @throws connection_exception when the table has no open connection;
@@ -2062,6 +2234,38 @@ public:
     }
 
 protected:
+    // commit_plan -- what a keyed commit writes, in the order it writes it:
+    // the rows read that the cache no longer holds, deleted; the rows whose
+    // key changed, each with the row read it stands for, updated in place in
+    // an order that frees each new key before it is taken; the other changed
+    // rows, updated; the rows the cache adds, inserted. Rows that exchange
+    // keys are updated under the key's constraint deferred, `deferred` naming
+    // it, where the database can defer it (PostgreSQL's DEFERRABLE)
+    struct commit_plan
+    {
+        using pair_type = std::pair<const row_type*, const row_type*>;
+
+        std::vector<const row_type*> gone;
+        std::vector<pair_type>       rekeyed;
+        std::vector<pair_type>       changed;
+        std::vector<const row_type*> fresh;
+        std::string                  deferred;
+        bool                         initially_deferred = false;
+    };
+
+    // adopt_read_row -- numbers a row the database now holds as a row read,
+    // for a vendor's table that adds one to the cache and to the rows read
+    // alike (mariadb_table's RETURNING)
+    static void
+    adopt_read_row(
+        row_type& _row
+    ) noexcept
+    {
+        _row.m_origin = internal::next_row_origins(1u);
+
+        return;
+    }
+
     // validate_bound, validate_connected -- connection_exception unless the
     // table has a connection, an open one
     void
@@ -2116,7 +2320,7 @@ protected:
         const char* _caller
     ) const
     {
-        if (m_dirty)
+        if (is_dirty())
         {
             throw query_exception(std::string("database_table::") + _caller +
                                       ": the cache holds changes not yet "
@@ -2240,9 +2444,9 @@ protected:
     {
         if ( ( (m_sync.policy == sync_policy::on_access) ||
                (m_sync.policy == sync_policy::periodic) ) &&
-             (!m_dirty) &&
-             (is_stale()) &&
-             (is_connected()) )
+             (is_stale())                                   &&
+             (is_connected())                               &&
+             (!is_dirty()) )
         {
             refresh();
         }
@@ -2366,7 +2570,7 @@ protected:
         validate_mutable("commit");
 
         // nothing changed, nothing to write
-        if (!m_dirty)
+        if (!is_dirty())
         {
             return;
         }
@@ -2415,6 +2619,14 @@ protected:
                                   D_DB_MISMATCH);
         }
 
+        // what the commit writes, settled and checked before anything is
+        // written, so that a refusal leaves the database and the cache as
+        // they were
+        m_refuse_generated_changes();
+
+        const commit_plan        plan = (keys.empty())
+                                            ? commit_plan()
+                                            : m_plan(keys, was_loaded);
         storage_type             reread;
         std::vector<column_info> adopted;
         bool                     read_again = false;
@@ -2424,7 +2636,7 @@ protected:
             {
                 const bool left = (keys.empty())
                                       ? m_replace(was_loaded, _insert)
-                                      : m_differ(keys, was_loaded, _insert);
+                                      : m_differ(plan, keys, _insert);
 
                 // what the database chose, or the rows a replace needs
                 read_again = ( (left) ||
@@ -2446,7 +2658,7 @@ protected:
         }
         else
         {
-            m_original      = (keys.empty()) ? storage_type() : m_data;
+            m_mark_read();
             m_original_keys = keys;
             m_loaded        = true;
             m_dirty         = false;
@@ -2611,8 +2823,10 @@ protected:
     {
         // the statement binds the whole value, where it can
         if constexpr ( (std::is_same_v<value_type, value>) &&
-                       (is_detected<internal::statement_bind_value_t,
-                                    Statement>::value) )
+                       (internal::has_own<
+                            internal::statement_bind_value_base_t,
+                            internal::statement_bind_value_t,
+                            Statement>::value) )
         {
             _stmt.bind_value(_index, _v);
         }
@@ -2755,6 +2969,9 @@ protected:
 
         return face::string_arg();
     }
+
+    // npos -- no row: a cached row standing for no row read
+    static constexpr size_type npos = static_cast<size_type>(-1);
 
     Connection*  m_connection;
     table_schema m_schema;
@@ -3068,8 +3285,7 @@ private:
         std::vector<size_type> keys = key_columns();
 
         m_data          = std::move(_rows);
-        m_original      = (keys.empty()) ? storage_type()
-                                         : m_data;
+        m_mark_read();
         m_original_keys = std::move(keys);
         m_loaded        = true;
         m_from_table    = m_table_suffix.empty();
@@ -3181,89 +3397,29 @@ private:
                               : _insert(rows);
     }
 
-    // m_differ -- a commit by the key: the rows read whose key the cache no
-    // longer holds deleted, those it changed updated, the rest inserted;
-    // whether a value was left to the database, a generated column's that an
-    // update changed among them
+    // m_differ -- a commit by the key, as the plan settled it: the rows read
+    // that the cache no longer holds deleted, those whose key changed
+    // updated in place, the other changed rows updated, the new rows
+    // inserted; whether a value was left to the database, a generated
+    // column's that an update changed among them
     template<typename Inserter>
     bool
     m_differ(
+        const commit_plan&            _plan,
         const std::vector<size_type>& _keys,
-        bool                          _was_loaded,
         Inserter&&                    _insert
     )
     {
-        using key_type = std::vector<value_type>;
-
-        std::map<key_type, const row_type*>                   read;
-        std::set<key_type>                                    held;
-        std::vector<const row_type*>                          fresh;
-        std::vector<std::pair<const row_type*, const row_type*>> changed;
-        std::vector<const row_type*>                          gone;
-
-        // the rows read, by key; one with a NULL in its key has none
-        if (_was_loaded)
-        {
-            for (const row_type& record : m_original)
-            {
-                key_type key;
-
-                if (key_of(record, _keys, key))
-                {
-                    read.emplace(std::move(key), &record);
-                }
-            }
-        }
-
-        // each cached row: new, changed, or as it was read
-        for (const row_type& record : m_data)
-        {
-            key_type key;
-
-            if (!key_of(record, _keys, key))
-            {
-                fresh.push_back(&record);
-
-                continue;
-            }
-
-            if (!held.insert(key).second)
-            {
-                throw query_exception("database_table::commit: two rows hold "
-                                      "the same primary key",
-                                      D_DB_INVALID_ARGUMENT);
-            }
-
-            const typename std::map<key_type, const row_type*>::const_iterator
-                found = read.find(key);
-
-            if (found == read.end())
-            {
-                fresh.push_back(&record);
-            }
-            else if (!m_same_row(record, *found->second))
-            {
-                changed.emplace_back(&record, found->second);
-            }
-        }
-
-        // the rows read that the cache no longer holds
-        for (const std::pair<const key_type, const row_type*>& entry : read)
-        {
-            if (held.find(entry.first) == held.end())
-            {
-                gone.push_back(entry.second);
-            }
-        }
-
-        m_delete_rows(gone, _keys);
-        m_update_rows(changed, _keys);
+        m_delete_rows(_plan.gone, _keys);
+        m_rekey_rows(_plan, _keys);
+        m_update_rows(_plan.changed, _keys);
 
         // a row updated changes what a generated column computes
-        const bool recomputed = ( (!changed.empty()) &&
+        const bool recomputed = ( ( (!_plan.changed.empty()) ||
+                                    (!_plan.rekeyed.empty()) ) &&
                                   (m_has_generated()) );
-        const bool left       = (fresh.empty()) ? false
-                                                : _insert(fresh);
+        const bool left       = (_plan.fresh.empty()) ? false
+                                                      : _insert(_plan.fresh);
 
         return ( (left) ||
                  (recomputed) );
@@ -3405,6 +3561,607 @@ private:
         {
             if ( (!m_schema.columns[c].is_generated) &&
                  (!(m_widened(_row[c]) == m_widened(_other[c]))) )
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // m_mark_read -- the cache as the rows read: each row numbered afresh,
+    // the number it travels with (table_row), and the rows read a copy of it
+    void
+    m_mark_read()
+    {
+        const re_std::uint64_t first =
+            internal::next_row_origins(m_data.size());
+
+        for (size_type r = 0; r < m_data.size(); ++r)
+        {
+            m_data[r].m_origin = first + static_cast<re_std::uint64_t>(r);
+        }
+
+        m_original = m_data;
+
+        return;
+    }
+
+    // m_origins -- each row read, by the number it travels with
+    std::unordered_map<re_std::uint64_t, size_type>
+    m_origins() const
+    {
+        std::unordered_map<re_std::uint64_t, size_type> origins;
+
+        origins.reserve(m_original.size());
+
+        for (size_type r = 0; r < m_original.size(); ++r)
+        {
+            origins.emplace(m_original[r].m_origin, r);
+        }
+
+        return origins;
+    }
+
+    // m_read_index -- the row read a cached row stands for, claimed for it;
+    // npos for a new row, or one standing for a row another claimed first
+    static size_type
+    m_read_index(
+        const std::unordered_map<re_std::uint64_t, size_type>& _origins,
+        const row_type&                                        _record,
+        std::vector<bool>&                                     _claimed
+    )
+    {
+        const auto found = _origins.find(_record.m_origin);
+
+        // a row read, not yet claimed
+        if ( (_record.m_origin == 0u)      ||
+             (found == _origins.end())     ||
+             (_claimed[found->second]) )
+        {
+            return npos;
+        }
+
+        _claimed[found->second] = true;
+
+        return found->second;
+    }
+
+    // m_cache_differs -- whether the cache holds a row, a cell or a missing
+    // row the rows read do not, each row matched with the row read it stands
+    // for; every cell compared, a generated column's too, which commit()
+    // then refuses
+    bool
+    m_cache_differs() const
+    {
+        // rows never read are all to be inserted
+        if (!m_loaded)
+        {
+            return !m_data.empty();
+        }
+
+        if (m_data.size() != m_original.size())
+        {
+            return true;
+        }
+
+        const auto        origins = m_origins();
+        std::vector<bool> claimed(m_original.size(), false);
+
+        for (const row_type& record : m_data)
+        {
+            const size_type read = m_read_index(origins, record, claimed);
+
+            if ( (read == npos) ||
+                 (!m_same_cells(record, m_original[read])) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // m_refuse_generated_changes -- query_exception with D_DB_UNSUPPORTED
+    // when a cached row changed a generated column's cell of the row read it
+    // stands for: the database computes it, and nothing would write it
+    void
+    m_refuse_generated_changes() const
+    {
+        // only rows read have a generated cell to change, where there is one
+        if ( (!m_loaded) ||
+             (!m_has_generated()) )
+        {
+            return;
+        }
+
+        const auto        origins = m_origins();
+        std::vector<bool> claimed(m_original.size(), false);
+
+        for (const row_type& record : m_data)
+        {
+            const size_type read = m_read_index(origins, record, claimed);
+
+            for (size_type c = 0; (read != npos) && (c < cols()); ++c)
+            {
+                if ( (m_schema.columns[c].is_generated) &&
+                     (!(m_widened(record[c]) ==
+                        m_widened(m_original[read][c]))) )
+                {
+                    throw query_exception("database_table::commit: the cache "
+                                              "changed generated column '" +
+                                              m_schema.columns[c].name +
+                                              "'; the database computes it",
+                                          D_DB_UNSUPPORTED);
+                }
+            }
+        }
+
+        return;
+    }
+
+    // m_plan -- a keyed commit's plan, every refusal thrown before anything
+    // is written: two cached rows of one key, D_DB_INVALID_ARGUMENT; a row
+    // read with a NULL in its key that the cache changed or removed, which
+    // no key can find, and rows exchanging keys where the key cannot be
+    // deferred, D_DB_UNSUPPORTED
+    commit_plan
+    m_plan(
+        const std::vector<size_type>& _keys,
+        bool                          _was_loaded
+    ) const
+    {
+        const auto                                origins = m_origins();
+        std::vector<bool>                         claimed(m_original.size(),
+                                                          false);
+        std::set<std::vector<value_type>>         held;
+        std::vector<typename commit_plan::pair_type>       rekeyed;
+        commit_plan                               plan;
+
+        for (const row_type& record : m_data)
+        {
+            std::vector<value_type> key;
+            const bool              keyed = key_of(record, _keys, key);
+
+            // two rows of one key cannot both be written
+            if ( (keyed) &&
+                 (!held.insert(key).second) )
+            {
+                throw query_exception("database_table::commit: two rows hold "
+                                      "the same primary key",
+                                      D_DB_INVALID_ARGUMENT);
+            }
+
+            const size_type read = (_was_loaded)
+                                       ? m_read_index(origins, record, claimed)
+                                       : npos;
+
+            // a row the cache adds, or one standing for a row read
+            if (read == npos)
+            {
+                plan.fresh.push_back(&record);
+            }
+            else
+            {
+                m_plan_row(plan,
+                           rekeyed,
+                           record,
+                           m_original[read],
+                           _keys,
+                           key,
+                           keyed);
+            }
+        }
+
+        // the rows read that no cached row stands for
+        for (size_type r = 0; (_was_loaded) && (r < m_original.size()); ++r)
+        {
+            if (!claimed[r])
+            {
+                m_require_found(m_original[r], _keys);
+                plan.gone.push_back(&m_original[r]);
+            }
+        }
+
+        plan.rekeyed = m_order_rekeyed(std::move(rekeyed), _keys, plan);
+
+        return plan;
+    }
+
+    // m_plan_row -- a cached row standing for a row read: unchanged, changed
+    // under its key, given a new key, or given a NULL in its key, which
+    // deletes the row read and inserts the cached one, for the database to
+    // fill the key
+    void
+    m_plan_row(
+        commit_plan&                         _plan,
+        std::vector<typename commit_plan::pair_type>& _rekeyed,
+        const row_type&                      _record,
+        const row_type&                      _read,
+        const std::vector<size_type>&        _keys,
+        const std::vector<value_type>&       _key,
+        bool                                 _keyed
+    ) const
+    {
+        std::vector<value_type> old;
+
+        // a row read with a NULL in its key, which no key can find
+        if (!key_of(_read, _keys, old))
+        {
+            if (!m_same_row(_record, _read))
+            {
+                m_require_found(_read, _keys);
+            }
+
+            return;
+        }
+
+        if (!_keyed)
+        {
+            _plan.gone.push_back(&_read);
+            _plan.fresh.push_back(&_record);
+        }
+        else if (_key == old)
+        {
+            if (!m_same_row(_record, _read))
+            {
+                _plan.changed.emplace_back(&_record, &_read);
+            }
+        }
+        else
+        {
+            _rekeyed.emplace_back(&_record, &_read);
+        }
+
+        return;
+    }
+
+    // m_require_found -- query_exception with D_DB_UNSUPPORTED for a row
+    // read with a NULL in its key (SQLite allows one), which no key finds
+    void
+    m_require_found(
+        const row_type&               _read,
+        const std::vector<size_type>& _keys
+    ) const
+    {
+        std::vector<value_type> key;
+
+        if (!key_of(_read, _keys, key))
+        {
+            throw query_exception("database_table::commit: a row read with a "
+                                  "NULL in its primary key cannot be found "
+                                  "by it, to update or delete",
+                                  D_DB_UNSUPPORTED);
+        }
+
+        return;
+    }
+
+    /**
+     * @brief Orders the rows whose key changes so that each new key is free
+     *        when its row takes it: a row waits for the row read under its new
+     *        key to leave it.
+     *
+     * @param[in]     _rekeyed  the rows, each with the row read it stands for.
+     * @param[in]     _keys     the key's columns.
+     * @param[in,out] _plan     receives the key constraint to defer, where
+     *                          rows exchange keys.
+     * @return the rows, in the order to update them.
+     * @throws query_exception with D_DB_UNSUPPORTED where rows exchange keys
+     *         and the database cannot defer the key.
+     */
+    std::vector<typename commit_plan::pair_type>
+    m_order_rekeyed(
+        std::vector<typename commit_plan::pair_type>&& _rekeyed,
+        const std::vector<size_type>&                  _keys,
+        commit_plan&                                   _plan
+    ) const
+    {
+        const size_type                                count = _rekeyed.size();
+        std::map<std::vector<value_type>, size_type>   by_old;
+        std::vector<size_type>                         waits(count, npos);
+        std::vector<int>                               state(count, 0);
+        std::vector<typename commit_plan::pair_type>   ordered;
+        bool                                           cycle = false;
+
+        // each row by the key it leaves, then the row it waits for
+        for (size_type i = 0; i < count; ++i)
+        {
+            std::vector<value_type> old;
+
+            (void)key_of(*_rekeyed[i].second, _keys, old);
+            by_old.emplace(std::move(old), i);
+        }
+
+        for (size_type i = 0; i < count; ++i)
+        {
+            std::vector<value_type> taken;
+
+            (void)key_of(*_rekeyed[i].first, _keys, taken);
+
+            const auto found = by_old.find(taken);
+
+            waits[i] = (found == by_old.end()) ? npos : found->second;
+        }
+
+        // each chain from its end; a chain that meets itself is a cycle
+        for (size_type start = 0; start < count; ++start)
+        {
+            std::vector<size_type> path;
+            size_type              at = start;
+
+            while ( (at != npos) &&
+                    (state[at] == 0) )
+            {
+                state[at] = 1;
+                path.push_back(at);
+                at = waits[at];
+            }
+
+            cycle = ( (cycle) ||
+                      ( (at != npos) &&
+                        (state[at] == 1) ) );
+
+            for (auto it = path.rbegin(); it != path.rend(); ++it)
+            {
+                state[*it] = 2;
+                ordered.push_back(_rekeyed[*it]);
+            }
+        }
+
+        // rows exchanging keys, under the key deferred, or refused
+        if (cycle)
+        {
+            _plan.deferred = m_deferrable_key(_plan.initially_deferred);
+
+            if (_plan.deferred.empty())
+            {
+                throw query_exception("database_table::commit: rows exchange "
+                                      "their primary keys, which the "
+                                      "database checks row by row; remove "
+                                      "the rows and insert them again, or, "
+                                      "on PostgreSQL, make the key "
+                                      "DEFERRABLE",
+                                      D_DB_UNSUPPORTED);
+            }
+        }
+
+        return ordered;
+    }
+
+    // m_deferrable_key -- PostgreSQL's DEFERRABLE primary key constraint on
+    // the table, schema-qualified and quoted, and whether it is initially
+    // deferred; "" for none, and on every other vendor, which defers none
+    std::string
+    m_deferrable_key(
+        bool& _initially_deferred
+    ) const
+    {
+        _initially_deferred = false;
+
+        // only PostgreSQL defers a primary key
+        if (m_connection->get_database_type() != database_type::postgresql)
+        {
+            return std::string();
+        }
+
+        auto statement = m_connection->prepare(
+            "SELECT n.nspname, c.conname, c.condeferred "
+            "FROM pg_catalog.pg_constraint c "
+            "JOIN pg_catalog.pg_namespace n ON n.oid = c.connamespace "
+            "WHERE c.conrelid = $1::regclass AND c.contype = 'p' "
+            "AND c.condeferrable");
+
+        statement->bind_string(1u, qualified_name());
+
+        std::unique_ptr<buffered_result_set> found =
+            statement->execute_query();
+
+        // no such constraint, or not deferrable
+        if (!found->next())
+        {
+            return std::string();
+        }
+
+        _initially_deferred =
+            found->get_bool(static_cast<std::size_t>(2)).value_or(false);
+
+        return quote_identifier(
+                   found->get_string(static_cast<std::size_t>(0)).value_or(""),
+                   database_type::postgresql) +
+               "." +
+               quote_identifier(
+                   found->get_string(static_cast<std::size_t>(1)).value_or(""),
+                   database_type::postgresql);
+    }
+
+    // m_rekey_rows -- each row whose key changed updated in place, its key
+    // and every other column the database does not compute, in the plan's
+    // order: found by the key it was read with, or, under a deferred key,
+    // where keys repeat until the last update, by its place in the table,
+    // taken before any row moves (m_locate_rows)
+    void
+    m_rekey_rows(
+        const commit_plan&            _plan,
+        const std::vector<size_type>& _keys
+    )
+    {
+        // nothing to move, nothing prepared
+        if (_plan.rekeyed.empty())
+        {
+            return;
+        }
+
+        const database_type    type = m_connection->get_database_type();
+        std::vector<size_type> written(_keys);
+        std::string            sets;
+
+        // the key's columns, then those outside it the database does not
+        // compute, each with its parameter
+        for (size_type c = 0; c < cols(); ++c)
+        {
+            if ( (std::find(_keys.begin(), _keys.end(), c) == _keys.end()) &&
+                 (!m_schema.columns[c].is_generated) )
+            {
+                written.push_back(c);
+            }
+        }
+
+        for (size_type w = 0; w < written.size(); ++w)
+        {
+            sets += (w > 0) ? ", " : "";
+            sets += quote_identifier(m_schema.columns[written[w]].name, type) +
+                    " = " + internal::dialect_placeholder(type, w + 1u);
+        }
+
+        const bool deferred = !_plan.deferred.empty();
+        const auto places   = (deferred) ? m_locate_rows(_plan, _keys)
+                                         : std::vector<std::string>();
+        auto       statement = m_connection->prepare(
+            "UPDATE " + qualified_name() + " SET " + sets +
+            ( (deferred)
+                  ? " WHERE tableoid = " +
+                        internal::dialect_placeholder(type,
+                                                      written.size() + 1u) +
+                        "::oid AND ctid = " +
+                        internal::dialect_placeholder(type,
+                                                      written.size() + 2u) +
+                        "::tid"
+                  : m_key_condition(_keys, written.size()) ));
+
+        m_defer_key(_plan, true);
+
+        for (size_type e = 0; e < _plan.rekeyed.size(); ++e)
+        {
+            const typename commit_plan::pair_type& entry  = _plan.rekeyed[e];
+            size_type                              number = 0;
+
+            statement->clear_parameters();
+
+            for (const size_type c : written)
+            {
+                bind_value(*statement, ++number, (*entry.first)[c]);
+            }
+
+            if (deferred)
+            {
+                statement->bind_string(++number, places[2u * e]);
+                statement->bind_string(++number, places[2u * e + 1u]);
+            }
+            else
+            {
+                for (const size_type key : _keys)
+                {
+                    bind_value(*statement, ++number, (*entry.second)[key]);
+                }
+            }
+
+            (void)statement->execute_update();
+        }
+
+        m_defer_key(_plan, false);
+
+        return;
+    }
+
+    // m_locate_rows -- PostgreSQL's place of each row the plan moves, found
+    // by the key it was read with and locked until the unit ends, so that it
+    // stays where it was found: its tableoid and ctid, as text, two strings
+    // a row; query_exception with D_DB_NOT_FOUND for a row no longer there
+    std::vector<std::string>
+    m_locate_rows(
+        const commit_plan&            _plan,
+        const std::vector<size_type>& _keys
+    )
+    {
+        std::vector<std::string> places;
+        auto                     locate = m_connection->prepare(
+            "SELECT tableoid::text, ctid::text FROM " + qualified_name() +
+            m_key_condition(_keys, 0) + " FOR UPDATE");
+
+        places.reserve(2u * _plan.rekeyed.size());
+
+        for (const typename commit_plan::pair_type& entry : _plan.rekeyed)
+        {
+            size_type number = 0;
+
+            locate->clear_parameters();
+
+            for (const size_type key : _keys)
+            {
+                bind_value(*locate, ++number, (*entry.second)[key]);
+            }
+
+            std::unique_ptr<buffered_result_set> found =
+                locate->execute_query();
+
+            // a row another session deleted since it was read
+            if (!found->next())
+            {
+                throw query_exception("database_table::commit: a row whose "
+                                      "key changed is no longer in the table",
+                                      D_DB_NOT_FOUND);
+            }
+
+            for (std::size_t c = 0; c < 2u; ++c)
+            {
+                places.push_back(found->get_string(c).value_or(""));
+            }
+        }
+
+        return places;
+    }
+
+    // m_defer_key -- the plan's deferred key constraint, deferred before the
+    // updates, and after them checked at once, then returned to deferred
+    // where it starts so; nothing where the plan defers none
+    void
+    m_defer_key(
+        const commit_plan& _plan,
+        bool               _before
+    )
+    {
+        if (_plan.deferred.empty())
+        {
+            return;
+        }
+
+        if (_before)
+        {
+            (void)m_connection->execute_update("SET CONSTRAINTS " +
+                                               _plan.deferred + " DEFERRED");
+
+            return;
+        }
+
+        (void)m_connection->execute_update("SET CONSTRAINTS " +
+                                           _plan.deferred + " IMMEDIATE");
+
+        if (_plan.initially_deferred)
+        {
+            (void)m_connection->execute_update("SET CONSTRAINTS " +
+                                               _plan.deferred + " DEFERRED");
+        }
+
+        return;
+    }
+
+    // m_same_cells -- whether two rows hold the same values in every cell,
+    // integers compared by number
+    bool
+    m_same_cells(
+        const row_type& _row,
+        const row_type& _other
+    ) const
+    {
+        if (_row.size() != _other.size())
+        {
+            return false;
+        }
+
+        for (size_type c = 0; c < _row.size(); ++c)
+        {
+            if (!(m_widened(_row[c]) == m_widened(_other[c])))
             {
                 return false;
             }

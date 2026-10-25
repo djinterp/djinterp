@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   dvalue.c
+* djinterp [tools]                                                      dvalue.c
 *
 *   Definitions for the non-inline declarations in dvalue.h.
 *     One scanner serves both numeric questions. d_awk_looks_numeric asks
@@ -13,7 +13,7 @@
 * path:      /src/djinterp/tools/dawk/dvalue.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dvalue.h"  // corresponding header
 // std
@@ -821,6 +821,74 @@ d_internal_effective_tag(
 
 
 /*
+d_internal_render_number
+  Renders a number value's text and stores it on the value.
+NOTE:
+  The rendering is tried in a buffer on the stack and, whenever it fills the
+  buffer and so may have been cut short, again in one twice the size: a fixed
+  64 bytes cut OFMT = "%.1000f" off at 63 characters.
+
+Parameter(s):
+  _value:  the number value.
+  _format: the format for a non-integral number; NULL selects CONVFMT.
+Return:
+  A boolean value corresponding to either:
+  - true, if the text was stored, or
+  - false, if memory ran out.
+*/
+static bool
+d_internal_render_number(
+    struct d_awk_value* _value,
+    const char*         _format
+)
+{
+    char   local[64];
+    char*  buffer   = local;
+    size_t capacity = sizeof(local);
+    size_t written  = d_awk_number_to_text(_value->number,
+                                           _format,
+                                           buffer,
+                                           capacity);
+
+    // a rendering that filled its buffer is made again in more room
+    while ((written + 1u) >= capacity)
+    {
+        char* const larger = (buffer == local)
+                           ? malloc(capacity * 2u)
+                           : realloc(buffer, capacity * 2u);
+
+        // report the failure rather than keeping a cut-short rendering
+        if (!larger)
+        {
+            if (buffer != local)
+            {
+                free(buffer);
+            }
+
+            return false;
+        }
+
+        buffer    = larger;
+        capacity *= 2u;
+        written   = d_awk_number_to_text(_value->number,
+                                         _format,
+                                         buffer,
+                                         capacity);
+    }
+
+    const bool stored = d_internal_store_text(_value, buffer, written);
+
+    // a buffer taken from the heap is released once its text is stored
+    if (buffer != local)
+    {
+        free(buffer);
+    }
+
+    return stored;
+}
+
+
+/*
 d_awk_value_text
   Returns the text of a value, rendering and caching it when necessary.
 CAUTION:
@@ -877,14 +945,8 @@ d_awk_value_text(
     // a number is rendered on first use and then cached
     if ((!_value->has_text) && (_value->tag == D_AWK_VAL_NUMBER))
     {
-        char         buffer[64];
-        const size_t written = d_awk_number_to_text(_value->number,
-                                                    _format,
-                                                    buffer,
-                                                    sizeof(buffer));
-
         // report the empty string when the rendering could not be held
-        if (!d_internal_store_text(_value, buffer, written))
+        if (!d_internal_render_number(_value, _format))
         {
             // report the empty length when the caller asked for it
             if (_out_length)

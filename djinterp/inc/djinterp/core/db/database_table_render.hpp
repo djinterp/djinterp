@@ -17,8 +17,8 @@
 * store's half, is the table's own write path: the vendor's layer spells
 * each column's type and every change to the table (d_<vendor>_create_table
 * and the rest, through the faces), quote_identifier (database.hpp) quotes
-* its names, and commit() writes its rows. So store_D, for a database_table,
-* is its commit(), and retrieve_D, the adjoint direction, its refresh().
+* its names, and commit() writes its rows. So store_table, for a database_table,
+* is its commit(), and load_table, the adjoint direction, its refresh().
 *   A database_table is not a table_base: table_base<Derived, Type> is a
 * CRTP mixin over one contiguous buffer of one type of cell, row by row,
 * reached through data(), and a database_table holds rows apart, each a
@@ -28,15 +28,15 @@
 * rather than the contiguous one.
 *   A container that is not a database_table -- one table-shaped, to be
 * written into a new table -- needs the container serial layer's encoder,
-* which this header does not yet see: store_D and retrieve_D refuse one at
+* which this header does not yet see: store_table and load_table refuse one at
 * compile time, and the fold's binding, table_traits, is compiled only when
 * that layer defines DJINTERP_HAVE_CONTAINER_TABLE_RENDER.
 *
 *
 * path:      /inc/djinterp/core/db/database_table_render.hpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.16
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -55,8 +55,8 @@ TABLE OF CONTENTS
 3.  THE STORE TARGET
     ----------------
     1.  The fold's two directions
-         1.  store_D
-         2.  retrieve_D
+         1.  store_table
+         2.  load_table
 4.  THE FOLD'S BINDING
     ------------------
     1.  table_traits
@@ -66,7 +66,7 @@ TABLE OF CONTENTS
 #define DJINTERP_DB_DATABASE_TABLE_RENDER_HPP 1
 
 // djinterp
-#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: the floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
@@ -82,8 +82,8 @@ TABLE OF CONTENTS
 #include <vector>       // std::vector
 // djinterp
 #include "../../djinterp.hpp"     // framework root
-#include "./database.hpp"         // field_type, query_exception, store_D,
-                                  // retrieve_D
+#include "./database.hpp"         // field_type, query_exception, store_table,
+                                  // load_table
 #include "./database_table.hpp"   // database_table, table_schema,
                                   // column_info
 
@@ -429,7 +429,7 @@ NS_END  // internal
 // 3.1    The fold's two directions
 //------------------------------------------------------------------------------
 // 3.1.1
-// store_D
+// store_table
 //   function template: renders a table-shaped container into the store
 // behind a connection, through Theta. A database_table, bound to that
 // connection, is committed: its commit(), the vendor's own where it has one
@@ -441,11 +441,11 @@ NS_END  // internal
 //
 // Usage:
 //     scores.update_cell(0, "points", value(42));
-//     store_D(db, scores);                   // scores.commit()
+//     store_table(db, scores);                   // scores.commit()
 template<typename Connection,
          typename RenderableTable>
 void
-store_D(
+store_table(
     Connection&       _connection,
     RenderableTable&& _table
 )
@@ -455,26 +455,27 @@ store_D(
     if constexpr (is_database_table_v<table_type>)
     {
         static_assert(!std::is_const_v<table_type>,
-                      "store_D commits a database_table, which changes it: "
+                      "store_table commits a database_table, which changes it: "
                       "pass it non-const");
 
-        internal::refuse_other_store(_connection, _table, "store_D");
+        internal::refuse_other_store(_connection, _table, "store_table");
         _table.commit();
     }
     else
     {
         static_assert(is_database_table_v<table_type>,
-                      "store_D renders a container other than a "
+                      "store_table renders a container other than a "
                       "database_table through the container serial layer's "
-                      "encoder, enc_T, which is not available; give store_D "
-                      "a database_table bound to the connection");
+                      "encoder, enc_T, which is not available; give "
+                      "store_table a database_table bound to the "
+                      "connection");
     }
 
     return;
 }
 
 // 3.1.2
-// retrieve_D
+// load_table
 //   function template: the adjoint direction, a table-shaped container
 // filled from the store behind a connection, through Theta. A
 // database_table, bound to that connection, is refreshed: its refresh()
@@ -484,7 +485,7 @@ store_D(
 template<typename Connection,
          typename RenderableTable>
 void
-retrieve_D(
+load_table(
     Connection&      _connection,
     RenderableTable& _table
 )
@@ -492,19 +493,19 @@ retrieve_D(
     if constexpr (is_database_table_v<RenderableTable>)
     {
         static_assert(!std::is_const_v<RenderableTable>,
-                      "retrieve_D refreshes a database_table, which changes "
+                      "load_table refreshes a database_table, which changes "
                       "it: pass it non-const");
 
-        internal::refuse_other_store(_connection, _table, "retrieve_D");
+        internal::refuse_other_store(_connection, _table, "load_table");
         _table.refresh();
     }
     else
     {
         static_assert(is_database_table_v<RenderableTable>,
-                      "retrieve_D fills a container other than a "
+                      "load_table fills a container other than a "
                       "database_table through the container serial layer's "
                       "decoder, the adjoint of enc_T, which is not "
-                      "available; give retrieve_D a database_table bound to "
+                      "available; give load_table a database_table bound to "
                       "the connection");
     }
 

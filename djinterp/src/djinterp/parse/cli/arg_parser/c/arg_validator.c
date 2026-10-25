@@ -11,7 +11,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_validator.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_validator.h"  // corresponding header
 // std
@@ -356,12 +356,19 @@ d_arg_validator_release(
     return;
 }
 
-/*
-d_arg_internal_validator_raw_describe
-  The description a validator has whatever its state, as CLI11's
-desc_function_ gives it: the fixed text, else the worked-out one, else
-nothing.
-*/
+/**
+ * @brief Appends a validator's description whatever its state, as CLI11's
+ *        desc_function_ gives it.
+ *
+ * @param[in]     _validator  the validator.
+ * @param[in,out] _out        the buffer that gains the description: the fixed
+ *                            text, else the worked-out one, else nothing.
+ * @return D_ARG_OK, or the describing function's or the buffer's status.
+ *
+ * The description a validator has whatever its state, as CLI11's
+ * desc_function_ gives it: the fixed text, else the worked-out one, else
+ * nothing.
+ */
 D_STATIC int
 d_arg_internal_validator_raw_describe(
     const struct d_arg_validator* _validator,
@@ -394,11 +401,19 @@ struct d_arg_internal_validator_pair
     struct d_arg_validator second;
 };
 
-/*
-d_arg_internal_validator_merge
-  CLI11's join of two texts: "(first)<merger>(second)" when both are there,
-else whichever is, else nothing.
-*/
+/**
+ * @brief Appends two texts joined as CLI11 joins them.
+ *
+ * @param[in]     _first   the first text.
+ * @param[in]     _second  the second text.
+ * @param[in]     _merger  the words between them.
+ * @param[in,out] _out     the buffer that gains "(first)<merger>(second)" when
+ *                         both are there, else whichever is.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's join of two texts: "(first)<merger>(second)" when both are there,
+ * else whichever is, else nothing.
+ */
 D_STATIC int
 d_arg_internal_validator_merge(
     struct d_pack_text   _first,
@@ -435,13 +450,22 @@ d_arg_internal_validator_merge(
                                     ')');
 }
 
-/*
-d_arg_internal_validator_operand
-  Runs an operand through its function directly -- its own flags do not
-apply inside a composite -- and moves its rejection out of the validation,
-which then reads as passing again; an error it stops with is left where it
-is, with its message, for the composite to stop with too.
-*/
+/**
+ * @brief Runs a composite's operand on a value, its rejection moved out.
+ *
+ * @param[in]     _operand     the operand, run through its function directly.
+ * @param[in,out] _validation  the validation, which reads as passing again
+ *                             after a rejection.
+ * @param[out]    _message     receives the rejection; empty when the value
+ *                             passed; untouched when the operand stopped.
+ * @return D_ARG_OK once a verdict is reached; otherwise the error the operand
+ *         stopped with, its message left in the validation.
+ *
+ * Runs an operand through its function directly -- its own flags do not
+ * apply inside a composite -- and moves its rejection out of the validation,
+ * which then reads as passing again; an error it stops with is left where it
+ * is, with its message, for the composite to stop with too.
+ */
 D_STATIC int
 d_arg_internal_validator_operand(
     const struct d_arg_validator* _operand,
@@ -464,11 +488,20 @@ d_arg_internal_validator_operand(
     return status;
 }
 
-/*
-d_arg_internal_validator_both
-  Runs both operands of a composite, the second on whatever the first made
-of the value, their rejections moved into `_first` and `_second`.
-*/
+/**
+ * @brief Runs both operands of a composite, the second on what the first made
+ *        of the value.
+ *
+ * @param[in]     _validator   the composite, whose data is the pair.
+ * @param[in,out] _validation  the validation.
+ * @param[out]    _first       receives the first operand's rejection.
+ * @param[out]    _second      receives the second operand's rejection.
+ * @return D_ARG_OK once both reached a verdict; otherwise the error an operand
+ *         stopped with.
+ *
+ * Runs both operands of a composite, the second on whatever the first made
+ * of the value, their rejections moved into `_first` and `_second`.
+ */
 D_STATIC int
 d_arg_internal_validator_both(
     const struct d_arg_validator* _validator,
@@ -490,11 +523,18 @@ d_arg_internal_validator_both(
            : status;
 }
 
-/*
-d_arg_internal_validator_and_validate
-  CLI11's `a & b`: both run; both rejections in parentheses, or the one
-there is.
-*/
+/**
+ * @brief Judges a value by CLI11's `a & b`.
+ *
+ * @param[in]     _validator   the composite, whose data is the pair.
+ * @param[in,out] _validation  the validation, rejected with both rejections in
+ *                             parentheses, or the one there is.
+ * @return D_ARG_OK once a verdict is reached; otherwise the error an operand
+ *         stopped with, or the buffer's status.
+ *
+ * CLI11's `a & b`: both run; both rejections in parentheses, or the one
+ * there is.
+ */
 D_STATIC int
 d_arg_internal_validator_and_validate(
     const struct d_arg_validator* _validator,
@@ -523,11 +563,18 @@ d_arg_internal_validator_and_validate(
     return status;
 }
 
-/*
-d_arg_internal_validator_or_validate
-  CLI11's `a | b`: both run; the value passes when either passes, and is
-otherwise rejected with both reasons in parentheses.
-*/
+/**
+ * @brief Judges a value by CLI11's `a | b`.
+ *
+ * @param[in]     _validator   the composite, whose data is the pair.
+ * @param[in,out] _validation  the validation, rejected with both reasons in
+ *                             parentheses when neither operand passes it.
+ * @return D_ARG_OK once a verdict is reached; otherwise the error an operand
+ *         stopped with, or the buffer's status.
+ *
+ * CLI11's `a | b`: both run; the value passes when either passes, and is
+ * otherwise rejected with both reasons in parentheses.
+ */
 D_STATIC int
 d_arg_internal_validator_or_validate(
     const struct d_arg_validator* _validator,
@@ -558,11 +605,19 @@ d_arg_internal_validator_or_validate(
     return status;
 }
 
-/*
-d_arg_internal_validator_not_validate
-  CLI11's `!a`: the operand runs, and its pass is the rejection "check
-<description> succeeded improperly", its rejection a pass.
-*/
+/**
+ * @brief Judges a value by CLI11's `!a`.
+ *
+ * @param[in]     _validator   the composite, whose data is the pair.
+ * @param[in,out] _validation  the validation, rejected when the operand passes
+ *                             it.
+ * @return D_ARG_OK once a verdict is reached; otherwise the error the operand
+ *         stopped with, or the status of the rejection's description or of the
+ *         buffer.
+ *
+ * CLI11's `!a`: the operand runs, and its pass is the rejection "check
+ * <description> succeeded improperly", its rejection a pass.
+ */
 D_STATIC int
 d_arg_internal_validator_not_validate(
     const struct d_arg_validator* _validator,
@@ -577,16 +632,21 @@ d_arg_internal_validator_not_validate(
                                         _validation,
                                         &rejection);
 
-    // a pass is the inversion's rejection
+    // a pass is the inversion's rejection, each part's failure the status
     if ( (status == D_ARG_OK) &&
          (rejection.length == 0u) )
     {
-        (void)d_arg_buffer_append_cstr(&_validation->message,
-                                       "check ");
-        (void)d_arg_internal_validator_raw_describe(&pair->first,
-                                                    &_validation->message);
         status = d_arg_buffer_append_cstr(&_validation->message,
-                                          " succeeded improperly");
+                                          "check ");
+        status = (status == D_ARG_OK)
+                 ? d_arg_internal_validator_raw_describe(
+                       &pair->first,
+                       &_validation->message)
+                 : status;
+        status = (status == D_ARG_OK)
+                 ? d_arg_buffer_append_cstr(&_validation->message,
+                                            " succeeded improperly")
+                 : status;
     }
 
     d_arg_buffer_release(&rejection);
@@ -594,11 +654,20 @@ d_arg_internal_validator_not_validate(
     return status;
 }
 
-/*
-d_arg_internal_validator_describe_pair
-  CLI11's _merge_description: the operands' descriptions -- whatever their
-state -- joined by `_merger`.
-*/
+/**
+ * @brief Appends a composite's description, as CLI11's _merge_description.
+ *
+ * @param[in]     _validator  the composite, whose data is the pair.
+ * @param[in]     _merger     the words between the operands' descriptions.
+ * @param[in,out] _out        the buffer that gains the description.
+ * @return D_ARG_OK, or the status of an operand's description, or of the
+ *         buffer; a description cut short fails with D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's _merge_description: the operands' descriptions -- whatever their
+ * state -- joined by `_merger`. An operand whose description could not be
+ * worked out fails the whole, with its status: a description cut short is
+ * not passed off as a whole one.
+ */
 D_STATIC int
 d_arg_internal_validator_describe_pair(
     const struct d_arg_validator* _validator,
@@ -610,20 +679,28 @@ d_arg_internal_validator_describe_pair(
         (const struct d_arg_internal_validator_pair*)_validator->data;
     struct d_arg_buffer first  = D_ARG_BUFFER_INIT;
     struct d_arg_buffer second = D_ARG_BUFFER_INIT;
+    int                 status = d_arg_internal_validator_raw_describe(
+                                     &pair->first,
+                                     &first);
 
-    (void)d_arg_internal_validator_raw_describe(&pair->first,
-                                                &first);
-    (void)d_arg_internal_validator_raw_describe(&pair->second,
-                                                &second);
+    // the second operand's, once the first's is whole
+    if (status == D_ARG_OK)
+    {
+        status = d_arg_internal_validator_raw_describe(&pair->second,
+                                                       &second);
+    }
 
-    const int status = ( (first.failed) ||
-                         (second.failed) )
-                       ? D_ARG_ERROR_OUT_OF_MEMORY
-                       : d_arg_internal_validator_merge(
-                             d_arg_buffer_text(&first),
-                             d_arg_buffer_text(&second),
-                             _merger,
-                             _out);
+    // the two joined, once both are whole
+    if (status == D_ARG_OK)
+    {
+        status = ( (first.failed) ||
+                   (second.failed) )
+                 ? D_ARG_ERROR_OUT_OF_MEMORY
+                 : d_arg_internal_validator_merge(d_arg_buffer_text(&first),
+                                                  d_arg_buffer_text(&second),
+                                                  _merger,
+                                                  _out);
+    }
 
     d_arg_buffer_release(&second);
     d_arg_buffer_release(&first);
@@ -631,10 +708,15 @@ d_arg_internal_validator_describe_pair(
     return status;
 }
 
-/*
-d_arg_internal_validator_and_describe
-  The operands' descriptions joined by " AND ".
-*/
+/**
+ * @brief Appends an AND composite's description.
+ *
+ * @param[in]     _validator  the composite.
+ * @param[in,out] _out        the buffer that gains the description.
+ * @return a status, as d_arg_internal_validator_describe_pair's.
+ *
+ * The operands' descriptions joined by " AND ".
+ */
 D_STATIC int
 d_arg_internal_validator_and_describe(
     const struct d_arg_validator* _validator,
@@ -646,10 +728,15 @@ d_arg_internal_validator_and_describe(
                                                   _out);
 }
 
-/*
-d_arg_internal_validator_or_describe
-  The operands' descriptions joined by " OR ".
-*/
+/**
+ * @brief Appends an OR composite's description.
+ *
+ * @param[in]     _validator  the composite.
+ * @param[in,out] _out        the buffer that gains the description.
+ * @return a status, as d_arg_internal_validator_describe_pair's.
+ *
+ * The operands' descriptions joined by " OR ".
+ */
 D_STATIC int
 d_arg_internal_validator_or_describe(
     const struct d_arg_validator* _validator,
@@ -661,10 +748,18 @@ d_arg_internal_validator_or_describe(
                                                   _out);
 }
 
-/*
-d_arg_internal_validator_not_describe
-  "NOT " and the operand's description, when it has one.
-*/
+/**
+ * @brief Appends a NOT composite's description.
+ *
+ * @param[in]     _validator  the composite.
+ * @param[in,out] _out        the buffer that gains "NOT " and the operand's
+ *                            description; nothing when it has none.
+ * @return D_ARG_OK, or the status of the operand's description;
+ *         D_ARG_ERROR_OUT_OF_MEMORY when it, or the buffer, was cut short.
+ *
+ * "NOT " and the operand's description, when it has one; an operand whose
+ * description could not be worked out fails it, with its status.
+ */
 D_STATIC int
 d_arg_internal_validator_not_describe(
     const struct d_arg_validator* _validator,
@@ -674,12 +769,13 @@ d_arg_internal_validator_not_describe(
     const struct d_arg_internal_validator_pair* const pair =
         (const struct d_arg_internal_validator_pair*)_validator->data;
     struct d_arg_buffer operand = D_ARG_BUFFER_INIT;
-
-    (void)d_arg_internal_validator_raw_describe(&pair->first,
-                                                &operand);
+    int                 status  = d_arg_internal_validator_raw_describe(
+                                      &pair->first,
+                                      &operand);
 
     // NOT before a description; nothing without one
-    if (operand.length > 0u)
+    if ( (status == D_ARG_OK) &&
+         (operand.length > 0u) )
     {
         (void)d_arg_buffer_append_cstr(_out,
                                        "NOT ");
@@ -687,20 +783,28 @@ d_arg_internal_validator_not_describe(
                                        d_arg_buffer_text(&operand));
     }
 
-    const int status = ( (operand.failed) ||
-                         (_out->failed) )
-                       ? D_ARG_ERROR_OUT_OF_MEMORY
-                       : D_ARG_OK;
+    status = ( (status == D_ARG_OK) &&
+               ( (operand.failed) ||
+                 (_out->failed) ) )
+             ? D_ARG_ERROR_OUT_OF_MEMORY
+             : status;
 
     d_arg_buffer_release(&operand);
 
     return status;
 }
 
-/*
-d_arg_internal_validator_and_choices
-  The values of the first operand that lists any.
-*/
+/**
+ * @brief Lists the values of an AND composite: those of the first operand that
+ *        lists any.
+ *
+ * @param[in] _validator  the composite.
+ * @param[in] _each       receives each value.
+ * @param[in] _context    `_each`'s context.
+ * @return D_ARG_OK, or the status the listing stopped with.
+ *
+ * The values of the first operand that lists any.
+ */
 D_STATIC int
 d_arg_internal_validator_and_choices(
     const struct d_arg_validator* _validator,
@@ -724,10 +828,17 @@ d_arg_internal_validator_and_choices(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_validator_or_choices
-  The values of both operands, the first's first.
-*/
+/**
+ * @brief Lists the values of an OR composite: both operands', the first's
+ *        first.
+ *
+ * @param[in] _validator  the composite.
+ * @param[in] _each       receives each value.
+ * @param[in] _context    `_each`'s context.
+ * @return D_ARG_OK, or the status the listing stopped with.
+ *
+ * The values of both operands, the first's first.
+ */
 D_STATIC int
 d_arg_internal_validator_or_choices(
     const struct d_arg_validator* _validator,
@@ -755,10 +866,13 @@ d_arg_internal_validator_or_choices(
     return status;
 }
 
-/*
-d_arg_internal_validator_pair_release
-  Both operands, then the pair.
-*/
+/**
+ * @brief Releases a composite's pair: both operands, then the pair.
+ *
+ * @param[in] _context  the pair, freed; NULL is ignored.
+ *
+ * Both operands, then the pair.
+ */
 D_STATIC void
 d_arg_internal_validator_pair_release(
     void* _context
@@ -780,11 +894,19 @@ d_arg_internal_validator_pair_release(
     return;
 }
 
-/*
-d_arg_internal_validator_pair_clone
-  Copies both operands into a new pair; the first failure is returned, and
-whatever was made of the copy released.
-*/
+/**
+ * @brief Copies a composite's pair.
+ *
+ * @param[in]  _pair  the pair.
+ * @param[out] _out   receives the copy, which
+ *                    d_arg_internal_validator_pair_release frees; untouched on
+ *                    failure.
+ * @return D_ARG_OK; otherwise the first operand copy's failure, or
+ *         D_ARG_ERROR_OUT_OF_MEMORY, whatever was made released.
+ *
+ * Copies both operands into a new pair; the first failure is returned, and
+ * whatever was made of the copy released.
+ */
 D_STATIC int
 d_arg_internal_validator_pair_clone(
     const struct d_arg_internal_validator_pair* _pair,
@@ -822,11 +944,16 @@ d_arg_internal_validator_pair_clone(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_validator_pair_copy
-  The pair's d_arg_copy_fn: a clone, or NULL; d_arg_validator_copy clones a
-composite itself, to report the status a failed operand copy had.
-*/
+/**
+ * @brief Copies a composite's pair, as its d_arg_copy_fn.
+ *
+ * @param[in] _context  the pair.
+ * @return the copy, which d_arg_internal_validator_pair_release frees; NULL
+ *         when it could not be made.
+ *
+ * The pair's d_arg_copy_fn: a clone, or NULL; d_arg_validator_copy clones a
+ * composite itself, to report the status a failed operand copy had.
+ */
 D_STATIC void*
 d_arg_internal_validator_pair_copy(
     const void* _context
@@ -846,12 +973,18 @@ d_arg_internal_validator_pair_copy(
     return copy;
 }
 
-/*
-d_arg_internal_validator_kind_and
-  The completion flags of a value both operands accept: a number when either
-takes numbers; otherwise a path when either takes paths, and a directory
-when either takes directories.
-*/
+/**
+ * @brief Gives the completion flags of a value both operands accept.
+ *
+ * @param[in] _first   the first operand's flags.
+ * @param[in] _second  the second operand's flags.
+ * @return D_ARG_VALIDATOR_NUMBER when either takes numbers; otherwise their
+ *         path and directory flags together.
+ *
+ * The completion flags of a value both operands accept: a number when either
+ * takes numbers; otherwise a path when either takes paths, and a directory
+ * when either takes directories.
+ */
 D_STATIC uint32_t
 d_arg_internal_validator_kind_and(
     uint32_t _first,
@@ -865,12 +998,20 @@ d_arg_internal_validator_kind_and(
            : (either & (D_ARG_VALIDATOR_PATH | D_ARG_VALIDATOR_DIRECTORY));
 }
 
-/*
-d_arg_internal_validator_kind_or
-  The completion flags of a value either operand accepts: a number when both
-take numbers; otherwise a path when either takes paths, and a directory
-when every operand that takes paths takes directories.
-*/
+/**
+ * @brief Gives the completion flags of a value either operand accepts.
+ *
+ * @param[in] _first   the first operand's flags.
+ * @param[in] _second  the second operand's flags.
+ * @return D_ARG_VALIDATOR_NUMBER when both take numbers; otherwise
+ *         D_ARG_VALIDATOR_PATH when either takes paths, with
+ *         D_ARG_VALIDATOR_DIRECTORY when every one that does takes directories;
+ *         0 otherwise.
+ *
+ * The completion flags of a value either operand accepts: a number when both
+ * take numbers; otherwise a path when either takes paths, and a directory
+ * when every operand that takes paths takes directories.
+ */
 D_STATIC uint32_t
 d_arg_internal_validator_kind_or(
     uint32_t _first,
@@ -897,12 +1038,22 @@ d_arg_internal_validator_kind_or(
            : (path | (all_dirs ? directory : 0u));
 }
 
-/*
-d_arg_internal_validator_compose
-  A composite over a pair: a failed operand fails it, with the first
-failure's status and reason, and both operands are released; otherwise the
-pair is its context, freed and copied with it. A NOT passes a NULL second.
-*/
+/**
+ * @brief Makes a composite over two operands.
+ *
+ * @param[in]     _first     the first operand, consumed.
+ * @param[in,out] _second    the second operand, consumed; NULL for a NOT.
+ * @param[in]     _validate  the composite's validation.
+ * @param[in]     _describe  its description.
+ * @param[in]     _choices   its listing.
+ * @return the composite, which owns the pair; a failed validator, both operands
+ *         released, when an operand failed -- with its status and reason -- or
+ *         the pair could not be allocated.
+ *
+ * A composite over a pair: a failed operand fails it, with the first
+ * failure's status and reason, and both operands are released; otherwise the
+ * pair is its context, freed and copied with it. A NOT passes a NULL second.
+ */
 D_STATIC struct d_arg_validator
 d_arg_internal_validator_compose(
     struct d_arg_validator  _first,
@@ -956,12 +1107,20 @@ d_arg_internal_validator_compose(
 // 4.  LIFETIME AND SETTINGS
 //==============================================================================
 
-/*
-d_arg_internal_validator_copy_context
-  A context for a copy: a borrowed one is shared; a composite's is cloned,
-its status kept; any other owned one goes through its copy function, and
-without one cannot be copied.
-*/
+/**
+ * @brief Makes a context for a validator's copy.
+ *
+ * @param[in]  _source  the validator copied.
+ * @param[out] _data    receives the context: a borrowed one shared, an owned
+ *                      one copied; NULL on failure.
+ * @return D_ARG_OK; D_ARG_ERROR_UNSUPPORTED for an owned context without a copy
+ *         function; D_ARG_ERROR_OUT_OF_MEMORY; or a composite operand copy's
+ *         failure.
+ *
+ * A context for a copy: a borrowed one is shared; a composite's is cloned,
+ * its status kept; any other owned one goes through its copy function, and
+ * without one cannot be copied.
+ */
 D_STATIC int
 d_arg_internal_validator_copy_context(
     const struct d_arg_validator* _source,
@@ -1000,10 +1159,15 @@ d_arg_internal_validator_copy_context(
            : D_ARG_ERROR_OUT_OF_MEMORY;
 }
 
-/*
-d_arg_internal_validator_copy_text
-  A copy of an owned text field; NULL stays NULL.
-*/
+/**
+ * @brief Copies an owned text field.
+ *
+ * @param[in]  _text  the text; NULL for none.
+ * @param[out] _copy  receives the copy; NULL for none.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with `*_copy` NULL.
+ *
+ * A copy of an owned text field; NULL stays NULL.
+ */
 D_STATIC int
 d_arg_internal_validator_copy_text(
     const char* _text,
@@ -1077,11 +1241,17 @@ d_arg_validator_copy(
     return copy;
 }
 
-/*
-d_arg_internal_validator_set_text
-  Replaces an owned text field with a copy, NULL clearing it; a refused copy
-fails the validator and leaves the field as it was.
-*/
+/**
+ * @brief Replaces a validator's owned text field with a copy.
+ *
+ * @param[in,out] _validator  the validator, failed when the copy is refused.
+ * @param[in,out] _field      the field, left as it was on failure.
+ * @param[in]     _text       the text, copied; NULL clears the field.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * Replaces an owned text field with a copy, NULL clearing it; a refused copy
+ * fails the validator and leaves the field as it was.
+ */
 D_STATIC int
 d_arg_internal_validator_set_text(
     struct d_arg_validator* _validator,
@@ -1150,10 +1320,15 @@ d_arg_validator_set_description(
                                              _description);
 }
 
-/*
-d_arg_internal_validator_switch
-  Sets or clears one of a validator's flags.
-*/
+/**
+ * @brief Sets or clears one of a validator's flags.
+ *
+ * @param[in,out] _validator  the validator; NULL is ignored.
+ * @param[in]     _flag       the flag.
+ * @param[in]     _on         whether it is set.
+ *
+ * Sets or clears one of a validator's flags.
+ */
 D_STATIC void
 d_arg_internal_validator_switch(
     struct d_arg_validator* _validator,
@@ -1233,12 +1408,19 @@ d_arg_validator_set_application_index(
 // 5.  USE
 //==============================================================================
 
-/*
-d_arg_internal_validator_run_on_copy
-  CLI11's non_modifying run: the function judges a validation of its own,
-whose verdict -- rejection or stop -- is moved into `_validation` while
-whatever it made of the value is dropped.
-*/
+/**
+ * @brief Runs a validator that does not modify, as CLI11's non_modifying run.
+ *
+ * @param[in]     _validator   the validator.
+ * @param[in,out] _validation  the validation, which gains the verdict but not
+ *                             the rewriting.
+ * @return D_ARG_OK once a verdict is reached; otherwise the error the function
+ *         stopped with.
+ *
+ * CLI11's non_modifying run: the function judges a validation of its own,
+ * whose verdict -- rejection or stop -- is moved into `_validation` while
+ * whatever it made of the value is dropped.
+ */
 D_STATIC int
 d_arg_internal_validator_run_on_copy(
     const struct d_arg_validator* _validator,
@@ -1728,12 +1910,19 @@ d_arg_internal_validator_read(
            : status;
 }
 
-/*
-d_arg_internal_validator_range_validate
-  CLI11's Range: a value that does not convert, or lies below the low bound
-or above the high one, is rejected with "Value <value> not in range [<low>
-- <high>]"; a NaN, which neither comparison catches, passes, as in CLI11.
-*/
+/**
+ * @brief Judges a value by a validator's bounds, as CLI11's Range.
+ *
+ * @param[in]     _validator   the validator: the type and the bounds.
+ * @param[in,out] _validation  the validation, rejected for a value that does
+ *                             not convert or lies outside the bounds.
+ * @return D_ARG_OK once a verdict is reached; otherwise the status the
+ *         conversion stopped with, or the buffer's.
+ *
+ * CLI11's Range: a value that does not convert, or lies below the low bound
+ * or above the high one, is rejected with "Value <value> not in range [<low>
+ * - <high>]"; a NaN, which neither comparison catches, passes, as in CLI11.
+ */
 D_STATIC int
 d_arg_internal_validator_range_validate(
     const struct d_arg_validator* _validator,
@@ -1777,11 +1966,16 @@ d_arg_internal_validator_range_validate(
                                              &_validation->message);
 }
 
-/*
-d_arg_internal_validator_range_describe
-  CLI11's Range description: "<TYPE> in [<low> - <high>]", the type named
-by its descriptor.
-*/
+/**
+ * @brief Describes a Range, as CLI11 does.
+ *
+ * @param[in]     _validator  the validator: the type and the bounds.
+ * @param[in,out] _out        the buffer that gains the description.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's Range description: "<TYPE> in [<low> - <high>]", the type named
+ * by its descriptor.
+ */
 D_STATIC int
 d_arg_internal_validator_range_describe(
     const struct d_arg_validator* _validator,
@@ -1800,10 +1994,15 @@ d_arg_internal_validator_range_describe(
                                              _out);
 }
 
-/*
-d_arg_internal_validator_positive_describe
-  PositiveNumber's description, as CLI11 names it.
-*/
+/**
+ * @brief Describes PositiveNumber.
+ *
+ * @param[in]     _validator  the validator; unused.
+ * @param[in,out] _out        the buffer that gains `POSITIVE`.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * PositiveNumber's description, as CLI11 names it.
+ */
 D_STATIC int
 d_arg_internal_validator_positive_describe(
     const struct d_arg_validator* _validator,
@@ -1816,10 +2015,15 @@ d_arg_internal_validator_positive_describe(
                                     "POSITIVE");
 }
 
-/*
-d_arg_internal_validator_non_negative_describe
-  NonNegativeNumber's description, as CLI11 names it.
-*/
+/**
+ * @brief Describes NonNegativeNumber.
+ *
+ * @param[in]     _validator  the validator; unused.
+ * @param[in,out] _out        the buffer that gains `NONNEGATIVE`.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * NonNegativeNumber's description, as CLI11 names it.
+ */
 D_STATIC int
 d_arg_internal_validator_non_negative_describe(
     const struct d_arg_validator* _validator,
@@ -1956,12 +2160,21 @@ d_arg_validator_non_negative_number(void)
     return validator;
 }
 
-/*
-d_arg_internal_validator_unquote
-  CLI11's process_quoted_string, without its secondary-array escape: a
-binary string becomes its bytes; double quotes come off, escapes resolved
-within; single or back quotes come off, nothing more.
-*/
+/**
+ * @brief Unquotes a quoted value, as CLI11's process_quoted_string.
+ *
+ * @param[in]     _value  the value, quoted.
+ * @param[in,out] _out    the buffer that gains what the quotes enclose, escapes
+ *                        resolved within double quotes.
+ * @param[in,out] _error  the buffer that gains the message of a malformed
+ *                        escape.
+ * @return D_ARG_OK; D_ARG_ERROR_VALIDATION for a malformed escape; or a
+ *         buffer's status.
+ *
+ * CLI11's process_quoted_string, without its secondary-array escape: a
+ * binary string becomes its bytes; double quotes come off, escapes resolved
+ * within; single or back quotes come off, nothing more.
+ */
 D_STATIC int
 d_arg_internal_validator_unquote(
     struct d_pack_text   _value,
@@ -1994,13 +2207,20 @@ d_arg_internal_validator_unquote(
                                     inner);
 }
 
-/*
-d_arg_internal_validator_escaped_validate
-  CLI11's EscapedString: a quoted value is unquoted; an unquoted one with a
-backslash is a binary string's bytes or has its escapes resolved; anything
-else stands. A malformed escape is the rejection, as CLI11 returns its
-invalid_argument's what().
-*/
+/**
+ * @brief Resolves a value's quotes and escapes, as CLI11's EscapedString.
+ *
+ * @param[in]     _validator   the validator; unused.
+ * @param[in,out] _validation  the validation, whose value is replaced by the
+ *                             result, or rejected for a malformed escape.
+ * @return D_ARG_OK once a verdict is reached; otherwise
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's EscapedString: a quoted value is unquoted; an unquoted one with a
+ * backslash is a binary string's bytes or has its escapes resolved; anything
+ * else stands. A malformed escape is the rejection, as CLI11 returns its
+ * invalid_argument's what().
+ */
 D_STATIC int
 d_arg_internal_validator_escaped_validate(
     const struct d_arg_validator* _validator,

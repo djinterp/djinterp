@@ -21,7 +21,7 @@
 * path:      /inc/re_std/expected/unexpect.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.05.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef RE_STD_EXPECTED_UNEXPECT_HPP
@@ -30,10 +30,8 @@
 // re_std
 #include "../config.hpp"  // RE_STD_* configuration
 
-// gate: the entire <expected> module is C++11+. unexpect_t is the
-// tag for expected's error-construction overload; it has no
-// meaningful use without expected, so we gate consistently.
-#if RE_STD_LANG_IS_CPP11_OR_HIGHER
+// levels: C++98 and up, as expected is. Below C++11 the tag is the same
+// type, and unexpect the same object, through the holder below.
 
 
 namespace re_std
@@ -90,9 +88,6 @@ static const unexpect_t& unexpect = internal::unexpect_holder<void>::value;
 
 
 }  // re_std
-
-
-#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 #endif  // RE_STD_EXPECTED_UNEXPECT_HPP

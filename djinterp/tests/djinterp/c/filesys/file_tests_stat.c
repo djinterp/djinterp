@@ -14,7 +14,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_stat.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 // std
@@ -239,7 +239,12 @@ d_fs_tests_stat_chmod
     memset(&st, 0, sizeof(st));
     if (d_file_stat(path, &st) == 0)
     {
+#if defined(_WIN32)
+        // Windows keeps one permission, read-only: 0600 leaves it writable
+        applied = applied && ((st.st_mode & 0200) != 0);
+#else
         applied = applied && ((st.st_mode & 0777) == 0600);
+#endif
     }
     else
     {

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                    dnode.c
+* djinterp [tools]                                                       dnode.c
 *
 * Node tree:
 *   Growable arrays of nodes and attributes plus an intern table, all indexed
@@ -15,7 +15,7 @@
 * path:      /src/djinterp/tools/dawk/dnode.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dnode.h"  // corresponding header
 // std
@@ -521,10 +521,13 @@ d_node_set_attribute(
             _tree->attribute_capacity = grown;
         }
 
+        // the new attribute was written at the end, where the run now goes,
+        // so it is held aside and follows the run: the run then starts where
+        // it stood, and ends with it
         const struct d_node_attribute pending =
             _tree->attributes[_tree->attribute_count];
 
-        (void)memmove(&_tree->attributes[_tree->attribute_count + 1u],
+        (void)memmove(&_tree->attributes[_tree->attribute_count],
                       &_tree->attributes[node->first_attribute],
                       node->attribute_count
                       * sizeof(struct d_node_attribute));
@@ -532,7 +535,7 @@ d_node_set_attribute(
         _tree->attributes[_tree->attribute_count + node->attribute_count]
             = pending;
 
-        node->first_attribute = (uint32_t)_tree->attribute_count + 1u;
+        node->first_attribute = (uint32_t)_tree->attribute_count;
 
         _tree->attribute_count += node->attribute_count;
 

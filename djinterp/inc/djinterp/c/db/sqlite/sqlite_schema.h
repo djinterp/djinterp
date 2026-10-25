@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/c/db/sqlite/sqlite_schema.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -74,9 +74,10 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict
-// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
-// ruling of 2026.10.03 on round 3's question 1, (a)).
+// declares only where the build can spell one. Below it -- ISO strict C++98
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
+// question 1, (a)).
 #if defined(INT64_MAX)
 
 
@@ -158,7 +159,8 @@ int  d_sqlite_has_table_s(struct sqlite3* _db,
  * @param[in] _schema   the schema to create it in; `NULL` for "main".
  * @param[in] _table    the table's name.
  * @param[in] _columns  the columns, in order. Several marked
- *                      D_DB_COLUMN_PRIMARY_KEY make a composite key;
+ *                      D_DB_COLUMN_PRIMARY_KEY make a composite key, in the
+ *                      order their key_place numbers them, or theirs;
  *                      D_DB_COLUMN_AUTO_INCREMENT is valid only on a sole
  *                      key column.
  * @param[in] _count    how many columns; at least one.
@@ -168,7 +170,8 @@ int  d_sqlite_has_table_s(struct sqlite3* _db,
  *         old for; SQLITE_ERROR when the table exists without
  *         D_DB_IF_NOT_EXISTS, or SQLite rejects the definition; SQLITE_NOMEM;
  *         or SQLITE_MISUSE for a `NULL` argument, an empty name, an unknown
- *         flag or type, or AUTO_INCREMENT without a sole primary key.
+ *         flag or type, AUTO_INCREMENT without a sole primary key, or key
+ *         places that skip, repeat, or fall outside the key.
  */
 int  d_sqlite_create_table(struct sqlite3*           _db,
                            const char*               _schema,

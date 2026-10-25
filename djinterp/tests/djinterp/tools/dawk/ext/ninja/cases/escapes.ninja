@@ -1,0 +1,7 @@
+rule r
+  command = c $in > $out
+build a$ b c$:d: r e$$f g$ h
+  x = y
+build "q": r 'quote' a$ b
+build u: r a$
+   b

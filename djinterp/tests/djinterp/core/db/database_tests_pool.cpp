@@ -5,8 +5,12 @@
 * path:      /tests/djinterp/core/db/database_tests_pool.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.21
 *******************************************************************************/
+#include "../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
 // djinterp
 // tests for db/database.hpp section IX (connection_pool / pooled_connection)
 #include "database_tests.hpp"
@@ -595,3 +599,5 @@ namespace testing
 
 }   // namespace testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

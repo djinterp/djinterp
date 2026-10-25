@@ -13,16 +13,19 @@
 * path:      /tests/djinterp/net/net_tests_url.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "./net_tests.hpp"  // corresponding header
 // std
 #include <cstddef>     // std::size_t
 #include <functional>  // std::less
 #include <string>      // std::string
-#include <utility>     // std::move
 // djinterp
 #include "../../../inc/djinterp/net/net_url.hpp"  // the layer under test
+#if (D_MOVE_ENABLED == 1)
+    // std
+    #include <utility>  // std::move
+#endif  // D_MOVE_ENABLED
 
 
 NS_DJINTERP
@@ -71,10 +74,12 @@ NS_INTERNAL
         };
 
         // each view, bounded by the url's text
-        for (const net::url::view_type& view : views)
+        for (std::size_t i = 0u; i < sizeof(views) / sizeof(views[0]); ++i)
         {
+            const net::url::view_type& view = views[i];
+
             // a present view outside the text
-            if ( (view.data() != nullptr)             &&
+            if ( (view.data() != D_NULLPTR) &&
                  ( (before(view.data(),
                            begin)) ||
                    (before(end,
@@ -96,10 +101,10 @@ NS_INTERNAL
         const std::string& _text
     )
     {
-        return ( (_url.str() == _text)      &&
-                 (owns(_url))               &&
+        return ( (_url.str() == _text) &&
+                 (owns(_url))          &&
                  (same(_url.query(),
-                       "q"))                &&
+                       "q"))           &&
                  (same(_url.fragment(),
                        "f")) );
     }
@@ -112,21 +117,35 @@ tests_net_url_vocabulary
   Tests the following:
   - enumerators equal their C counterparts, converted either way
   - error names are the C foundation's
+  - url_error_to_net is d_net_url_error_to_net, error for error
 */
 bool
 tests_net_url_vocabulary()
 {
+    bool mapped = true;
     bool result = true;
 
+    // each error through the C++ face and the C one
+    for (int i = 0;
+         i <= static_cast<int>(D_NET_URL_ERROR_BUFFER_TOO_SMALL);
+         ++i)
+    {
+        const ::d_net_url_error error = static_cast< ::d_net_url_error>(i);
+
+        mapped = ( (mapped) &&
+                   (net::to_c(net::url_error_to_net(net::from_c(error))) ==
+                    ::d_net_url_error_to_net(error)) );
+    }
+
     result = internal::check(
-                 ( (net::to_c(net::url_error::buffer) ==
-                    D_NET_URL_ERROR_BUFFER)                          &&
+                 ( (net::to_c(net::url_error::buffer_too_small) ==
+                    D_NET_URL_ERROR_BUFFER_TOO_SMALL) &&
                    (net::from_c(D_NET_URL_ERROR_PORT) ==
-                    net::url_error::port)                            &&
+                    net::url_error::port)             &&
                    (net::to_c(net::url_host::ipv_future) ==
-                    D_NET_URL_HOST_IPVFUTURE)                        &&
+                    D_NET_URL_HOST_IPVFUTURE)         &&
                    (net::from_c(D_NET_URL_HOST_IPV4) ==
-                    net::url_host::ipv4)                             &&
+                    net::url_host::ipv4)              &&
                    (net::from_c(D_NET_URL_PART_SEGMENT) ==
                     net::url_part::segment) ),
                  "url enumerators equal their C counterparts") && result;
@@ -134,6 +153,9 @@ tests_net_url_vocabulary()
                  std::string(net::url_error_name(net::url_error::percent)) ==
                  ::d_net_url_error_name(D_NET_URL_ERROR_PERCENT),
                  "error names are the C foundation's") && result;
+    result = internal::check(mapped,
+                             "errors map onto io_error as onto d_net_error")
+             && result;
 
     return result;
 }
@@ -155,31 +177,31 @@ tests_net_url_parse()
     bool                  result = true;
 
     result = internal::check(
-                 ( (full.ok())                        &&
+                 ( (full.ok())                     &&
                    (internal::same(parsed.scheme(),
-                                   "https"))          &&
+                                   "https"))       &&
                    (internal::same(parsed.userinfo(),
-                                   "user"))           &&
+                                   "user"))        &&
                    (internal::same(parsed.host(),
-                                   "Example.COM"))    &&
+                                   "Example.COM")) &&
                    (internal::same(parsed.path(),
-                                   "/a/b"))           &&
+                                   "/a/b"))        &&
                    (internal::owns(parsed)) ),
                  "a url's components are views into its own text") &&
              result;
     result = internal::check(
-                 ( (parsed.has_userinfo())                 &&
-                   (!parsed.has_port())                    &&
-                   (parsed.effective_port() == 443u)       &&
-                   (parsed.is_tls())                       &&
-                   (parsed.is_absolute())                  &&
+                 ( (parsed.has_userinfo())           &&
+                   (!parsed.has_port())              &&
+                   (parsed.effective_port() == 443u) &&
+                   (parsed.is_tls())                 &&
+                   (parsed.is_absolute())            &&
                    (parsed.host_kind() == net::url_host::name) ),
                  "presence, kind, effective port, and TLS") && result;
     result = internal::check(
-                 ( (!bad.ok())                             &&
-                   (bad.error == net::url_error::port)     &&
-                   (bad.position == 9u)                    &&
-                   (bad.value.str().empty())               &&
+                 ( (!bad.ok())                         &&
+                   (bad.error == net::url_error::port) &&
+                   (bad.position == 9u)                &&
+                   (bad.value.str().empty())           &&
                    (bad.value.path().empty()) ),
                  "a refusal says why and where, with an empty url") &&
              result;
@@ -190,11 +212,12 @@ tests_net_url_parse()
 /*
 tests_net_url_ownership
   Tests the following:
-  - copy and move construction and assignment, of a short text and of a
-    heap-sized one, rebase every view onto the new url's own text
+  - copy construction and assignment and swap, of a short text and of a
+    heap-sized one, rebase every view onto the new url's own text; from
+    C++11, so do move construction and assignment
   - a copy outlives its source
-  - a moved-from url is the empty reference; self-assignment changes
-    nothing
+  - a url swapped with the empty reference, or from C++11 moved from, is the
+    empty reference; self-assignment changes nothing
 */
 bool
 tests_net_url_ownership()
@@ -208,17 +231,48 @@ tests_net_url_ownership()
     bool result = true;
 
     // an inline-buffer text, then a heap one
-    for (const std::string& text : texts)
+    for (std::size_t i = 0u; i < sizeof(texts) / sizeof(texts[0]); ++i)
     {
-        net::url copied;
-        net::url moved;
+        const std::string& text = texts[i];
+        net::url           copied;
+        net::url           taken;
 
         // the source dies before its copies are read
         {
             net::url source = net::url::parse(text).value;
 
             copied = source;
-            moved  = std::move(source);
+            taken.swap(source);
+
+            result = internal::check(
+                         ( (source.str().empty()) &&
+                           (internal::owns(source)) ),
+                         "a url swapped with the empty reference is it") &&
+                     result;
+        }
+
+        net::url  duplicate(copied);
+        net::url& alias = duplicate;
+
+        duplicate = alias;
+
+        result = internal::check(
+                     ( (internal::intact(copied,
+                                         text)) &&
+                       (internal::intact(taken,
+                                         text)) &&
+                       (internal::intact(duplicate,
+                                         text)) ),
+                     "copies and swaps own their views") && result;
+
+#if (D_MOVE_ENABLED == 1)
+        net::url moved;
+
+        // the source dies before the move's result is read
+        {
+            net::url source = net::url::parse(text).value;
+
+            moved = std::move(source);
 
             result = internal::check(
                          ( (source.str().empty()) &&
@@ -228,19 +282,16 @@ tests_net_url_ownership()
         }
 
         net::url  constructed(std::move(moved));
-        net::url  duplicate(copied);
-        net::url& alias = duplicate;
+        net::url& self = constructed;
 
-        duplicate = std::move(alias);
+        constructed = std::move(self);
 
         result = internal::check(
-                     ( (internal::intact(copied,
-                                         text))      &&
-                       (internal::intact(constructed,
-                                         text))      &&
-                       (internal::intact(duplicate,
-                                         text)) ),
-                     "copies and moves own their views") && result;
+                     ( (internal::intact(constructed,
+                                         text)) &&
+                       (moved.str().empty()) ),
+                     "moves own their views") && result;
+#endif  // D_MOVE_ENABLED
     }
 
     return result;
@@ -272,10 +323,10 @@ tests_net_url_resolution()
     bool                  result  = true;
 
     result = internal::check(
-                 ( (near.ok())                              &&
-                   (near.value.str() == "http://a/b/g")     &&
-                   (internal::owns(near.value))             &&
-                   (far.ok())                               &&
+                 ( (near.ok())                          &&
+                   (near.value.str() == "http://a/b/g") &&
+                   (internal::owns(near.value))         &&
+                   (far.ok())                           &&
                    (far.value.str() == "http://a/b/" + tail) ),
                  "targets resolve, at any length") && result;
     result = internal::check(
@@ -313,19 +364,19 @@ tests_net_url_encoding()
     result = internal::check(
                  ( (net::url_encode(raw,
                                     net::url_part::component) ==
-                    "a%20b%2Fc%3Fd%23e%25f")             &&
+                    "a%20b%2Fc%3Fd%23e%25f") &&
                    (net::url_encode(raw,
                                     net::url_part::path) ==
-                    "a%20b/c%3Fd%23e%25f")               &&
+                    "a%20b/c%3Fd%23e%25f")   &&
                    (encoded.size() == 900u) ),
                  "each part encodes what it must") && result;
     result = internal::check(
-                 ( (net::url_decode(encoded).text == spaces)     &&
-                   (nul.ok())                                    &&
+                 ( (net::url_decode(encoded).text == spaces) &&
+                   (nul.ok())                                &&
                    (nul.text == std::string("x\0y",
-                                            3u))                 &&
-                   (!bad.ok())                                   &&
-                   (bad.error == net::url_error::percent)        &&
+                                            3u))             &&
+                   (!bad.ok())                               &&
+                   (bad.error == net::url_error::percent)    &&
                    (bad.text.empty()) ),
                  "decoding reverses, keeps NULs, refuses bad escapes") &&
              result;
@@ -350,27 +401,25 @@ tests_net_url_endpoints()
                             7u);
     bool          result = true;
 
-    const net::io_error reached = net::url_endpoint(
-                                      net::url::parse(
-                                          "https://example.com/x").value,
-                                      web);
-    const net::io_error scoped  = net::url_endpoint(
-                                      net::url::parse(
-                                          "http://[fe80::1%25eth0]:8080/")
-                                          .value,
-                                      zoned);
-    const net::io_error refused = net::url_endpoint(
-                                      net::url::parse(
-                                          "mailto:x@example.com").value,
-                                      untouched);
+    const net::url secure = net::url::parse("https://example.com/x").value;
+    const net::url link   = net::url::parse("http://[fe80::1%25eth0]:8080/")
+                                .value;
+    const net::url mail   = net::url::parse("mailto:x@example.com").value;
+
+    const net::io_error::value reached = net::url_endpoint(secure,
+                                                           web);
+    const net::io_error::value scoped  = net::url_endpoint(link,
+                                                           zoned);
+    const net::io_error::value refused = net::url_endpoint(mail,
+                                                           untouched);
 
     result = internal::check(
-                 ( (reached == net::io_error::none)   &&
-                   (web.host == "example.com")        &&
-                   (web.port == 443u)                 &&
-                   (web.proto == net::protocol::tcp)  &&
-                   (scoped == net::io_error::none)    &&
-                   (zoned.host == "fe80::1%eth0")     &&
+                 ( (reached == net::io_error::none)  &&
+                   (web.host == "example.com")       &&
+                   (web.port == 443u)                &&
+                   (web.proto == net::protocol::tcp) &&
+                   (scoped == net::io_error::none)   &&
+                   (zoned.host == "fe80::1%eth0")    &&
                    (zoned.port == 8080u) ),
                  "URLs reach their endpoints") && result;
     result = internal::check(

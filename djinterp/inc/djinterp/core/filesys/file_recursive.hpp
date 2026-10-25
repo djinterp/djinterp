@@ -39,7 +39,7 @@
 * path:      /inc/djinterp/core/filesys/file_recursive.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -56,13 +56,12 @@ TABLE OF CONTENTS
 
 // std
 #include <cstddef>  // std::size_t
-#include <vector>   // std::vector, the child gather in remove_all
+#include <cerrno>   // errno, EINVAL, ELOOP, ENOENT, ENOTDIR
+#include <vector>   // std::vector, the walk's open directories
 // djinterp
 #include "file_path.hpp"    // path
 #include "file_common.hpp"  // error, the D_* kit
-#include "file_stat.hpp"    // file_kind, internal::type_query
-#include "file_dir.hpp"     // directory, directory_entry, remove_directory
-#include "file_ops.hpp"     // remove_file
+#include "file_dir.hpp"     // d_dir_open_at, d_dir_remove_all, the C layer's
 
 
 NS_DJINTERP
@@ -135,77 +134,190 @@ NS_INTERNAL
     }
 
     /**
-     * @brief Reports whether an entry names a real directory -- NOT a symlink
-     *        to one.
+     * @brief Whether a name is "." or "..", which name no entry to visit.
      *
-     * @note Prefers the readdir d_type, which does not follow; where that is
-     *       unreported, falls back to a no-follow mode query, so a link is
-     *       never mistaken for the directory it points at.
-     *
-     * @param[in] _child  the entry's full path.
-     * @param[in] _e      the entry as the directory reported it.
-     * @return true for a directory; false otherwise, and when the entry cannot
-     *         be examined.
+     * @param[in] _name  the name.
+     * @return true for either.
      */
     inline bool
-    entry_is_directory(
-        const path&            _child,
-        const directory_entry& _e
+    is_dots(
+        const char* _name
     )
     {
-        // the kernel already said what it is
-        if (_e.type_known())
-        {
-            return _e.is_directory();
-        }
-
-        error                      probe;
-        const file_kind::file_type t = internal::type_query(_child,
-                                                            false,
-                                                            probe);
-
-        return ( (!probe.failed()) &&
-                 (t == file_kind::type_directory) );
+        return ( (_name[0] == '.') &&
+                 ( (_name[1] == '\0') ||
+                   ( (_name[1] == '.') &&
+                     (_name[2] == '\0') ) ) );
     }
 
+    // walk_frame
+    //   struct (internal): one directory open on the way down: its handle,
+    // its path, and the depth its entries are visited at.
+    struct walk_frame
+    {
+        struct d_dir_t* m_dir;
+        path            m_path;
+        unsigned        m_depth;
+    };
+
+    // walk_stack
+    //   class (internal): the directories open from the root down, each
+    // closed however the walk ends -- a failure, or a visitor that throws.
+    class walk_stack
+    {
+    public:
+        walk_stack(void)
+            : m_frames()
+        {}
+
+        ~walk_stack(void)
+        {
+            while (!m_frames.empty())
+            {
+                pop();
+            }
+        }
+
+        void push(struct d_dir_t* _dir,
+                  const path&     _path,
+                  unsigned        _depth)
+        {
+            walk_frame frame;
+
+            frame.m_dir   = _dir;
+            frame.m_path  = _path;
+            frame.m_depth = _depth;
+
+            // owner_guard
+            //   struct (internal): closes the handle should the frame not be
+            // kept -- push_back throwing where exceptions are on.
+            struct owner_guard
+            {
+                struct d_dir_t* m_dir;
+
+                ~owner_guard(void)
+                {
+                    if (m_dir)
+                    {
+                        (void)d_dir_close(m_dir);
+                    }
+                }
+            };
+
+            owner_guard guard = { _dir };
+
+            m_frames.push_back(frame);
+            guard.m_dir = 0;
+
+            return;
+        }
+
+        void pop(void)
+        {
+            (void)d_dir_close(m_frames.back().m_dir);
+            m_frames.pop_back();
+
+            return;
+        }
+
+        walk_frame& back(void)
+        {
+            return m_frames.back();
+        }
+
+        bool empty(void) const
+        {
+            return m_frames.empty();
+        }
+
+    private:
+        D_DELETED_FN(walk_stack(const walk_stack& _other))
+        D_DELETED_FN(walk_stack& operator=(const walk_stack& _other))
+
+        std::vector<walk_frame> m_frames;
+    };
+
     /**
-     * @brief The recursion behind walk(): visits every entry of a directory in
-     *        pre-order, descending into real subdirectories only.
+     * @brief The loop behind walk(): every entry in pre-order, descending only
+     *        into what d_dir_open_at opens -- a directory, never a link to one,
+     *        and looked up in the directory it was read from.
      *
      * @tparam Visitor  the callable's type.
      *
-     * @param[in]     _dir    the directory to visit.
-     * @param[in,out] _visit  the visitor, shared by the whole recursion.
-     * @param[in]     _depth  how many levels below the root `_dir` is.
-     * @param[out]    _ec     set at the first directory that cannot be read.
-     * @return true when the subtree was walked; false at the first failure.
+     * @param[in]     _root   the directory whose tree to visit.
+     * @param[in,out] _visit  the visitor.
+     * @param[out]    _ec     set at the first failure.
+     * @return true when the tree was walked; false at the first failure.
      */
     template<typename Visitor>
-    bool
-    walk_impl(
-        const path& _dir,
+    inline bool
+    walk_tree(
+        const path& _root,
         Visitor&    _visit,
-        unsigned    _depth,
         error&      _ec
     )
     {
-        directory       d(_dir,
-                          _ec);
-        directory_entry e;
-
-        // the directory constructor has already set _ec
-        if (!d.is_open())
+        // an invalid root names nothing to walk
+        if (!_root.valid())
         {
+            _ec.assign(EINVAL);
+
             return false;
         }
 
-        // visit each entry, then descend into it if it is a real directory
-        while (d.read(e,
-                      _ec))
+        // the root itself may be named through a link, as any path may
+        struct d_dir_t* const root = d_dir_open(_root.c_str());
+
+        if (!root)
         {
-            const path child  = entry_path(_dir,
-                                           e.name(),
-                                           _ec);
+            _ec = error::from_errno();
+
+            return false;
+        }
+
+        walk_stack stack;
+
+        stack.push(root,
+                   _root,
+                   0);
+
+        // clear from here on: entry_path leaves _ec as it was on success
+        _ec.clear();
+
+        while (!stack.empty())
+        {
+            walk_frame& top  = stack.back();
+            uint8_t     type = DT_UNKNOWN;
+
+            errno = 0;
+
+            const char* const name = d_dir_read_name(top.m_dir,
+                                                     &type);
+
+            // the end of a directory, or a read that failed
+            if (!name)
+            {
+                if (errno != 0)
+                {
+                    _ec = error::from_errno();
+
+                    return false;
+                }
+
+                stack.pop();
+
+                continue;
+            }
+
+            // "." and ".." are no entries
+            if (is_dots(name))
+            {
+                continue;
+            }
+
+            const path child = entry_path(top.m_path,
+                                          path(name),
+                                          _ec);
 
             // an entry whose path cannot be made stops the walk, with why
             if (_ec.failed())
@@ -213,29 +325,45 @@ NS_INTERNAL
                 return false;
             }
 
-            const bool is_dir = entry_is_directory(child,
-                                                   e);
+            struct d_dir_t* sub = 0;
 
-            _visit(child,
-                   _depth,
-                   is_dir);
-
-            // fail fast: a subtree that cannot be read stops the whole walk
-            if (is_dir)
+            // a directory, or what may be one, opened without following a
+            // link; refused, it is visited as what it is, no directory
+            if ( (type == DT_DIR) ||
+                 (type == DT_UNKNOWN) )
             {
-                // propagate the failing level's _ec
-                if (!walk_impl(child,
-                               _visit,
-                               _depth + 1,
-                               _ec))
+                sub = d_dir_open_at(top.m_dir,
+                                    name);
+
+                if ( (!sub)              &&
+                     (errno != ELOOP)    &&
+                     (errno != ENOTDIR)  &&
+                     (errno != ENOENT) )
                 {
+                    _ec = error::from_errno();
+
                     return false;
                 }
             }
+
+            const unsigned depth = top.m_depth;
+
+            _visit(child,
+                   depth,
+                   (sub != 0));
+
+            // its entries next, a level down
+            if (sub)
+            {
+                stack.push(sub,
+                           child,
+                           depth + 1);
+            }
         }
 
-        // read() ended either at the end of the directory or on an error
-        return !_ec.failed();
+        _ec.clear();
+
+        return true;
     }
 
 NS_END  // internal
@@ -268,9 +396,8 @@ walk(
     error&      _ec
 )
 {
-    return internal::walk_impl(_root,
+    return internal::walk_tree(_root,
                                _visit,
-                               0,
                                _ec);
 }
 
@@ -283,13 +410,10 @@ walk(
  *       symlink is unlinked -- the LINK, never the target it points at.
  *       Removing a path that is not there is success, since the postcondition
  *       (nothing at `_p`) already holds.
- * @warning Not proof against a race: each level is examined, then opened
- *          and removed by its path, so a process that can write in the
- *          tree and swaps a directory for a symbolic link in between sends
- *          the removal down the link -- the race std::filesystem's own
- *          remove_all had (CVE-2022-21658). Run it on trees no other user
- *          can write; closing it takes directory-relative calls
- *          (openat/unlinkat) the C layer does not offer yet.
+ * @note Proof against a process that swaps a directory in the tree for a
+ *       link while it runs -- the race std::filesystem's own remove_all had
+ *       (CVE-2022-21658) -- as d_dir_remove_all is, which it is. One handle
+ *       is open per level of depth; a tree past PATH_MAX goes too.
  *
  * @param[in]  _p   the path to remove.
  * @param[out] _ec  cleared on success; set at the first failure, which stops
@@ -302,86 +426,26 @@ remove_all(
     error&      _ec
 )
 {
-    // no-follow: a link is a link
-    const file_kind::file_type t = internal::type_query(_p,
-                                                        false,
-                                                        _ec);
-
-    // a path that cannot be examined cannot be removed safely
-    if (_ec.failed())
+    // an invalid path names nothing to remove
+    if (!_p.valid())
     {
+        _ec.assign(EINVAL);
+
         return false;
     }
 
-    // already absent
-    if (t == file_kind::type_not_found)
+    // d_dir_remove_all: relative to each directory it read, links as
+    // themselves, nothing there already a success
+    if (d_dir_remove_all(_p.c_str()) != 0)
     {
-        _ec.clear();
+        _ec = error::from_errno();
 
-        return true;
+        return false;
     }
 
-    // Children are gathered into a list and the directory handle CLOSED before
-    // any of them are removed, rather than deleting while the same directory
-    // stream is being read -- which is fragile across platforms. Each entry
-    // owns its name, so the gathered paths stay valid after the handle is gone.
-    if (t == file_kind::type_directory)
-    {
-        std::vector<path> children;
+    _ec.clear();
 
-        {
-            directory       d(_p,
-                              _ec);
-            directory_entry e;
-
-            // the directory constructor has already set _ec
-            if (!d.is_open())
-            {
-                return false;
-            }
-
-            // gather every child before touching any of them
-            while (d.read(e,
-                          _ec))
-            {
-                const path child = internal::entry_path(_p,
-                                                        e.name(),
-                                                        _ec);
-
-                // a child whose path cannot be made cannot be removed
-                if (_ec.failed())
-                {
-                    return false;
-                }
-
-                children.push_back(child);
-            }
-
-            // a read error: do not delete a partial view
-            if (_ec.failed())
-            {
-                return false;
-            }
-        }   // the directory handle closes here, before any removal
-
-        // children first: a directory cannot go until they have
-        for (std::size_t i = 0; i < children.size(); ++i)
-        {
-            // stop at the first child that will not go
-            if (!remove_all(children[i],
-                            _ec))
-            {
-                return false;
-            }
-        }
-
-        return remove_directory(_p,
-                                _ec);
-    }
-
-    // a regular file or a symlink: unlink removes the entry itself
-    return remove_file(_p,
-                       _ec);
+    return true;
 }
 
 

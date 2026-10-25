@@ -19,7 +19,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_completion_sh.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -682,11 +682,17 @@ static const size_t ZSH_LINE_COUNT =
 // 1.  QUOTING
 //==============================================================================
 
-/*
-d_arg_internal_complete_sh_text
-  Text inside single quotes: each `'` closed, escaped and reopened, as
-'\'' does it; as a line of a description, each control character a space.
-*/
+/**
+ * @brief Appends text as it goes inside single quotes.
+ *
+ * @param[in,out] _out   the buffer that gains the text, its failure kept in it.
+ * @param[in]     _text  the text.
+ * @param[in]     _line  whether it is a line of a description, each control
+ *                       character then a space.
+ *
+ * Text inside single quotes: each `'` closed, escaped and reopened, as
+ * '\'' does it; as a line of a description, each control character a space.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_text(
     struct d_arg_buffer* _out,
@@ -722,10 +728,16 @@ d_arg_internal_complete_sh_text(
     return;
 }
 
-/*
-d_arg_internal_complete_sh_word
-  Text as one single-quoted word, after a space.
-*/
+/**
+ * @brief Appends text as one single-quoted word, after a space.
+ *
+ * @param[in,out] _out   the buffer that gains the word, its failure kept in it.
+ * @param[in]     _text  the text.
+ * @param[in]     _line  whether it is a line of a description, each control
+ *                       character then a space.
+ *
+ * Text as one single-quoted word, after a space.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_word(
     struct d_arg_buffer* _out,
@@ -744,11 +756,17 @@ d_arg_internal_complete_sh_word(
     return;
 }
 
-/*
-d_arg_internal_complete_sh_entry
-  An option's name, with its dashes, as one single-quoted word after a
-space.
-*/
+/**
+ * @brief Appends an option's name, with its dashes, as one single-quoted word
+ *        after a space.
+ *
+ * @param[in,out] _out    the buffer that gains the word, its failure kept in
+ *                        it.
+ * @param[in]     _entry  the name's entry in the model.
+ *
+ * An option's name, with its dashes, as one single-quoted word after a
+ * space.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_entry(
     struct d_arg_buffer*                        _out,
@@ -770,11 +788,17 @@ d_arg_internal_complete_sh_entry(
 // 2.  THE DATA
 //==============================================================================
 
-/*
-d_arg_internal_complete_sh_open
-  A data function's first lines: its name, after the program's, and the
-`case` over `_subject`.
-*/
+/**
+ * @brief Appends a data function's first lines.
+ *
+ * @param[in,out] _out      the buffer that gains them, its failure kept in it.
+ * @param[in]     _ident    the program's identifier.
+ * @param[in]     _name     the function's name, after the identifier.
+ * @param[in]     _subject  what its `case` is over.
+ *
+ * A data function's first lines: its name, after the program's, and the
+ * `case` over `_subject`.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_open(
     struct d_arg_buffer* _out,
@@ -795,11 +819,15 @@ d_arg_internal_complete_sh_open(
     return;
 }
 
-/*
-d_arg_internal_complete_sh_close
-  A data function's last lines: the `case` for anything else, doing
-`_fallback`, and the ends.
-*/
+/**
+ * @brief Appends a data function's last lines.
+ *
+ * @param[in,out] _out       the buffer that gains them, its failure kept in it.
+ * @param[in]     _fallback  what the `case` does for anything else.
+ *
+ * A data function's last lines: the `case` for anything else, doing
+ * `_fallback`, and the ends.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_close(
     struct d_arg_buffer* _out,
@@ -813,12 +841,17 @@ d_arg_internal_complete_sh_close(
     return;
 }
 
-/*
-d_arg_internal_complete_sh_commands
-  _cmd: each command's parent, switches and most subcommands, as p, f and
-m; and _sub: the command each subcommand name leads to under a command, as
-r, empty for none.
-*/
+/**
+ * @brief Appends the _cmd and _sub data functions.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _ident  the program's identifier.
+ * @param[in,out] _out    the buffer that gains them, its failure kept in it.
+ *
+ * _cmd: each command's parent, switches and most subcommands, as p, f and
+ * m; and _sub: the command each subcommand name leads to under a command, as
+ * r, empty for none.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_commands(
     const struct d_arg_internal_model* _model,
@@ -875,12 +908,17 @@ d_arg_internal_complete_sh_commands(
     return;
 }
 
-/*
-d_arg_internal_complete_sh_options
-  _opt: the option each name stands for under a command, as r, empty for
-none; and _info: each option's fewest and most values after a name, and
-the letter of its kind, as n, x and k.
-*/
+/**
+ * @brief Appends the _opt and _info data functions.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _ident  the program's identifier.
+ * @param[in,out] _out    the buffer that gains them, its failure kept in it.
+ *
+ * _opt: the option each name stands for under a command, as r, empty for
+ * none; and _info: each option's fewest and most values after a name, and
+ * the letter of its kind, as n, x and k.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_options(
     const struct d_arg_internal_model* _model,
@@ -938,11 +976,16 @@ d_arg_internal_complete_sh_options(
     return;
 }
 
-/*
-d_arg_internal_complete_sh_slots
-  _pos: a command's positionals in the order they take words, each as its
-option, r -- empty past the last -- and the most values it takes, y.
-*/
+/**
+ * @brief Appends the _pos data function.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _ident  the program's identifier.
+ * @param[in,out] _out    the buffer that gains it, its failure kept in it.
+ *
+ * _pos: a command's positionals in the order they take words, each as its
+ * option, r -- empty past the last -- and the most values it takes, y.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_slots(
     const struct d_arg_internal_model* _model,
@@ -986,11 +1029,19 @@ d_arg_internal_complete_sh_slots(
     return;
 }
 
-/*
-d_arg_internal_complete_sh_list_names
-  Names as single-quoted words: `_count` of the model's subcommand names
-from `_first`, or of its option names, with their dashes.
-*/
+/**
+ * @brief Appends a run of the model's names as single-quoted words.
+ *
+ * @param[in]     _model    the model.
+ * @param[in]     _first    the first name.
+ * @param[in]     _count    how many.
+ * @param[in]     _options  whether they are option names, with their dashes,
+ *                          not subcommand names.
+ * @param[in,out] _out      the buffer that gains them, its failure kept in it.
+ *
+ * Names as single-quoted words: `_count` of the model's subcommand names
+ * from `_first`, or of its option names, with their dashes.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_list_names(
     const struct d_arg_internal_model* _model,
@@ -1020,11 +1071,19 @@ d_arg_internal_complete_sh_list_names(
     return;
 }
 
-/*
-d_arg_internal_complete_sh_list_texts
-  The descriptions of the names d_arg_internal_complete_sh_list_names
-writes, as single-quoted words, each a line.
-*/
+/**
+ * @brief Appends the descriptions of a run of the model's names as
+ *        single-quoted words.
+ *
+ * @param[in]     _model    the model.
+ * @param[in]     _first    the first name.
+ * @param[in]     _count    how many.
+ * @param[in]     _options  whether they are option names, not subcommand names.
+ * @param[in,out] _out      the buffer that gains them, its failure kept in it.
+ *
+ * The descriptions of the names d_arg_internal_complete_sh_list_names
+ * writes, as single-quoted words, each a line.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_list_texts(
     const struct d_arg_internal_model* _model,
@@ -1048,12 +1107,21 @@ d_arg_internal_complete_sh_list_texts(
     return;
 }
 
-/*
-d_arg_internal_complete_sh_list
-  One command's line of _subs or _opts: its subcommand names, or its option
-names, as the array c, and, when described, their descriptions as the
-array d; nothing for a command without any.
-*/
+/**
+ * @brief Appends one command's line of _subs or _opts.
+ *
+ * @param[in]     _model      the model.
+ * @param[in]     _command    the command's place in the model.
+ * @param[in]     _options    whether the line lists option names, not
+ *                            subcommand names.
+ * @param[in]     _described  whether their descriptions are listed too.
+ * @param[in,out] _out        the buffer that gains the line, its failure kept
+ *                            in it.
+ *
+ * One command's line of _subs or _opts: its subcommand names, or its option
+ * names, as the array c, and, when described, their descriptions as the
+ * array d; nothing for a command without any.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_list(
     const struct d_arg_internal_model* _model,
@@ -1103,11 +1171,19 @@ d_arg_internal_complete_sh_list(
     return;
 }
 
-/*
-d_arg_internal_complete_sh_names
-  _subs and _opts: each command's subcommand names, and its option names,
-as the array c -- and for zsh their descriptions, as the array d.
-*/
+/**
+ * @brief Appends the _subs and _opts data functions.
+ *
+ * @param[in]     _model      the model.
+ * @param[in]     _ident      the program's identifier.
+ * @param[in]     _described  whether the names' descriptions are listed too, as
+ *                            for zsh.
+ * @param[in,out] _out        the buffer that gains them, its failure kept in
+ *                            it.
+ *
+ * _subs and _opts: each command's subcommand names, and its option names,
+ * as the array c -- and for zsh their descriptions, as the array d.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_names(
     const struct d_arg_internal_model* _model,
@@ -1156,10 +1232,15 @@ d_arg_internal_complete_sh_names(
     return;
 }
 
-/*
-d_arg_internal_complete_sh_values
-  _vals: each option's choices, as the array c.
-*/
+/**
+ * @brief Appends the _vals data function.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _ident  the program's identifier.
+ * @param[in,out] _out    the buffer that gains it, its failure kept in it.
+ *
+ * _vals: each option's choices, as the array c.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_values(
     const struct d_arg_internal_model* _model,
@@ -1208,10 +1289,17 @@ d_arg_internal_complete_sh_values(
     return;
 }
 
-/*
-d_arg_internal_complete_sh_data
-  Every data function, the descriptions only when asked.
-*/
+/**
+ * @brief Appends every data function.
+ *
+ * @param[in]     _model      the model.
+ * @param[in]     _ident      the program's identifier.
+ * @param[in]     _described  whether the names' descriptions are listed too.
+ * @param[in,out] _out        the buffer that gains them, its failure kept in
+ *                            it.
+ *
+ * Every data function, the descriptions only when asked.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_data(
     const struct d_arg_internal_model* _model,
@@ -1244,10 +1332,16 @@ d_arg_internal_complete_sh_data(
 // 3.  THE SCRIPTS
 //==============================================================================
 
-/*
-d_arg_internal_complete_sh_header
-  A script's first comment: the shell, the program and how to load it.
-*/
+/**
+ * @brief Appends a script's first comment.
+ *
+ * @param[in,out] _out      the buffer that gains it, its failure kept in it.
+ * @param[in]     _shell    the shell's name.
+ * @param[in]     _program  the program's name.
+ * @param[in]     _loading  the lines that say how to load the script.
+ *
+ * A script's first comment: the shell, the program and how to load it.
+ */
 D_STATIC void
 d_arg_internal_complete_sh_header(
     struct d_arg_buffer* _out,
@@ -1322,11 +1416,16 @@ d_arg_internal_complete_bash(
     return status;
 }
 
-/*
-d_arg_internal_complete_zsh_tag
-  Whether the program's name can follow `#compdef`: not empty, not an
-option of it, and without a space or a control character.
-*/
+/**
+ * @brief Tells whether a program's name can follow `#compdef`.
+ *
+ * @param[in] _program  the name.
+ * @return `true` for a name that is not empty, not an option, and without a
+ *         space or a control character; `false` otherwise.
+ *
+ * Whether the program's name can follow `#compdef`: not empty, not an
+ * option of it, and without a space or a control character.
+ */
 D_STATIC bool
 d_arg_internal_complete_zsh_tag(
     struct d_pack_text _program
@@ -1351,13 +1450,19 @@ d_arg_internal_complete_zsh_tag(
     return true;
 }
 
-/*
-d_arg_internal_complete_zsh_footer
-  How the script ends: autoloaded as _<program> -- the file's name, as
-`#compdef` loads it -- it registers itself and completes at once; sourced,
-it registers itself when compinit is loaded, and says what is missing
-when it is not.
-*/
+/**
+ * @brief Appends how a zsh script ends.
+ *
+ * @param[in,out] _out      the buffer that gains the lines, its failure kept in
+ *                          it.
+ * @param[in]     _program  the program's name.
+ * @param[in]     _ident    the program's identifier.
+ *
+ * How the script ends: autoloaded as _<program> -- the file's name, as
+ * `#compdef` loads it -- it registers itself and completes at once; sourced,
+ * it registers itself when compinit is loaded, and says what is missing
+ * when it is not.
+ */
 D_STATIC void
 d_arg_internal_complete_zsh_footer(
     struct d_arg_buffer* _out,

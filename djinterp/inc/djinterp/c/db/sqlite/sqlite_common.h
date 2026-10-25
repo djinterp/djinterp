@@ -38,7 +38,7 @@
 * path:      /inc/djinterp/c/db/sqlite/sqlite_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -121,7 +121,19 @@ enum d_sqlite_feature
     D_SQLITE_FEATURE_JSON,               // json() and kin  [3.38.0, or JSON1]
     D_SQLITE_FEATURE_MATH_FUNCTIONS,     // sin(), ln(), ...  [3.35.0 + MATH]
     D_SQLITE_FEATURE_FTS5,               // full-text search 5        [FTS5]
-    D_SQLITE_FEATURE_RTREE               // R*Tree index             [RTREE]
+    D_SQLITE_FEATURE_RTREE,              // R*Tree index             [RTREE]
+    D_SQLITE_FEATURE_WAL,                // write-ahead logging
+                                         //      [3.7.0, unless OMIT_WAL]
+    D_SQLITE_FEATURE_ENCRYPTION,         // an encrypting build: SQLCipher,
+                                         // or one with a codec [HAS_CODEC]
+    D_SQLITE_FEATURE_SERIALIZE,          // a database as bytes, and bytes
+                                         // as a database
+                                         //   [3.36.0, unless
+                                         //   OMIT_DESERIALIZE; 3.23.0 with
+                                         //   ENABLE_DESERIALIZE]
+    D_SQLITE_FEATURE_LOAD_EXTENSION      // extensions loaded from shared
+                                         // libraries
+                                         //   [unless OMIT_LOAD_EXTENSION]
 };
 
 
@@ -145,9 +157,15 @@ bool        d_sqlite_library_at_least(int _major,
 
 // 2.2    Features
 //------------------------------------------------------------------------------
-// features -- whether the library loaded now can do it; `false` for a value
-// outside enum d_sqlite_feature
+// features -- whether the library loaded now can do it, and, for an API
+// beyond the floor's (serialization, extensions), the layer's build calls it
+// too; `false` for a value outside enum d_sqlite_feature. _threadsafe says
+// how the loaded library was built to be shared between threads, as
+// sqlite3_threadsafe does: 0 not at all; 1 serialized, any connection on any
+// thread; 2 multi-thread, each connection on one thread at a time. A mode a
+// program chooses with sqlite3_config is not seen
 bool        d_sqlite_supports(enum d_sqlite_feature _feature) D_NOTHROW;
+int         d_sqlite_library_threadsafe(void) D_NOTHROW;
 
 // 2.3    Result messages
 //------------------------------------------------------------------------------

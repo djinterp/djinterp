@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/net/tcp/tcp_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 
 #ifndef DJINTERP_NET_TCP_TCP_TESTS_HPP
@@ -29,11 +29,15 @@ NS_TESTING
 bool tests_tcp_options();
 bool tests_tcp_loopback();
 bool tests_tcp_streams();
+#if (D_MOVE_ENABLED == 1)
 bool tests_tcp_moves();
+#endif  // D_MOVE_ENABLED
+bool tests_tcp_results();
 bool tests_tcp_adopt();
 bool tests_tcp_accept_wake();
 bool tests_tcp_unix();
 bool tests_tcp_errors();
+bool tests_tcp_timeouts();
 bool tests_tcp_run_all();
 
 NS_END  // testing

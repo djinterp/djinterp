@@ -999,7 +999,7 @@ public:
     // liveness; returns true on success.
     bool ping() const
     {
-        return self().ping_helper();
+        return self().ping_impl();
     }
 
 
@@ -1634,13 +1634,13 @@ public:
     // _impl methods (defined in cassandra.cpp)
     // -----------------------------------------------------------------
 
-    void         connect_helper();
-    void         disconnect_helper();
-    bool         is_connected_helper() const;
-    bool         ping_helper() const;
-    std::string  get_server_version_helper() const;
-    std::string  get_last_error_helper() const;
-    int          get_last_error_code_helper() const;
+    void         connect_impl();
+    void         disconnect_impl();
+    bool         is_connected_impl() const;
+    bool         ping_impl() const;
+    std::string  get_server_version_impl() const;
+    std::string  get_last_error_impl() const;
+    int          get_last_error_code_impl() const;
 
     // CQL execution
     result_rows  execute_cql_impl(const std::string& _cql);

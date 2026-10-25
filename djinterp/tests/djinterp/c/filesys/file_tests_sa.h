@@ -44,7 +44,8 @@
 
 // djinterp
 #include "../../../../inc/djinterp/c/filesys/dfile.h"  // the library under test
-#include "./file_tests_sa_assert.h"                     // D_ASSERT_*, d_test_object
+#include "../../../../inc/djinterp/test/c/test_standalone.h"  // D_ASSERT_*,
+                                                              // d_test_object
 
 
 /******************************************************************************

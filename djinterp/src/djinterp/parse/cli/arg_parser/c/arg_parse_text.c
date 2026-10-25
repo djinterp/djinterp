@@ -20,7 +20,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_parse_text.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_parser.h"  // corresponding header
 // std
@@ -40,14 +40,21 @@
 // 1.  COMMAND LINES
 //==============================================================================
 
-/*
-d_arg_internal_parse_text_split
-  CLI11's split in parse(string) of what follows the program's name: into
-the parser's pool by CLI11's rules, `:` read as `=` where the root takes
-Windows-style options, each word's span after `_words`'s, to the length it
-was made with; a malformed escape -- the one text CLI11's rules refuse --
-recorded as CLI11's ParseError, in its words.
-*/
+/**
+ * @brief Splits the text after the program's name into the parser's pool.
+ *
+ * @param[in,out] _parser  the parser, whose pool keeps the words.
+ * @param[in]     _text    the text.
+ * @param[in,out] _words   the list that gains the words' spans.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape, or the split's
+ *         other refusal, either recorded.
+ *
+ * CLI11's split in parse(string) of what follows the program's name: into
+ * the parser's pool by CLI11's rules, `:` read as `=` where the root takes
+ * Windows-style options, each word's span after `_words`'s, to the length it
+ * was made with; a malformed escape -- the one text CLI11's rules refuse --
+ * recorded as CLI11's ParseError, in its words.
+ */
 D_STATIC int
 d_arg_internal_parse_text_split(
     struct d_arg_parser*    _parser,
@@ -91,13 +98,20 @@ d_arg_internal_parse_text_split(
     return status;
 }
 
-/*
-d_arg_internal_parse_text_line
-  CLI11's parse(string) once the parse has begun: the program's name, when
-the line holds one, found as CLI11 finds it and naming the root; the rest
-split into the pool and stacked, each word whole; the line trimmed
-otherwise.
-*/
+/**
+ * @brief Parses a line once the parse has begun.
+ *
+ * @param[in,out] _parser             the parser.
+ * @param[in]     _line               the line.
+ * @param[in]     _with_program_name  whether the line begins with the program's
+ *                                    name.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * CLI11's parse(string) once the parse has begun: the program's name, when
+ * the line holds one, found as CLI11 finds it and naming the root; the rest
+ * split into the pool and stacked, each word whole; the line trimmed
+ * otherwise.
+ */
 D_STATIC int
 d_arg_internal_parse_text_line(
     struct d_arg_parser* _parser,
@@ -184,11 +198,18 @@ d_arg_parser_parse_line(
 // 2.  WIDE ARGUMENTS
 //==============================================================================
 
-/*
-d_arg_internal_parse_text_wide
-  Wide arguments converted to UTF-8 into the parser's pool, in order, each
-one's span after `_words`'s; a refusal recorded.
-*/
+/**
+ * @brief Converts wide arguments to UTF-8 into the parser's pool.
+ *
+ * @param[in,out] _parser  the parser, whose pool keeps the words.
+ * @param[in]     _argc    how many arguments there are.
+ * @param[in]     _argv    the arguments.
+ * @param[in,out] _words   the list that gains their spans.
+ * @return D_ARG_OK, or the conversion's or the storage's refusal, recorded.
+ *
+ * Wide arguments converted to UTF-8 into the parser's pool, in order, each
+ * one's span after `_words`'s; a refusal recorded.
+ */
 D_STATIC int
 d_arg_internal_parse_text_wide(
     struct d_arg_parser*    _parser,
@@ -404,13 +425,18 @@ d_arg_parser_ensure_utf8(
 // 4.  CONFIGURATION TEXT
 //==============================================================================
 
-/*
-d_arg_internal_parse_text_stream
-  CLI11's _parse_stream: the text read with the root's format -- a malformed
-quote or escape recorded in the reader's words -- its items parsed, the
-root's use counted, its pre-parse step taken with the count of items, and
-the processing that ends a parse.
-*/
+/**
+ * @brief Parses text read as a configuration file, as CLI11's _parse_stream.
+ *
+ * @param[in,out] _root  the root command.
+ * @param[in]     _text  the text.
+ * @return D_ARG_OK, or a failure, recorded.
+ *
+ * CLI11's _parse_stream: the text read with the root's format -- a malformed
+ * quote or escape recorded in the reader's words -- its items parsed, the
+ * root's use counted, its pre-parse step taken with the count of items, and
+ * the processing that ends a parse.
+ */
 D_STATIC int
 d_arg_internal_parse_text_stream(
     struct d_arg_command* _root,

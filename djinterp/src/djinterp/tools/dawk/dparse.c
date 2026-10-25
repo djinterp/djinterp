@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   dparse.c
+* djinterp [tools]                                                      dparse.c
 *
 *   Definitions for the non-inline declarations in dparse.h.
 *     The precedence ladder is POSIX awk's, and two rungs of it are unusual.
@@ -14,10 +14,11 @@
 * path:      /src/djinterp/tools/dawk/dparse.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dparse.h"  // corresponding header
 // std
+#include <stdint.h>   // SIZE_MAX
 #include <stdio.h>    // snprintf
 #include <stdlib.h>   // malloc, realloc, free
 #include <string.h>   // memcpy, strcmp, strlen
@@ -50,6 +51,7 @@ struct d_internal_parser
     char*                 saved_text;
     size_t                saved_length;
     bool                  has_saved;
+    enum d_awk_token_kind previous;
     bool                  at_end;
     bool                  no_gt;
     bool                  failed;
@@ -223,6 +225,8 @@ d_internal_advance(
 )
 {
     struct d_awk_token next;
+
+    _p->previous = _p->token.kind;
 
     // a token already read by the peek is consumed before the scanner is
     if (_p->has_saved)
@@ -669,6 +673,118 @@ d_internal_is_lvalue(
 
 
 /*
+d_internal_check_builtin
+  Holds a builtin call to the arguments its function can take.
+NOTE:
+  POSIX fixes each builtin's arity, and a call outside it is an error when the
+  program is read.  Left to the interpreter, `atan2(1)` ran with a second
+  argument of zero and `split(s, 1)` dereferenced a name that was not there.
+  Two arguments are places rather than values: split's array, and the target
+  sub and gsub write back to, which must be a variable, field or element.
+
+Parameter(s):
+  _p:      the parser.
+  _node:   the builtin call, its arguments parsed.
+  _column: the column of the builtin's name, where an error is reported; its
+           line is the node's.
+Return:
+  A boolean value corresponding to either:
+  - true, if the call is well formed, or
+  - false, otherwise, with the error recorded.
+*/
+static bool
+d_internal_check_builtin(
+    struct d_internal_parser* _p,
+    const struct d_awk_node*  _node,
+    size_t                    _column
+)
+{
+    // d_internal_arity
+    //   struct: the fewest and most arguments a builtin takes; SIZE_MAX is no
+    //   upper limit.
+    struct d_internal_arity
+    {
+        const char* name;
+        size_t      least;
+        size_t      most;
+    };
+
+    static const struct d_internal_arity arities[] =
+    {
+        { "length",  0u, 1u       }, { "substr",  2u, 3u },
+        { "index",   2u, 2u       }, { "split",   2u, 3u },
+        { "sub",     2u, 3u       }, { "gsub",    2u, 3u },
+        { "match",   2u, 2u       }, { "sprintf", 1u, SIZE_MAX },
+        { "sin",     1u, 1u       }, { "cos",     1u, 1u },
+        { "atan2",   2u, 2u       }, { "exp",     1u, 1u },
+        { "log",     1u, 1u       }, { "sqrt",    1u, 1u },
+        { "int",     1u, 1u       }, { "rand",    0u, 0u },
+        { "srand",   0u, 1u       }, { "tolower", 1u, 1u },
+        { "toupper", 1u, 1u       }, { "system",  1u, 1u },
+        { "close",   1u, 1u       }, { "fflush",  0u, 1u }
+    };
+
+    char message[96];
+
+    for (size_t at = 0; at < (sizeof(arities) / sizeof(arities[0])); ++at)
+    {
+        // only the entry naming this builtin applies
+        if (strcmp(arities[at].name, _node->text) != 0)
+        {
+            continue;
+        }
+
+        // a call outside the builtin's arity is reported by name
+        if ( (_node->count < arities[at].least) ||
+             (_node->count > arities[at].most) )
+        {
+            (void)snprintf(message,
+                           sizeof(message),
+                           "%s called with %s arguments",
+                           _node->text,
+                           (_node->count < arities[at].least) ? "too few"
+                                                              : "too many");
+            d_internal_error_at(_p, _node->line, _column, message);
+
+            return false;
+        }
+
+        break;
+    }
+
+    // split fills an array, so its second argument must name one
+    if ( (strcmp(_node->text, "split") == 0) &&
+         (_node->list[1]->kind != D_AWK_N_VAR) )
+    {
+        d_internal_error_at(_p,
+                            _node->line,
+                            _column,
+                            "split's second argument must be an array name");
+
+        return false;
+    }
+
+    // sub and gsub write their result back through the third argument
+    if ( ( (strcmp(_node->text, "sub") == 0)  ||
+           (strcmp(_node->text, "gsub") == 0) )   &&
+         (_node->count > 2u)                      &&
+         (!d_internal_is_lvalue(_node->list[2])) )
+    {
+        (void)snprintf(message,
+                       sizeof(message),
+                       "%s's third argument must be a variable, field or "
+                       "array element",
+                       _node->text);
+        d_internal_error_at(_p, _node->line, _column, message);
+
+        return false;
+    }
+
+    return true;
+}
+
+
+/*
 d_internal_primary
   Parses a literal, name, call, field, parenthesised group or unary form.
 
@@ -888,10 +1004,11 @@ d_internal_primary(
         return first;
     }
 
-    // a builtin call, whose arity the interpreter checks
+    // a builtin call, held to its arity once its arguments are read
     if (d_internal_check(_p, D_AWK_TOK_BUILTIN))
     {
-        struct d_awk_node* node = d_internal_node(_p, D_AWK_N_BUILTIN);
+        struct d_awk_node* node   = d_internal_node(_p, D_AWK_N_BUILTIN);
+        const size_t       column = _p->token.column;
 
         // abandon the parse when the node could not be held
         if ((!node) || (!d_internal_set_text(_p, node)))
@@ -936,6 +1053,13 @@ d_internal_primary(
         else if (strcmp(node->text, "length") != 0)
         {
             d_internal_error(_p, "builtin call requires an argument list");
+            d_internal_node_free(node);
+            return NULL;
+        }
+
+        // abandon the parse when the call is outside the builtin's arity
+        if (!d_internal_check_builtin(_p, node, column))
+        {
             d_internal_node_free(node);
             return NULL;
         }
@@ -1865,6 +1989,10 @@ d_internal_expr(
 /*
 d_internal_simple_or_block
   Parses the body of a control structure, skipping leading newlines.
+NOTE:
+  Only newlines are skipped.  POSIX's grammar has `newline_opt` before the
+  body, and a `;` there is the body: the empty statement.  Skipping it as a
+  terminator made `while (x) ;` take the statement after it as the loop body.
 
 Parameter(s):
   _p: the parser.
@@ -1876,7 +2004,11 @@ d_internal_simple_or_block(
     struct d_internal_parser* _p
 )
 {
-    d_internal_skip_terminators(_p);
+    // a body may start on a later line, but a semicolon is a body itself
+    while (d_internal_check(_p, D_AWK_TOK_NEWLINE))
+    {
+        d_internal_advance(_p);
+    }
 
     return d_internal_statement(_p);
 }
@@ -2325,10 +2457,13 @@ d_internal_statement(
 
         d_internal_advance(_p);
 
-        // exit and return take an optional value
+        // exit and return take an optional value, which a sign may begin
+        // though no operand of a concatenation may
         if ( ((kind == D_AWK_N_EXIT) || (kind == D_AWK_N_RETURN)) &&
              (!_p->at_end)                                        &&
-             (d_internal_starts_expr(_p->token.kind)) )
+             ( (d_internal_starts_expr(_p->token.kind)) ||
+               (_p->token.kind == D_AWK_TOK_PLUS) ||
+               (_p->token.kind == D_AWK_TOK_MINUS) ) )
         {
             node->a = d_internal_expr(_p);
 
@@ -2464,6 +2599,28 @@ d_internal_block(
         if (!d_internal_push(_p, node, d_internal_statement(_p)))
         {
             d_internal_node_free(node);
+            return NULL;
+        }
+
+        // a statement ends at a newline, a `;` or the brace closing the
+        // block, or is one that ended with a brace or a terminator of its
+        // own; another may not simply follow it
+        if ( (!_p->at_end) &&
+             (!d_internal_check(_p, D_AWK_TOK_RBRACE)) &&
+             (!d_internal_check(_p, D_AWK_TOK_NEWLINE)) &&
+             (!d_internal_check(_p, D_AWK_TOK_SEMI)) &&
+             (_p->previous != D_AWK_TOK_RBRACE) &&
+             (_p->previous != D_AWK_TOK_NEWLINE) &&
+             (_p->previous != D_AWK_TOK_SEMI) )
+        {
+            char message[128];
+
+            (void)snprintf(message, sizeof(message),
+                           "expected a newline or ; before %s",
+                           d_awk_token_name(_p->token.kind));
+            d_internal_error(_p, message);
+            d_internal_node_free(node);
+
             return NULL;
         }
 

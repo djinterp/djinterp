@@ -9,7 +9,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_common.h"  // corresponding header
 // std
@@ -115,8 +115,9 @@ D_STATIC_ASSERT( (sizeof(STATUS_EXIT_CODES) /
     "This should be caught in your main function, see examples"
 
 // STATUS_MESSAGES
-//   constant: d_arg_error_message's text for a status recorded without a
-// message, in the same order: CLI11's default messages where CLI11 has one.
+//   constant: d_arg_status_message's text for each status, in the same
+// order -- what d_arg_error_message reads for a status recorded without a
+// message: CLI11's default messages where CLI11 has one.
 static const char* const STATUS_MESSAGES[] =
 {
     "",                         // D_ARG_OK
@@ -163,11 +164,15 @@ static char d_arg_internal_empty[1] = { '\0' };
 // cost one allocation.
 #define D_INTERNAL_ARG_BUFFER_MINIMUM 64u
 
-/*
-d_arg_internal_status_index
-  A status as an index into the three tables, or -1 outside the enum; every
-lookup goes through it, so no table is read out of range.
-*/
+/**
+ * @brief Turns a status into an index into the status tables.
+ *
+ * @param[in] _status  the status.
+ * @return the status itself, within the enumeration; -1 outside it.
+ *
+ * A status as an index into the three tables, or -1 outside the enum; every
+ * lookup goes through it, so no table is read out of range.
+ */
 D_STATIC int
 d_arg_internal_status_index(
     int _status
@@ -183,13 +188,19 @@ d_arg_internal_status_index(
     return _status;
 }
 
-/*
-d_arg_internal_buffer_grow
-  Grows a buffer's storage to hold `_needed` bytes, doubling so that a run of
-appends costs amortized constant time. A buffer whose `data` is not its own
--- d_arg_internal_empty, or NULL in a zeroed buffer -- has capacity 0 and so
-allocates afresh; `realloc(NULL, ...)` covers both.
-*/
+/**
+ * @brief Grows a buffer's storage to hold a number of bytes.
+ *
+ * @param[in,out] _buffer  the buffer.
+ * @param[in]     _needed  the bytes its storage must hold.
+ * @return D_ARG_OK; D_ARG_ERROR_OUT_OF_MEMORY, the buffer then marked failed
+ *         and its content as it was.
+ *
+ * Grows a buffer's storage to hold `_needed` bytes, doubling so that a run of
+ * appends costs amortized constant time. A buffer whose `data` is not its own
+ * -- d_arg_internal_empty, or NULL in a zeroed buffer -- has capacity 0 and so
+ * allocates afresh; `realloc(NULL, ...)` covers both.
+ */
 D_STATIC int
 d_arg_internal_buffer_grow(
     struct d_arg_buffer* _buffer,
@@ -246,12 +257,18 @@ d_arg_internal_buffer_grow(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_buffer_write
-  The write function of d_arg_buffer_sink: appends, and reports a short write
--- zero bytes taken -- once the append fails, which d_sink_emit and every
-caller turn into a refused write.
-*/
+/**
+ * @brief Appends bytes to a sink's buffer.
+ *
+ * @param[in] _context  the d_arg_buffer, which gains the bytes.
+ * @param[in] _data     the bytes.
+ * @param[in] _size     how many.
+ * @return `_size` when they were appended; 0 once an append fails.
+ *
+ * The write function of d_arg_buffer_sink: appends, and reports a short write
+ * -- zero bytes taken -- once the append fails, which d_sink_emit and every
+ * caller turn into a refused write.
+ */
 D_STATIC size_t
 d_arg_internal_buffer_write(
     void*       _context,
@@ -266,11 +283,17 @@ d_arg_internal_buffer_write(
     return (status == D_ARG_OK) ? _size : (size_t)0;
 }
 
-/*
-d_arg_internal_file_write
-  The write function of d_arg_sink_file: fwrite, whose count of whole items
-of size 1 is the count of bytes taken. A NULL stream takes nothing.
-*/
+/**
+ * @brief Writes bytes to a sink's stream.
+ *
+ * @param[in] _context  the `FILE`; NULL for none.
+ * @param[in] _data     the bytes.
+ * @param[in] _size     how many.
+ * @return how many were written; 0 for no stream.
+ *
+ * The write function of d_arg_sink_file: fwrite, whose count of whole items
+ * of size 1 is the count of bytes taken. A NULL stream takes nothing.
+ */
 D_STATIC size_t
 d_arg_internal_file_write(
     void*       _context,
@@ -366,6 +389,20 @@ d_arg_status_name(
     const int index = d_arg_internal_status_index(_status);
 
     return (index >= 0) ? STATUS_NAMES[index] : "Error";
+}
+
+/*
+d_arg_status_message
+  A table lookup; see STATUS_MESSAGES.
+*/
+const char*
+d_arg_status_message(
+    int _status
+)
+{
+    const int index = d_arg_internal_status_index(_status);
+
+    return (index >= 0) ? STATUS_MESSAGES[index] : "Error";
 }
 
 /*
@@ -489,13 +526,21 @@ d_arg_buffer_truncate(
     return;
 }
 
-/*
-d_arg_internal_buffer_admit
-  The checks an append passes before it grows anything: the arguments, a
-buffer that already failed -- which reports its failure again -- and a
-length that, with the text and its terminator, must fit a size_t; the last
-failure marks the buffer failed.
-*/
+/**
+ * @brief Checks an append before it grows anything.
+ *
+ * @param[in,out] _buffer  the buffer, marked failed when the length cannot fit.
+ * @param[in]     _data    the bytes to append.
+ * @param[in]     _length  how many.
+ * @return D_ARG_OK; D_ARG_ERROR_BAD_ARGUMENT for no buffer, or no data with a
+ *         length; D_ARG_ERROR_OUT_OF_MEMORY for a failed buffer, or a length
+ *         that cannot fit.
+ *
+ * The checks an append passes before it grows anything: the arguments, a
+ * buffer that already failed -- which reports its failure again -- and a
+ * length that, with the text and its terminator, must fit a size_t; the last
+ * failure marks the buffer failed.
+ */
 D_STATIC int
 d_arg_internal_buffer_admit(
     struct d_arg_buffer* _buffer,
@@ -984,8 +1029,7 @@ d_arg_error_setf(
 
 /*
 d_arg_error_message
-  The recorded message, or the status's default from STATUS_MESSAGES, or
-"Error" outside the enum.
+  The recorded message, or the status's own: d_arg_status_message's.
 */
 const char*
 d_arg_error_message(
@@ -1004,9 +1048,7 @@ d_arg_error_message(
         return _error->message;
     }
 
-    const int index = d_arg_internal_status_index(_error->status);
-
-    return (index >= 0) ? STATUS_MESSAGES[index] : "Error";
+    return d_arg_status_message(_error->status);
 }
 
 /*

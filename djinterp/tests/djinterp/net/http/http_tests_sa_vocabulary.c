@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/net/http/http_tests_sa_vocabulary.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "./http_tests_sa.h"  // the suite
 // std
@@ -231,7 +231,7 @@ d_tests_sa_http_methods(
 
         // the error, and on success the method and its name
         if ( (found == METHOD_CASES[i].error) &&
-             ( (found != D_HTTP_OK)                        ||
+             ( (found != D_HTTP_OK) ||
                ( (method == METHOD_CASES[i].method) &&
                  ( (method == D_HTTP_METHOD_OTHER) ||
                    (strcmp(d_http_method_name(method),
@@ -241,30 +241,30 @@ d_tests_sa_http_methods(
         }
     }
 
-    result = d_assert_standalone(right == count,
-                                 "d_http_method_parse",
-                                 "every method case parses as listed",
-                                 _counter) && result;
-    result = d_assert_standalone(
-                 (d_http_method_name(D_HTTP_METHOD_OTHER) == NULL)        &&
-                 (d_http_method_name((enum d_http_method)99) == NULL)     &&
-                 (d_http_method_parse(d_tests_http_text("GET"),
-                                      NULL) == D_HTTP_ERROR_ARGUMENT),
-                 "d_http_method_name",
-                 "extension methods have no name; NULL is refused",
-                 _counter) && result;
-    result = d_assert_standalone(
-                 (d_http_method_is_safe(D_HTTP_METHOD_HEAD))           &&
-                 (d_http_method_is_safe(D_HTTP_METHOD_TRACE))          &&
-                 (!d_http_method_is_safe(D_HTTP_METHOD_PUT))           &&
-                 (d_http_method_is_idempotent(D_HTTP_METHOD_PUT))      &&
-                 (d_http_method_is_idempotent(D_HTTP_METHOD_DELETE))   &&
-                 (!d_http_method_is_idempotent(D_HTTP_METHOD_POST))    &&
-                 (!d_http_method_is_idempotent(D_HTTP_METHOD_PATCH))   &&
-                 (!d_http_method_is_idempotent(D_HTTP_METHOD_OTHER)),
-                 "d_http_method_is_safe",
-                 "safety and idempotence as RFC 9110 lists them",
-                 _counter) && result;
+    result = d_tests_net_assert(right == count,
+                                "d_http_method_parse",
+                                "every method case parses as listed",
+                                _counter) && result;
+    result = d_tests_net_assert(
+                (d_http_method_name(D_HTTP_METHOD_OTHER) == NULL)    &&
+                (d_http_method_name((enum d_http_method)99) == NULL) &&
+                (d_http_method_parse(d_tests_http_text("GET"),
+                                     NULL) == D_HTTP_ERROR_INVALID_ARGUMENT),
+                "d_http_method_name",
+                "extension methods have no name; NULL is refused",
+                _counter) && result;
+    result = d_tests_net_assert(
+                (d_http_method_is_safe(D_HTTP_METHOD_HEAD))         &&
+                (d_http_method_is_safe(D_HTTP_METHOD_TRACE))        &&
+                (!d_http_method_is_safe(D_HTTP_METHOD_PUT))         &&
+                (d_http_method_is_idempotent(D_HTTP_METHOD_PUT))    &&
+                (d_http_method_is_idempotent(D_HTTP_METHOD_DELETE)) &&
+                (!d_http_method_is_idempotent(D_HTTP_METHOD_POST))  &&
+                (!d_http_method_is_idempotent(D_HTTP_METHOD_PATCH)) &&
+                (!d_http_method_is_idempotent(D_HTTP_METHOD_OTHER)),
+                "d_http_method_is_safe",
+                "safety and idempotence as RFC 9110 lists them",
+                _counter) && result;
 
     return result;
 }
@@ -302,20 +302,20 @@ d_tests_sa_http_versions(
         }
     }
 
-    result = d_assert_standalone(right == count,
-                                 "d_http_version_parse",
-                                 "every version case parses as listed",
-                                 _counter) && result;
-    result = d_assert_standalone(
-                 (strcmp(d_http_version_name(D_HTTP_VERSION_1_1),
-                         "HTTP/1.1") == 0)                              &&
-                 (strcmp(d_http_version_name(D_HTTP_VERSION_3),
-                         "HTTP/3") == 0)                                &&
-                 (d_http_version_name(D_HTTP_VERSION_UNKNOWN) == NULL)  &&
-                 (d_http_version_name((enum d_http_version)99) == NULL),
-                 "d_http_version_name",
-                 "each version's name; none for unknown",
-                 _counter) && result;
+    result = d_tests_net_assert(right == count,
+                                "d_http_version_parse",
+                                "every version case parses as listed",
+                                _counter) && result;
+    result = d_tests_net_assert(
+                (strcmp(d_http_version_name(D_HTTP_VERSION_1_1),
+                        "HTTP/1.1") == 0)                             &&
+                (strcmp(d_http_version_name(D_HTTP_VERSION_3),
+                        "HTTP/3") == 0)                               &&
+                (d_http_version_name(D_HTTP_VERSION_UNKNOWN) == NULL) &&
+                (d_http_version_name((enum d_http_version)99) == NULL),
+                "d_http_version_name",
+                "each version's name; none for unknown",
+                _counter) && result;
 
     return result;
 }
@@ -366,45 +366,45 @@ d_tests_sa_http_status(
     const size_t count  = sizeof(STATUS_CASES) / sizeof(STATUS_CASES[0]);
     bool         result = true;
 
-    result = d_assert_standalone(d_tests_http_status_parses() == count,
-                                 "d_http_status_parse",
-                                 "every status case parses as listed",
-                                 _counter) && result;
-    result = d_assert_standalone(
-                 (d_http_status_class_of(99u) ==
-                  D_HTTP_STATUS_CLASS_NONE)                            &&
-                 (d_http_status_class_of(100u) ==
-                  D_HTTP_STATUS_CLASS_INFORMATIONAL)                   &&
-                 (d_http_status_class_of(199u) ==
-                  D_HTTP_STATUS_CLASS_INFORMATIONAL)                   &&
-                 (d_http_status_class_of(200u) ==
-                  D_HTTP_STATUS_CLASS_SUCCESSFUL)                      &&
-                 (d_http_status_class_of(399u) ==
-                  D_HTTP_STATUS_CLASS_REDIRECTION)                     &&
-                 (d_http_status_class_of(404u) ==
-                  D_HTTP_STATUS_CLASS_CLIENT_ERROR)                    &&
-                 (d_http_status_class_of(599u) ==
-                  D_HTTP_STATUS_CLASS_SERVER_ERROR)                    &&
-                 (d_http_status_class_of(600u) ==
-                  D_HTTP_STATUS_CLASS_NONE),
-                 "d_http_status_class_of",
-                 "classes at every boundary",
-                 _counter) && result;
-    result = d_assert_standalone(
-                 (!d_http_status_allows_content(101u))  &&
-                 (!d_http_status_allows_content(204u))  &&
-                 (!d_http_status_allows_content(304u))  &&
-                 (!d_http_status_allows_content(600u))  &&
-                 (d_http_status_allows_content(200u))   &&
-                 (d_http_status_allows_content(404u))   &&
-                 (d_http_status_is_redirect(301u))      &&
-                 (d_http_status_is_redirect(308u))      &&
-                 (!d_http_status_is_redirect(300u))     &&
-                 (!d_http_status_is_redirect(304u))     &&
-                 (!d_http_status_is_redirect(306u)),
-                 "d_http_status_allows_content",
-                 "content and redirects, code by code",
-                 _counter) && result;
+    result = d_tests_net_assert(d_tests_http_status_parses() == count,
+                                "d_http_status_parse",
+                                "every status case parses as listed",
+                                _counter) && result;
+    result = d_tests_net_assert(
+                (d_http_status_class_of(99u) ==
+                 D_HTTP_STATUS_CLASS_NONE)          &&
+                (d_http_status_class_of(100u) ==
+                 D_HTTP_STATUS_CLASS_INFORMATIONAL) &&
+                (d_http_status_class_of(199u) ==
+                 D_HTTP_STATUS_CLASS_INFORMATIONAL) &&
+                (d_http_status_class_of(200u) ==
+                 D_HTTP_STATUS_CLASS_SUCCESSFUL)    &&
+                (d_http_status_class_of(399u) ==
+                 D_HTTP_STATUS_CLASS_REDIRECTION)   &&
+                (d_http_status_class_of(404u) ==
+                 D_HTTP_STATUS_CLASS_CLIENT_ERROR)  &&
+                (d_http_status_class_of(599u) ==
+                 D_HTTP_STATUS_CLASS_SERVER_ERROR)  &&
+                (d_http_status_class_of(600u) ==
+                 D_HTTP_STATUS_CLASS_NONE),
+                "d_http_status_class_of",
+                "classes at every boundary",
+                _counter) && result;
+    result = d_tests_net_assert(
+                (!d_http_status_allows_content(101u)) &&
+                (!d_http_status_allows_content(204u)) &&
+                (!d_http_status_allows_content(304u)) &&
+                (!d_http_status_allows_content(600u)) &&
+                (d_http_status_allows_content(200u))  &&
+                (d_http_status_allows_content(404u))  &&
+                (d_http_status_is_redirect(301u))     &&
+                (d_http_status_is_redirect(308u))     &&
+                (!d_http_status_is_redirect(300u))    &&
+                (!d_http_status_is_redirect(304u))    &&
+                (!d_http_status_is_redirect(306u)),
+                "d_http_status_allows_content",
+                "content and redirects, code by code",
+                _counter) && result;
 
     return result;
 }
@@ -435,32 +435,32 @@ d_tests_sa_http_reasons(
         }
     }
 
-    result = d_assert_standalone(named == count,
-                                 "d_http_status_reason",
-                                 "every registered code has a phrase",
-                                 _counter) && result;
-    result = d_assert_standalone(
-                 (strcmp(d_http_status_reason(100u),
-                         "Continue") == 0)                         &&
-                 (strcmp(d_http_status_reason(404u),
-                         "Not Found") == 0)                        &&
-                 (strcmp(d_http_status_reason(413u),
-                         "Content Too Large") == 0)                &&
-                 (strcmp(d_http_status_reason(422u),
-                         "Unprocessable Content") == 0)            &&
-                 (strcmp(d_http_status_reason(511u),
-                         "Network Authentication Required") == 0),
-                 "d_http_status_reason",
-                 "phrases as RFC 9110 names them",
-                 _counter) && result;
-    result = d_assert_standalone(
-                 (d_http_status_reason(299u)[0] == '\0') &&
-                 (d_http_status_reason(306u)[0] == '\0') &&
-                 (d_http_status_reason(0u)[0] == '\0')   &&
-                 (d_http_status_reason(600u)[0] == '\0'),
-                 "d_http_status_reason",
-                 "unregistered codes get an empty phrase",
-                 _counter) && result;
+    result = d_tests_net_assert(named == count,
+                                "d_http_status_reason",
+                                "every registered code has a phrase",
+                                _counter) && result;
+    result = d_tests_net_assert(
+                (strcmp(d_http_status_reason(100u),
+                        "Continue") == 0)              &&
+                (strcmp(d_http_status_reason(404u),
+                        "Not Found") == 0)             &&
+                (strcmp(d_http_status_reason(413u),
+                        "Content Too Large") == 0)     &&
+                (strcmp(d_http_status_reason(422u),
+                        "Unprocessable Content") == 0) &&
+                (strcmp(d_http_status_reason(511u),
+                        "Network Authentication Required") == 0),
+                "d_http_status_reason",
+                "phrases as RFC 9110 names them",
+                _counter) && result;
+    result = d_tests_net_assert(
+                (d_http_status_reason(299u)[0] == '\0') &&
+                (d_http_status_reason(306u)[0] == '\0') &&
+                (d_http_status_reason(0u)[0] == '\0')   &&
+                (d_http_status_reason(600u)[0] == '\0'),
+                "d_http_status_reason",
+                "unregistered codes get an empty phrase",
+                _counter) && result;
 
     return result;
 }
@@ -511,39 +511,39 @@ d_tests_sa_http_syntax(
                                            d_tests_http_text("\t "));
     bool                     result  = true;
 
-    result = d_assert_standalone(
-                 (d_http_is_token(d_tests_http_text(
-                      "!#$%&'*+-.^_`|~09AZaz")))                  &&
-                 (d_http_is_token(d_tests_http_text("a")))       &&
-                 (!d_http_is_token(d_tests_http_text("")))       &&
-                 (!d_http_is_token(d_tests_http_text("a b")))    &&
-                 (!d_http_is_token(d_tests_http_text("a:b")))    &&
-                 (!d_http_is_token(d_tests_http_text("(a)")))    &&
-                 (!d_http_is_token(d_tests_http_text("\"a\"")))  &&
-                 (!d_http_is_token(d_tests_http_text("a\x80"))),
-                 "d_http_is_token",
-                 "every tchar, and nothing else",
-                 _counter) && result;
-    result = d_assert_standalone(d_tests_http_values_right() == count,
-                                 "d_http_is_field_value",
-                                 "every value case judged as listed",
-                                 _counter) && result;
-    result = d_assert_standalone(
-                 (trimmed.length == 3u)                            &&
-                 (trimmed.data[0] == 'a')                          &&
-                 (blank.length == 0u)                              &&
-                 (d_http_field_name_equal(
-                      d_tests_http_text("Content-Length"),
-                      d_tests_http_text("content-LENGTH")))        &&
-                 (!d_http_field_name_equal(
-                      d_tests_http_text("Host"),
-                      d_tests_http_text("Hos")))                   &&
-                 (!d_http_field_name_equal(
-                      d_tests_http_text("TE"),
-                      d_tests_http_text("TF"))),
-                 "d_http_field_name_equal",
-                 "trimming, and names compared without case",
-                 _counter) && result;
+    result = d_tests_net_assert(
+                (d_http_is_token(d_tests_http_text(
+                     "!#$%&'*+-.^_`|~09AZaz")))                &&
+                (d_http_is_token(d_tests_http_text("a")))      &&
+                (!d_http_is_token(d_tests_http_text("")))      &&
+                (!d_http_is_token(d_tests_http_text("a b")))   &&
+                (!d_http_is_token(d_tests_http_text("a:b")))   &&
+                (!d_http_is_token(d_tests_http_text("(a)")))   &&
+                (!d_http_is_token(d_tests_http_text("\"a\""))) &&
+                (!d_http_is_token(d_tests_http_text("a\x80"))),
+                "d_http_is_token",
+                "every tchar, and nothing else",
+                _counter) && result;
+    result = d_tests_net_assert(d_tests_http_values_right() == count,
+                                "d_http_is_field_value",
+                                "every value case judged as listed",
+                                _counter) && result;
+    result = d_tests_net_assert(
+                (trimmed.length == 3u)                     &&
+                (trimmed.data[0] == 'a')                   &&
+                (blank.length == 0u)                       &&
+                (d_http_field_name_equal(
+                     d_tests_http_text("Content-Length"),
+                     d_tests_http_text("content-LENGTH"))) &&
+                (!d_http_field_name_equal(
+                     d_tests_http_text("Host"),
+                     d_tests_http_text("Hos")))            &&
+                (!d_http_field_name_equal(
+                     d_tests_http_text("TE"),
+                     d_tests_http_text("TF"))),
+                "d_http_field_name_equal",
+                "trimming, and names compared without case",
+                _counter) && result;
 
     return result;
 }
@@ -605,14 +605,14 @@ d_tests_sa_http_names(
                                                                : 0u;
     }
 
-    result = d_assert_standalone(tokens == fields,
-                                 "D_HTTP_FIELD_*",
-                                 "every field-name constant is a token",
-                                 _counter) && result;
-    result = d_assert_standalone(types == media,
-                                 "D_HTTP_MEDIA_*",
-                                 "every media type is type/subtype",
-                                 _counter) && result;
+    result = d_tests_net_assert(tokens == fields,
+                                "D_HTTP_FIELD_*",
+                                "every field-name constant is a token",
+                                _counter) && result;
+    result = d_tests_net_assert(types == media,
+                                "D_HTTP_MEDIA_*",
+                                "every media type is type/subtype",
+                                _counter) && result;
 
     return result;
 }
@@ -631,7 +631,7 @@ d_tests_sa_http_errors(
     const enum d_http_error errors[] =
     {
         D_HTTP_OK,
-        D_HTTP_ERROR_ARGUMENT,
+        D_HTTP_ERROR_INVALID_ARGUMENT,
         D_HTTP_ERROR_METHOD,
         D_HTTP_ERROR_VERSION,
         D_HTTP_ERROR_STATUS,
@@ -668,11 +668,76 @@ d_tests_sa_http_errors(
                              : 0u;
     }
 
-    return d_assert_standalone(
-               (distinct == count) &&
-               (strcmp(d_http_error_name((enum d_http_error)99),
-                       "unknown error") == 0),
-               "d_http_error_name",
-               "every error named, and uniquely",
-               _counter);
+    return d_tests_net_assert(
+              (distinct == count) &&
+              (strcmp(d_http_error_name((enum d_http_error)99),
+                      "unknown error") == 0),
+              "d_http_error_name",
+              "every error named, and uniquely",
+              _counter);
+}
+
+// d_tests_http_mapping
+//   struct: an error, and the d_net_error it maps to.
+struct d_tests_http_mapping
+{
+    enum d_http_error error;
+    enum d_net_error  net;
+};
+
+/*
+d_tests_sa_http_errors_to_net
+  Tests the following:
+  - each error maps onto the d_net_error net.h's rules give it
+  - a value outside the enum maps to D_NET_ERROR_UNKNOWN
+*/
+bool
+d_tests_sa_http_errors_to_net(
+    struct d_test_counter* _counter
+)
+{
+    const struct d_tests_http_mapping MAP[] =
+    {
+        { D_HTTP_OK,                        D_NET_OK                      },
+        { D_HTTP_ERROR_INVALID_ARGUMENT,    D_NET_ERROR_INVALID_ARGUMENT  },
+        { D_HTTP_ERROR_METHOD,              D_NET_ERROR_PROTOCOL          },
+        { D_HTTP_ERROR_VERSION,             D_NET_ERROR_PROTOCOL          },
+        { D_HTTP_ERROR_STATUS,              D_NET_ERROR_PROTOCOL          },
+        { D_HTTP_ERROR_FIELD_NAME,          D_NET_ERROR_PROTOCOL          },
+        { D_HTTP_ERROR_FIELD_VALUE,         D_NET_ERROR_PROTOCOL          },
+        { D_HTTP_ERROR_INCOMPLETE,          D_NET_ERROR_WOULD_BLOCK       },
+        { D_HTTP_ERROR_START_LINE,          D_NET_ERROR_PROTOCOL          },
+        { D_HTTP_ERROR_START_LINE_TOO_LONG, D_NET_ERROR_MESSAGE_TOO_LARGE },
+        { D_HTTP_ERROR_HEAD_TOO_LARGE,      D_NET_ERROR_MESSAGE_TOO_LARGE },
+        { D_HTTP_ERROR_LINE_ENDING,         D_NET_ERROR_PROTOCOL          },
+        { D_HTTP_ERROR_OBS_FOLD,            D_NET_ERROR_PROTOCOL          },
+        { D_HTTP_ERROR_TOO_MANY_FIELDS,     D_NET_ERROR_MESSAGE_TOO_LARGE },
+        { D_HTTP_ERROR_TARGET,              D_NET_ERROR_PROTOCOL          },
+        { D_HTTP_ERROR_HOST,                D_NET_ERROR_PROTOCOL          }
+    };
+    const size_t count  = sizeof(MAP) / sizeof(MAP[0]);
+    bool         mapped = true;
+    bool         result = true;
+
+    // each error against the table
+    for (size_t i = 0u; i < count; ++i)
+    {
+        mapped = ( (mapped) &&
+                   (d_http_error_to_net(MAP[i].error) == MAP[i].net) );
+    }
+
+    const bool outside =
+        (d_http_error_to_net((enum d_http_error)99) ==
+         D_NET_ERROR_UNKNOWN);
+
+    result = d_tests_net_assert(mapped,
+                                "d_http_error_to_net",
+                                "each error maps by net.h's rules",
+                                _counter) && result;
+    result = d_tests_net_assert(outside,
+                                "d_http_error_to_net",
+                                "a value outside the enum is unknown",
+                                _counter) && result;
+
+    return result;
 }

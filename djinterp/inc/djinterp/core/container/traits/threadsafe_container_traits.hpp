@@ -48,7 +48,7 @@
 * path:      /inc/djinterp/core/container/traits/threadsafe_container_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.23
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -317,6 +317,26 @@ inline constexpr bool policy_is_threadsafe_v =
 // policy_supports_shared
 //   type trait: true if the container's lock policy supports reader/writer
 // (shared) locking.
+NS_INTERNAL
+
+    // policy_shared_value
+    //   trait: a policy's supports_shared, read only where the policy has
+    // one -- a && does not keep the compiler from naming the member of a
+    // policy that lacks it.
+    template<typename Policy,
+             bool     Has = policy_has_supports_shared<Policy>::value>
+    struct policy_shared_value : std::false_type
+    {};
+
+    // policy_shared_value<Policy, true>
+    //   trait: the member, where there is one.
+    template<typename Policy>
+    struct policy_shared_value<Policy, true>
+        : std::integral_constant<bool, Policy::supports_shared>
+    {};
+
+NS_END  // internal
+
 template<typename Type>
 struct policy_supports_shared
 {
@@ -326,9 +346,7 @@ struct policy_supports_shared
 
     static constexpr bool value =
         ( has_valid_lock_policy_v<clean_type> &&
-          internal::policy_has_supports_shared<
-              policy>::value                  &&
-          policy::supports_shared );
+          internal::policy_shared_value<policy>::value );
 };
 
 template<typename Type>
