@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/db/sqlite/sqlite_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 // D_INTERNAL_SQLITE_SOURCE
 //   macro: this file is one of the SQLite layer's own sources, for which
@@ -41,11 +41,21 @@ struct d_internal_sqlite_feature_need
     const char*           option;   // a build option it needs too, or NULL
 };
 
+// d_internal_sqlite_feature_omit
+//   struct: a build option that takes a feature out.
+struct d_internal_sqlite_feature_omit
+{
+    enum d_sqlite_feature feature;  // the feature
+    const char*           option;   // the option
+};
+
 // d_internal_sqlite_feature_needs
 //   table: every feature, the release that introduced it, numbered as
 // SQLITE_VERSION_NUMBER numbers releases (3008000 is 3.8.0), and, for those a
 // build can leave out, the option that puts it in. JSON's row is its JSON1
 // years; from 3.38.0 it is built in, which d_sqlite_supports checks first.
+// Encryption's row is a codec's option; SQLCipher, which may not report one,
+// is asked.
 static const struct d_internal_sqlite_feature_need
 d_internal_sqlite_feature_needs[] =
 {
@@ -67,8 +77,120 @@ d_internal_sqlite_feature_needs[] =
     { D_SQLITE_FEATURE_JSON,              3009000, "ENABLE_JSON1"          },
     { D_SQLITE_FEATURE_MATH_FUNCTIONS,    3035000, "ENABLE_MATH_FUNCTIONS" },
     { D_SQLITE_FEATURE_FTS5,              3009000, "ENABLE_FTS5"           },
-    { D_SQLITE_FEATURE_RTREE,             3007017, "ENABLE_RTREE"          }
+    { D_SQLITE_FEATURE_RTREE,             3007017, "ENABLE_RTREE"          },
+    { D_SQLITE_FEATURE_WAL,               3007000, NULL                    },
+    { D_SQLITE_FEATURE_ENCRYPTION,        3007017, "HAS_CODEC"             }
 };
+
+// d_internal_sqlite_feature_omits
+//   table: the features a build can take out, and the option that does.
+static const struct d_internal_sqlite_feature_omit
+d_internal_sqlite_feature_omits[] =
+{
+    { D_SQLITE_FEATURE_WAL, "OMIT_WAL" }
+};
+
+/*
+d_internal_sqlite_omitted
+  Whether the loaded library was built without a feature, by an option of
+d_internal_sqlite_feature_omits.
+*/
+static bool
+d_internal_sqlite_omitted(
+    enum d_sqlite_feature _feature
+)
+{
+    const size_t count = sizeof(d_internal_sqlite_feature_omits) /
+                         sizeof(d_internal_sqlite_feature_omits[0]);
+
+    for (size_t i = 0; i < count; ++i)
+    {
+        // the feature's option decides
+        if (d_internal_sqlite_feature_omits[i].feature == _feature)
+        {
+            return (sqlite3_compileoption_used(
+                        d_internal_sqlite_feature_omits[i].option) != 0);
+        }
+    }
+
+    return false;
+}
+
+/*
+d_internal_sqlite_can_serialize
+  The build must call it (D_INTERNAL_SQLITE_SERIALIZE), and the library loaded
+have it: from 3.36.0 unless built without it, and from 3.23.0 where built with
+it.
+*/
+static bool
+d_internal_sqlite_can_serialize(
+    void
+)
+{
+#if (D_INTERNAL_SQLITE_SERIALIZE == 1)
+    return ( ( (d_internal_sqlite_runtime_at_least(3036000)) &&
+               (sqlite3_compileoption_used("OMIT_DESERIALIZE") == 0) ) ||
+             ( (d_internal_sqlite_runtime_at_least(3023000)) &&
+               (sqlite3_compileoption_used("ENABLE_DESERIALIZE") != 0) ) );
+#else
+    return false;
+#endif
+}
+
+/*
+d_internal_sqlite_can_load_extensions
+  The build must call it (D_INTERNAL_SQLITE_LOAD_EXTENSION), and the library
+loaded not have left it out.
+*/
+static bool
+d_internal_sqlite_can_load_extensions(
+    void
+)
+{
+#if (D_INTERNAL_SQLITE_LOAD_EXTENSION == 1)
+    return (sqlite3_compileoption_used("OMIT_LOAD_EXTENSION") == 0);
+#else
+    return false;
+#endif
+}
+
+/*
+d_internal_sqlite_is_sqlcipher
+  SQLCipher answers PRAGMA cipher_version with its version, and any other
+SQLite with no row, on a private in-memory database (Zetetic's own advice);
+a library that cannot open one answers `false`.
+*/
+static bool
+d_internal_sqlite_is_sqlcipher(
+    void
+)
+{
+    sqlite3*      db        = NULL;
+    sqlite3_stmt* statement = NULL;
+    bool          found     = false;
+
+    // a private database, for the question alone
+    if (sqlite3_open_v2(":memory:",
+                        &db,
+                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
+                        NULL) == SQLITE_OK)
+    {
+        if (sqlite3_prepare_v2(db,
+                               "PRAGMA cipher_version",
+                               -1,
+                               &statement,
+                               NULL) == SQLITE_OK)
+        {
+            found = (sqlite3_step(statement) == SQLITE_ROW);
+        }
+
+        sqlite3_finalize(statement);
+    }
+
+    sqlite3_close(db);
+
+    return found;
+}
 
 //==============================================================================
 // 2.  LIBRARY
@@ -170,6 +292,17 @@ d_sqlite_supports(
     enum d_sqlite_feature _feature
 )
 {
+    // the APIs this build may not call, and the library may not have
+    if (_feature == D_SQLITE_FEATURE_SERIALIZE)
+    {
+        return d_internal_sqlite_can_serialize();
+    }
+
+    if (_feature == D_SQLITE_FEATURE_LOAD_EXTENSION)
+    {
+        return d_internal_sqlite_can_load_extensions();
+    }
+
     // JSON, since it joined the core
     if ( (_feature == D_SQLITE_FEATURE_JSON) &&
          (d_internal_sqlite_runtime_at_least(
@@ -189,13 +322,34 @@ d_sqlite_supports(
         // the feature's row decides
         if (need->feature == _feature)
         {
+            // an encrypting library that names no codec among its options
+            if ( (_feature == D_SQLITE_FEATURE_ENCRYPTION) &&
+                 (sqlite3_compileoption_used(need->option) == 0) )
+            {
+                return d_internal_sqlite_is_sqlcipher();
+            }
+
             return ( (d_internal_sqlite_runtime_at_least(need->since)) &&
                      ( (!need->option) ||
-                       (sqlite3_compileoption_used(need->option) != 0) ) );
+                       (sqlite3_compileoption_used(need->option) != 0) ) &&
+                     (!d_internal_sqlite_omitted(_feature)) );
         }
     }
 
     return false;
+}
+
+/*
+d_sqlite_library_threadsafe
+  sqlite3_threadsafe reports the SQLITE_THREADSAFE the library was compiled
+with.
+*/
+int
+d_sqlite_library_threadsafe(
+    void
+)
+{
+    return sqlite3_threadsafe();
 }
 
 // 2.3    Result messages
@@ -316,6 +470,18 @@ d_sqlite_supports(
     (void)_feature;
 
     return false;
+}
+
+/*
+d_sqlite_library_threadsafe
+  Without SQLite, 0.
+*/
+int
+d_sqlite_library_threadsafe(
+    void
+)
+{
+    return 0;
 }
 
 /*

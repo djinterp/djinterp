@@ -141,7 +141,9 @@ NS_INTERNAL
     session::session() noexcept
         : m_entries(),
           m_changes(0),
-          m_lost(false)
+          m_lost(false),
+          m_holder(nullptr),
+          m_busy_code(0)
     {}
 
     void
@@ -186,6 +188,7 @@ NS_INTERNAL
         std::vector<entry> closing;
 
         closing.swap(m_entries);
+        m_holder = nullptr;
 
         // each statement finalizes itself
         for (const entry& closed : closing)
@@ -231,8 +234,47 @@ NS_INTERNAL
     {
         m_changes = 0;
         m_lost    = false;
+        m_holder  = nullptr;
 
         return;
+    }
+
+    void
+    session::hold(
+        const void* _stream,
+        int         _busy_code
+    ) noexcept
+    {
+        m_holder    = _stream;
+        m_busy_code = _busy_code;
+
+        return;
+    }
+
+    void
+    session::release(
+        const void* _stream
+    ) noexcept
+    {
+        // only the stream that holds the connection lets it go
+        if (m_holder == _stream)
+        {
+            m_holder = nullptr;
+        }
+
+        return;
+    }
+
+    const void*
+    session::holder() const noexcept
+    {
+        return m_holder;
+    }
+
+    int
+    session::busy_code() const noexcept
+    {
+        return m_busy_code;
     }
 
 NS_END  // internal

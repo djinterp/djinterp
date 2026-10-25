@@ -5,7 +5,7 @@
 *   Each question is answered twice, once for Windows and once for POSIX, and
 * the system chooses between whole functions: no body here is split by a
 * conditional. What the two share -- the list of names, and its release -- is
-* written once, above them.
+* written once, above them; making a directory's parents, once, below.
 *   The Windows half asks the system itself (kernel32's narrow interface) and
 * not its C library, whose answers differ between the libraries a Windows
 * compiler may come with.
@@ -13,7 +13,7 @@
 * path:      /src/djinterp/tools/dawk/dfs.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.10
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dfs.h"  // corresponding header
 // std
@@ -23,11 +23,12 @@
 #include "../../../../inc/djinterp/env/env.h"  // D_ENV_IS_OS_WINDOWS
 #if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
     // windows
-    #include <windows.h>  // FindFirstFileA, GetFileAttributesA
+    #include <windows.h>  // FindFirstFileA, GetFileAttributesA,
+                          // CreateDirectoryA
 #else
     // posix
     #include <dirent.h>    // DIR, opendir, readdir, closedir
-    #include <sys/stat.h>  // struct stat, stat, S_ISDIR
+    #include <sys/stat.h>  // struct stat, stat, S_ISDIR, mkdir
 #endif
 
 
@@ -315,6 +316,24 @@ d_fs_path_normalize(
     return;
 }
 
+// d_internal_backslash
+//   constant: Windows: `\` separates the parts of a path, as `/` does.
+static const bool d_internal_backslash = true;
+
+/*
+d_internal_make_one
+  Windows: CreateDirectoryA. A directory there already is as good as one made.
+*/
+static bool
+d_internal_make_one(
+    const char* _path
+)
+{
+    (void)CreateDirectoryA(_path, NULL);
+
+    return (d_fs_kind_of(_path) == D_FS_KIND_DIRECTORY);
+}
+
 #else
 
 /*
@@ -433,4 +452,138 @@ d_fs_path_normalize(
     return;
 }
 
+// d_internal_backslash
+//   constant: POSIX: `\` is a character of a name, and separates nothing.
+static const bool d_internal_backslash = false;
+
+/*
+d_internal_make_one
+  POSIX: mkdir, open to all as the umask allows. A directory there already is
+as good as one made.
+*/
+static bool
+d_internal_make_one(
+    const char* _path
+)
+{
+    (void)mkdir(_path, 0777);
+
+    return (d_fs_kind_of(_path) == D_FS_KIND_DIRECTORY);
+}
+
 #endif  // D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
+
+/*
+d_fs_make_directory
+  Makes each directory on the way down, from the first that holds a name: a
+root, `/` or a drive's `C:/`, is there to begin with.
+*/
+bool
+d_fs_make_directory(
+    const char* _path
+)
+{
+    // parameter validation first
+    if ( (!_path) ||
+         (_path[0] == '\0') )
+    {
+        return false;
+    }
+
+    // a directory there already needs nothing
+    if (d_fs_kind_of(_path) == D_FS_KIND_DIRECTORY)
+    {
+        return true;
+    }
+
+    const size_t length = strlen(_path);
+    char* const  path   = malloc(length + 1u);
+
+    if (!path)
+    {
+        return false;
+    }
+
+    memcpy(path, _path, length + 1u);
+
+    bool ok = true;
+
+    for (size_t at = 1u; (ok) && (at < length); ++at)
+    {
+        const bool separates = (path[at] == '/') ||
+                               ( (d_internal_backslash) &&
+                                 (path[at] == '\\') );
+        const bool doubled   = (path[at - 1u] == '/') ||
+                               ( (d_internal_backslash) &&
+                                 (path[at - 1u] == '\\') );
+        const bool root      = (at == 2u) && (path[1] == ':');
+
+        // each parent in turn, past a root and a doubled separator
+        if ( (separates) &&
+             (!root) &&
+             (!doubled) )
+        {
+            const char kept = path[at];
+
+            path[at] = '\0';
+            ok       = d_internal_make_one(path);
+            path[at] = kept;
+        }
+    }
+
+    ok = ok && d_internal_make_one(path);
+    free(path);
+
+    return ok;
+}
+
+/*
+d_fs_make_parent
+  The path up to its last separator, made a directory; a name with no
+separator before it is in the directory the process is in, which is there.
+*/
+bool
+d_fs_make_parent(
+    const char* _path
+)
+{
+    // parameter validation first
+    if (!_path)
+    {
+        return false;
+    }
+
+    size_t last = 0;
+
+    for (size_t at = 0; _path[at] != '\0'; ++at)
+    {
+        // the last separator ends the directory
+        if ( (_path[at] == '/') ||
+             ( (d_internal_backslash) && (_path[at] == '\\') ) )
+        {
+            last = at;
+        }
+    }
+
+    // a root, or the directory the process is in, is there already
+    if (last == 0u)
+    {
+        return true;
+    }
+
+    char* const directory = malloc(last + 1u);
+
+    if (!directory)
+    {
+        return false;
+    }
+
+    memcpy(directory, _path, last);
+    directory[last] = '\0';
+
+    const bool ok = d_fs_make_directory(directory);
+
+    free(directory);
+
+    return ok;
+}

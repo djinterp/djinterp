@@ -59,7 +59,7 @@
 # path:      /build/cmake/config/testing/djinterp/parse/cli/arg_parser/run_arg_parser_tests.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-#                                                            revised: 2026.10.23
+#                                                            revised: 2026.10.20
 #*******************************************************************************
 set -uo pipefail
 export LC_ALL=C
@@ -130,14 +130,6 @@ cxx_found=1
 if ! command -v "${CXX}" >/dev/null 2>&1; then
     cxx_found=0
 fi
-
-# a Windows C++ suite is linked whole -- libstdc++, libgcc, winpthreads --
-# so that it runs where those DLLs are not, as under Wine they are not
-CXX_STATIC=()
-
-case "$("${CC}" -dumpmachine 2>/dev/null)" in
-    *mingw*|*windows*|*cygwin*|*msys*) CXX_STATIC=( -static ) ;;
-esac
 
 # the parser's sources, the sinks it writes through, and re_std's one C
 # source, which is what the fixed-width integer header declares
@@ -370,8 +362,7 @@ run_cxx_suites()
 
     if ! "${CXX}" ${flag} "${CXX_COMMON[@]}" "${strict[@]+"${strict[@]}"}" \
             "$@" "${CXX_SUITES[@]}" "${out}/cxx/arg_tests_files.o" \
-            "${out}/arg_parser.a" "${CXX_STATIC[@]+"${CXX_STATIC[@]}"}" \
-            -o "${binary}" 2>"${binary}.log"; then
+            "${out}/arg_parser.a" -o "${binary}" 2>"${binary}.log"; then
         totals="BUILD FAILED"
         details="$(grep -m 5 'error' "${binary}.log" | sed 's/^/      /')"$'\n'
         return 1
@@ -383,7 +374,6 @@ run_cxx_suites()
     # shellcheck disable=SC2086
     if ! ${RUN_PREFIX} "${binary}" 2>&1 | tr -d '\r' >"${binary}.out"; then
         totals="$(tail -n 1 "${binary}.out")"
-        totals="${totals:-nothing printed: it did not start, or died at once}"
         details+="$(grep -v '^  \[PASS\]' "${binary}.out" | sed '1d' |
                     sed 's/^/    /')"$'\n'
         return 1

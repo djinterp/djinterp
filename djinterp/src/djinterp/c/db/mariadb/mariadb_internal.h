@@ -27,7 +27,7 @@
 * path:      /src/djinterp/c/db/mariadb/mariadb_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -41,16 +41,32 @@ TABLE OF CONTENTS
          2.  D_INTERNAL_MARIADB_LENGTH_MAX
          3.  d_internal_mariadb_flag
          4.  D_INTERNAL_MARIADB_SSL_SWITCHES
+         5.  D_INTERNAL_MARIADB_RESET
+         6.  D_INTERNAL_MARIADB_SESSION_TRACK
+         7.  D_INTERNAL_MARIADB_QUERY_ATTRIBUTES
+         8.  D_INTERNAL_MARIADB_READS_SIMPLE_OK
+         9.  D_INTERNAL_MARIADB_MAX_PACKET
+         10. D_INTERNAL_MARIADB_TLS_VERSION
+         11. D_INTERNAL_MARIADB_TLS_CIPHERSUITES
+         12. D_INTERNAL_MARIADB_CLEARTEXT_SWITCH
+         13. D_INTERNAL_MARIADB_GET_OPTION
+         14. D_INTERNAL_MARIADB_PUBLIC_KEY_ASK
 2.  HANDLES
     -------
     1.  The handle
-         1.  d_mariadb
+         1.  D_INTERNAL_MARIADB_CHARSET_SIZE
+         2.  d_internal_mariadb_attribute
+         3.  d_mariadb
     2.  Result codes
          1.  D_INTERNAL_MARIADB_UNKNOWN_ERROR
          2.  D_INTERNAL_MARIADB_OUT_OF_MEMORY
          3.  D_INTERNAL_MARIADB_INVALID_PARAMETER
          4.  D_INTERNAL_MARIADB_SSL_ERROR
+         5.  D_INTERNAL_MARIADB_OUT_OF_SYNC
     3.  Server facts
+    4.  Replies
+    5.  Query attributes
+    6.  Statements
 3.  NAMES
     -----
     1.  Checks
@@ -157,6 +173,154 @@ TABLE OF CONTENTS
     #define D_INTERNAL_MARIADB_SSL_SWITCHES 0
 #endif
 
+// 1.2.5
+// D_INTERNAL_MARIADB_RESET
+//   brief: 1 where the client has mysql_reset_connection: libmysqlclient from
+// 5.7.3, and Connector/C from 3.0 (MARIADB_PACKAGE_VERSION_ID, which older
+// MariaDB clients do not define, and which reads as 0 there).
+#if (D_ENV_MYSQL_COMMON_IS_MARIADB)
+    #if (MARIADB_PACKAGE_VERSION_ID >= 30000)
+        #define D_INTERNAL_MARIADB_RESET 1
+    #else
+        #define D_INTERNAL_MARIADB_RESET 0
+    #endif
+#elif (MYSQL_VERSION_ID >= 50703)
+    #define D_INTERNAL_MARIADB_RESET 1
+#else
+    #define D_INTERNAL_MARIADB_RESET 0
+#endif
+
+// 1.2.6
+// D_INTERNAL_MARIADB_SESSION_TRACK
+//   brief: 1 where the client has mysql_session_track_get_first and _next:
+// libmysqlclient from 5.7.4, and Connector/C from 3.0.
+#if (D_ENV_MYSQL_COMMON_IS_MARIADB)
+    #if (MARIADB_PACKAGE_VERSION_ID >= 30000)
+        #define D_INTERNAL_MARIADB_SESSION_TRACK 1
+    #else
+        #define D_INTERNAL_MARIADB_SESSION_TRACK 0
+    #endif
+#elif (MYSQL_VERSION_ID >= 50704)
+    #define D_INTERNAL_MARIADB_SESSION_TRACK 1
+#else
+    #define D_INTERNAL_MARIADB_SESSION_TRACK 0
+#endif
+
+// 1.2.7
+// D_INTERNAL_MARIADB_QUERY_ATTRIBUTES
+//   brief: 1 where the client has mysql_bind_param, which sends attributes
+// with the next query: libmysqlclient from 8.0.23. Connector/C has none.
+#if ( (D_ENV_MYSQL_COMMON_IS_ORACLE_MYSQL) &&                                  \
+      (MYSQL_VERSION_ID >= 80023) )
+    #define D_INTERNAL_MARIADB_QUERY_ATTRIBUTES 1
+#else
+    #define D_INTERNAL_MARIADB_QUERY_ATTRIBUTES 0
+#endif
+
+// 1.2.8
+// D_INTERNAL_MARIADB_READS_SIMPLE_OK
+//   brief: 1 where the client reads the OK packet that answers a command
+// without a statement -- a ping, a change of database, a reset -- for the
+// server's status and the session's changes, as libmysqlclient does; 0 for
+// Connector/C, which only checks it is no error, so that both stay as an
+// earlier reply left them.
+#if (D_ENV_MYSQL_COMMON_IS_MARIADB)
+    #define D_INTERNAL_MARIADB_READS_SIMPLE_OK 0
+#else
+    #define D_INTERNAL_MARIADB_READS_SIMPLE_OK 1
+#endif
+
+// 1.2.9
+// D_INTERNAL_MARIADB_MAX_PACKET
+//   brief: how the client is told the largest packet it takes, its
+// MYSQL_OPT_MAX_ALLOWED_PACKET: 1 for libmysqlclient, which reads an unsigned
+// long; 2 for Connector/C from 3.0, which reads a size_t -- the two differ
+// where unsigned long is 32 bits, as on 64-bit Windows; 0 for an older
+// MariaDB client, which has no such option.
+#if (D_ENV_MYSQL_COMMON_IS_MARIADB)
+    #if (MARIADB_PACKAGE_VERSION_ID >= 30000)
+        #define D_INTERNAL_MARIADB_MAX_PACKET 2
+    #else
+        #define D_INTERNAL_MARIADB_MAX_PACKET 0
+    #endif
+#else
+    #define D_INTERNAL_MARIADB_MAX_PACKET 1
+#endif
+
+// 1.2.10
+// D_INTERNAL_MARIADB_TLS_VERSION
+//   brief: the client's option for the TLS versions a connection may use, as
+// a list ("TLSv1.2,TLSv1.3"): 1 for libmysqlclient's MYSQL_OPT_TLS_VERSION,
+// from 5.7.10, which refuses a list it cannot read; 2 for Connector/C's
+// MARIADB_OPT_TLS_VERSION, from 3.0, which passes over a version it does not
+// know; 0 for a client without either.
+#if (D_ENV_MYSQL_COMMON_IS_MARIADB)
+    #if (MARIADB_PACKAGE_VERSION_ID >= 30000)
+        #define D_INTERNAL_MARIADB_TLS_VERSION 2
+    #else
+        #define D_INTERNAL_MARIADB_TLS_VERSION 0
+    #endif
+#elif (MYSQL_VERSION_ID >= 50710)
+    #define D_INTERNAL_MARIADB_TLS_VERSION 1
+#else
+    #define D_INTERNAL_MARIADB_TLS_VERSION 0
+#endif
+
+// 1.2.11
+// D_INTERNAL_MARIADB_TLS_CIPHERSUITES
+//   brief: 1 where the client has an option for TLS 1.3's cipher suites,
+// MYSQL_OPT_TLS_CIPHERSUITES: libmysqlclient from 8.0.16. Connector/C has
+// only one cipher option, whose text it reads by its TLS library's rules.
+#if ( (D_ENV_MYSQL_COMMON_IS_ORACLE_MYSQL) &&                                  \
+      (MYSQL_VERSION_ID >= 80016) )
+    #define D_INTERNAL_MARIADB_TLS_CIPHERSUITES 1
+#else
+    #define D_INTERNAL_MARIADB_TLS_CIPHERSUITES 0
+#endif
+
+// 1.2.12
+// D_INTERNAL_MARIADB_CLEARTEXT_SWITCH
+//   brief: 1 where the client sends a password in clear text, when the
+// server's authentication asks for it, only once told it may --
+// libmysqlclient's MYSQL_ENABLE_CLEARTEXT_PLUGIN; 0 for MariaDB's clients,
+// which send it unasked: Connector/C takes the option and does nothing with
+// it.
+#if (D_ENV_MYSQL_COMMON_IS_MARIADB)
+    #define D_INTERNAL_MARIADB_CLEARTEXT_SWITCH 0
+#else
+    #define D_INTERNAL_MARIADB_CLEARTEXT_SWITCH 1
+#endif
+
+// 1.2.13
+// D_INTERNAL_MARIADB_GET_OPTION
+//   brief: 1 where the client has mysql_get_option, which reads an option
+// back: libmysqlclient from 5.7.3, and Connector/C from 3.0.
+#if (D_ENV_MYSQL_COMMON_IS_MARIADB)
+    #if (MARIADB_PACKAGE_VERSION_ID >= 30000)
+        #define D_INTERNAL_MARIADB_GET_OPTION 1
+    #else
+        #define D_INTERNAL_MARIADB_GET_OPTION 0
+    #endif
+#elif (MYSQL_VERSION_ID >= 50703)
+    #define D_INTERNAL_MARIADB_GET_OPTION 1
+#else
+    #define D_INTERNAL_MARIADB_GET_OPTION 0
+#endif
+
+// 1.2.14
+// D_INTERNAL_MARIADB_PUBLIC_KEY_ASK
+//   brief: how the client comes by the server's RSA public key where no file
+// gives it: 1, asking when told to (MYSQL_OPT_GET_SERVER_PUBLIC_KEY),
+// libmysqlclient from 8.0.3; 2, always asking, Connector/C; 0, never,
+// libmysqlclient before 8.0.3.
+#if (D_ENV_MYSQL_COMMON_IS_MARIADB)
+    #define D_INTERNAL_MARIADB_PUBLIC_KEY_ASK 2
+#elif (MYSQL_VERSION_ID >= 80003)
+    #define D_INTERNAL_MARIADB_PUBLIC_KEY_ASK 1
+#else
+    #define D_INTERNAL_MARIADB_PUBLIC_KEY_ASK 0
+#endif
+
 
 //==============================================================================
 // 2.  HANDLES
@@ -166,6 +330,23 @@ TABLE OF CONTENTS
 // 2.1    The handle
 //------------------------------------------------------------------------------
 // 2.1.1
+// D_INTERNAL_MARIADB_CHARSET_SIZE
+//   constant: room for a character set's name and its terminator; the
+// clients' longest is 32 bytes (MY_CS_NAME_SIZE).
+#define D_INTERNAL_MARIADB_CHARSET_SIZE 64u
+
+// 2.1.2
+// d_internal_mariadb_attribute
+//   struct: a query attribute the next query sends (mariadb_query.h): the
+// layer's copies, which the client's binds point into until it is sent.
+struct d_internal_mariadb_attribute
+{
+    char*         name;    // the attribute's name, terminated
+    char*         value;   // its value, terminated
+    unsigned long length;  // the value's bytes
+};
+
+// 2.1.3
 // d_mariadb
 //   struct: the definition mariadb_common.h declares: the client's
 // connection, and what the layer has learned of the server it reached.
@@ -176,6 +357,10 @@ struct d_mariadb
     bool                  multi_statements;  // left on by a script that
                                              // failed, so that its error
                                              // still describes it
+    bool                  tracked;           // the client's record of the
+                                             // session's changes is the
+                                             // reply to the layer's last
+                                             // command (2.4)
     enum d_mariadb_flavor flavor;            // the server's, by its version
                                              // string
     unsigned long         version;           // the server's true version,
@@ -188,6 +373,35 @@ struct d_mariadb
                                              // layer next runs a statement:
                                              // closing it clears the error
                                              // the caller is about to read
+    char                  charset[D_INTERNAL_MARIADB_CHARSET_SIZE];
+                                             // the character set the
+                                             // session began with, at
+                                             // connecting or changing user,
+                                             // which a reset returns to; ""
+                                             // when the client named none,
+                                             // or one too long to keep
+    char*                 init_commands;     // the init commands the layer's
+                                             // connect gave the client, each
+                                             // terminated, one after another,
+                                             // for a reset to run again; NULL
+                                             // for none
+    size_t                init_count;        // how many
+    struct d_internal_mariadb_attribute*
+                          attributes;        // the next query's attributes;
+                                             // NULL for none
+    size_t                attribute_count;   // how many
+    struct d_mariadb_statement*
+                          statements;        // the statements prepared on
+                                             // it, which closing it leaves
+                                             // only to be finalized (2.6)
+    struct d_mariadb_statement*
+                          cursor;            // the statement whose run holds
+                                             // the connection, its rows still
+                                             // arriving; NULL for none
+    struct d_mariadb_statement*
+                          retired;           // statements finalized while a
+                                             // run held the connection, the
+                                             // server told once it is free
 };
 
 // 2.2    Result codes
@@ -220,6 +434,13 @@ struct d_mariadb
 // required (CR_SSL_CONNECTION_ERROR).
 #define D_INTERNAL_MARIADB_SSL_ERROR 2026
 
+// 2.2.5
+// D_INTERNAL_MARIADB_OUT_OF_SYNC
+//   constant: a command refused because a statement's run holds the
+// connection, its rows still arriving (CR_COMMANDS_OUT_OF_SYNC, the client's
+// own number for a command sent while a result is unread).
+#define D_INTERNAL_MARIADB_OUT_OF_SYNC 2014
+
 // 2.3    Server facts
 //------------------------------------------------------------------------------
 // server facts -- _at_least answers whether the server is of the flavor
@@ -232,6 +453,50 @@ bool d_internal_mariadb_at_least(const struct d_mariadb* _db,
                                  unsigned long           _version);
 int  d_internal_mariadb_case_rule(struct d_mariadb* _db,
                                   int*              _rule);
+
+// 2.4    Replies
+//------------------------------------------------------------------------------
+// replies -- the server reports what a command changed in the session with
+// the OK packet that ends its reply (SERVER_SESSION_STATE_CHANGED), and the
+// client keeps the latest it read, until it reads another: Connector/C even
+// past replies that carry none -- an error, rows ended by EOF, a ping -- so
+// that its record would describe an earlier command. Every command the layer
+// sends records whether its reply carried the changes: _replied with `_ok`
+// for a reply that ended in an OK packet, which carried them where the
+// server says so; _rows_end_ok answers whether a result's rows end in one,
+// as they do where the client and the server agreed on CLIENT_DEPRECATE_EOF
+// (libmysqlclient from 5.7.5), and never through Connector/C
+void d_internal_mariadb_replied(struct d_mariadb* _db,
+                                bool              _ok);
+bool d_internal_mariadb_rows_end_ok(const struct d_mariadb* _db);
+
+// 2.5    Query attributes
+//------------------------------------------------------------------------------
+// query attributes -- _sent follows a query the layer sent, whatever became
+// of it: the client dropped the attributes it bound (and is told to, so that
+// a query that never left drops them too), and the layer frees its copies;
+// _release frees the copies alone, for a reset, a change of user and a
+// close, which drop the client's binds themselves
+void d_internal_mariadb_attributes_sent(struct d_mariadb* _db);
+void d_internal_mariadb_attributes_release(struct d_mariadb* _db);
+
+// 2.6    Statements
+//------------------------------------------------------------------------------
+// statements -- a statement's run that d_mariadb_open_cursor began holds the
+// connection until it ends, the server still sending its rows, and nothing
+// else may be sent meanwhile: a client sending a command then either refuses
+// it or reads the run's rows away as it goes, so the layer refuses it first.
+// _idle answers 0, or D_INTERNAL_MARIADB_OUT_OF_SYNC while a run holds the
+// connection, for every function that sends a command; _close_retired closes
+// the statements finalized while one did, on a connection free again;
+// _detach, for a close, ends a run still open -- reading the rest of it only
+// where `_read_rest` says, since a connection about to close needs nothing
+// read -- and leaves every statement prepared on the connection without it,
+// only to be finalized (mariadb_statement.c)
+int  d_internal_mariadb_idle(const struct d_mariadb* _db);
+void d_internal_mariadb_close_retired(struct d_mariadb* _db);
+void d_internal_mariadb_detach(struct d_mariadb* _db,
+                               bool              _read_rest);
 
 
 //==============================================================================
@@ -286,12 +551,14 @@ int  d_internal_mariadb_format_result(enum d_internal_db_format_status _status);
 /**
  * @brief Readies the connection for the layer's next statement, undoing what
  *        a failure left so that its error would still read: closes a
- *        statement whose prepare failed, and turns off the multi-statement
- *        mode a failed script left on.
+ *        statement whose prepare failed, and those finalized while a run
+ *        held the connection, and turns off the multi-statement mode a
+ *        failed script left on.
  *
  * @param[in] _db  the connection.
- * @return 0, or the client's error number when the mode could not be turned
- *         off.
+ * @return 0; D_INTERNAL_MARIADB_OUT_OF_SYNC while a statement's run holds
+ *         the connection, having done nothing; or the client's error number
+ *         when the mode could not be turned off.
  */
 int  d_internal_mariadb_ready(struct d_mariadb* _db);
 /**

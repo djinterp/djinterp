@@ -39,7 +39,7 @@
 * path:      /inc/djinterp/c/filesys/file_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -419,7 +419,9 @@ struct d_dir_t;
 //------------------------------------------------------------------------------
 // 4.1.1
 // D_FILE_PATH_MAX
-//   constant: maximum path length this build will construct.
+//   constant: the longest path this build constructs, in bytes. A build that
+// hands Windows UTF-16 allows three for each unit Windows takes (780, or
+// 98301 with long paths), so that every path Windows can hold fits in UTF-8.
 #define D_FILE_PATH_MAX D_INTERNAL_FILE_PATH_MAX
 
 // 4.1.2
@@ -981,7 +983,7 @@ int   d_internal_file_is_link_win32(const char*                 _path,
 // that fits D_FILE_PATH_MAX bytes fits D_FILE_PATH_MAX units; where a path is
 // handed on as it is, the buffer goes unused and is one character.
 #if (D_INTERNAL_FILE_WIDE == 1)
-    #define D_INTERNAL_FILE_NATIVE_MAX D_FILE_PATH_MAX
+    #define D_INTERNAL_FILE_NATIVE_MAX D_INTERNAL_FILE_NATIVE_PATH_MAX
 #else
     #define D_INTERNAL_FILE_NATIVE_MAX 1
 #endif
@@ -1135,18 +1137,79 @@ char* d_internal_file_path_room(struct d_internal_file_path* _path);
  * @param[in,out] _path  the holder; releasing it twice is releasing it once.
  */
 void  d_internal_file_path_release(struct d_internal_file_path* _path);
+// d_internal_file_u16_t
+//   type (internal): a UTF-16 code unit: wchar_t on Windows, where it is one
+// and the wide API takes it, uint16_t elsewhere, where the converters below
+// are compiled for their tests alone.
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    typedef wchar_t d_internal_file_u16_t;
+#else
+    typedef uint16_t d_internal_file_u16_t;
+#endif
+
+// D_INTERNAL_FILE_TERMINATED
+//   constant (internal): the length that tells the converters below to read
+// their input as far as its terminator.
+#define D_INTERNAL_FILE_TERMINATED ((size_t)-1)
+
+/**
+ * @brief Converts WTF-8 to UTF-16. WTF-8 is UTF-8 in which an unpaired
+ *        surrogate, which Windows allows in a name, is written as the three
+ *        bytes its code point would take (ED A0 80 to ED BF BF).
+ *
+ * @note A pair written as two such forms is refused: WTF-8 spells a pair as
+ *       one four-byte form, so that a name has exactly one spelling.
+ *
+ * @param[in]  _in       the text.
+ * @param[in]  _in_size  its length in bytes, or D_INTERNAL_FILE_TERMINATED.
+ * @param[out] _out      receives the units and a terminator; `NULL` only to
+ *                       measure.
+ * @param[in]  _count    the room in `_out`, in units, terminator included.
+ * @param[out] _made     receives the units the text takes, terminator aside;
+ *                       may be `NULL`.
+ * @return 0; 1 when `_out` has no room for the text and its terminator; -1
+ *         for text that is not WTF-8: a stray or missing continuation byte, a
+ *         form longer than needed, a code point past U+10FFFF, or a pair
+ *         written as two three-byte forms.
+ */
+int d_internal_file_wtf8_to_utf16(const char*            _in,
+                                  size_t                 _in_size,
+                                  d_internal_file_u16_t* _out,
+                                  size_t                 _count,
+                                  size_t*                _made);
+
+/**
+ * @brief Converts UTF-16 to WTF-8: every sequence of units has a spelling,
+ *        an unpaired surrogate the three bytes its code point would take.
+ *
+ * @param[in]  _in        the units.
+ * @param[in]  _in_count  how many, or D_INTERNAL_FILE_TERMINATED.
+ * @param[out] _out       receives the text and a terminator; `NULL` only to
+ *                        measure.
+ * @param[in]  _size      the room in `_out`, in bytes, terminator included.
+ * @param[out] _made      receives the bytes the text takes, terminator
+ *                        aside; may be `NULL`.
+ * @return 0, or 1 when `_out` has no room for the text and its terminator.
+ */
+int d_internal_file_utf16_to_wtf8(const d_internal_file_u16_t* _in,
+                                  size_t                       _in_count,
+                                  char*                        _out,
+                                  size_t                       _size,
+                                  size_t*                      _made);
+
 /**
  * @brief The reverse of d_internal_file_to_native: text the platform handed
  *        back -- a name, a directory -- as UTF-8 where this build converts,
- *        and as it is everywhere else.
+ *        and as it is everywhere else. A lone surrogate, which Windows allows
+ *        in a name and UTF-8 cannot carry, comes back in WTF-8's three bytes,
+ *        which d_internal_file_to_native takes back unchanged.
  *
  * @param[in]  _native  NUL-terminated text in the platform's form.
  * @param[out] _out     receives the text and its terminator; on failure it
  *                      holds an empty string, when it has room for one.
  * @param[in]  _size    capacity of `_out`, in bytes.
  * @return 0, or -1 with errno set: ERANGE when the text does not fit `_size`
- *         bytes, EILSEQ for UTF-16 with a lone surrogate, which UTF-8 cannot
- *         carry and Windows allows in a name.
+ *         bytes.
  */
 int   d_internal_file_from_native(const d_internal_file_nchar_t* _native,
                                   char*                          _out,

@@ -14,7 +14,7 @@
 * path:      /src/djinterp/c/db/sqlite/sqlite_schema.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 // D_INTERNAL_SQLITE_SOURCE
 //   macro: this file is one of the SQLite layer's own sources, for which
@@ -404,7 +404,8 @@ d_internal_sqlite_append_column(
  * @param[in]  _count    how many.
  * @param[out] _keys     receives the number of primary-key columns.
  * @return SQLITE_OK, or SQLITE_MISUSE for AUTO_INCREMENT on a column that is
- *         not the sole primary key.
+ *         not the sole primary key, or key places that are not sound
+ *         (d_internal_db_key_places_ok).
  */
 static int
 d_internal_sqlite_count_keys(
@@ -433,9 +434,10 @@ d_internal_sqlite_count_keys(
                             ((flags & D_DB_COLUMN_AUTO_INCREMENT) != 0u) );
     }
 
-    // and impossible on a composite key
-    if ( (auto_increment) &&
-         (keys != 1u) )
+    // and impossible on a composite key; the key's places sound
+    if ( ( (auto_increment) &&
+           (keys != 1u) ) ||
+         (!d_internal_db_key_places_ok(_columns, _count)) )
     {
         return SQLITE_MISUSE;
     }
@@ -483,22 +485,23 @@ d_internal_sqlite_build_definition(
         }
     }
 
-    // a composite key, as a table constraint naming its columns in order
+    // a composite key, as a table constraint naming its columns in the
+    // key's order
     if ( (result == SQLITE_OK) &&
          (keys > 1u) )
     {
         const char* separator = ", PRIMARY KEY (";
 
-        for (size_t i = 0u; (result == SQLITE_OK) && (i < _count); ++i)
+        for (size_t place = 1u; (result == SQLITE_OK) && (place <= keys);
+             ++place)
         {
-            if ((_columns[i].flags & D_DB_COLUMN_PRIMARY_KEY) != 0u)
-            {
-                result    = d_internal_sqlite_append(_sql,
-                                                     "%s\"%w\"",
-                                                     separator,
-                                                     _columns[i].name);
-                separator = ", ";
-            }
+            const size_t i = d_internal_db_key_column(_columns, _count, place);
+
+            result    = d_internal_sqlite_append(_sql,
+                                                 "%s\"%w\"",
+                                                 separator,
+                                                 _columns[i].name);
+            separator = ", ";
         }
 
         if (result == SQLITE_OK)

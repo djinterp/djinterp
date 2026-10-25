@@ -61,7 +61,7 @@
 * path:      /inc/re_std/cstdint/dstdint.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.29
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -114,6 +114,8 @@ TABLE OF CONTENTS
          3.  SIG_ATOMIC_MIN / SIG_ATOMIC_MAX
          4.  WCHAR_MIN / WCHAR_MAX
          5.  WINT_MIN / WINT_MAX
+    3.  The 64-bit answer
+         1.  RE_STD_HAS_INT64
 5.  INTEGER CONSTANT MACROS
     -----------------------
     1.  Constants
@@ -1631,6 +1633,24 @@ TABLE OF CONTENTS
 #endif  // RE_STD_INTERNAL_STDINT_PREDEFINED == 1
 
 
+// 4.3    The 64-bit answer
+//------------------------------------------------------------------------------
+// 4.3.1
+// RE_STD_HAS_INT64
+//   macro: 1 where this translation unit has int64_t and its limits, 0 where
+// it has not (32-bit ISO strict C++98), fixed when this header is first
+// included. INT64_MAX can appear later, from a system header that brings the
+// platform's <stdint.h> (on glibc, <netinet/in.h>), so a test of it can change
+// its answer within one unit; this one cannot (djinterp's decision 132).
+#ifndef RE_STD_HAS_INT64
+    #if defined(INT64_MAX)
+        #define RE_STD_HAS_INT64 1
+    #else
+        #define RE_STD_HAS_INT64 0
+    #endif
+#endif  // RE_STD_HAS_INT64
+
+
 //==============================================================================
 // 5.  INTEGER CONSTANT MACROS
 //==============================================================================
@@ -1728,10 +1748,11 @@ TABLE OF CONTENTS
 // limit macro being defined, and it is described (section 2). That is every
 // family this header declared, and one more kind: a family this build
 // cannot spell, which the platform's <stdint.h> declared before this header
-// was included. Under ISO strict C++98 that is int64_t on a 32-bit target,
-// once any header has brought <stdint.h> with it. A format is a string, and
-// needs no spelling of the type; with it the family is whole, as every
-// other is, and `#ifdef INT64_MAX` remains a sufficient test.
+// was included. Under ISO strict C++98 that is int64_t wherever it is `long
+// long` -- a 32-bit target, 64-bit Windows or macOS -- once any header has
+// brought <stdint.h> with it. A format is a string, and needs no spelling of
+// the type; with it the family is whole, as every other is, and `#ifdef
+// INT64_MAX` remains a sufficient test.
 #if ( (defined(INT8_MAX))                     &&                              \
       (defined(RE_STD_INTERNAL_STDINT_8_S)) )
     #define RE_STD_INTERNAL_STDINT_8_FMT 1

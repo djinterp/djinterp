@@ -14,7 +14,7 @@
 * path:      /src/djinterp/c/db/db_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/db/db_common.h"  // corresponding header
 // std
@@ -130,6 +130,9 @@ d_db_status_message(
 
         case D_DB_MISMATCH:
             return "the value does not convert to that type exactly";
+
+        case D_DB_WAIT:
+            return "the call has not finished: wait, then continue it";
 
         default:
             break;

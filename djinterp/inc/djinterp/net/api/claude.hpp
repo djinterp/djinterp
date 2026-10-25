@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/net/api/claude.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 #ifndef DJINTERP_NET_API_CLAUDE_HPP
@@ -256,7 +256,8 @@ NS_INTERNAL
         //   function: an integer, in decimal (std::to_string is C++11's).
         // long, which every level has, holds what the API counts --
         // max_tokens, top_k -- so the writer needs no 64-bit type, which
-        // ISO strict C++98 on a 32-bit target lacks.
+        // ISO strict C++98 wherever int64_t is `long long`: a 32-bit target,
+        // 64-bit Windows or macOS lacks.
         void
         value_int(
             long _n

@@ -17,13 +17,14 @@
 * the client's connection too when the layer made it or was given it to own.
 * A handle is for one thread at a time. A program that connects from several
 * threads calls mysql_library_init once, before the first connection, as the
-* client libraries ask.
+* client libraries ask. d_mariadb_reset_connection gives a connection a fresh
+* session, set up as the connect set it up, without signing in again.
 *
 *
 * path:      /inc/djinterp/c/db/mariadb/mariadb_connection.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -38,8 +39,10 @@ TABLE OF CONTENTS
          4.  d_mariadb_setting
     2.  Connecting and closing
     3.  Changing user
-    4.  Liveness
-    5.  Rows changed
+    4.  Resetting the session
+    5.  Liveness
+    6.  Rows changed
+    7.  Options read back
 */
 
 #ifndef DJINTERP_C_DB_MARIADB_MARIADB_CONNECTION_H
@@ -55,9 +58,10 @@ TABLE OF CONTENTS
                                                  // floor; int64_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict
-// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
-// ruling of 2026.10.03 on round 3's question 1, (a)).
+// declares only where the build can spell one. Below it -- ISO strict C++98
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
+// question 1, (a)).
 #if defined(INT64_MAX)
 
 
@@ -94,7 +98,15 @@ struct d_mariadb_options
 // d_mariadb_setting_name
 //   enum: a client setting d_mariadb_connect_with applies before connecting,
 // beyond what d_mariadb_options says, and which of a setting's fields it
-// reads (d_mariadb_setting).
+// reads (d_mariadb_setting). The last five are options not every client
+// has, and a setting the client has no option for is D_DB_UNSUPPORTED:
+// MAX_PACKET is every libmysqlclient's and Connector/C's from 3.0;
+// DEFAULT_AUTH every client's; TLS_VERSION libmysqlclient's from 5.7.10,
+// which refuses a list it cannot read, and Connector/C's from 3.0, which
+// passes over a version it does not know; TLS_CIPHERSUITES libmysqlclient's
+// from 8.0.16 alone; and CLEARTEXT_PLUGIN libmysqlclient's switch, without
+// which it refuses to send a password in clear text -- MariaDB's clients send
+// one unasked, whatever the setting says.
 enum d_mariadb_setting_name
 {
     D_MARIADB_SETTING_CONNECT_TIMEOUT = 0,  // number: seconds to wait for the
@@ -123,22 +135,64 @@ enum d_mariadb_setting_name
                                             // which performance_schema shows
     D_MARIADB_SETTING_CLIENT_FLAGS,         // number: CLIENT_* flags, added to
                                             // the layer's CLIENT_MULTI_RESULTS
-    D_MARIADB_SETTING_NATIVE                // number and value: mysql_options's
+    D_MARIADB_SETTING_NATIVE,               // number and value: mysql_options's
                                             // option and argument, as given
+    D_MARIADB_SETTING_MAX_PACKET,           // number: the largest packet, in
+                                            // bytes, the client takes from
+                                            // the server -- a row; a larger
+                                            // one loses the connection (2020
+                                            // from libmysqlclient, 2013 from
+                                            // Connector/C) -- and, in
+                                            // libmysqlclient, the largest a
+                                            // prepared statement's values
+                                            // make, refused past it (2020),
+                                            // the connection kept; 0 leaves
+                                            // the client's own, 1 GiB
+    D_MARIADB_SETTING_DEFAULT_AUTH,         // text: the authentication plugin
+                                            // the client answers with first,
+                                            // before the server names its own
+    D_MARIADB_SETTING_TLS_VERSION,          // text: the TLS versions allowed,
+                                            // as "TLSv1.2,TLSv1.3"
+    D_MARIADB_SETTING_TLS_CIPHERSUITES,     // text: TLS 1.3's cipher suites
+                                            // allowed, as
+                                            // "TLS_AES_128_GCM_SHA256"
+    D_MARIADB_SETTING_CLEARTEXT_PLUGIN,     // number: nonzero lets the client
+                                            // send the password in clear
+                                            // text when the server's
+                                            // authentication asks for it
+    D_MARIADB_SETTING_SERVER_PUBLIC_KEY,    // text: a file holding the
+                                            // server's RSA public key, in
+                                            // PEM, with which MySQL's
+                                            // caching_sha2_password and
+                                            // sha256_password encrypt the
+                                            // password where the connection
+                                            // has no TLS
+    D_MARIADB_SETTING_GET_SERVER_PUBLIC_KEY // number: nonzero lets the client
+                                            // ask the server for that key
+                                            // where no file gives it -- open
+                                            // to a man in the middle, as a
+                                            // file is not. libmysqlclient
+                                            // asks only when told to, from
+                                            // 8.0.3 (D_DB_UNSUPPORTED before
+                                            // it); Connector/C always asks,
+                                            // so 0 is D_DB_UNSUPPORTED there
 };
 
 // 1.1.3
 // d_mariadb_ssl_mode
-//   enum: what the connection asks of TLS. MySQL's client takes each as its
-// --ssl-mode does. MariaDB's client has no switch for DISABLED, which then
-// sets nothing -- that client uses TLS only when a key, a certificate or an
-// authority is given -- and cannot verify the authority without the server's
-// name as well, so VERIFY_CA is D_DB_UNSUPPORTED with it. With either, a mode
-// that insists on TLS is checked once connected, and a connection without it
-// is refused with 2026.
+//   enum: what the connection asks of TLS; PREFERRED where no setting names
+// a mode, with every client. MySQL's client takes each as its --ssl-mode
+// does. MariaDB's client is given each by its two switches -- PREFERRED
+// too, which it would otherwise take, before 3.4, as no TLS unless a key, a
+// certificate or an authority is given, and from 3.4 as TLS insisted on and
+// its certificate checked -- and cannot verify the authority without the
+// server's name as well, so VERIFY_CA is D_DB_UNSUPPORTED with it. With
+// either, a mode that insists on TLS is checked once connected, and a
+// connection without it is refused with 2026.
 enum d_mariadb_ssl_mode
 {
-    D_MARIADB_SSL_PREFERRED = 0,     // the client's default: TLS when it can
+    D_MARIADB_SSL_PREFERRED = 0,     // TLS where the server offers it, the
+                                     // certificate unchecked
     D_MARIADB_SSL_DISABLED,          // never TLS
     D_MARIADB_SSL_REQUIRED,          // TLS or no connection, the server's
                                      // certificate unchecked
@@ -206,10 +260,12 @@ int            d_mariadb_connect(const struct d_mariadb_options* _options,
  *                        be `NULL` when the reason is not wanted.
  * @return as d_mariadb_connect; the client's error number for a setting it
  *         refuses (2026 for TLS that could not be had), or 2000 when it
- *         refuses one without a number; D_DB_UNSUPPORTED for an SSL_MODE the
- *         client cannot honour; D_DB_INVALID_ARGUMENT for a setting of no
- *         such name, one without the text or value it needs, a timeout past
- *         what the client takes, or `NULL` settings with a nonzero count.
+ *         refuses one without a number (a TLS version list libmysqlclient
+ *         cannot read); D_DB_UNSUPPORTED for an SSL_MODE the client cannot
+ *         honour, or a setting it has no option for; D_DB_INVALID_ARGUMENT
+ *         for a setting of no such name, one without the text or value it
+ *         needs, a timeout past what the client takes, or `NULL` settings
+ *         with a nonzero count.
  * @post On success the caller closes `*_db` with d_mariadb_close.
  */
 int            d_mariadb_connect_with(const struct d_mariadb_options* _options,
@@ -260,7 +316,38 @@ int            d_mariadb_change_user(struct d_mariadb* _db,
                                      const char*       _password,
                                      const char*       _database) D_NOTHROW;
 
-// 1.4    Liveness
+// 1.4    Resetting the session
+//------------------------------------------------------------------------------
+/**
+ * @brief Gives the connection a fresh session, as mysql_reset_connection
+ *        does, without signing in again, and sets it up as the layer's
+ *        connect did.
+ *
+ * @note The server ends the session's state: an open transaction is rolled
+ *       back and its locks released; temporary tables, user variables and
+ *       prepared statements go -- a statement prepared on the connection
+ *       fails from then on (2056 through libmysqlclient, 2013 through
+ *       Connector/C) and can only be finalized; session variables take the
+ *       server's global values again, and the character set the session
+ *       began with. The current database stays. Then the layer runs again
+ *       the init commands d_mariadb_connect_with's settings gave (not one
+ *       given through a NATIVE setting, nor any of an adopted connection's),
+ *       in their order, and sets the client's character set again where the
+ *       session's can differ from it: where a program changed it since the
+ *       session began, or where the handshake could not carry it. Query
+ *       attributes not yet sent are dropped.
+ *
+ * @param[in] _db  the handle.
+ * @return 0; the client's error number for the reset, or for the first init
+ *         command or character set that failed after it, the reset having
+ *         happened; D_DB_UNSUPPORTED where the server is older than MySQL
+ *         5.7.3 or MariaDB 10.2.4, or the client has no reset (a MariaDB
+ *         client before Connector/C 3.0); D_DB_INVALID_ARGUMENT for a `NULL`
+ *         handle.
+ */
+int            d_mariadb_reset_connection(struct d_mariadb* _db) D_NOTHROW;
+
+// 1.5    Liveness
 //------------------------------------------------------------------------------
 // liveness -- whether the server still answers: 0, or the client's error
 // number (2006, gone away; 2013, lost); D_DB_INVALID_ARGUMENT for NULL
@@ -275,7 +362,7 @@ unsigned long  d_mariadb_connection_id(const struct d_mariadb* _db) D_NOTHROW;
 int            d_mariadb_server_status(struct d_mariadb* _db,
                                        char**            _status) D_NOTHROW;
 
-// 1.5    Rows changed
+// 1.6    Rows changed
 //------------------------------------------------------------------------------
 // rows changed -- the AUTO_INCREMENT value the last statement produced, 0 if
 // it produced none; the rows it affected, as mysql_affected_rows counts them
@@ -287,6 +374,30 @@ int            d_mariadb_server_status(struct d_mariadb* _db,
 uint64_t       d_mariadb_last_insert_id(const struct d_mariadb* _db) D_NOTHROW;
 int64_t        d_mariadb_changes(const struct d_mariadb* _db) D_NOTHROW;
 unsigned       d_mariadb_warning_count(const struct d_mariadb* _db) D_NOTHROW;
+
+// 1.7    Options read back
+//------------------------------------------------------------------------------
+/**
+ * @brief Reads one of the client's options for the connection back, as
+ *        mysql_get_option reads it, without the server.
+ *
+ * @note `_value` points at the option's own type, as mysql.h documents it
+ *       for mysql_options: an unsigned int for MYSQL_OPT_CONNECT_TIMEOUT, a
+ *       const char* for MYSQL_SET_CHARSET_NAME, and so on. A text read is
+ *       the client's, valid until the option changes or the connection
+ *       closes. Options the layer sets from d_mariadb_options and the
+ *       settings read back as it set them.
+ *
+ * @param[in]  _db      the connection.
+ * @param[in]  _option  the option, as mysql.h numbers it.
+ * @param[out] _value   receives the option's value.
+ * @return 0; D_DB_UNSUPPORTED for an option the client cannot read back, and
+ *         for a client without mysql_get_option (Connector/C before 3.0);
+ *         D_DB_INVALID_ARGUMENT for a `NULL` argument.
+ */
+int            d_mariadb_get_option(const struct d_mariadb* _db,
+                                    int                     _option,
+                                    void*                   _value) D_NOTHROW;
 
 
 D_EXTERN_C_END

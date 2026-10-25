@@ -17,14 +17,14 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_validator_member_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_validator_member_tests.h"  // corresponding header
 // std
 #include <stdbool.h>  // bool, true, false
 #include <stddef.h>   // size_t, NULL
 #include <stdlib.h>   // malloc, free
-#include <string.h>   // memcpy, strcpy
+#include <string.h>   // memcmp, memcpy, strcpy
 // djinterp
 #include "../../../../../../inc/djinterp/c/util/sink_common.h"  // d_pack_text, d_pack_sink
 #include "../../../../../../inc/djinterp/config/parse/cli/arg_parser/cfg_arg_parser.h"  // the knob
@@ -1589,6 +1589,62 @@ d_tests_arg_member_refuse(
 }
 
 /**
+ * @brief A filter of the caller's that fails with a status of its own, as a
+ *        function of the face's that throws comes to: a conversion error,
+ *        for every text.
+ *
+ * @param[in]     _value    unused.
+ * @param[in,out] _out      unused.
+ * @param[in]     _context  unused.
+ * @return D_ARG_ERROR_CONVERSION.
+ */
+static int
+d_tests_arg_member_fail(
+    struct d_pack_text   _value,
+    struct d_arg_buffer* _out,
+    void*                _context
+)
+{
+    (void)_value;
+    (void)_out;
+    (void)_context;
+
+    return D_ARG_ERROR_CONVERSION;
+}
+
+/**
+ * @brief A filter of the caller's that fails on one member of MEMBERS,
+ *        "Beta", with a conversion error, and keeps any other text as it
+ *        is.
+ *
+ * @param[in]     _value    the text to filter.
+ * @param[in,out] _out      the empty buffer that receives the filtered text.
+ * @param[in]     _context  unused.
+ * @return D_ARG_ERROR_CONVERSION for "Beta"; else the buffer's status.
+ */
+static int
+d_tests_arg_member_fail_beta(
+    struct d_pack_text   _value,
+    struct d_arg_buffer* _out,
+    void*                _context
+)
+{
+    (void)_context;
+
+    // the one text it cannot filter
+    if ( (_value.length == 4u) &&
+         (memcmp(_value.data,
+                 "Beta",
+                 4u) == 0) )
+    {
+        return D_ARG_ERROR_CONVERSION;
+    }
+
+    return d_arg_buffer_append_text(_out,
+                                    _value);
+}
+
+/**
  * @brief Runs a set or mapping over WORDS and compares its transcript with
  *        the one expected.
  *
@@ -2033,6 +2089,72 @@ d_tests_arg_member_refused(void)
                                             &refuse),
                   "alpha",
                   D_ARG_ERROR_OUT_OF_MEMORY)) );
+}
+
+/**
+ * @brief Filters that fail with a status of their own.
+ *
+ * @return whether a set, a mapping and a checked mapping stop with the
+ *         conversion error a filter returns for the value -- and a set for
+ *         a member it filters as it searches -- rather than answer it as
+ *         they answer a value that does not convert; and whether a value
+ *         found before the failing member is still found.
+ */
+static bool
+d_tests_arg_member_filter_fails(void)
+{
+    const struct d_arg_filter on_value  =
+    {
+        0u,                       // flags
+        d_tests_arg_member_fail,  // function
+        NULL,                     // context
+        NULL,                     // copy
+        NULL                      // release
+    };
+    const struct d_arg_filter on_member =
+    {
+        0u,                            // flags
+        d_tests_arg_member_fail_beta,  // function
+        NULL,                          // context
+        NULL,                          // copy
+        NULL                           // release
+    };
+
+    return ( (d_tests_arg_member_runs_as(
+                  d_arg_validator_is_member(NULL,
+                                            MEMBERS,
+                                            MEMBER_COUNT,
+                                            &on_value),
+                  "alpha",
+                  D_ARG_ERROR_CONVERSION))                  &&
+             (d_tests_arg_member_runs_as(
+                  d_arg_validator_transformer(NULL,
+                                              PAIRS,
+                                              PAIR_COUNT,
+                                              &on_value),
+                  "one",
+                  D_ARG_ERROR_CONVERSION))                  &&
+             (d_tests_arg_member_runs_as(
+                  d_arg_validator_checked_transformer(NULL,
+                                                      PAIRS,
+                                                      PAIR_COUNT,
+                                                      &on_value),
+                  "one",
+                  D_ARG_ERROR_CONVERSION))                  &&
+             (d_tests_arg_member_runs_as(
+                  d_arg_validator_is_member(NULL,
+                                            MEMBERS,
+                                            MEMBER_COUNT,
+                                            &on_member),
+                  "delta",
+                  D_ARG_ERROR_CONVERSION))                  &&
+             (d_tests_arg_member_runs_as(
+                  d_arg_validator_is_member(NULL,
+                                            MEMBERS,
+                                            MEMBER_COUNT,
+                                            &on_member),
+                  "alpha",
+                  D_ARG_OK)) );
 }
 
 /**
@@ -2525,7 +2647,10 @@ d_tests_arg_member_filter_context
     copy is freed with its set
   - a context that cannot be copied fails what needed the copy -- the set,
     D_ARG_ERROR_OUT_OF_MEMORY, or a copy of it -- keeping nothing
-  - a filter that cannot filter stops the validation with its status
+  - a filter that cannot filter stops the validation with its status:
+    memory's, or one of its own -- a conversion error among them, for the
+    value or for a member -- which no set or mapping reads as a value that
+    does not convert
 */
 bool
 d_tests_arg_member_filter_context(void)
@@ -2533,10 +2658,12 @@ d_tests_arg_member_filter_context(void)
     const bool borrowed = d_tests_arg_member_borrowed();
     const bool owned    = d_tests_arg_member_owned();
     const bool refused  = d_tests_arg_member_refused();
+    const bool fails    = d_tests_arg_member_filter_fails();
 
     return ( (borrowed) &&
              (owned)    &&
-             (refused) );
+             (refused)  &&
+             (fails) );
 }
 
 //==============================================================================

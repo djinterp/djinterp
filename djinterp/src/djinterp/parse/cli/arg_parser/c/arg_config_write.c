@@ -19,7 +19,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_config_write.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_config.h"  // corresponding header
 // std
@@ -46,11 +46,15 @@
 // characters as a `'''` literal over lines, outside an array.
 static const size_t LONG_VALUE = 100u;
 
-/*
-d_arg_internal_ini_printable
-  C's isprint in the "C" locale, as CLI11 calls it: a byte from the space to
-the tilde.
-*/
+/**
+ * @brief Tells whether a byte prints, as C's isprint does in the "C" locale.
+ *
+ * @param[in] _c  the byte.
+ * @return `true` for a byte from the space to the tilde; `false` otherwise.
+ *
+ * C's isprint in the "C" locale, as CLI11 calls it: a byte from the space to
+ * the tilde.
+ */
 D_STATIC bool
 d_arg_internal_ini_printable(
     char _c
@@ -60,11 +64,15 @@ d_arg_internal_ini_printable(
              ((unsigned char)_c <= 0x7Eu) );
 }
 
-/*
-d_arg_internal_ini_word
-  Whether a value is one of the words CLI11 writes bare: `true`, `false`,
-`nan` and `inf`.
-*/
+/**
+ * @brief Tells whether a value is one of the words CLI11 writes bare.
+ *
+ * @param[in] _value  the value.
+ * @return `true` for `true`, `false`, `nan` and `inf`; `false` otherwise.
+ *
+ * Whether a value is one of the words CLI11 writes bare: `true`, `false`,
+ * `nan` and `inf`.
+ */
 D_STATIC bool
 d_arg_internal_ini_word(
     struct d_pack_text _value
@@ -80,10 +88,15 @@ d_arg_internal_ini_word(
                                         "inf")) );
 }
 
-/*
-d_arg_internal_ini_digits
-  How many decimal digits run from `_at`.
-*/
+/**
+ * @brief Counts the decimal digits that run from a place.
+ *
+ * @param[in] _value  the value.
+ * @param[in] _at     the place.
+ * @return the count.
+ *
+ * How many decimal digits run from `_at`.
+ */
 D_STATIC size_t
 d_arg_internal_ini_digits(
     struct d_pack_text _value,
@@ -102,10 +115,15 @@ d_arg_internal_ini_digits(
     return count;
 }
 
-/*
-d_arg_internal_ini_signed
-  Whether a byte of a number is its sign.
-*/
+/**
+ * @brief Tells whether a byte of a number is its sign.
+ *
+ * @param[in] _value  the value.
+ * @param[in] _at     the byte's place.
+ * @return `true` for a `+` or a `-` there; `false` otherwise.
+ *
+ * Whether a byte of a number is its sign.
+ */
 D_STATIC bool
 d_arg_internal_ini_signed(
     struct d_pack_text _value,
@@ -117,12 +135,18 @@ d_arg_internal_ini_signed(
                (_value.data[_at] == '-') ) );
 }
 
-/*
-d_arg_internal_ini_exponent
-  How much of the value an exponent takes from `_at`: `e` or `E`, a sign,
-and at least one digit -- none at all when they are not there, as strtold
-then stops before the `e`.
-*/
+/**
+ * @brief Measures the exponent that starts at a place.
+ *
+ * @param[in] _value  the value.
+ * @param[in] _at     the place.
+ * @return how many bytes it takes: `e` or `E`, a sign and at least one digit; 0
+ *         when they are not there.
+ *
+ * How much of the value an exponent takes from `_at`: `e` or `E`, a sign,
+ * and at least one digit -- none at all when they are not there, as strtold
+ * then stops before the `e`.
+ */
 D_STATIC size_t
 d_arg_internal_ini_exponent(
     struct d_pack_text _value,
@@ -147,14 +171,19 @@ d_arg_internal_ini_exponent(
            : 0u;
 }
 
-/*
-d_arg_internal_ini_number
-  Whether CLI11 writes a value bare as a number: one strtold reads whole that
-holds only digits, `.`, `+`, `-`, `e` and `E`, so a decimal floating-point
-literal -- an optional sign, digits with an optional point and at least one
-digit, and an optional exponent. Such a value never starts with `0x`, which
-CLI11 checks first.
-*/
+/**
+ * @brief Tells whether CLI11 writes a value bare as a decimal number.
+ *
+ * @param[in] _value  the value.
+ * @return `true` for a decimal floating-point literal strtold reads whole;
+ *         `false` otherwise.
+ *
+ * Whether CLI11 writes a value bare as a number: one strtold reads whole that
+ * holds only digits, `.`, `+`, `-`, `e` and `E`, so a decimal floating-point
+ * literal -- an optional sign, digits with an optional point and at least one
+ * digit, and an optional exponent. Such a value never starts with `0x`, which
+ * CLI11 checks first.
+ */
 D_STATIC bool
 d_arg_internal_ini_number(
     struct d_pack_text _value
@@ -183,11 +212,16 @@ d_arg_internal_ini_number(
                                                 at)) == _value.length) );
 }
 
-/*
-d_arg_internal_ini_radix_digit
-  Whether a byte is a digit of the base a prefix letter names: `x`
-hexadecimal, `o` octal, `b` binary.
-*/
+/**
+ * @brief Tells whether a byte is a digit of the base a prefix letter names.
+ *
+ * @param[in] _base  the letter: `x`, `o` or `b`.
+ * @param[in] _c     the byte.
+ * @return `true` for a digit of the base; `false` otherwise.
+ *
+ * Whether a byte is a digit of the base a prefix letter names: `x`
+ * hexadecimal, `o` octal, `b` binary.
+ */
 D_STATIC bool
 d_arg_internal_ini_radix_digit(
     char _base,
@@ -208,12 +242,18 @@ d_arg_internal_ini_radix_digit(
                  (_c == '1') ) );
 }
 
-/*
-d_arg_internal_ini_radix
-  Whether CLI11 writes a value bare as a hexadecimal, octal or binary
-number: `0x`, `0o` or `0b`, then nothing but that base's digits, if
-anything.
-*/
+/**
+ * @brief Tells whether CLI11 writes a value bare as a hexadecimal, octal or
+ *        binary number.
+ *
+ * @param[in] _value  the value.
+ * @return `true` for `0x`, `0o` or `0b` and nothing but that base's digits
+ *         after it; `false` otherwise.
+ *
+ * Whether CLI11 writes a value bare as a hexadecimal, octal or binary
+ * number: `0x`, `0o` or `0b`, then nothing but that base's digits, if
+ * anything.
+ */
 D_STATIC bool
 d_arg_internal_ini_radix(
     struct d_pack_text _value
@@ -242,10 +282,15 @@ d_arg_internal_ini_radix(
     return true;
 }
 
-/*
-d_arg_internal_ini_prints
-  CLI11's is_printable: every byte prints, or is a line feed or a tab.
-*/
+/**
+ * @brief Tells whether every byte of a value prints, as CLI11's is_printable.
+ *
+ * @param[in] _value  the value.
+ * @return `true` when every byte prints or is a line feed or a tab; `false`
+ *         otherwise.
+ *
+ * CLI11's is_printable: every byte prints, or is a line feed or a tab.
+ */
 D_STATIC bool
 d_arg_internal_ini_prints(
     struct d_pack_text _value
@@ -257,7 +302,7 @@ d_arg_internal_ini_prints(
         const char c = _value.data[at];
 
         if ( (!d_arg_internal_ini_printable(c)) &&
-             (c != '\n')                         &&
+             (c != '\n')                        &&
              (c != '\t') )
         {
             return false;
@@ -267,10 +312,14 @@ d_arg_internal_ini_prints(
     return true;
 }
 
-/*
-d_arg_internal_ini_triple
-  Whether a value holds `'''`, which a multiline literal could not hold.
-*/
+/**
+ * @brief Tells whether a value holds `'''`.
+ *
+ * @param[in] _value  the value.
+ * @return `true` when it does; `false` otherwise.
+ *
+ * Whether a value holds `'''`, which a multiline literal could not hold.
+ */
 D_STATIC bool
 d_arg_internal_ini_triple(
     struct d_pack_text _value
@@ -290,10 +339,17 @@ d_arg_internal_ini_triple(
     return false;
 }
 
-/*
-d_arg_internal_ini_quoted
-  A value between two of a quote character, with its escapes added or not.
-*/
+/**
+ * @brief Appends a value between two of a quote character.
+ *
+ * @param[in]     _value    the value.
+ * @param[in]     _quote    the quote character.
+ * @param[in]     _escaped  whether its escapes are added.
+ * @param[in,out] _out      the buffer that gains it.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * A value between two of a quote character, with its escapes added or not.
+ */
 D_STATIC int
 d_arg_internal_ini_quoted(
     struct d_pack_text   _value,
@@ -321,12 +377,18 @@ d_arg_internal_ini_quoted(
                                     _quote);
 }
 
-/*
-d_arg_internal_ini_character
-  A value of one byte as CLI11 writes it: one that does not print as a
-binary string; a single quote between string quotes; any other between
-literal quotes.
-*/
+/**
+ * @brief Appends a value of one byte, as CLI11 writes it.
+ *
+ * @param[in]     _value   the value.
+ * @param[in]     _format  the format, whose quotes apply.
+ * @param[in,out] _out     the buffer that gains it.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * A value of one byte as CLI11 writes it: one that does not print as a
+ * binary string; a single quote between string quotes; any other between
+ * literal quotes.
+ */
 D_STATIC int
 d_arg_internal_ini_character(
     struct d_pack_text                _value,
@@ -350,13 +412,21 @@ d_arg_internal_ini_character(
                                      _out);
 }
 
-/*
-d_arg_internal_ini_escaped
-  A value holding characters CLI11 escapes: a long one outside an array as a
-`'''` literal over lines -- a newline at either end doubled, so that the
-reader's dropping it keeps one -- or, holding `'''` itself, as a binary
-string; any other between string quotes with its escapes.
-*/
+/**
+ * @brief Appends a value holding characters CLI11 escapes, as CLI11 writes it.
+ *
+ * @param[in]     _value        the value.
+ * @param[in]     _format       the format, whose quotes apply.
+ * @param[in]     _single_line  whether the value is written within an array, on
+ *                              one line.
+ * @param[in,out] _out          the buffer that gains it.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * A value holding characters CLI11 escapes: a long one outside an array as a
+ * `'''` literal over lines -- a newline at either end doubled, so that the
+ * reader's dropping it keeps one -- or, holding `'''` itself, as a binary
+ * string; any other between string quotes with its escapes.
+ */
 D_STATIC int
 d_arg_internal_ini_escaped(
     struct d_pack_text                _value,
@@ -394,15 +464,23 @@ d_arg_internal_ini_escaped(
                                     : "'''");
 }
 
-/*
-d_arg_internal_ini_value
-  CLI11's convert_arg_for_ini: an empty value as two string quotes; a word
-or number TOML reads as itself bare; a single byte as
-d_arg_internal_ini_character writes it; a hexadecimal, octal or binary
-number bare; bytes that do not print as a binary string; escapable
-characters as d_arg_internal_ini_escaped writes them; any other value
-between string quotes.
-*/
+/**
+ * @brief Appends a value as CLI11's convert_arg_for_ini writes it.
+ *
+ * @param[in]     _value        the value.
+ * @param[in]     _format       the format, whose quotes apply.
+ * @param[in]     _single_line  whether the value is written within an array, on
+ *                              one line.
+ * @param[in,out] _out          the buffer that gains it.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's convert_arg_for_ini: an empty value as two string quotes; a word
+ * or number TOML reads as itself bare; a single byte as
+ * d_arg_internal_ini_character writes it; a hexadecimal, octal or binary
+ * number bare; bytes that do not print as a binary string; escapable
+ * characters as d_arg_internal_ini_escaped writes them; any other value
+ * between string quotes.
+ */
 D_STATIC int
 d_arg_internal_ini_value(
     struct d_pack_text                _value,
@@ -462,13 +540,19 @@ d_arg_internal_ini_value(
                                        _out);
 }
 
-/*
-d_arg_internal_ini_join
-  CLI11's ini_join: the values as d_arg_internal_ini_value writes them --
-several between the array's brackets, where the format has them, each then
-on one line -- separated by the array separator and, unless it is
-whitespace, a space.
-*/
+/**
+ * @brief Appends values as CLI11's ini_join writes them.
+ *
+ * @param[in]     _values  the values.
+ * @param[in]     _format  the format, whose array characters and quotes apply.
+ * @param[in,out] _out     the buffer that gains them.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's ini_join: the values as d_arg_internal_ini_value writes them --
+ * several between the array's brackets, where the format has them, each then
+ * on one line -- separated by the array separator and, unless it is
+ * whitespace, a space.
+ */
 D_STATIC int
 d_arg_internal_ini_join(
     const struct d_arg_text_list*     _values,
@@ -543,11 +627,17 @@ struct d_arg_internal_ini_writer
     struct d_arg_buffer*              out;
 };
 
-/*
-d_arg_internal_ini_has_any
-  find_first_of over a set of bytes, NUL among them when one is: whether the
-text holds any of them.
-*/
+/**
+ * @brief Tells whether text holds any of a set of bytes, as find_first_of.
+ *
+ * @param[in] _text   the text.
+ * @param[in] _set    the bytes, NUL among them when it is one.
+ * @param[in] _count  how many.
+ * @return `true` when it holds one; `false` otherwise.
+ *
+ * find_first_of over a set of bytes, NUL among them when one is: whether the
+ * text holds any of them.
+ */
 D_STATIC bool
 d_arg_internal_ini_has_any(
     struct d_pack_text _text,
@@ -569,13 +659,19 @@ d_arg_internal_ini_has_any(
     return false;
 }
 
-/*
-d_arg_internal_ini_clean
-  CLI11's clean_name_string, the name appended: one holding a key
-character, a quote or a backslash, or in brackets, between single quotes --
-or, holding a single quote, between double quotes, escaped when it needs
-it; any other as it is.
-*/
+/**
+ * @brief Appends a name as CLI11's clean_name_string writes it.
+ *
+ * @param[in]     _writer  the writer, whose key characters apply.
+ * @param[in]     _name    the name.
+ * @param[in,out] _out     the buffer that gains it.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's clean_name_string, the name appended: one holding a key
+ * character, a quote or a backslash, or in brackets, between single quotes --
+ * or, holding a single quote, between double quotes, escaped when it needs
+ * it; any other as it is.
+ */
 D_STATIC int
 d_arg_internal_ini_clean(
     const struct d_arg_internal_ini_writer* _writer,
@@ -590,8 +686,8 @@ d_arg_internal_ini_clean(
     // a name that reads as it is
     if ( (!d_arg_internal_ini_has_any(_name,
                                       _writer->keys,
-                                      sizeof _writer->keys))  &&
-         (!bracketed)                                          &&
+                                      sizeof _writer->keys)) &&
+         (!bracketed)                                        &&
          (!d_arg_internal_ini_has_any(_name,
                                       "'`\"\\",
                                       4u)) )
@@ -613,11 +709,18 @@ d_arg_internal_ini_clean(
                                        _out);
 }
 
-/*
-d_arg_internal_ini_newlines
-  CLI11's fix_newlines: text with a leader written after each carriage
-return and each line feed in it.
-*/
+/**
+ * @brief Appends text with a leader after each line's end, as CLI11's
+ *        fix_newlines.
+ *
+ * @param[in]     _leader  the leader.
+ * @param[in]     _text    the text.
+ * @param[in,out] _out     the buffer that gains it.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when the buffer failed.
+ *
+ * CLI11's fix_newlines: text with a leader written after each carriage
+ * return and each line feed in it.
+ */
 D_STATIC int
 d_arg_internal_ini_newlines(
     struct d_pack_text   _leader,
@@ -644,12 +747,20 @@ d_arg_internal_ini_newlines(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_ini_comment
-  A description as a comment: `_lead` -- the comment character and a
-space, the comment character doubled for a command's own -- then the
-text, its lines each led the same way, and a line feed.
-*/
+/**
+ * @brief Appends a description as a comment.
+ *
+ * @param[in]     _lead         what leads each line: the comment character and
+ *                              a space, the character doubled for a command's
+ *                              own.
+ * @param[in]     _description  the description.
+ * @param[in,out] _out          the buffer that gains it.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * A description as a comment: `_lead` -- the comment character and a
+ * space, the comment character doubled for a command's own -- then the
+ * text, its lines each led the same way, and a line feed.
+ */
 D_STATIC int
 d_arg_internal_ini_comment(
     struct d_pack_text   _lead,
@@ -667,11 +778,16 @@ d_arg_internal_ini_comment(
                                     '\n');
 }
 
-/*
-d_arg_internal_ini_header
-  A group's header: a blank line, then, as a comment, the group's name and
-" Options".
-*/
+/**
+ * @brief Appends a group's header.
+ *
+ * @param[in] _writer  the writer, whose buffer gains it.
+ * @param[in] _group   the group's name.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * A group's header: a blank line, then, as a comment, the group's name and
+ * " Options".
+ */
 D_STATIC int
 d_arg_internal_ini_header(
     const struct d_arg_internal_ini_writer* _writer,
@@ -699,12 +815,22 @@ d_arg_internal_ini_header(
 // 3.  AN OPTION'S VALUE
 //==============================================================================
 
-/*
-d_arg_internal_ini_results_convert
-  CLI11's conversion of an option's values into a vector of strings, as its
-results(T&) makes it for to_config: none, or `{}` alone, is no value; `{}`
-and a separator is `{}` alone; any others are themselves, viewed.
-*/
+/**
+ * @brief Converts an option's values into a list of strings, as CLI11's
+ *        results(T&) makes one for to_config.
+ *
+ * @param[in]  _type     the descriptor; unused.
+ * @param[in]  _values   the values.
+ * @param[in]  _count    how many.
+ * @param[out] _target   the d_arg_text_list, emptied, that receives the values
+ *                       as spans.
+ * @param[in]  _context  the conversion's context; unused.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's conversion of an option's values into a vector of strings, as its
+ * results(T&) makes it for to_config: none, or `{}` alone, is no value; `{}`
+ * and a separator is `{}` alone; any others are themselves, viewed.
+ */
 D_STATIC int
 d_arg_internal_ini_results_convert(
     const struct d_arg_type*            _type,
@@ -765,11 +891,16 @@ static const struct d_arg_type RESULTS_TYPE =
     D_ARG_TYPE_FLAG_CONTAINER                // flags
 };
 
-/*
-d_arg_internal_ini_given
-  The option's values as given, CLI11's results(), in place of those in the
-list.
-*/
+/**
+ * @brief Puts an option's values as given in place of those in a list.
+ *
+ * @param[in]     _option  the option.
+ * @param[in,out] _values  the list.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The option's values as given, CLI11's results(), in place of those in the
+ * list.
+ */
 D_STATIC int
 d_arg_internal_ini_given(
     const struct d_arg_option* _option,
@@ -784,12 +915,21 @@ d_arg_internal_ini_given(
                                       _option->results.count);
 }
 
-/*
-d_arg_internal_ini_sum
-  CLI11's check of a summed value: validated as the first value; refused,
-the values as given are written instead, and passed, what the validators
-made of it.
-*/
+/**
+ * @brief Checks a summed value as CLI11 does: validated as the first value.
+ *
+ * @param[in]     _option   the option.
+ * @param[in,out] _values   the values: the sum, replaced by what the validators
+ *                          made of it, or by the values as given when they
+ *                          refuse it.
+ * @param[in,out] _scratch  the buffer that receives what the validators made of
+ *                          the sum, which the list then views.
+ * @return D_ARG_OK, or the error a validator stopped with, or memory's.
+ *
+ * CLI11's check of a summed value: validated as the first value; refused,
+ * the values as given are written instead, and passed, what the validators
+ * made of it.
+ */
 D_STATIC int
 d_arg_internal_ini_sum(
     const struct d_arg_option* _option,
@@ -822,12 +962,18 @@ d_arg_internal_ini_sum(
     return status;
 }
 
-/*
-d_arg_internal_ini_joined
-  CLI11's check of a joined value: without a delimiter, or when the delimiter
-cannot split the value back -- it ends the value, is doubled in it, or is
-no rarer than the values given -- the values as given are written instead.
-*/
+/**
+ * @brief Checks a joined value as CLI11 does.
+ *
+ * @param[in]     _option  the option.
+ * @param[in,out] _values  the values: the joined one, replaced by the values as
+ *                         given when the delimiter cannot split it back.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's check of a joined value: without a delimiter, or when the delimiter
+ * cannot split the value back -- it ends the value, is doubled in it, or is
+ * no rarer than the values given -- the values as given are written instead.
+ */
 D_STATIC int
 d_arg_internal_ini_joined(
     const struct d_arg_option* _option,
@@ -862,20 +1008,27 @@ d_arg_internal_ini_joined(
 
     return ( ( (joined.length > 0u) &&
                (joined.data[joined.length - 1u] == delimiter) ) ||
-             (d_arg_option_count(_option) <= count)              ||
+             (d_arg_option_count(_option) <= count)             ||
              (doubled) )
            ? d_arg_internal_ini_given(_option,
                                       _values)
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_ini_results
-  The values CLI11's to_config writes for an option: those its policy keeps,
-reduced on a copy as reduced_results reduces them; reversed under Reverse;
-under Sum and Join, the values as given where the kept one would not read
-back.
-*/
+/**
+ * @brief Gives the values CLI11's to_config writes for an option.
+ *
+ * @param[in,out] _option   the option, which keeps the copies its reduction
+ *                          makes.
+ * @param[in,out] _values   the empty list that receives the values.
+ * @param[in,out] _scratch  the buffer a summed value's validation writes into.
+ * @return D_ARG_OK, or the failure of the reduction or of a check.
+ *
+ * The values CLI11's to_config writes for an option: those its policy keeps,
+ * reduced on a copy as reduced_results reduces them; reversed under Reverse;
+ * under Sum and Join, the values as given where the kept one would not read
+ * back.
+ */
 D_STATIC int
 d_arg_internal_ini_results(
     struct d_arg_option*    _option,
@@ -923,12 +1076,18 @@ d_arg_internal_ini_results(
     return status;
 }
 
-/*
-d_arg_internal_ini_given_value
-  The value CLI11 writes for what an option was given: `{}` given once with
-its separator as a quoted `{}`, so that it reads back as itself; any other
-values joined.
-*/
+/**
+ * @brief Writes the value CLI11 writes for what an option was given.
+ *
+ * @param[in]     _writer  the writer, whose format applies.
+ * @param[in,out] _option  the option.
+ * @param[in,out] _value   the buffer that gains the value.
+ * @return D_ARG_OK, or the failure of a step.
+ *
+ * The value CLI11 writes for what an option was given: `{}` given once with
+ * its separator as a quoted `{}`, so that it reads back as itself; any other
+ * values joined.
+ */
 D_STATIC int
 d_arg_internal_ini_given_value(
     const struct d_arg_internal_ini_writer* _writer,
@@ -967,13 +1126,20 @@ d_arg_internal_ini_given_value(
     return status;
 }
 
-/*
-d_arg_internal_ini_default
-  What CLI11 writes for an option without values when defaults are asked
-for: its default text's values, as results(T&) reads them; for an option
-taking no values, `false`; for one not required, or whose callback runs for
-its default, `""`; else `"<REQUIRED>"`.
-*/
+/**
+ * @brief Writes what CLI11 writes for an option without values when defaults
+ *        are asked for.
+ *
+ * @param[in]     _writer  the writer, whose format applies.
+ * @param[in,out] _option  the option.
+ * @param[in,out] _value   the buffer that gains the value.
+ * @return D_ARG_OK, or the failure of the default's reading or of the buffer.
+ *
+ * What CLI11 writes for an option without values when defaults are asked
+ * for: its default text's values, as results(T&) reads them; for an option
+ * taking no values, `false`; for one not required, or whose callback runs for
+ * its default, `""`; else `"<REQUIRED>"`.
+ */
 D_STATIC int
 d_arg_internal_ini_default(
     const struct d_arg_internal_ini_writer* _writer,
@@ -1021,12 +1187,21 @@ d_arg_internal_ini_default(
 // 4.  AN OPTION'S LINE
 //==============================================================================
 
-/*
-d_arg_internal_ini_flag_as
-  The value as a flag name reads it, CLI11's get_flag_value, replacing the
-value when the name accepts it; a refusal -- the ArgumentMismatch CLI11
-catches -- leaves the value and the parser's report as they were.
-*/
+/**
+ * @brief Reads a value as a flag name reads it, as CLI11's get_flag_value.
+ *
+ * @param[in,out] _option    the option.
+ * @param[in]     _name      the flag name.
+ * @param[in,out] _value     the value, replaced by the reading when the name
+ *                           accepts it.
+ * @param[out]    _accepted  receives whether the name accepted it.
+ * @return D_ARG_OK, also for a refusal, which leaves the value and the parser's
+ *         report as they were; otherwise the failure.
+ *
+ * The value as a flag name reads it, CLI11's get_flag_value, replacing the
+ * value when the name accepts it; a refusal -- the ArgumentMismatch CLI11
+ * catches -- leaves the value and the parser's report as they were.
+ */
 D_STATIC int
 d_arg_internal_ini_flag_as(
     struct d_arg_option* _option,
@@ -1068,12 +1243,23 @@ d_arg_internal_ini_flag_as(
            : status;
 }
 
-/*
-d_arg_internal_ini_flag_names
-  CLI11's second look at a flag's value, once its single name refused it:
-every flag name in turn -- none stopping the others -- each reading the
-value as the one before left it, the last that accepted it naming the line.
-*/
+/**
+ * @brief Reads a flag's value by every flag name in turn, as CLI11's second
+ *        look.
+ *
+ * @param[in,out] _option  the option.
+ * @param[in,out] _name    the name the line is written with, replaced by the
+ *                         last that accepted the value.
+ * @param[in,out] _value   the value, each name reading what the one before
+ *                         left.
+ * @param[out]    _valid   set to `true` when a name accepted the value;
+ *                         untouched otherwise.
+ * @return D_ARG_OK, or the failure.
+ *
+ * CLI11's second look at a flag's value, once its single name refused it:
+ * every flag name in turn -- none stopping the others -- each reading the
+ * value as the one before left it, the last that accepted it naming the line.
+ */
 D_STATIC int
 d_arg_internal_ini_flag_names(
     struct d_arg_option* _option,
@@ -1109,12 +1295,21 @@ d_arg_internal_ini_flag_names(
     return status;
 }
 
-/*
-d_arg_internal_ini_flag
-  CLI11's reading of a written flag's value by its names: by the single name;
-refused, by every flag name as d_arg_internal_ini_flag_names reads it;
-refused by all, the values as given.
-*/
+/**
+ * @brief Reads a written flag's value by its names, as CLI11 does.
+ *
+ * @param[in]     _writer  the writer, whose format applies.
+ * @param[in,out] _option  the option.
+ * @param[in,out] _name    the name the line is written with, replaced by the
+ *                         name that accepted the value.
+ * @param[in,out] _value   the value, replaced by the reading, or by the values
+ *                         as given when every name refuses it.
+ * @return D_ARG_OK, or the failure.
+ *
+ * CLI11's reading of a written flag's value by its names: by the single name;
+ * refused, by every flag name as d_arg_internal_ini_flag_names reads it;
+ * refused by all, the values as given.
+ */
 D_STATIC int
 d_arg_internal_ini_flag(
     const struct d_arg_internal_ini_writer* _writer,
@@ -1152,14 +1347,23 @@ d_arg_internal_ini_flag(
     return status;
 }
 
-/*
-d_arg_internal_ini_line
-  An option's line: a flag's value as its names read it back; the
-description first, as a comment, when asked for -- after a blank line,
-unless it is the first text written; then the name, prefixed and cleaned --
-commented out, a default, when defaults are -- the value delimiter, the
-value and a line feed.
-*/
+/**
+ * @brief Appends an option's line.
+ *
+ * @param[in]     _writer   the writer: the format, the prefix, the buffer, and
+ *                          whether descriptions are written.
+ * @param[in,out] _option   the option.
+ * @param[in,out] _value    its value, read back by a flag's names first.
+ * @param[in]     _default  whether the value is a default.
+ * @return D_ARG_OK, or the failure of a step; D_ARG_ERROR_OUT_OF_MEMORY when
+ *         the buffer failed.
+ *
+ * An option's line: a flag's value as its names read it back; the
+ * description first, as a comment, when asked for -- after a blank line,
+ * unless it is the first text written; then the name, prefixed and cleaned --
+ * commented out, a default, when defaults are -- the value delimiter, the
+ * value and a line feed.
+ */
 D_STATIC int
 d_arg_internal_ini_line(
     const struct d_arg_internal_ini_writer* _writer,
@@ -1218,12 +1422,17 @@ d_arg_internal_ini_line(
            : status;
 }
 
-/*
-d_arg_internal_ini_option
-  One option of a group's pass: its value -- what it was given, or, when
-defaults are asked for and that is nothing, its default -- and, unless the
-value is still empty, its line.
-*/
+/**
+ * @brief Writes one option of a group's pass.
+ *
+ * @param[in]     _writer  the writer.
+ * @param[in,out] _option  the option.
+ * @return D_ARG_OK, or the failure of a step.
+ *
+ * One option of a group's pass: its value -- what it was given, or, when
+ * defaults are asked for and that is nothing, its default -- and, unless the
+ * value is still empty, its line.
+ */
 D_STATIC int
 d_arg_internal_ini_option(
     const struct d_arg_internal_ini_writer* _writer,
@@ -1263,11 +1472,17 @@ d_arg_internal_ini_option(
 // 5.  GROUPS
 //==============================================================================
 
-/*
-d_arg_internal_ini_matches
-  Whether a group's pass writes an option: configurable, named, and of the
-group -- the OPTIONS pass taking the empty group's too.
-*/
+/**
+ * @brief Tells whether a group's pass writes an option.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _group   the pass's group.
+ * @return `true` for an option configurable, named, and of the group -- OPTIONS
+ *         taking the empty group's too; `false` otherwise.
+ *
+ * Whether a group's pass writes an option: configurable, named, and of the
+ * group -- the OPTIONS pass taking the empty group's too.
+ */
 D_STATIC bool
 d_arg_internal_ini_matches(
     const struct d_arg_option* _option,
@@ -1291,12 +1506,17 @@ d_arg_internal_ini_matches(
                (group[0] == '\0') ) );
 }
 
-/*
-d_arg_internal_ini_group
-  One pass of CLI11's to_config over the command's own options: a named
-group's header, when descriptions are written, then each option the pass
-writes.
-*/
+/**
+ * @brief Takes one pass of CLI11's to_config over a command's own options.
+ *
+ * @param[in] _writer  the writer.
+ * @param[in] _group   the pass's group.
+ * @return D_ARG_OK, or the failure of a step.
+ *
+ * One pass of CLI11's to_config over the command's own options: a named
+ * group's header, when descriptions are written, then each option the pass
+ * writes.
+ */
 D_STATIC int
 d_arg_internal_ini_group(
     const struct d_arg_internal_ini_writer* _writer,
@@ -1334,11 +1554,16 @@ d_arg_internal_ini_group(
     return status;
 }
 
-/*
-d_arg_internal_ini_first_seen
-  Whether an option is the first of the command's to name its group, the
-order CLI11's get_groups lists the groups in.
-*/
+/**
+ * @brief Tells whether an option is the first of a command's to name its group.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _index    the option's place.
+ * @return `true` when it is; `false` otherwise.
+ *
+ * Whether an option is the first of the command's to name its group, the
+ * order CLI11's get_groups lists the groups in.
+ */
 D_STATIC bool
 d_arg_internal_ini_first_seen(
     const struct d_arg_command* _command,
@@ -1361,11 +1586,15 @@ d_arg_internal_ini_first_seen(
     return true;
 }
 
-/*
-d_arg_internal_ini_options
-  CLI11's passes over the command's groups: OPTIONS first, then each other
-group once, in the order the command's options first name them.
-*/
+/**
+ * @brief Takes CLI11's passes over a command's groups.
+ *
+ * @param[in] _writer  the writer.
+ * @return D_ARG_OK, or the failure of a step.
+ *
+ * CLI11's passes over the command's groups: OPTIONS first, then each other
+ * group once, in the order the command's options first name them.
+ */
 D_STATIC int
 d_arg_internal_ini_options(
     const struct d_arg_internal_ini_writer* _writer
@@ -1402,13 +1631,17 @@ d_arg_internal_ini_options(
 // 6.  SUBCOMMANDS
 //==============================================================================
 
-/*
-d_arg_internal_ini_nameless
-  CLI11's pass over the nameless subcommands, option groups among them:
-each with a value -- or each, when defaults are asked for -- written in
-turn with the command's prefix, after its group's header when descriptions
-are written and the group is named, not with `+`.
-*/
+/**
+ * @brief Takes CLI11's pass over a command's nameless subcommands.
+ *
+ * @param[in] _writer  the writer.
+ * @return D_ARG_OK, or the failure of a step.
+ *
+ * CLI11's pass over the nameless subcommands, option groups among them:
+ * each with a value -- or each, when defaults are asked for -- written in
+ * turn with the command's prefix, after its group's header when descriptions
+ * are written and the group is named, not with `+`.
+ */
 D_STATIC int
 d_arg_internal_ini_nameless(
     const struct d_arg_internal_ini_writer* _writer
@@ -1456,11 +1689,16 @@ d_arg_internal_ini_nameless(
     return status;
 }
 
-/*
-d_arg_internal_ini_ancestors
-  The names of a command and its ancestors below the root, outermost first,
-each cleaned and followed by the section separator.
-*/
+/**
+ * @brief Appends the names of a command and its ancestors below the root.
+ *
+ * @param[in] _writer   the writer, whose buffer gains them, its failure kept in
+ *                      it.
+ * @param[in] _command  the command.
+ *
+ * The names of a command and its ancestors below the root, outermost first,
+ * each cleaned and followed by the section separator.
+ */
 D_STATIC void
 d_arg_internal_ini_ancestors(
     const struct d_arg_internal_ini_writer* _writer,
@@ -1485,12 +1723,17 @@ d_arg_internal_ini_ancestors(
     return;
 }
 
-/*
-d_arg_internal_ini_section
-  A subcommand's section header: the prefix -- or, below the top without
-one, the names of the command and its ancestors -- then the subcommand's
-name, cleaned, in brackets.
-*/
+/**
+ * @brief Appends a subcommand's section header.
+ *
+ * @param[in] _writer  the writer, whose buffer gains it.
+ * @param[in] _sub     the subcommand.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * A subcommand's section header: the prefix -- or, below the top without
+ * one, the names of the command and its ancestors -- then the subcommand's
+ * name, cleaned, in brackets.
+ */
 D_STATIC int
 d_arg_internal_ini_section(
     const struct d_arg_internal_ini_writer* _writer,
@@ -1524,13 +1767,19 @@ d_arg_internal_ini_section(
                                     "]\n");
 }
 
-/*
-d_arg_internal_ini_subcommand
-  A named subcommand written: as a section of its own, when it is
-configurable and was used, or when every default is asked for; otherwise
-with the prefix, its name and the section separator before each of its
-names.
-*/
+/**
+ * @brief Writes a named subcommand, as a section of its own or with a longer
+ *        prefix.
+ *
+ * @param[in] _writer  the writer.
+ * @param[in] _sub     the subcommand.
+ * @return D_ARG_OK, or the failure of a step.
+ *
+ * A named subcommand written: as a section of its own, when it is
+ * configurable and was used, or when every default is asked for; otherwise
+ * with the prefix, its name and the section separator before each of its
+ * names.
+ */
 D_STATIC int
 d_arg_internal_ini_subcommand(
     const struct d_arg_internal_ini_writer* _writer,
@@ -1577,12 +1826,16 @@ d_arg_internal_ini_subcommand(
     return status;
 }
 
-/*
-d_arg_internal_ini_named
-  CLI11's pass over the named subcommands: each with a value -- or each,
-when defaults are asked for, but for the defaults of the subcommands used
-alone, each used -- written as d_arg_internal_ini_subcommand writes it.
-*/
+/**
+ * @brief Takes CLI11's pass over a command's named subcommands.
+ *
+ * @param[in] _writer  the writer.
+ * @return D_ARG_OK, or the failure of a step.
+ *
+ * CLI11's pass over the named subcommands: each with a value -- or each,
+ * when defaults are asked for, but for the defaults of the subcommands used
+ * alone, each used -- written as d_arg_internal_ini_subcommand writes it.
+ */
 D_STATIC int
 d_arg_internal_ini_named(
     const struct d_arg_internal_ini_writer* _writer
@@ -1622,10 +1875,14 @@ d_arg_internal_ini_named(
 // 7.  WRITING
 //==============================================================================
 
-/*
-d_arg_internal_ini_mode
-  Whether a value is one of d_arg_config_output_mode's.
-*/
+/**
+ * @brief Tells whether a value is one of d_arg_config_output_mode's.
+ *
+ * @param[in] _mode  the value.
+ * @return `true` when it is; `false` otherwise.
+ *
+ * Whether a value is one of d_arg_config_output_mode's.
+ */
 D_STATIC bool
 d_arg_internal_ini_mode(
     int _mode
@@ -1636,11 +1893,15 @@ d_arg_internal_ini_mode(
              (_mode == (int)D_ARG_CONFIG_OUTPUT_ACTIVE_SUBCOMMAND_DEFAULTS) );
 }
 
-/*
-d_arg_internal_ini_write
-  A command's text, in CLI11's order: its own options group by group, its
-nameless subcommands, its named ones.
-*/
+/**
+ * @brief Writes a command's text, in CLI11's order.
+ *
+ * @param[in] _writer  the writer, whose buffer gains the text.
+ * @return D_ARG_OK, or the failure of a step.
+ *
+ * A command's text, in CLI11's order: its own options group by group, its
+ * nameless subcommands, its named ones.
+ */
 D_STATIC int
 d_arg_internal_ini_write(
     const struct d_arg_internal_ini_writer* _writer
@@ -1657,12 +1918,18 @@ d_arg_internal_ini_write(
            : status;
 }
 
-/*
-d_arg_internal_ini_emit
-  The command's text written apart, then appended -- headed by the
-command's description as a comment, when descriptions are written and
-there is any text.
-*/
+/**
+ * @brief Writes a command's text apart, then appends it, headed by its
+ *        description.
+ *
+ * @param[in]     _writer  the writer, whose buffer holds the text apart.
+ * @param[in,out] _out     the buffer that gains it.
+ * @return D_ARG_OK, or the failure of a step.
+ *
+ * The command's text written apart, then appended -- headed by the
+ * command's description as a comment, when descriptions are written and
+ * there is any text.
+ */
 D_STATIC int
 d_arg_internal_ini_emit(
     const struct d_arg_internal_ini_writer* _writer,
@@ -1703,7 +1970,7 @@ d_arg_config_to_text_default(
     const struct d_arg_config_format* _format,
     const struct d_arg_command*       _command,
     int                               _mode,
-    bool                              _write_description,
+    bool                              _describe,
     struct d_pack_text                _prefix,
     struct d_arg_buffer*              _out
 )
@@ -1725,7 +1992,7 @@ d_arg_config_to_text_default(
         _format,                                          // format
         _command,                                         // command
         _mode,                                            // mode
-        _write_description,                               // describe
+        _describe,                                        // describe
         (_prefix.data != NULL)
         ? _prefix
         : d_arg_internal_span("",

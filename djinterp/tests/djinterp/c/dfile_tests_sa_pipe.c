@@ -7,7 +7,7 @@
 * path:      /tests/djinterp/c/dfile_tests_sa_pipe.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 // djinterp
 #include "./dfile_tests_sa.h"
@@ -43,7 +43,7 @@ d_tests_dfile_popen_pclose
     size_t                idx;
 
     // test 1, 2, 3: open pipe, read, and close
-#if defined(D_FILE_PLATFORM_WINDOWS)
+#if defined(_WIN32)
     pipe_stream = d_pipe_open("echo test", "r");
 #else
     pipe_stream = d_pipe_open("echo test", "r");

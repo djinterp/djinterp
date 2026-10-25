@@ -11,15 +11,8 @@
 * path:      /tests/djinterp/net/tcp/tcp_tests_sa_threads.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.18
 *******************************************************************************/
-// enable POSIX.1-2008 (pthread_create, pthread_join) under a strict C
-// compiler; a feature-test macro must precede every include, so it sits
-// ahead of the suite's header
-#ifndef _POSIX_C_SOURCE
-    #define _POSIX_C_SOURCE 200809L
-#endif  // _POSIX_C_SOURCE
-
 #include "./tcp_tests_sa.h"  // the suite
 // std
 #include <string.h>   // memcmp, memset
@@ -134,10 +127,10 @@ d_tests_tcp_framer(
     struct d_tests_tcp_peer* peer = (struct d_tests_tcp_peer*)_argument;
     const size_t count = sizeof(FRAME_SIZES) / sizeof(FRAME_SIZES[0]);
 
-    peer->outcome = D_NET_ERROR_NONE;
+    peer->outcome = D_NET_OK;
 
     // each frame in turn, stopping at a failure
-    for (size_t i = 0u; (i < count) && (peer->outcome == D_NET_ERROR_NONE);
+    for (size_t i = 0u; (i < count) && (peer->outcome == D_NET_OK);
          ++i)
     {
         peer->outcome = d_net_write_frame(&peer->connection->base,
@@ -192,10 +185,10 @@ d_tests_sa_tcp_accept_wake(
 
     const bool started = ( (d_tests_tcp_endpoint(&where,
                                                  "127.0.0.1",
-                                                 0u)) &&
+                                                 0u))       &&
                            (d_tcp_listen(&listener,
                                          &where,
-                                         NULL) == D_NET_ERROR_NONE) &&
+                                         NULL) == D_NET_OK) &&
                            (pthread_create(&thread,
                                            NULL,
                                            d_tests_tcp_waiting,
@@ -210,19 +203,19 @@ d_tests_sa_tcp_accept_wake(
                            NULL);
     }
 
-    result = d_assert_standalone( (started) &&
-                                  (waiter.outcome == D_NET_ERROR_CLOSED) &&
-                                  (!d_tcp_connection_is_open(
-                                        &waiter.connection)),
+    result = d_tests_net_assert( (started)                              &&
+                                 (waiter.outcome == D_NET_ERROR_CLOSED) &&
+                                 (!d_tcp_connection_is_open(
+                                       &waiter.connection)),
                                  TEST,
                                  "the blocked accept returns closed",
                                  _counter) && result;
-    result = d_assert_standalone(d_tcp_accept(&listener,
-                                              &waiter.connection) ==
-                                 D_NET_ERROR_CLOSED,
-                                 TEST,
-                                 "a closed listener then refuses at once",
-                                 _counter) && result;
+    result = d_tests_net_assert(d_tcp_accept(&listener,
+                                             &waiter.connection) ==
+                                D_NET_ERROR_CLOSED,
+                                TEST,
+                                "a closed listener then refuses at once",
+                                _counter) && result;
 
     return result;
 }
@@ -265,8 +258,8 @@ d_tests_sa_tcp_bulk(
                            (d_net_read_exactly(&pair.server.base,
                                                g_received,
                                                BULK_SIZE,
-                                               &read) == D_NET_ERROR_NONE) );
-    const bool ended   = ( (started) &&
+                                               &read) == D_NET_OK) );
+    const bool ended   = ( (started)            &&
                            (d_net_read_exactly(&pair.server.base,
                                                g_received,
                                                1u,
@@ -282,19 +275,19 @@ d_tests_sa_tcp_bulk(
     }
 
     d_tests_tcp_pair_close(&pair);
-    result = d_assert_standalone( (arrived) &&
-                                  (read == BULK_SIZE) &&
-                                  (writer.outcome == D_NET_ERROR_NONE) &&
-                                  (memcmp(g_sent,
-                                          g_received,
-                                          BULK_SIZE) == 0),
+    result = d_tests_net_assert( (arrived)                    &&
+                                 (read == BULK_SIZE)          &&
+                                 (writer.outcome == D_NET_OK) &&
+                                 (memcmp(g_sent,
+                                         g_received,
+                                         BULK_SIZE) == 0),
                                  TEST,
                                  "1 MiB arrives intact",
                                  _counter) && result;
-    result = d_assert_standalone(ended,
-                                 TEST,
-                                 "a byte past the end: ended too soon",
-                                 _counter) && result;
+    result = d_tests_net_assert(ended,
+                                TEST,
+                                "a byte past the end: ended too soon",
+                                _counter) && result;
 
     return result;
 }
@@ -319,8 +312,8 @@ d_tests_tcp_read_frames(
         good = ( (d_net_read_frame(&_connection->base,
                                    g_received,
                                    BULK_SIZE,
-                                   &length) == D_NET_ERROR_NONE) &&
-                 (length == FRAME_SIZES[i]) &&
+                                   &length) == D_NET_OK) &&
+                 (length == FRAME_SIZES[i])              &&
                  (memcmp(g_received,
                          g_sent,
                          length) == 0) );
@@ -373,8 +366,8 @@ d_tests_sa_tcp_frames(
     }
 
     d_tests_tcp_pair_close(&pair);
-    result = d_assert_standalone( (framed) &&
-                                  (framer.outcome == D_NET_ERROR_NONE),
+    result = d_tests_net_assert( (framed) &&
+                                 (framer.outcome == D_NET_OK),
                                  TEST,
                                  "each frame arrives; then the stream ends",
                                  _counter) && result;
@@ -414,9 +407,9 @@ d_tests_sa_tcp_pump(
     reader.size       = PUMP_SIZE;
 
     const bool started = ( (d_tests_tcp_pair_open(&in,
-                                                  NULL)) &&
+                                                  NULL))  &&
                            (d_tests_tcp_pair_open(&out,
-                                                  NULL)) &&
+                                                  NULL))  &&
                            (pthread_create(&threads[0],
                                            NULL,
                                            d_tests_tcp_writer,
@@ -428,7 +421,7 @@ d_tests_sa_tcp_pump(
     const bool pumped  = ( (started) &&
                            (d_net_pump(&in.server.base,
                                        &out.client.base,
-                                       &total) == D_NET_ERROR_NONE) );
+                                       &total) == D_NET_OK) );
 
     // both threads end once the relay has carried everything
     if (started)
@@ -441,12 +434,12 @@ d_tests_sa_tcp_pump(
 
     d_tests_tcp_pair_close(&in);
     d_tests_tcp_pair_close(&out);
-    result = d_assert_standalone( (pumped) &&
-                                  (total == PUMP_SIZE) &&
-                                  (reader.outcome == D_NET_ERROR_NONE) &&
-                                  (memcmp(g_sent,
-                                          g_received,
-                                          PUMP_SIZE) == 0),
+    result = d_tests_net_assert( (pumped)                     &&
+                                 (total == PUMP_SIZE)         &&
+                                 (reader.outcome == D_NET_OK) &&
+                                 (memcmp(g_sent,
+                                         g_received,
+                                         PUMP_SIZE) == 0),
                                  TEST,
                                  "256 KiB relayed, counted, and in order",
                                  _counter) && result;

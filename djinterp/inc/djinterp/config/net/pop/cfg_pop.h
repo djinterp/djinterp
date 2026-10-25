@@ -8,13 +8,13 @@
 *   targets:  net/pop/pop.h -> D_INTERNAL_POP_LINE_MAX, D_INTERNAL_POP_STRICT,
 *             D_INTERNAL_POP_APOP, D_INTERNAL_POP_TLS, D_INTERNAL_POP_CURL,
 *             D_INTERNAL_POP_SASL
-*   requires: cfg_common.h; env/net/env_pop.h (backend defaults)
+*   requires: cfg_common.h; env/net/pop/env_pop.h (backend defaults)
 *
 *
 * path:      /inc/djinterp/config/net/pop/cfg_pop.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.25
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -91,9 +91,10 @@ TABLE OF CONTENTS
 // 1.2.1
 // D_CFG_POP_APOP
 //   brief: compile in APOP digest support (1, the default) or leave it out
-// (0). APOP uses MD5, which the kernel implements itself, so this costs no
-// dependency; switching it off is for builds that must carry no MD5 at all.
-// With it off, the APOP digest functions report D_POP_STATUS_UNSUPPORTED.
+// (0). APOP uses MD5, which net implements itself (codec_digest.h), so this
+// costs no dependency; switching it off is for builds that must not offer
+// APOP. With it off, the APOP digest functions report
+// D_POP_ERROR_UNSUPPORTED.
 #ifndef D_CFG_POP_APOP
 #   define D_CFG_POP_APOP 1
 #endif  // D_CFG_POP_APOP

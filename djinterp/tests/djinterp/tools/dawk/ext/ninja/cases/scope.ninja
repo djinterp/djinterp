@@ -1,0 +1,6 @@
+x = top
+rule r
+  command = $x $in $out
+build a: r
+subninja sub.ninja
+build c: r a

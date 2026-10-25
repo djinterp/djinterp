@@ -277,8 +277,10 @@ d_tests_postgres_cpp_session(
     static const struct d_db_column columns[] =
     {
         { "id",   D_DB_TYPE_BIG_INTEGER,
-          D_DB_COLUMN_PRIMARY_KEY | D_DB_COLUMN_AUTO_INCREMENT, 0, 0u, 0u, 0 },
-        { "name", D_DB_TYPE_STRING, D_DB_COLUMN_NOT_NULL, "'?'", 40u, 0u, 0 }
+          D_DB_COLUMN_PRIMARY_KEY | D_DB_COLUMN_AUTO_INCREMENT,
+          0, 0u, 0u, 0, 0u },
+        { "name", D_DB_TYPE_STRING, D_DB_COLUMN_NOT_NULL,
+          "'?'", 40u, 0u, 0, 0u }
     };
     char                    schema[64] = "";
     struct d_db_name_list   names      = { 0u, 0 };

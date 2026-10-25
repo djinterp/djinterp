@@ -14,7 +14,7 @@
 * path:      /src/djinterp/c/db/postgres/postgres_query.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -506,6 +506,14 @@ d_postgres_query_rows(
         return D_DB_INVALID_ARGUMENT;
     }
 
+    const int ready = d_internal_postgres_ready(_db);
+
+    // a run holds the connection
+    if (ready != 0)
+    {
+        return ready;
+    }
+
     const int result = d_internal_postgres_take(
                            _db,
                            PQexecParams(_db, _sql, 0, NULL, NULL, NULL,
@@ -549,6 +557,14 @@ d_postgres_query_rows_params(
         return D_DB_INVALID_ARGUMENT;
     }
 
+    const int ready = d_internal_postgres_ready(_db);
+
+    // a run holds the connection
+    if (ready != 0)
+    {
+        return ready;
+    }
+
     const int result = d_internal_postgres_take(
                            _db,
                            PQexecParams(_db, _sql, (int)_count, NULL,
@@ -585,6 +601,14 @@ d_postgres_query_rowsf(
          (!_format) )
     {
         return D_DB_INVALID_ARGUMENT;
+    }
+
+    const int ready = d_internal_postgres_ready(_db);
+
+    // a run holds the connection
+    if (ready != 0)
+    {
+        return ready;
     }
 
     const struct d_internal_db_quoting quoting =

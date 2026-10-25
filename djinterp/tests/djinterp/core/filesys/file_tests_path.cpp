@@ -28,7 +28,7 @@
 * path:      /tests/djinterp/core/filesys/file_tests_path.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 // std
@@ -140,7 +140,7 @@ tests_fs_path(suite_type& _suite)
     _suite.test("parent is the directory holding the file")
           .assert_([]() -> bool
           {
-              return (path("/path/to/file.txt").parent() == sep_path("/path/to"));
+              return (path("/path/to/file.txt").parent() == path("/path/to"));
           });
 
     _suite.test("parent of a bare name is the current directory")
@@ -152,7 +152,7 @@ tests_fs_path(suite_type& _suite)
     _suite.test("the root is its own parent")
           .assert_([]() -> bool
           {
-              return (path("/").parent() == sep_path("/"));
+              return (path("/").parent() == path("/"));
           });
 
     _suite.test("filename is the final component")
@@ -274,13 +274,13 @@ tests_fs_path(suite_type& _suite)
     _suite.test("an absolute right-hand side replaces the left")
           .assert_([]() -> bool
           {
-              return ((path("a") / path("/b")) == sep_path("/b"));
+              return ((path("a") / path("/b")) == path("/b"));
           });
 
     _suite.test("joining onto the root keeps a single separator")
           .assert_([]() -> bool
           {
-              return ((path("/") / path("b")) == sep_path("/b"));
+              return ((path("/") / path("b")) == path("/b"));
           });
 
     _suite.test("appending an empty path leaves the original")
@@ -304,7 +304,13 @@ tests_fs_path(suite_type& _suite)
     _suite.test("a rooted path is absolute and not relative")
           .assert_([]() -> bool
           {
+              // a drive's root under Windows syntax, where "/foo" is only
+              // rooted: foo on whichever drive is current
+#if D_FILE_PATH_UNDERSTANDS_WINDOWS
+              path p("C:/foo");
+#else
               path p("/foo");
+#endif
 
               return ( (p.is_absolute()) &&
                        (!p.is_relative()) );
@@ -458,7 +464,13 @@ tests_fs_path(suite_type& _suite)
 
               copy.append(path("c"));
 
-              return ( (copy == sep_path("a/b/c")) &&
+              // the same append on a fresh path: the copy must equal it, and
+              // the original must not have moved
+              path expected("a/b");
+
+              expected.append(path("c"));
+
+              return ( (copy == expected) &&
                        (original == path("a/b")) );
           });
 

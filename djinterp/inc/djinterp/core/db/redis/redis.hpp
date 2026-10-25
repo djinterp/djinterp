@@ -807,7 +807,7 @@ public:
     //   function: PING the server; returns true on PONG.
     bool ping() const
     {
-        return self().ping_helper();
+        return self().ping_impl();
     }
 
 
@@ -1441,13 +1441,13 @@ public:
     // _impl methods (defined in redis.cpp)
     // -----------------------------------------------------------------
 
-    void         connect_helper();
-    void         disconnect_helper();
-    bool         is_connected_helper() const;
-    bool         ping_helper() const;
-    std::string  get_server_version_helper() const;
-    std::string  get_last_error_helper() const;
-    int          get_last_error_code_helper() const;
+    void         connect_impl();
+    void         disconnect_impl();
+    bool         is_connected_impl() const;
+    bool         ping_impl() const;
+    std::string  get_server_version_impl() const;
+    std::string  get_last_error_impl() const;
+    int          get_last_error_code_impl() const;
 
     // command dispatch
     bool         send_command_impl(const std::string& _command);

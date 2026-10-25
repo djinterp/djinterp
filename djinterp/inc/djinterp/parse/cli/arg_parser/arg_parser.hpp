@@ -25,7 +25,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/arg_parser.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.17
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.10.17
 *******************************************************************************/
 
 /*
@@ -302,12 +302,6 @@ public:
     arg_parser& suggestions(bool _enabled = true) D_NOEXCEPT;
     bool        get_suggestions() const D_NOEXCEPT;
 #endif  // D_INTERNAL_ARG_PARSER_SUGGESTIONS
-
-    // empty values: whether `--name=` gives its option an empty value, as
-    // getopt_long does, rather than taking the argument after it; off at
-    // first. See d_arg_parser_set_empty_values.
-    arg_parser& empty_values(bool _enabled = true) D_NOEXCEPT;
-    bool        get_empty_values() const D_NOEXCEPT;
 
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
     // completion: the option that asks for a completion script -- `prog
@@ -781,25 +775,6 @@ arg_parser::get_suggestions() const D_NOEXCEPT
 }
 
 #endif  // D_INTERNAL_ARG_PARSER_SUGGESTIONS
-
-// arg_parser::empty_values / get_empty_values
-//   d_arg_parser_set_empty_values; the switch read back.
-inline arg_parser&
-arg_parser::empty_values(
-    bool _enabled
-) D_NOEXCEPT
-{
-    d_arg_parser_set_empty_values(this,
-                                  _enabled);
-
-    return *this;
-}
-
-inline bool
-arg_parser::get_empty_values() const D_NOEXCEPT
-{
-    return ((this->d_arg_parser::flags & D_ARG_PARSER_EMPTY_VALUES) != 0u);
-}
 
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
 

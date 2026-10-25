@@ -14,7 +14,7 @@
 * path:      /src/djinterp/c/db/sqlite/sqlite_internal.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 // D_INTERNAL_SQLITE_SOURCE
 //   macro: this file is one of the SQLite layer's own sources, for which
@@ -927,14 +927,125 @@ d_internal_sqlite_collect_names(
 // 3.4    Rows
 //------------------------------------------------------------------------------
 /*
-d_internal_sqlite_collect_rows
-  The columns are described before the first step, which SQLite allows, and
-each value is copied as its row arrives, since SQLite's copy dies with the
+d_internal_sqlite_describe_columns
+  The columns are described from the statement itself, which SQLite allows
+before the first step.
+*/
+int
+d_internal_sqlite_describe_columns(
+    sqlite3_stmt*              _statement,
+    struct d_internal_db_rows* _builder
+)
+{
+    const int columns = sqlite3_column_count(_statement);
+
+    // each column, described once
+    for (int i = 0; i < columns; ++i)
+    {
+        const char* const name     = sqlite3_column_name(_statement, i);
+        const char* const declared = sqlite3_column_decltype(_statement, i);
+
+        // no name means SQLite ran out of memory
+        if ( (!name) ||
+             (!d_internal_db_rows_column(
+                  _builder,
+                  name,
+                  d_internal_sqlite_declared_type(declared),
+                  declared)) )
+        {
+            return SQLITE_NOMEM;
+        }
+    }
+
+    return SQLITE_OK;
+}
+
+/*
+d_internal_sqlite_keep_row
+  Each value is copied as its row arrives, since SQLite's copy dies with the
 next step. sqlite3_column_text is read before sqlite3_column_bytes, the order
 SQLite asks for, so the count is of the text read. A zero-length BLOB reads
-as NULL from sqlite3_column_blob and is still a BLOB. The reset before the
-first step may report the previous run's failure, which is not this run's;
-the one after the last repeats this run's, which the caller already has.
+as NULL from sqlite3_column_blob and is still a BLOB.
+*/
+int
+d_internal_sqlite_keep_row(
+    sqlite3_stmt*              _statement,
+    struct d_internal_db_rows* _builder
+)
+{
+    const int columns = sqlite3_column_count(_statement);
+
+    // each value, until the memory runs out
+    for (int i = 0; i < columns; ++i)
+    {
+        bool kept = false;
+
+        switch (sqlite3_column_type(_statement, i))
+        {
+            case SQLITE_INTEGER:
+                kept = d_internal_db_rows_integer(
+                           _builder,
+                           (int64_t)sqlite3_column_int64(_statement, i));
+
+                break;
+
+            case SQLITE_FLOAT:
+                kept = d_internal_db_rows_real(
+                           _builder,
+                           sqlite3_column_double(_statement, i));
+
+                break;
+
+            case SQLITE_TEXT:
+            {
+                const unsigned char* const text =
+                    sqlite3_column_text(_statement, i);
+                const int bytes = sqlite3_column_bytes(_statement, i);
+
+                kept = ( (text) &&
+                         (d_internal_db_rows_text(_builder,
+                                                  (const char*)text,
+                                                  (size_t)bytes)) );
+
+                break;
+            }
+
+            case SQLITE_BLOB:
+            {
+                const void* const blob  = sqlite3_column_blob(_statement, i);
+                const int         bytes = sqlite3_column_bytes(_statement, i);
+
+                kept = ( ( (blob) ||
+                           (bytes == 0) ) &&
+                         (d_internal_db_rows_blob(_builder,
+                                                  blob,
+                                                  (size_t)bytes)) );
+
+                break;
+            }
+
+            default:
+                kept = d_internal_db_rows_null(_builder);
+
+                break;
+        }
+
+        // the builder, or SQLite's conversion, ran out of memory
+        if (!kept)
+        {
+            return SQLITE_NOMEM;
+        }
+    }
+
+    return SQLITE_OK;
+}
+
+/*
+d_internal_sqlite_collect_rows
+  The columns are described before the first step, and each row kept as it
+arrives. The reset before the first step may report the previous run's
+failure, which is not this run's; the one after the last repeats this run's,
+which the caller already has.
 */
 int
 d_internal_sqlite_collect_rows(
@@ -946,98 +1057,19 @@ d_internal_sqlite_collect_rows(
     {
         { NULL, 0u, 0u }, { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u, 0u
     };
-    const int columns = sqlite3_column_count(_statement);
-    int       step    = SQLITE_OK;
 
     (void)sqlite3_reset(_statement);
 
-    // each column, described once
-    for (int i = 0; ( (step == SQLITE_OK) && (i < columns) ); ++i)
-    {
-        const char* const name     = sqlite3_column_name(_statement, i);
-        const char* const declared = sqlite3_column_decltype(_statement, i);
-
-        // no name means SQLite ran out of memory
-        if ( (!name) ||
-             (!d_internal_db_rows_column(
-                  &builder,
-                  name,
-                  d_internal_sqlite_declared_type(declared),
-                  declared)) )
-        {
-            step = SQLITE_NOMEM;
-        }
-    }
+    int step = d_internal_sqlite_describe_columns(_statement, &builder);
 
     step = (step == SQLITE_OK) ? sqlite3_step(_statement) : step;
 
-    // each row, value by value, until the rows or the memory run out
+    // each row, until the rows or the memory run out
     while (step == SQLITE_ROW)
     {
-        for (int i = 0; ( (step == SQLITE_ROW) && (i < columns) ); ++i)
-        {
-            bool kept = false;
+        const int kept = d_internal_sqlite_keep_row(_statement, &builder);
 
-            switch (sqlite3_column_type(_statement, i))
-            {
-                case SQLITE_INTEGER:
-                    kept = d_internal_db_rows_integer(
-                               &builder,
-                               (int64_t)sqlite3_column_int64(_statement, i));
-
-                    break;
-
-                case SQLITE_FLOAT:
-                    kept = d_internal_db_rows_real(
-                               &builder,
-                               sqlite3_column_double(_statement, i));
-
-                    break;
-
-                case SQLITE_TEXT:
-                {
-                    const unsigned char* const text =
-                        sqlite3_column_text(_statement, i);
-                    const int bytes = sqlite3_column_bytes(_statement, i);
-
-                    kept = ( (text) &&
-                             (d_internal_db_rows_text(&builder,
-                                                      (const char*)text,
-                                                      (size_t)bytes)) );
-
-                    break;
-                }
-
-                case SQLITE_BLOB:
-                {
-                    const void* const blob  = sqlite3_column_blob(_statement,
-                                                                  i);
-                    const int         bytes = sqlite3_column_bytes(_statement,
-                                                                   i);
-
-                    kept = ( ( (blob) ||
-                               (bytes == 0) ) &&
-                             (d_internal_db_rows_blob(&builder,
-                                                      blob,
-                                                      (size_t)bytes)) );
-
-                    break;
-                }
-
-                default:
-                    kept = d_internal_db_rows_null(&builder);
-
-                    break;
-            }
-
-            // the builder, or SQLite's conversion, ran out of memory
-            if (!kept)
-            {
-                step = SQLITE_NOMEM;
-            }
-        }
-
-        step = (step == SQLITE_ROW) ? sqlite3_step(_statement) : step;
+        step = (kept == SQLITE_OK) ? sqlite3_step(_statement) : kept;
     }
 
     (void)sqlite3_reset(_statement);

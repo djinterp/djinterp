@@ -7,7 +7,7 @@
 * path:      /tests/djinterp/c/dfile_tests_sa_path.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.25
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 // djinterp
 #include "./dfile_tests_sa.h"
@@ -433,7 +433,7 @@ d_tests_dfile_path_is_absolute
     bool                  test_null_path;
     size_t                idx;
 
-#if defined(D_FILE_PLATFORM_WINDOWS)
+#if D_FILE_PATH_UNDERSTANDS_WINDOWS
     // test 1: absolute path (Windows)
     result = d_path_is_absolute("C:\\path\\to\\file");
     test_absolute = (result != 0);

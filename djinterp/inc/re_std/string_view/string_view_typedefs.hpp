@@ -8,15 +8,16 @@
 * u8string_view (char8_t).
 *
 *   PORTABILITY:
-*   string_view / wstring_view / u16string_view / u32string_view are
-* available from C++11 in re_std (std introduced them in C++17).
-* u8string_view follows char8_t and is gated on C++20.
+*   string_view / wstring_view are available from C++98 in re_std (std
+* introduced them in C++17); u16string_view / u32string_view follow
+* char16_t / char32_t from C++11, and u8string_view follows char8_t
+* from C++20.
 *
 *
 * path:      /inc/re_std/string_view/string_view_typedefs.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef RE_STD_STRING_VIEW_STRING_VIEW_TYPEDEFS_HPP
@@ -24,9 +25,6 @@
 
 // re_std
 #include "../config.hpp"  // RE_STD_* configuration
-
-
-#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 // re_std
@@ -45,13 +43,15 @@ typedef basic_string_view<char>      string_view;
 //   typedef: view over wchar_t.
 typedef basic_string_view<wchar_t>   wstring_view;
 
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 // u16string_view
-//   typedef: view over char16_t.
+//   typedef: view over char16_t (C++11: the type is C++11's).
 typedef basic_string_view<char16_t>  u16string_view;
 
 // u32string_view
-//   typedef: view over char32_t.
+//   typedef: view over char32_t (C++11: the type is C++11's).
 typedef basic_string_view<char32_t>  u32string_view;
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 #if RE_STD_LANG_IS_CPP20_OR_HIGHER
@@ -62,9 +62,6 @@ typedef basic_string_view<char8_t>   u8string_view;
 
 
 }  // re_std
-
-
-#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 #endif  // RE_STD_STRING_VIEW_STRING_VIEW_TYPEDEFS_HPP

@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/env/util/archive/env_archive.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -30,13 +30,11 @@ TABLE OF CONTENTS
     ----------------
     1.  PATH-probe helpers
          1.  D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS
-         2.  D_INTERNAL_ENV_ARCHIVE_ACCESS / _PATH_SEP / _DIR_SEP
 2.  CONFIGURATION AND PROBING
     -------------------------
     1.  Configuration and probing
-         1.  D_CFG_ENV_ARCHIVE_ENABLED
-         2.  D_INTERNAL_ENV_ARCHIVE_PROBE
-         3.  D_ENV_ARCHIVE_HAVE_BUILTIN_TAR / _ZIP
+         1.  D_INTERNAL_ENV_ARCHIVE_PROBE
+         2.  D_ENV_ARCHIVE_HAVE_BUILTIN_TAR / _ZIP
 3.  ARCHIVE LIBRARIES
     -----------------
     1.  libarchive
@@ -120,6 +118,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../../c/djinterp.h"       // D_EXTERN_C_BEGIN, D_EXTERN_C_END
 #include "../../env.h"                 // D_ENV_OS_ID, D_ENV_IS_OS_WINDOWS
+#include "../../../config/core/env/util/archive/cfg_env_archive.h"  // switch
 #include "../compress/env_compress.h"  // D_ENV_HAS_INCLUDE,
                                        // D_ENV_COMPRESSION_HAVE_*
 
@@ -133,31 +132,13 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
 // 1.1.1
 // D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS
-//   constant: 1 when the target is Windows, selecting the Windows spellings in
-// 1.1.2; 0 otherwise.
+//   constant: 1 when the target is Windows, selecting the Windows spellings
+// of env_archive.c's tool probe; 0 otherwise.
 #if ( (defined(D_ENV_OS_ID)) &&                                                \
       (D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)) )
     #define D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS 1
 #else
     #define D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS 0
-#endif
-
-// 1.1.2
-// D_INTERNAL_ENV_ARCHIVE_ACCESS / _PATH_SEP / _DIR_SEP
-//   macro: the executable-access test, PATH-list separator, and directory
-// separator the external-tool probe (d_env_archive_has_tool) uses.
-#if D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS
-    // windows
-    #include <io.h>          // _access
-    #define D_INTERNAL_ENV_ARCHIVE_ACCESS(p)  _access((p), 0)
-    #define D_INTERNAL_ENV_ARCHIVE_PATH_SEP   ';'
-    #define D_INTERNAL_ENV_ARCHIVE_DIR_SEP    '\\'
-#else
-    // posix
-    #include <unistd.h>      // access, X_OK
-    #define D_INTERNAL_ENV_ARCHIVE_ACCESS(p)  access((p), X_OK)
-    #define D_INTERNAL_ENV_ARCHIVE_PATH_SEP   ':'
-    #define D_INTERNAL_ENV_ARCHIVE_DIR_SEP    '/'
 #endif
 
 
@@ -168,15 +149,9 @@ TABLE OF CONTENTS
 
 // 2.1    Configuration and probing
 //------------------------------------------------------------------------------
+// The master switch, D_CFG_ENV_ARCHIVE_ENABLED, is cfg_env_archive.h's
+// (decision 105 of the register).
 // 2.1.1
-// D_CFG_ENV_ARCHIVE_ENABLED
-//   configuration: master toggle for archive-library detection. when 0, every
-// D_ENV_ARCHIVE_HAVE_* flag resolves to 0 unless explicitly pre-defined.
-#ifndef D_CFG_ENV_ARCHIVE_ENABLED
-    #define D_CFG_ENV_ARCHIVE_ENABLED 1
-#endif  // D_CFG_ENV_ARCHIVE_ENABLED
-
-// 2.1.2
 // D_INTERNAL_ENV_ARCHIVE_PROBE
 //   macro: internal helper. yields the __has_include result for `header`
 // when detection is enabled, and 0 when the master toggle is off.
@@ -186,7 +161,7 @@ TABLE OF CONTENTS
     #define D_INTERNAL_ENV_ARCHIVE_PROBE(header) 0
 #endif
 
-// 2.1.3
+// 2.1.2
 // D_ENV_ARCHIVE_HAVE_BUILTIN_TAR / _ZIP
 //   configuration: the djinterp archive facade (archive.hpp / archive.cpp)
 // ships dependency-free ustar and ZIP writers/readers. These default to 1 so

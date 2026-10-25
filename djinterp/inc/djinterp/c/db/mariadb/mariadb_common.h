@@ -25,8 +25,11 @@
 * then describes. The client has no number for an argument that cannot be
 * right, so that is db_common.h's D_DB_INVALID_ARGUMENT; D_DB_UNSUPPORTED is a
 * server too old for the request, or a build without a client; D_DB_EXISTS
-* and D_DB_NOT_FOUND are as db_common.h describes. Predicates come in pairs,
-* as there: `has_x` folds a failure into `false`, `has_x_s` reports it.
+* and D_DB_NOT_FOUND are as db_common.h describes. While a statement's run
+* holds the connection (mariadb_statement.h), every function that would send
+* the server anything is CR_COMMANDS_OUT_OF_SYNC (2014), having sent nothing.
+* Predicates come in pairs, as there: `has_x` folds a failure into `false`,
+* `has_x_s` reports it.
 *   NAMES. Every name -- database, table, column -- is quoted by the layer, so
 * any name the server accepts is safe to pass. A NULL schema means the
 * connection's current database. Text that is SQL -- a definition, a SELECT,
@@ -44,7 +47,7 @@
 * path:      /inc/djinterp/c/db/mariadb/mariadb_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 
 /*
@@ -102,9 +105,9 @@ struct d_mariadb;
 // 1.1.2
 // d_mariadb_statement
 //   struct: a prepared statement, as the layer holds it: the client's
-// MYSQL_STMT, and the values bound to its parameters until it next runs.
-// Declared and never defined here; mariadb_statement.h's functions take a
-// pointer.
+// MYSQL_STMT, the values bound to its parameters until it next runs, and a
+// run whose rows are still arriving. Declared and never defined here;
+// mariadb_statement.h's functions take a pointer.
 struct d_mariadb_statement;
 
 // 1.2    Servers
@@ -126,7 +129,8 @@ enum d_mariadb_flavor
 // d_mariadb_feature
 //   enum: capabilities that depend on the server, by its flavor and version.
 // Each names, in brackets, the releases that introduced it; "--" for a server
-// that has never had it.
+// that has never had it. The last three are calls of the client's too, which
+// the client the layer is built with must have (d_mariadb_supports).
 enum d_mariadb_feature
 {
     D_MARIADB_FEATURE_CTE = 0,              // WITH       [MySQL 8.0.1,
@@ -144,8 +148,31 @@ enum d_mariadb_feature
     D_MARIADB_FEATURE_RETURNING,            // INSERT ... RETURNING
                                             //            [--, 10.5.0]
     D_MARIADB_FEATURE_SEQUENCES,            // CREATE SEQUENCE [--, 10.3.0]
-    D_MARIADB_FEATURE_SYSTEM_VERSIONING     // WITH SYSTEM VERSIONING
+    D_MARIADB_FEATURE_SYSTEM_VERSIONING,    // WITH SYSTEM VERSIONING
                                             //            [--, 10.3.4]
+    D_MARIADB_FEATURE_INET6,                // INET6 type [--, 10.5.0]
+    D_MARIADB_FEATURE_UUID,                 // UUID type  [--, 10.7.0]
+    D_MARIADB_FEATURE_BINARY_JSON,          // JSON stored as binary, not
+                                            // text       [5.7.8, --]
+    D_MARIADB_FEATURE_LATERAL_DERIVED,      // LATERAL (subquery)
+                                            //            [8.0.14, --]
+    D_MARIADB_FEATURE_ROLES,                // CREATE ROLE [8.0.0, 10.0.5]
+    D_MARIADB_FEATURE_ATOMIC_DDL,           // DDL that commits whole or not
+                                            // at all     [8.0.0, 10.6.1]
+    D_MARIADB_FEATURE_GALERA,               // Galera replication built in
+                                            //            [--, 10.1.0]
+    D_MARIADB_FEATURE_X_PROTOCOL,           // the X Plugin's protocol
+                                            //            [5.7.12, --]
+    D_MARIADB_FEATURE_GROUP_REPLICATION,    // Group Replication, InnoDB
+                                            // Cluster's  [5.7.17, --]
+    D_MARIADB_FEATURE_RESET_CONNECTION,     // the session reset without
+                                            // signing in again
+                                            //            [5.7.3, 10.2.4]
+    D_MARIADB_FEATURE_SESSION_TRACKING,     // the session's changes reported
+                                            // with each reply
+                                            //            [5.7.4, 10.2.2]
+    D_MARIADB_FEATURE_QUERY_ATTRIBUTES      // attributes sent with a query
+                                            //            [8.0.23, --]
 };
 
 
@@ -168,12 +195,13 @@ bool           d_mariadb_client_is_mariadb(void) D_NOTHROW;
 // 2.2    Result messages
 //------------------------------------------------------------------------------
 // result messages -- an English description of a result the layer returns:
-// db_common.h's own words for its values; the layer's own for the three
+// db_common.h's own words for its values; the layer's own for the four
 // client numbers it returns itself, 2000 (a failure the server reported
-// without a number), 2008 (out of memory) and 2034 (a parameter the statement
-// does not have); and for any other client or server number, a note that
-// d_mariadb_error_message describes it, since only the connection keeps that
-// text. Never NULL, and never to be freed.
+// without a number), 2008 (out of memory), 2014 (a statement's run holds the
+// connection) and 2034 (a parameter the statement does not have); and for
+// any other client or server number, a note that d_mariadb_error_message
+// describes it, since only the connection keeps that text. Never NULL, and
+// never to be freed.
 const char*    d_mariadb_result_message(int _result) D_NOTHROW;
 
 
@@ -205,8 +233,14 @@ bool           d_mariadb_server_at_least(const struct d_mariadb* _db,
 
 // 3.2    Features
 //------------------------------------------------------------------------------
-// features -- whether the server can do it; `false` for a value outside enum
-// d_mariadb_feature
+// features -- whether the server can do it, by its flavor and release;
+// `false` for a value outside enum d_mariadb_feature. What a plugin or a
+// setting adds -- Galera, the X Plugin, Group Replication -- is whether the
+// server's release has it; whether this server runs it is its configuration.
+// A feature that is a call of the client's -- the reset, session tracking,
+// query attributes -- needs the client the layer was built with to have it
+// too: Connector/C from 3.0, or libmysqlclient from 5.7.3, 5.7.4 and 8.0.23,
+// Connector/C having no query attributes
 bool           d_mariadb_supports(const struct d_mariadb* _db,
                                   enum d_mariadb_feature  _feature) D_NOTHROW;
 

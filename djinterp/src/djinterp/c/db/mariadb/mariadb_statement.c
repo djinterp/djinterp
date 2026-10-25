@@ -10,16 +10,27 @@
 * read by mariadb_internal.c exactly as a query's rows are. A value longer
 * than its buffer -- which the stored result's lengths rule out, but which a
 * client is free to report -- is fetched again whole.
+*   A run read a few rows at a time leaves the result unstored, so the client
+* reads each row off the connection as it is fetched. Its buffers start small,
+* since no longest value is known, and each grows as a value needs, for the
+* rest of the run. Until the run ends, the connection is the run's: the
+* handle names its statement (mariadb_internal.h), and every function that
+* would send a command refuses first. A statement finalized meanwhile cannot
+* tell the server without reading the run's rows away, so the handle keeps
+* its client statement until the connection is free.
 *   The client reports a server's statement error on the connection too, so
 * d_mariadb_error_message describes it as it describes a query's. Closing a
 * statement clears that error, so one whose prepare failed is closed later,
 * when the layer next runs a statement.
+*   The handle lists the statements prepared on it, so that closing it can
+* leave each without a connection, and a statement can tell, when it is
+* finalized, whether its connection is still there to be told.
 *
 *
 * path:      /src/djinterp/c/db/mariadb/mariadb_statement.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 // D_INTERNAL_MARIADB_SOURCE
 //   macro: this file is one of the MariaDB layer's own sources, for which
@@ -47,6 +58,14 @@
 // FILE-LOCAL DEFINITIONS
 //==============================================================================
 
+// D_INTERNAL_MARIADB_FIRST_CAPACITY, D_INTERNAL_MARIADB_LEAST_CAPACITY
+//   constants: the bytes a column's buffer starts with, its terminator among
+// them, when rows are read as they arrive and no longest value is known: the
+// column's declared width, but no more than the first and no less than the
+// second, whatever is declared; a longer value grows it.
+#define D_INTERNAL_MARIADB_FIRST_CAPACITY 256u
+#define D_INTERNAL_MARIADB_LEAST_CAPACITY 32u
+
 // d_internal_mariadb_value
 //   struct: what one parameter is bound to, until the statement runs.
 struct d_internal_mariadb_value
@@ -58,17 +77,6 @@ struct d_internal_mariadb_value
     unsigned long        length;   // its length, where MYSQL_BIND reads it
 };
 
-// d_mariadb_statement
-//   struct: the definition mariadb_common.h declares.
-struct d_mariadb_statement
-{
-    struct d_mariadb*                db;      // the connection it belongs to
-    MYSQL_STMT*                      native;  // the client's statement
-    size_t                           count;   // its parameters
-    MYSQL_BIND*                      binds;   // count of them, built to run
-    struct d_internal_mariadb_value* values;  // count of them
-};
-
 // d_internal_mariadb_column
 //   struct: where one column of a result is fetched to.
 struct d_internal_mariadb_column
@@ -78,6 +86,38 @@ struct d_internal_mariadb_column
     unsigned long           length;    // the value's bytes, as fetched
     d_internal_mariadb_flag is_null;   // whether it is NULL
     d_internal_mariadb_flag error;     // whether it was cut short
+};
+
+// d_internal_mariadb_run
+//   struct: a run d_mariadb_open_cursor began, its rows still arriving: what
+// the rows are, and where each value is fetched to, kept from one fetch to
+// the next. Meaningful only while the connection's cursor is its statement.
+struct d_internal_mariadb_run
+{
+    MYSQL_RES*                        metadata;  // the result's fields; NULL
+                                                 // for a statement without
+                                                 // rows
+    unsigned                          count;     // how many
+    struct d_internal_mariadb_column* columns;   // count of them
+    MYSQL_BIND*                       binds;     // count of them
+};
+
+// d_mariadb_statement
+//   struct: the definition mariadb_common.h declares.
+struct d_mariadb_statement
+{
+    struct d_mariadb*                db;        // the connection it belongs
+                                                // to; NULL once that closed
+    MYSQL_STMT*                      native;    // the client's statement
+    size_t                           count;     // its parameters
+    MYSQL_BIND*                      binds;     // count of them, built to run
+    struct d_internal_mariadb_value* values;    // count of them
+    struct d_mariadb_statement*      previous;  // the neighbours in the
+    struct d_mariadb_statement*      next;      // handle's list: its
+                                                // statements, or those it
+                                                // retired
+    struct d_internal_mariadb_run    run;       // a run whose rows are still
+                                                // arriving
 };
 
 /**
@@ -226,13 +266,409 @@ d_internal_mariadb_drain(
 }
 
 /**
+ * @brief Releases a result's column buffers.
+ *
+ * @param[in] _columns  the columns; may be `NULL`.
+ * @param[in] _count    how many.
+ */
+static void
+d_internal_mariadb_columns_free(
+    struct d_internal_mariadb_column* _columns,
+    unsigned                          _count
+)
+{
+    // accept NULL, as free does
+    if (_columns)
+    {
+        for (unsigned i = 0u; i < _count; ++i)
+        {
+            free(_columns[i].buffer);
+        }
+
+        free(_columns);
+    }
+
+    return;
+}
+
+/**
+ * @brief Makes a buffer and a bind for each column of a result, every value
+ *        to be fetched as text.
+ *
+ * @param[in]  _fields    the result's fields.
+ * @param[in]  _count     how many.
+ * @param[in]  _measured  whether the result is stored, each field's
+ *                        max_length its longest value: each buffer holds
+ *                        that and a terminator. Otherwise each starts as
+ *                        D_INTERNAL_MARIADB_FIRST_CAPACITY describes.
+ * @param[out] _columns   receives the buffers; written only on success.
+ * @param[out] _binds     receives the binds, pointing into them; written
+ *                        only on success.
+ * @return 0, or D_INTERNAL_MARIADB_OUT_OF_MEMORY.
+ */
+static int
+d_internal_mariadb_columns_make(
+    const MYSQL_FIELD*                 _fields,
+    unsigned                           _count,
+    bool                               _measured,
+    struct d_internal_mariadb_column** _columns,
+    MYSQL_BIND**                       _binds
+)
+{
+    struct d_internal_mariadb_column* const columns =
+        (struct d_internal_mariadb_column*)malloc(
+            (_count ? _count : 1u) * sizeof(struct d_internal_mariadb_column));
+    MYSQL_BIND* const binds =
+        (MYSQL_BIND*)malloc((_count ? _count : 1u) * sizeof(MYSQL_BIND));
+    int result = 0;
+
+    // allocation failure
+    if ( (!columns) ||
+         (!binds) )
+    {
+        free(columns);
+        free(binds);
+
+        return D_INTERNAL_MARIADB_OUT_OF_MEMORY;
+    }
+
+    // a buffer for each column, its terminator among its bytes
+    for (unsigned i = 0u; i < _count; ++i)
+    {
+        unsigned long bytes = 0u;
+
+        if (_measured)
+        {
+            const unsigned long longest = _fields[i].max_length;
+
+            bytes = (longest < (unsigned long)-1) ? (longest + 1u) : longest;
+        }
+        else
+        {
+            const unsigned long declared = _fields[i].length;
+
+            bytes = (declared < D_INTERNAL_MARIADB_FIRST_CAPACITY)
+                        ? (declared + 1u)
+                        : D_INTERNAL_MARIADB_FIRST_CAPACITY;
+            bytes = (bytes < D_INTERNAL_MARIADB_LEAST_CAPACITY)
+                        ? D_INTERNAL_MARIADB_LEAST_CAPACITY
+                        : bytes;
+        }
+
+        columns[i].capacity = bytes;
+        columns[i].buffer   = (char*)malloc(bytes);
+        columns[i].length   = 0u;
+        columns[i].is_null  = 0;
+        columns[i].error    = 0;
+
+        memset(&binds[i], 0, sizeof(binds[i]));
+        binds[i].buffer_type   = MYSQL_TYPE_STRING;
+        binds[i].buffer        = columns[i].buffer;
+        binds[i].buffer_length = columns[i].capacity;
+        binds[i].length        = &columns[i].length;
+        binds[i].is_null       = &columns[i].is_null;
+        binds[i].error         = &columns[i].error;
+
+        // allocation failure; every buffer is still made or NULL, for the
+        // release
+        if (!columns[i].buffer)
+        {
+            result = D_INTERNAL_MARIADB_OUT_OF_MEMORY;
+        }
+    }
+
+    if (result != 0)
+    {
+        d_internal_mariadb_columns_free(columns, _count);
+        free(binds);
+
+        return result;
+    }
+
+    *_columns = columns;
+    *_binds   = binds;
+
+    return 0;
+}
+
+/**
+ * @brief Fetches the next row of a result, its binds already given to the
+ *        client, into rows under construction.
+ *
+ * @param[in]     _native   the statement, its result stored or arriving.
+ * @param[in]     _connection
+ *                          the client's connection, the statement's.
+ * @param[in]     _fields   the result's fields.
+ * @param[in]     _count    how many.
+ * @param[in,out] _columns  the buffers; one too small for a value grows, and
+ *                          keeps its size after.
+ * @param[in,out] _binds    the binds, pointed at a grown buffer and given to
+ *                          the client again before the next fetch.
+ * @param[in,out] _rows     the builder, its columns described.
+ * @param[out]    _ended    receives whether the result has ended: at its end,
+ *                          with 0, or when the client's fetch failed, with
+ *                          its error number. A failure after a row arrived
+ *                          leaves the result where it was.
+ * @return 0; D_INTERNAL_MARIADB_OUT_OF_MEMORY; or the client's error number
+ *         for the failure.
+ *
+ * A server error that ends a result whose rows are arriving is the
+ * connection's: Connector/C, reading it, leaves the statement's error unset,
+ * where libmysqlclient copies it there too, so the connection's stands in.
+ */
+static int
+d_internal_mariadb_fetch_row(
+    MYSQL_STMT*                       _native,
+    MYSQL*                            _connection,
+    const MYSQL_FIELD*                _fields,
+    unsigned                          _count,
+    struct d_internal_mariadb_column* _columns,
+    MYSQL_BIND*                       _binds,
+    struct d_internal_db_rows*        _rows,
+    bool*                             _ended
+)
+{
+    const int fetched = mysql_stmt_fetch(_native);
+    bool      grown   = false;
+    int       result  = 0;
+
+    *_ended = false;
+
+    // the end
+    if (fetched == MYSQL_NO_DATA)
+    {
+        *_ended = true;
+
+        return 0;
+    }
+
+    // a failure, the statement's or else the connection's
+    if (fetched == 1)
+    {
+        const unsigned own = mysql_stmt_errno(_native);
+        const unsigned its = (own != 0u) ? own : mysql_errno(_connection);
+
+        *_ended = true;
+
+        return (its != 0u) ? (int)its : D_INTERNAL_MARIADB_UNKNOWN_ERROR;
+    }
+
+    // each value, fetched whole when the buffer was too small
+    for (unsigned i = 0u; ( (result == 0) && (i < _count) ); ++i)
+    {
+        struct d_internal_mariadb_column* const column = &_columns[i];
+
+        if ( (!column->is_null) &&
+             (column->length >= column->capacity) )
+        {
+            char* const larger = (column->length < (unsigned long)-1)
+                                     ? (char*)realloc(column->buffer,
+                                                      column->length + 1u)
+                                     : NULL;
+
+            // the true length, then the value again
+            if (!larger)
+            {
+                result = D_INTERNAL_MARIADB_OUT_OF_MEMORY;
+
+                break;
+            }
+
+            column->buffer          = larger;
+            column->capacity        = column->length + 1u;
+            _binds[i].buffer        = larger;
+            _binds[i].buffer_length = column->capacity;
+            grown                   = true;
+
+            if (mysql_stmt_fetch_column(_native, &_binds[i], i, 0u) != 0)
+            {
+                result = (int)mysql_stmt_errno(_native);
+
+                break;
+            }
+        }
+
+        // terminated, as the rows builder's text is
+        if (!column->is_null)
+        {
+            column->buffer[column->length] = '\0';
+        }
+
+        if (!d_internal_mariadb_rows_value(
+                 _rows,
+                 &_fields[i],
+                 (column->is_null) ? NULL : column->buffer,
+                 column->length))
+        {
+            result = D_INTERNAL_MARIADB_OUT_OF_MEMORY;
+        }
+    }
+
+    // the client keeps a copy of the binds, which a grown buffer left
+    // pointing at freed memory: given again, before the next fetch, whatever
+    // else happened
+    if ( (grown) &&
+         (mysql_stmt_bind_result(_native, _binds)) &&
+         (result == 0) )
+    {
+        result = (int)mysql_stmt_errno(_native);
+    }
+
+    return result;
+}
+
+/**
+ * @brief Fetches the stored result of a statement that ran into rows under
+ *        construction.
+ *
+ * @param[in]     _native  the statement, its result stored.
+ * @param[in]     _connection
+ *                         the client's connection, the statement's.
+ * @param[in]     _fields  the result's fields.
+ * @param[in]     _count   how many.
+ * @param[in,out] _rows    the builder, its columns described.
+ * @return 0; D_INTERNAL_MARIADB_OUT_OF_MEMORY; or the client's error number
+ *         for a fetch that failed.
+ *
+ * Every column is fetched as text into a buffer of its longest value and a
+ * terminator. A column the client reports cut short is fetched again into a
+ * buffer of its true length.
+ */
+static int
+d_internal_mariadb_fetch_rows(
+    MYSQL_STMT*                _native,
+    MYSQL*                     _connection,
+    const MYSQL_FIELD*         _fields,
+    unsigned                   _count,
+    struct d_internal_db_rows* _rows
+)
+{
+    struct d_internal_mariadb_column* columns = NULL;
+    MYSQL_BIND*                       binds   = NULL;
+    bool                              ended   = false;
+    int                               result  =
+        d_internal_mariadb_columns_make(_fields, _count, true, &columns,
+                                        &binds);
+
+    // no buffers, no rows
+    if (result != 0)
+    {
+        return result;
+    }
+
+    // the binds, then each row
+    if (mysql_stmt_bind_result(_native, binds))
+    {
+        result = (int)mysql_stmt_errno(_native);
+    }
+
+    while ( (result == 0) &&
+            (!ended) )
+    {
+        result = d_internal_mariadb_fetch_row(_native, _connection, _fields,
+                                              _count, columns, binds, _rows,
+                                              &ended);
+    }
+
+    d_internal_mariadb_columns_free(columns, _count);
+    free(binds);
+
+    return result;
+}
+
+/**
+ * @brief Ends the run that holds a statement's connection, and releases
+ *        what the run kept.
+ *
+ * @param[in,out] _statement  the statement whose run holds its connection.
+ * @param[in]     _read_rest  whether the rows still to come are read, and
+ *                            every result after them, so that the connection
+ *                            is free for its next command; one about to
+ *                            close needs nothing read, and one whose fetch
+ *                            failed has nothing left.
+ * @return 0, or the client's error number for a result after the first that
+ *         failed.
+ * @post The connection holds no run.
+ *
+ * Reading the rest clears the client's error, so a run that failed is ended
+ * without it.
+ */
+static int
+d_internal_mariadb_run_end(
+    struct d_mariadb_statement* _statement,
+    bool                        _read_rest
+)
+{
+    struct d_internal_mariadb_run* const run    = &_statement->run;
+    int                                  result = 0;
+
+    // the rest of the rows, then every result after them
+    if (_read_rest)
+    {
+        (void)mysql_stmt_free_result(_statement->native);
+
+        result = d_internal_mariadb_drain(_statement->native);
+    }
+
+    if (run->metadata)
+    {
+        mysql_free_result(run->metadata);
+    }
+
+    d_internal_mariadb_columns_free(run->columns, run->count);
+    free(run->binds);
+
+    run->metadata          = NULL;
+    run->count             = 0u;
+    run->columns           = NULL;
+    run->binds             = NULL;
+    _statement->db->cursor = NULL;
+
+    return result;
+}
+
+/**
+ * @brief Takes a statement out of its handle's list.
+ *
+ * @param[in,out] _statement  the statement, its connection still there.
+ */
+static void
+d_internal_mariadb_unlink(
+    struct d_mariadb_statement* _statement
+)
+{
+    // the one before it, or the list's head
+    if (_statement->previous)
+    {
+        _statement->previous->next = _statement->next;
+    }
+    else if (_statement->db->statements == _statement)
+    {
+        _statement->db->statements = _statement->next;
+    }
+
+    if (_statement->next)
+    {
+        _statement->next->previous = _statement->previous;
+    }
+
+    _statement->previous = NULL;
+    _statement->next     = NULL;
+
+    return;
+}
+
+/**
  * @brief Runs a statement with its values: builds the client's binds from
  *        them, and executes.
  *
- * @param[in,out] _statement  the statement.
- * @return 0, or the client's error number for the failure.
+ * @param[in,out] _statement  the statement, its connection still there.
+ * @return 0; D_INTERNAL_MARIADB_OUT_OF_SYNC while another statement's run
+ *         holds the connection; or the client's error number for the
+ *         failure.
  *
- * What a failure left on the connection is undone first, as before any
+ * The statement's own run, if it has one open, ends first, read to its end.
+ * What a failure left on the connection is undone next, as before any
  * statement the layer runs (d_internal_mariadb_ready).
  */
 static int
@@ -241,7 +677,15 @@ d_internal_mariadb_execute(
 )
 {
     MYSQL_STMT* const native = _statement->native;
-    const int         ready  = d_internal_mariadb_ready(_statement->db);
+
+    // a run of its own ends before another begins
+    if (_statement->db->cursor == _statement)
+    {
+        (void)d_internal_mariadb_run_end(_statement, true);
+        d_internal_mariadb_replied(_statement->db, false);
+    }
+
+    const int ready = d_internal_mariadb_ready(_statement->db);
 
     // the connection as the layer's statements need it
     if (ready != 0)
@@ -302,191 +746,6 @@ d_internal_mariadb_execute(
 }
 
 /**
- * @brief Releases a result's column buffers.
- *
- * @param[in] _columns  the columns; may be `NULL`.
- * @param[in] _count    how many.
- */
-static void
-d_internal_mariadb_columns_free(
-    struct d_internal_mariadb_column* _columns,
-    unsigned                          _count
-)
-{
-    // accept NULL, as free does
-    if (_columns)
-    {
-        for (unsigned i = 0u; i < _count; ++i)
-        {
-            free(_columns[i].buffer);
-        }
-
-        free(_columns);
-    }
-
-    return;
-}
-
-/**
- * @brief Fetches the stored result of a statement that ran into rows under
- *        construction.
- *
- * @param[in]     _native  the statement, its result stored.
- * @param[in]     _fields  the result's fields.
- * @param[in]     _count   how many.
- * @param[in,out] _rows    the builder, its columns described.
- * @return 0; D_INTERNAL_MARIADB_OUT_OF_MEMORY; or the client's error number
- *         for a fetch that failed.
- *
- * Every column is fetched as text into a buffer of its longest value and a
- * terminator. A column the client reports cut short is fetched again into a
- * buffer of its true length.
- */
-static int
-d_internal_mariadb_fetch_rows(
-    MYSQL_STMT*                _native,
-    const MYSQL_FIELD*         _fields,
-    unsigned                   _count,
-    struct d_internal_db_rows* _rows
-)
-{
-    struct d_internal_mariadb_column* const columns =
-        (struct d_internal_mariadb_column*)malloc(
-            (_count ? _count : 1u) * sizeof(struct d_internal_mariadb_column));
-    MYSQL_BIND* const binds =
-        (MYSQL_BIND*)malloc((_count ? _count : 1u) * sizeof(MYSQL_BIND));
-    int result = 0;
-
-    // allocation failure
-    if ( (!columns) ||
-         (!binds) )
-    {
-        free(columns);
-        free(binds);
-
-        return D_INTERNAL_MARIADB_OUT_OF_MEMORY;
-    }
-
-    // a buffer for each column, its longest value and a terminator
-    for (unsigned i = 0u; i < _count; ++i)
-    {
-        const unsigned long longest = _fields[i].max_length;
-
-        columns[i].capacity = (longest < (unsigned long)-1) ? (longest + 1u)
-                                                            : longest;
-        columns[i].buffer   = (char*)malloc(columns[i].capacity);
-        columns[i].length   = 0u;
-        columns[i].is_null  = 0;
-        columns[i].error    = 0;
-
-        memset(&binds[i], 0, sizeof(binds[i]));
-        binds[i].buffer_type   = MYSQL_TYPE_STRING;
-        binds[i].buffer        = columns[i].buffer;
-        binds[i].buffer_length = columns[i].capacity;
-        binds[i].length        = &columns[i].length;
-        binds[i].is_null       = &columns[i].is_null;
-        binds[i].error         = &columns[i].error;
-
-        // allocation failure
-        if (!columns[i].buffer)
-        {
-            result = D_INTERNAL_MARIADB_OUT_OF_MEMORY;
-        }
-    }
-
-    // the binds, then each row
-    if ( (result == 0) &&
-         (mysql_stmt_bind_result(_native, binds)) )
-    {
-        result = (int)mysql_stmt_errno(_native);
-    }
-
-    while (result == 0)
-    {
-        const int fetched = mysql_stmt_fetch(_native);
-        bool      grown   = false;
-
-        // the end, or a failure
-        if (fetched == MYSQL_NO_DATA)
-        {
-            break;
-        }
-
-        if (fetched == 1)
-        {
-            result = (int)mysql_stmt_errno(_native);
-
-            break;
-        }
-
-        // each value, fetched whole when the buffer was too small
-        for (unsigned i = 0u; ( (result == 0) && (i < _count) ); ++i)
-        {
-            struct d_internal_mariadb_column* const column = &columns[i];
-
-            if ( (!column->is_null) &&
-                 (column->length >= column->capacity) )
-            {
-                char* const larger = (column->length < (unsigned long)-1)
-                                         ? (char*)realloc(column->buffer,
-                                                          column->length + 1u)
-                                         : NULL;
-
-                // the true length, then the value again
-                if (!larger)
-                {
-                    result = D_INTERNAL_MARIADB_OUT_OF_MEMORY;
-
-                    break;
-                }
-
-                column->buffer         = larger;
-                column->capacity       = column->length + 1u;
-                binds[i].buffer        = larger;
-                binds[i].buffer_length = column->capacity;
-                grown                  = true;
-
-                if (mysql_stmt_fetch_column(_native, &binds[i], i, 0u) != 0)
-                {
-                    result = (int)mysql_stmt_errno(_native);
-
-                    break;
-                }
-            }
-
-            // terminated, as the rows builder's text is
-            if (!column->is_null)
-            {
-                column->buffer[column->length] = '\0';
-            }
-
-            if (!d_internal_mariadb_rows_value(
-                     _rows,
-                     &_fields[i],
-                     (column->is_null) ? NULL : column->buffer,
-                     column->length))
-            {
-                result = D_INTERNAL_MARIADB_OUT_OF_MEMORY;
-            }
-        }
-
-        // the client keeps a copy of the binds, which a grown buffer left
-        // pointing at freed memory: bound again, before the next fetch
-        if ( (result == 0) &&
-             (grown)       &&
-             (mysql_stmt_bind_result(_native, binds)) )
-        {
-            result = (int)mysql_stmt_errno(_native);
-        }
-    }
-
-    d_internal_mariadb_columns_free(columns, _count);
-    free(binds);
-
-    return result;
-}
-
-/**
  * @brief Runs a statement and reads its first result: the rows into rows
  *        under construction, when there are any and somewhere to put them,
  *        and the count it changed or returned.
@@ -512,6 +771,8 @@ d_internal_mariadb_read(
     // a statement that did not run has nothing to read
     if (result != 0)
     {
+        d_internal_mariadb_replied(_statement->db, false);
+
         return result;
     }
 
@@ -544,8 +805,9 @@ d_internal_mariadb_read(
             const MYSQL_FIELD* const fields = mysql_fetch_fields(metadata);
 
             result = (d_internal_mariadb_rows_columns(_rows, fields, count))
-                         ? d_internal_mariadb_fetch_rows(native, fields,
-                                                         count, _rows)
+                         ? d_internal_mariadb_fetch_rows(
+                               native, _statement->db->native, fields, count,
+                               _rows)
                          : D_INTERNAL_MARIADB_OUT_OF_MEMORY;
         }
 
@@ -565,6 +827,14 @@ d_internal_mariadb_read(
     {
         result = drained;
     }
+
+    // the reply's end: the last result's, an OK packet unless rows end it
+    // without one
+    d_internal_mariadb_replied(
+        _statement->db,
+        ( (result == 0) &&
+          ( (mysql_stmt_field_count(native) == 0u) ||
+            (d_internal_mariadb_rows_end_ok(_statement->db)) ) ));
 
     // the count, on success
     if (result == 0)
@@ -622,11 +892,17 @@ d_internal_mariadb_prepare_text(
         return D_INTERNAL_MARIADB_OUT_OF_MEMORY;
     }
 
-    made->db     = _db;
-    made->native = mysql_stmt_init(_db->native);
-    made->count  = 0u;
-    made->binds  = NULL;
-    made->values = NULL;
+    made->db           = _db;
+    made->native       = mysql_stmt_init(_db->native);
+    made->count        = 0u;
+    made->binds        = NULL;
+    made->values       = NULL;
+    made->previous     = NULL;
+    made->next         = NULL;
+    made->run.metadata = NULL;
+    made->run.count    = 0u;
+    made->run.columns  = NULL;
+    made->run.binds    = NULL;
 
     // the client's statement, compiled by the server
     if (!made->native)
@@ -636,7 +912,14 @@ d_internal_mariadb_prepare_text(
         return D_INTERNAL_MARIADB_OUT_OF_MEMORY;
     }
 
-    if (mysql_stmt_prepare(made->native, _sql, (unsigned long)_length) != 0)
+    const int prepared = mysql_stmt_prepare(made->native,
+                                            _sql,
+                                            (unsigned long)_length);
+
+    // a reply that reports no changes
+    d_internal_mariadb_replied(_db, false);
+
+    if (prepared != 0)
     {
         result = (int)mysql_stmt_errno(made->native);
 
@@ -647,6 +930,16 @@ d_internal_mariadb_prepare_text(
 
         return result;
     }
+
+    // listed with the handle, which closing leaves without a connection
+    made->next = _db->statements;
+
+    if (_db->statements)
+    {
+        _db->statements->previous = made;
+    }
+
+    _db->statements = made;
 
     // the longest value of each column, measured when a result is stored
     d_internal_mariadb_flag measure = 1;
@@ -786,9 +1079,12 @@ d_mariadb_preparef(
 //------------------------------------------------------------------------------
 /*
 d_mariadb_finalize
-  The connection is not touched: it may be closed already, in which case the
-client closed the statement's server side with it, and mysql_stmt_close only
-frees.
+  A statement whose connection closed has nothing to tell it: the client
+closed the server's side with the connection, and mysql_stmt_close only
+frees. Otherwise its own run ends first, read to its end, and it leaves the
+handle's list. While another statement's run holds the connection, closing
+the client's statement would read that run's rows away, so the handle keeps
+it, to be closed once the connection is free; the rest goes at once.
 */
 int
 d_mariadb_finalize(
@@ -803,12 +1099,7 @@ d_mariadb_finalize(
         return 0;
     }
 
-    // the client's statement, and the server's copy
-    if ( (_statement->native) &&
-         (mysql_stmt_close(_statement->native)) )
-    {
-        result = D_INTERNAL_MARIADB_UNKNOWN_ERROR;
-    }
+    struct d_mariadb* const db = _statement->db;
 
     // the values' copies
     for (size_t i = 0u; i < _statement->count; ++i)
@@ -818,6 +1109,39 @@ d_mariadb_finalize(
 
     free(_statement->binds);
     free(_statement->values);
+
+    _statement->count  = 0u;
+    _statement->binds  = NULL;
+    _statement->values = NULL;
+
+    if (db)
+    {
+        // its own run, read to its end
+        if (db->cursor == _statement)
+        {
+            (void)d_internal_mariadb_run_end(_statement, true);
+            d_internal_mariadb_replied(db, false);
+        }
+
+        d_internal_mariadb_unlink(_statement);
+
+        // another's run holds the connection: retired, the server told later
+        if (db->cursor)
+        {
+            _statement->next = db->retired;
+            db->retired      = _statement;
+
+            return 0;
+        }
+    }
+
+    // the client's statement, and the server's copy
+    if ( (_statement->native) &&
+         (mysql_stmt_close(_statement->native)) )
+    {
+        result = D_INTERNAL_MARIADB_UNKNOWN_ERROR;
+    }
+
     free(_statement);
 
     return result;
@@ -839,7 +1163,7 @@ d_mariadb_parameter_count(
 
 /*
 d_mariadb_statement_connection
-  The handle the statement was prepared on.
+  The handle the statement was prepared on, until it is closed.
 */
 struct d_mariadb*
 d_mariadb_statement_connection(
@@ -1039,8 +1363,9 @@ d_mariadb_execute_update(
 {
     int64_t changes = 0;
 
-    // parameter validation
-    if (!_statement)
+    // parameter validation; a statement whose connection closed cannot run
+    if ( (!_statement) ||
+         (!_statement->db) )
     {
         return D_DB_INVALID_ARGUMENT;
     }
@@ -1076,8 +1401,9 @@ d_mariadb_execute_query(
     };
     int64_t changes = 0;
 
-    // parameter validation
-    if ( (!_statement) ||
+    // parameter validation; a statement whose connection closed cannot run
+    if ( (!_statement)     ||
+         (!_statement->db) ||
          (!_rows) )
     {
         return D_DB_INVALID_ARGUMENT;
@@ -1097,6 +1423,281 @@ d_mariadb_execute_query(
     return (d_internal_db_rows_finish(&builder, _rows))
                ? 0
                : D_INTERNAL_MARIADB_OUT_OF_MEMORY;
+}
+
+// 3.3    Rows a few at a time
+//------------------------------------------------------------------------------
+/*
+d_mariadb_open_cursor
+  The result is left unstored, so the client reads each row as it is fetched.
+A statement without rows has run to its end already, but its run stays open
+for its first fetch to end, as every run's last fetch does. A run that cannot
+begin -- its fields or buffers wanting -- ends at once, read to its end.
+*/
+int
+d_mariadb_open_cursor(
+    struct d_mariadb_statement* _statement
+)
+{
+    // parameter validation; a statement whose connection closed cannot run
+    if ( (!_statement) ||
+         (!_statement->db) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    struct d_mariadb* const              db     = _statement->db;
+    MYSQL_STMT* const                    native = _statement->native;
+    struct d_internal_mariadb_run* const run    = &_statement->run;
+    int                                  result =
+        d_internal_mariadb_execute(_statement);
+
+    // a statement that did not run holds nothing
+    if (result != 0)
+    {
+        d_internal_mariadb_replied(db, false);
+
+        return result;
+    }
+
+    // the connection is the run's from here until it ends
+    db->cursor = _statement;
+
+    // rows to come: what they are, and where each value goes
+    if (mysql_stmt_field_count(native) > 0u)
+    {
+        run->metadata = mysql_stmt_result_metadata(native);
+
+        if (!run->metadata)
+        {
+            const unsigned error = mysql_stmt_errno(native);
+
+            result = (error != 0u) ? (int)error
+                                   : D_INTERNAL_MARIADB_OUT_OF_MEMORY;
+        }
+        else
+        {
+            run->count = mysql_num_fields(run->metadata);
+            result     = d_internal_mariadb_columns_make(
+                             mysql_fetch_fields(run->metadata),
+                             run->count,
+                             false,
+                             &run->columns,
+                             &run->binds);
+
+            // no buffers, so none to release
+            if (result != 0)
+            {
+                run->columns = NULL;
+                run->binds   = NULL;
+            }
+            else if (mysql_stmt_bind_result(native, run->binds))
+            {
+                result = (int)mysql_stmt_errno(native);
+            }
+        }
+    }
+
+    // a run that cannot begin ends at once
+    if (result != 0)
+    {
+        (void)d_internal_mariadb_run_end(_statement, true);
+        d_internal_mariadb_replied(db, false);
+    }
+
+    return result;
+}
+
+/*
+d_mariadb_fetch_rows
+  Each fetch describes the columns again, so that each page stands alone. A
+fetch that fails ends the run as the client left it: with nothing more to
+read when the client's fetch failed, which also keeps its error for the
+caller; otherwise, the row having arrived, read to its end. A run that
+reaches its end reads every result after its rows, as a whole run does, and
+the reply's end says whether it carried the session's changes.
+*/
+int
+d_mariadb_fetch_rows(
+    struct d_mariadb_statement* _statement,
+    size_t                      _max,
+    struct d_db_rows*           _rows
+)
+{
+    struct d_internal_db_rows builder =
+    {
+        { NULL, 0u, 0u }, { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u, 0u
+    };
+    size_t fetched = 0u;
+
+    // parameter validation; only a run still open has rows to give
+    if ( (!_statement)                     ||
+         (!_rows)                          ||
+         (_max == 0u)                      ||
+         (!_statement->db)                 ||
+         (_statement->db->cursor != _statement) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    struct d_mariadb* const              db     = _statement->db;
+    MYSQL_STMT* const                    native = _statement->native;
+    struct d_internal_mariadb_run* const run    = &_statement->run;
+    const MYSQL_FIELD* const             fields =
+        (run->metadata) ? mysql_fetch_fields(run->metadata) : NULL;
+    bool                                 ended  = (run->count == 0u);
+    int                                  result =
+        (d_internal_mariadb_rows_columns(&builder, fields, run->count))
+            ? 0
+            : D_INTERNAL_MARIADB_OUT_OF_MEMORY;
+
+    // up to the rows asked for, each kept as it arrives
+    while ( (result == 0) &&
+            (!ended)      &&
+            (fetched < _max) )
+    {
+        result = d_internal_mariadb_fetch_row(native, db->native, fields,
+                                              run->count, run->columns,
+                                              run->binds, &builder, &ended);
+
+        if ( (result == 0) &&
+             (!ended) )
+        {
+            ++fetched;
+        }
+    }
+
+    // a failure ends the run, read to its end only where rows remain
+    if (result != 0)
+    {
+        (void)d_internal_mariadb_run_end(_statement, !ended);
+        d_internal_mariadb_replied(db, false);
+        d_internal_db_rows_release(&builder);
+
+        return result;
+    }
+
+    // the run's end: every result after its rows, and the reply's end
+    if (ended)
+    {
+        result = d_internal_mariadb_run_end(_statement, true);
+
+        d_internal_mariadb_replied(
+            db,
+            ( (result == 0) &&
+              ( (mysql_stmt_field_count(native) == 0u) ||
+                (d_internal_mariadb_rows_end_ok(db)) ) ));
+
+        if (result != 0)
+        {
+            d_internal_db_rows_release(&builder);
+
+            return result;
+        }
+    }
+
+    // rows that cannot be handed over end the run too, rather than leave a
+    // gap in it
+    if (!d_internal_db_rows_finish(&builder, _rows))
+    {
+        if (!ended)
+        {
+            (void)d_internal_mariadb_run_end(_statement, true);
+            d_internal_mariadb_replied(db, false);
+        }
+
+        return D_INTERNAL_MARIADB_OUT_OF_MEMORY;
+    }
+
+    return 0;
+}
+
+/*
+d_mariadb_close_cursor
+  The client reads the rest of the rows away, and the layer every result
+after them; what the session's changes were is not kept.
+*/
+int
+d_mariadb_close_cursor(
+    struct d_mariadb_statement* _statement
+)
+{
+    // parameter validation
+    if (!_statement)
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    // no run open, whose connection is still there
+    if ( (!_statement->db) ||
+         (_statement->db->cursor != _statement) )
+    {
+        return 0;
+    }
+
+    const int result = d_internal_mariadb_run_end(_statement, true);
+
+    d_internal_mariadb_replied(_statement->db, false);
+
+    return result;
+}
+
+//==============================================================================
+// THE HANDLE'S STATEMENTS (mariadb_internal.h, 2.6)
+//==============================================================================
+
+/*
+d_internal_mariadb_close_retired
+  Each retired statement's client statement, which tells the server, then
+the rest of it.
+*/
+void
+d_internal_mariadb_close_retired(
+    struct d_mariadb* _db
+)
+{
+    while (_db->retired)
+    {
+        struct d_mariadb_statement* const statement = _db->retired;
+
+        _db->retired = statement->next;
+
+        (void)mysql_stmt_close(statement->native);
+        free(statement);
+    }
+
+    return;
+}
+
+/*
+d_internal_mariadb_detach
+  The run first, while its statement still has the connection; then each
+statement, which keeps nothing of the connection but finalizing.
+*/
+void
+d_internal_mariadb_detach(
+    struct d_mariadb* _db,
+    bool              _read_rest
+)
+{
+    // a run still open ends
+    if (_db->cursor)
+    {
+        (void)d_internal_mariadb_run_end(_db->cursor, _read_rest);
+    }
+
+    // every statement, without the connection
+    while (_db->statements)
+    {
+        struct d_mariadb_statement* const statement = _db->statements;
+
+        _db->statements     = statement->next;
+        statement->db       = NULL;
+        statement->previous = NULL;
+        statement->next     = NULL;
+    }
+
+    return;
 }
 
 #else
@@ -1348,6 +1949,53 @@ d_mariadb_execute_query(
 {
     (void)_statement;
     (void)_rows;
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_mariadb_open_cursor
+  Without a client there is nothing to run: D_DB_UNSUPPORTED.
+*/
+int
+d_mariadb_open_cursor(
+    struct d_mariadb_statement* _statement
+)
+{
+    (void)_statement;
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_mariadb_fetch_rows
+  Without a client there are no rows: D_DB_UNSUPPORTED, and the rows left as
+they were.
+*/
+int
+d_mariadb_fetch_rows(
+    struct d_mariadb_statement* _statement,
+    size_t                      _max,
+    struct d_db_rows*           _rows
+)
+{
+    (void)_statement;
+    (void)_max;
+    (void)_rows;
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_mariadb_close_cursor
+  Without a client there is no run to end: D_DB_UNSUPPORTED.
+*/
+int
+d_mariadb_close_cursor(
+    struct d_mariadb_statement* _statement
+)
+{
+    (void)_statement;
 
     return D_DB_UNSUPPORTED;
 }

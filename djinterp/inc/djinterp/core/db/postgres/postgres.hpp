@@ -7,11 +7,14 @@
 * every operation is the layer's, and core/db adds exceptions, result sets
 * that outlive their query, and prepared statements that close with the
 * connection. Beside the operations every connection has, it sends SQL
-* without waiting, runs statements with parameters, copies rows in, listens
-* for notifications, and quotes values and names. With it, PostgreSQL's
-* types and how they map to field_type -- every built-in type has an OID,
-* stable across versions, arrays their own -- and the SQL features each
-* version has, at compile time from env_postgres.h.
+* without waiting -- in a pipeline, and its rows read a few at a time, if
+* asked -- runs statements with parameters, copies rows in, listens for
+* notifications, closes statements by name, and quotes values and names.
+* With it, PostgreSQL's types and how they map to field_type -- every
+* built-in type has an OID, stable across versions, arrays their own -- and
+* what the server connected and libpq have, asked at run time, beside what
+* libpq's header has, at compile time from env_postgres.h: the client's
+* capabilities.
 *     pg_connection (this file)
 *       -> database_connection<pg_connection, database_type::postgresql>
 *         -> connection_template<pg_connection, database_type::postgresql>
@@ -19,21 +22,103 @@
 *   The hooks are defined in postgres.cpp. The header needs C++17 and
 * includes no client header: env_postgres.h includes libpq-fe.h only where a
 * program asks for env's detection (D_CFG_ENV_USING_POSTGRESQL), which the
-* compile-time feature queries read. Its trailing sections carry
+* client's capabilities read. Its trailing sections carry
 * PostgreSQL's capability-detection traits and C++20 concepts.
 *
 *
 * path:      /inc/djinterp/core/db/postgres/postgres.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.26
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.  OID TYPE CONSTANTS
+    ------------------
+    1.  The OIDs
+         1.  pg_oid
+2.  OID MAPPING
+    -----------
+    1.  To and from field_type
+         1.  pg_oid_to_field_type
+         2.  field_type_to_pg_sql
+         3.  pg_oid_is_array
+3.  CLIENT CAPABILITIES
+    -------------------
+    1.  Compile-time capabilities
+         1.  pg_client_capabilities
+         2.  pg_type_support
+         3.  pg_feature_support
+4.  VERSION INFORMATION
+    -------------------
+    1.  The version
+         1.  pg_version_info
+5.  SSL MODES
+    ---------
+    1.  The modes
+         1.  pg_ssl_mode
+6.  CONNECTION CONFIGURATION
+    ------------------------
+    1.  The configuration
+         1.  pg_connect_config
+7.  POSTGRESQL CONNECTION
+    ---------------------
+    1.  Notifications
+         1.  pg_notification
+    2.  Pipelines
+         1.  pg_pipeline_status
+    3.  The layer
+         1.  postgres_layer
+         2.  prepared_statement<postgres_layer>
+         3.  streaming_result_set<postgres_layer>
+    4.  The class
+         1.  pg_connection
+8.  EXPRESSION DETECTORS
+    --------------------
+    1.  Asynchronous query dispatch
+    2.  Pipeline mode
+    3.  COPY protocol
+    4.  LISTEN and NOTIFY
+    5.  Parameterized execution
+    6.  Connection diagnostics
+    7.  Schema introspection
+    8.  Escaping
+    9.  Large objects
+    10. Large objects
+9.  TAGGED CAPABILITY TRAITS
+    ------------------------
+    1.  Traits
+         1.  has_pg_async
+         2.  has_pg_pipeline
+         3.  has_pg_copy
+         4.  has_pg_listen_notify
+         5.  has_pg_diagnostics
+         6.  has_pg_escape
+         7.  has_pg_large_objects
+         8.  has_pg_schema_query
+         9.  is_pg_connection
+10. TAGLESS CAPABILITY TRAITS
+    -------------------------
+    1.  Individual capabilities
+    2.  Compound capabilities
+11. SFINAE HELPERS
+    --------------
+    1.  enable_if helpers
+12. C++20 CONCEPTS
+    --------------
+    1.  Connection concepts
+    2.  Capability concepts
+    3.  Tagless capability concepts
+    4.  Former names
+*/
 
 #ifndef DJINTERP_DB_POSTGRES_POSTGRES_HPP
 #define DJINTERP_DB_POSTGRES_POSTGRES_HPP 1
 
 // djinterp
-#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: the floor
 // re_std
 #include "../../../../re_std/cstdint/cstdint.hpp"  // re_std::uint32_t,
                                                    // uint16_t, uint8_t, int64_t
@@ -60,57 +145,51 @@
 
 
 NS_DJINTERP
-// =============================================================================
-// I.   POSTGRESQL OID TYPE CONSTANTS
-// =============================================================================
+
+
+//==============================================================================
+// 1.  OID TYPE CONSTANTS
+//==============================================================================
 // PostgreSQL identifies every data type by a unique OID. Built-in type
 // OIDs are stable across all versions. These constants mirror the values
 // from the system catalog pg_type and from src/include/catalog/pg_type_d.h.
 // They are declared here so that <libpq-fe.h> does not need to be
 // included.
 
+
+// 1.1    The OIDs
+//------------------------------------------------------------------------------
+// 1.1.1
 // pg_oid
 //   enumeration: well-known PostgreSQL type OIDs for built-in types.
 enum class pg_oid : unsigned int
 {
-    // -----------------------------------------------------------------
     // boolean
-    // -----------------------------------------------------------------
     oid_bool           = 16,
 
-    // -----------------------------------------------------------------
     // binary
-    // -----------------------------------------------------------------
     oid_bytea          = 17,
 
-    // -----------------------------------------------------------------
     // integer family
-    // -----------------------------------------------------------------
     oid_int8           = 20,        // BIGINT
     oid_int2           = 21,        // SMALLINT
     oid_int4           = 23,        // INTEGER
     oid_oid            = 26,        // OID type itself
 
-    // -----------------------------------------------------------------
     // floating point and numeric
-    // -----------------------------------------------------------------
     oid_float4         = 700,       // REAL
     oid_float8         = 701,       // DOUBLE PRECISION
     oid_numeric        = 1700,      // NUMERIC / DECIMAL
     oid_money          = 790,       // MONEY
 
-    // -----------------------------------------------------------------
     // character types
-    // -----------------------------------------------------------------
     oid_char           = 18,        // "char" (single byte)
     oid_name           = 19,        // name (63-byte identifier)
     oid_text           = 25,        // TEXT
     oid_varchar        = 1043,      // CHARACTER VARYING
     oid_bpchar         = 1042,      // CHARACTER (blank-padded)
 
-    // -----------------------------------------------------------------
     // date and time
-    // -----------------------------------------------------------------
     oid_date           = 1082,      // DATE
     oid_time           = 1083,      // TIME WITHOUT TIME ZONE
     oid_timetz         = 1266,      // TIME WITH TIME ZONE
@@ -118,17 +197,13 @@ enum class pg_oid : unsigned int
     oid_timestamptz    = 1184,      // TIMESTAMP WITH TIME ZONE
     oid_interval       = 1186,      // INTERVAL
 
-    // -----------------------------------------------------------------
     // network address types
-    // -----------------------------------------------------------------
     oid_inet           = 869,       // INET (IPv4/IPv6 host address)
     oid_cidr           = 650,       // CIDR (IPv4/IPv6 network)
     oid_macaddr        = 829,       // MAC address (6 bytes)
     oid_macaddr8       = 774,       // MAC address (8 bytes, PG 10+)
 
-    // -----------------------------------------------------------------
     // geometric types
-    // -----------------------------------------------------------------
     oid_point          = 600,
     oid_line           = 628,
     oid_lseg           = 601,
@@ -137,32 +212,22 @@ enum class pg_oid : unsigned int
     oid_polygon        = 604,
     oid_circle         = 718,
 
-    // -----------------------------------------------------------------
     // JSON types
-    // -----------------------------------------------------------------
     oid_json           = 114,       // JSON (text-based, PG 9.2+)
     oid_jsonb          = 3802,      // JSONB (binary, PG 9.4+)
     oid_jsonpath       = 4072,      // JSONPATH (PG 12+)
 
-    // -----------------------------------------------------------------
     // UUID
-    // -----------------------------------------------------------------
     oid_uuid           = 2950,
 
-    // -----------------------------------------------------------------
     // XML
-    // -----------------------------------------------------------------
     oid_xml            = 142,
 
-    // -----------------------------------------------------------------
     // bit string
-    // -----------------------------------------------------------------
     oid_bit            = 1560,      // BIT
     oid_varbit         = 1562,      // BIT VARYING
 
-    // -----------------------------------------------------------------
     // range types (PG 9.2+)
-    // -----------------------------------------------------------------
     oid_int4range      = 3904,
     oid_int8range      = 3926,
     oid_numrange       = 3906,
@@ -170,9 +235,7 @@ enum class pg_oid : unsigned int
     oid_tstzrange      = 3910,
     oid_daterange      = 3912,
 
-    // -----------------------------------------------------------------
     // multirange types (PG 14+)
-    // -----------------------------------------------------------------
     oid_int4multirange = 4451,
     oid_int8multirange = 4536,
     oid_nummultirange  = 4532,
@@ -180,9 +243,7 @@ enum class pg_oid : unsigned int
     oid_tstzmultirange = 4534,
     oid_datemultirange = 4535,
 
-    // -----------------------------------------------------------------
     // array types (OID of the array version of common types)
-    // -----------------------------------------------------------------
     oid_bool_array     = 1000,
     oid_int2_array     = 1005,
     oid_int4_array     = 1007,
@@ -194,33 +255,34 @@ enum class pg_oid : unsigned int
     oid_uuid_array     = 2951,
     oid_jsonb_array    = 3807,
 
-    // -----------------------------------------------------------------
     // pseudo-types and internal
-    // -----------------------------------------------------------------
     oid_void           = 2278,
     oid_record         = 2249,      // anonymous composite
     oid_unknown        = 705,
 
-    // -----------------------------------------------------------------
     // tsvector / tsquery (full-text search)
-    // -----------------------------------------------------------------
     oid_tsvector       = 3614,
     oid_tsquery        = 3615,
 
-    // -----------------------------------------------------------------
     // large object
-    // -----------------------------------------------------------------
     oid_pg_lsn         = 3220       // pg_lsn (WAL position)
 };
 
 
-// =============================================================================
-// II.  OID-TO-FIELD_TYPE MAPPING
-// =============================================================================
+//==============================================================================
+// 2.  OID MAPPING
+//==============================================================================
 
+
+// 2.1    To and from field_type
+//------------------------------------------------------------------------------
+// 2.1.1
 // pg_oid_to_field_type
 //   function: maps a PostgreSQL OID to the generic djinterp field_type.
-inline field_type pg_oid_to_field_type(unsigned int _oid) noexcept
+inline field_type
+pg_oid_to_field_type(
+    unsigned int _oid
+) noexcept
 {
     switch (static_cast<pg_oid>(_oid))
     {
@@ -344,10 +406,14 @@ inline field_type pg_oid_to_field_type(unsigned int _oid) noexcept
     }
 }
 
+// 2.1.2
 // field_type_to_pg_sql
 //   function: returns the SQL type name string for a given field_type
 // as it would be used in PostgreSQL DDL.
-inline const char* field_type_to_pg_sql(field_type _type) noexcept
+inline const char*
+field_type_to_pg_sql(
+    field_type _type
+) noexcept
 {
     switch (_type)
     {
@@ -372,12 +438,16 @@ inline const char* field_type_to_pg_sql(field_type _type) noexcept
     }
 }
 
+// 2.1.3
 // pg_oid_is_array
 //   function: returns true if the given OID represents an array type.
 // Built-in array OIDs are in the 1000-range; this checks the common
 // ones. For user-defined array types, query pg_type.typarray at
 // runtime.
-inline bool pg_oid_is_array(unsigned int _oid) noexcept
+inline bool
+pg_oid_is_array(
+    unsigned int _oid
+) noexcept
 {
     pg_oid oid = static_cast<pg_oid>(_oid);
 
@@ -394,14 +464,27 @@ inline bool pg_oid_is_array(unsigned int _oid) noexcept
 }
 
 
-// =============================================================================
-// III. FEATURE SUPPORT (compile-time, version-gated)
-// =============================================================================
+//==============================================================================
+// 3.  CLIENT CAPABILITIES
+//==============================================================================
+// What env_postgres.h found libpq's header to have, by version, at compile
+// time -- the client's capabilities: the data types and the SQL features a
+// server of the header's release has, which the server connected may lack,
+// or exceed, and what libpq itself has (pipelines, chunked rows, closing a
+// statement). Every flag is false unless a program asks for env's detection
+// (D_CFG_ENV_USING_POSTGRESQL) or supplies its results. libpq's header alone
+// gives a lower bound (D_ENV_PG_VERSION_IS_LOWER_BOUND). What the server
+// connected and the libpq loaded have, pg_connection's supports_* members
+// ask at run time.
 
-// pg_type_support
-//   struct: compile-time data type availability flags gated by
-// D_ENV_PG_* macros.
-struct pg_type_support
+
+// 3.1    Compile-time capabilities
+//------------------------------------------------------------------------------
+// 3.1.1
+// pg_client_capabilities
+//   struct: compile-time data type, SQL feature and libpq availability flags,
+// as libpq's header gives them.
+struct pg_client_capabilities
 {
 #if D_ENV_PG_DETECTED
 
@@ -517,32 +600,6 @@ struct pg_type_support
     #else
         false;
     #endif
-
-#else
-    static constexpr bool has_json                 = false;
-    static constexpr bool has_jsonb                = false;
-    static constexpr bool has_jsonpath             = false;
-    static constexpr bool has_json_table           = false;
-    static constexpr bool has_sqljson_constructors = false;
-    static constexpr bool has_jsonb_subscript      = false;
-    static constexpr bool has_range_types          = false;
-    static constexpr bool has_multirange           = false;
-    static constexpr bool has_array_types          = false;
-    static constexpr bool has_uuid_type            = false;
-    static constexpr bool has_enum_type            = false;
-    static constexpr bool has_domain_types         = false;
-    static constexpr bool has_composite_types      = false;
-    static constexpr bool has_identity_columns     = false;
-    static constexpr bool has_generated_columns    = false;
-    static constexpr bool has_generated_virtual    = false;
-#endif  // D_ENV_PG_DETECTED
-};
-
-// pg_feature_support
-//   struct: compile-time SQL and server feature availability flags.
-struct pg_feature_support
-{
-#if D_ENV_PG_DETECTED
 
     // SQL features
     static constexpr bool has_cte =
@@ -749,10 +806,26 @@ struct pg_feature_support
     #endif
 
 #else
+    static constexpr bool has_json                     = false;
+    static constexpr bool has_jsonb                    = false;
+    static constexpr bool has_jsonpath                 = false;
+    static constexpr bool has_json_table               = false;
+    static constexpr bool has_sqljson_constructors     = false;
+    static constexpr bool has_jsonb_subscript          = false;
+    static constexpr bool has_range_types              = false;
+    static constexpr bool has_multirange               = false;
+    static constexpr bool has_array_types              = false;
+    static constexpr bool has_uuid_type                = false;
+    static constexpr bool has_enum_type                = false;
+    static constexpr bool has_domain_types             = false;
+    static constexpr bool has_composite_types          = false;
+    static constexpr bool has_identity_columns         = false;
+    static constexpr bool has_generated_columns        = false;
+    static constexpr bool has_generated_virtual        = false;
     static constexpr bool has_cte                      = false;
     static constexpr bool has_cte_materialized         = false;
     static constexpr bool has_window_functions         = false;
-    static constexpr bool has_lateral                   = false;
+    static constexpr bool has_lateral                  = false;
     static constexpr bool has_upsert                   = false;
     static constexpr bool has_merge                    = false;
     static constexpr bool has_grouping_sets            = false;
@@ -783,13 +856,32 @@ struct pg_feature_support
 #endif  // D_ENV_PG_DETECTED
 };
 
+// 3.1.2
+// pg_type_support
+//   type: pg_client_capabilities, by its former name (2026.10.21), for one
+// release; it held the data types.
+using pg_type_support [[deprecated("pg_client_capabilities")]] =
+    pg_client_capabilities;
 
-// =============================================================================
-// IV.  VERSION INFORMATION
-// =============================================================================
+// 3.1.3
+// pg_feature_support
+//   type: pg_client_capabilities, by its former name (2026.10.21), for one
+// release; it held the features.
+using pg_feature_support [[deprecated("pg_client_capabilities")]] =
+    pg_client_capabilities;
 
+
+//==============================================================================
+// 4.  VERSION INFORMATION
+//==============================================================================
+
+
+// 4.1    The version
+//------------------------------------------------------------------------------
+// 4.1.1
 // pg_version_info
-//   struct: compile-time version decomposition.
+//   struct: compile-time version decomposition of libpq's header, which env
+// detected; the server's is the connection's to ask (get_server_version).
 // NOTE: PostgreSQL changed its versioning scheme at version 10.
 // Pre-10 uses three-part (e.g. 9.6.24 = 90624); post-10 uses
 // two-part (e.g. 16.2 = 160002). The encoding formula is
@@ -797,26 +889,29 @@ struct pg_feature_support
 struct pg_version_info
 {
 #if D_ENV_PG_DETECTED
-    static constexpr bool          detected = true;
+    static constexpr bool             detected = true;
     static constexpr re_std::uint32_t id       = D_ENV_PG_VERSION_ID;
     static constexpr re_std::uint16_t major    = D_ENV_PG_VERSION_MAJOR;
     static constexpr re_std::uint16_t release  = D_ENV_PG_VERSION_RELEASE;
-    static constexpr bool          is_legacy_versioning =
+    static constexpr bool             is_legacy_versioning =
         D_ENV_PG_IS_LEGACY_VERSIONING;
-    static constexpr const char*   string   = D_ENV_PG_VERSION_STRING;
+    static constexpr const char*      string   = D_ENV_PG_VERSION_STRING;
 #else
-    static constexpr bool          detected = false;
+    static constexpr bool             detected = false;
     static constexpr re_std::uint32_t id       = 0;
     static constexpr re_std::uint16_t major    = 0;
     static constexpr re_std::uint16_t release  = 0;
-    static constexpr bool          is_legacy_versioning = false;
-    static constexpr const char*   string   = "not detected";
+    static constexpr bool             is_legacy_versioning = false;
+    static constexpr const char*      string   = "not detected";
 #endif
 
     // at_least
     //   function: returns true if the detected version is at least
     // the specified major version (post-10 convention).
-    static constexpr bool at_least(re_std::uint16_t _major) noexcept
+    static constexpr bool
+    at_least(
+        re_std::uint16_t _major
+    ) noexcept
     {
         return id >= (_major * 10000u);
     }
@@ -824,20 +919,26 @@ struct pg_version_info
     // at_least_legacy
     //   function: returns true if the detected version is at least
     // the specified pre-10 (major, minor, patch) version.
-    static constexpr bool at_least_legacy(
+    static constexpr bool
+    at_least_legacy(
         re_std::uint16_t _major,
         re_std::uint16_t _minor,
-        re_std::uint16_t _patch) noexcept
+        re_std::uint16_t _patch
+    ) noexcept
     {
         return id >= (_major * 10000u + _minor * 100u + _patch);
     }
 };
 
 
-// =============================================================================
-// V.   SSL MODE ENUMERATION
-// =============================================================================
+//==============================================================================
+// 5.  SSL MODES
+//==============================================================================
 
+
+// 5.1    The modes
+//------------------------------------------------------------------------------
+// 5.1.1
 // pg_ssl_mode
 //   enumeration: PostgreSQL SSL connection modes (sslmode parameter).
 enum class pg_ssl_mode : re_std::uint8_t
@@ -851,10 +952,14 @@ enum class pg_ssl_mode : re_std::uint8_t
 };
 
 
-// =============================================================================
-// VI.  POSTGRESQL CONNECTION CONFIGURATION
-// =============================================================================
+//==============================================================================
+// 6.  CONNECTION CONFIGURATION
+//==============================================================================
 
+
+// 6.1    The configuration
+//------------------------------------------------------------------------------
+// 6.1.1
 // pg_connect_config
 //   struct: what a PostgreSQL connection needs beyond connection_config, as
 // libpq's connection keywords. A field left as it was made leaves its
@@ -908,6 +1013,8 @@ struct pg_connect_config
 
     std::map<std::string, std::string> extra_params;
 
+    // construction -- the defaults (localhost, 5432), a generic
+    // configuration, or a connection string alone
     pg_connect_config()
         : ssl_mode(pg_ssl_mode::prefer),
           connect_timeout_seconds(0),
@@ -943,10 +1050,14 @@ struct pg_connect_config
 };
 
 
-// =============================================================================
-// VII. POSTGRESQL CONNECTION
-// =============================================================================
+//==============================================================================
+// 7.  POSTGRESQL CONNECTION
+//==============================================================================
 
+
+// 7.1    Notifications
+//------------------------------------------------------------------------------
+// 7.1.1
 // pg_notification
 //   struct: a notification that arrived on a channel the connection listens
 // on: the channel, the payload ("" for none), and the process id of the
@@ -958,6 +1069,24 @@ struct pg_notification
     int         backend_pid;
 };
 
+// 7.2    Pipelines
+//------------------------------------------------------------------------------
+// 7.2.1
+// pg_pipeline_status
+//   enum: whether a connection is in pipeline mode, as libpq says (the
+// layer's enum d_postgres_pipeline).
+enum class pg_pipeline_status : re_std::uint8_t
+{
+    off     = 0,  // statements run one at a time, each operation waiting for
+                  // its result
+    on      = 1,  // statements are queued, and their results read in order
+    aborted = 2   // a statement failed: the server skips the rest, to the
+                  // next synchronization point
+};
+
+// 7.3    The layer
+//------------------------------------------------------------------------------
+// 7.3.1
 // postgres_layer
 //   struct: the PostgreSQL layer, as database_statement.hpp's templates take
 // a layer. A result means the connection was lost when the layer says so
@@ -975,6 +1104,15 @@ struct postgres_layer
 
     static constexpr const char* utc_offset = "+00:00";
 
+    // holds_connection, busy_code -- a stream's run holds the connection,
+    // whose every other call that waits the layer refuses meanwhile with
+    // 08000 (postgres_statement.h 3.3)
+    static constexpr bool holds_connection = true;
+    static constexpr int  busy_code        =
+        D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION;
+
+    // connection_lost -- whether a result means the connection was lost, as
+    // the description above lists
     static constexpr bool
     connection_lost(
         int _result
@@ -1044,11 +1182,20 @@ struct postgres_layer
                                    int          _result);
 };
 
+// 7.3.2
 // prepared_statement<postgres_layer>
 //   class: PostgreSQL's prepared statements, instantiated once, in
 // postgres.cpp.
 extern template class prepared_statement<postgres_layer>;
 
+// 7.3.3
+// streaming_result_set<postgres_layer>
+//   class: its streams, instantiated with them.
+extern template class streaming_result_set<postgres_layer>;
+
+// 7.4    The class
+//------------------------------------------------------------------------------
+// 7.4.1
 // pg_connection
 //   class: a connection to a PostgreSQL server, through libpq, over the
 // PostgreSQL layer's face, which it holds and which closes the connection
@@ -1065,31 +1212,39 @@ extern template class prepared_statement<postgres_layer>;
 // throws query_exception with 25P02 until then. There is no auto-commit
 // mode to turn off: outside a transaction every statement commits on its
 // own. The members the connection adds -- statements sent without waiting,
-// parameters, COPY, notifications, escaping, the server's parameters, the
-// schema -- throw as the operations do (database_connection.hpp). Not
-// copyable; movable.
+// in a pipeline or not, parameters, COPY, notifications, statements closed
+// by name, escaping, the server's parameters, the schema -- throw as the
+// operations do (database_connection.hpp):
+// connection_exception when the connection is not open, or a failure lost
+// it, and otherwise the exception their contracts name, with the SQLSTATE
+// packed, or a negative D_DB_*, as its error_code(). Not copyable; movable.
 //
 // Usage:
 //   pg_connection conn("host=localhost dbname=mydb");
 //   conn.connect();
 //   auto rs = conn.execute_query("SELECT 1");
-class pg_connection
-    : public database_connection<pg_connection,
-                                 database_type::postgresql>
+class pg_connection : public database_connection<pg_connection,
+                                                 database_type::postgresql>
 {
 public:
-    using base_type       = database_connection<pg_connection,
-                                                database_type::postgresql>;
-    using layer_type      = postgres_layer;
-    using statement_type  = prepared_statement<postgres_layer>;
-    using type_support    = pg_type_support;
-    using feature_support = pg_feature_support;
-    using version_info    = pg_version_info;
+    using base_type           = database_connection<pg_connection,
+                                                    database_type::postgresql>;
+    using layer_type          = postgres_layer;
+    using statement_type      = prepared_statement<postgres_layer>;
+    using client_capabilities = pg_client_capabilities;
+    using version_info        = pg_version_info;
+
+    // type_support, feature_support -- client_capabilities, by their former
+    // names (2026.10.21), for one release
+    using type_support [[deprecated("client_capabilities")]] =
+        pg_client_capabilities;
+    using feature_support [[deprecated("client_capabilities")]] =
+        pg_client_capabilities;
 
     // construction -- with pg_connect_config's defaults (localhost, 5432);
     // with a generic configuration; with a PostgreSQL one; or with a
     // connection string, keywords or a URI, alone, libpq's defaults standing
-    // in for what it leaves out
+    // in for what it leaves out. Nothing connects before connect()
     pg_connection();
     explicit pg_connection(const connection_config& _config);
     explicit pg_connection(const pg_connect_config& _config);
@@ -1105,10 +1260,6 @@ public:
 
     pg_connection(pg_connection&&) noexcept            = default;
     pg_connection& operator=(pg_connection&&) noexcept = default;
-
-    // -----------------------------------------------------------------
-    // asynchronous query dispatch
-    // -----------------------------------------------------------------
 
     /**
      * @brief Sends SQL -- one statement or several, separated by
@@ -1137,16 +1288,130 @@ public:
      */
     std::unique_ptr<buffered_result_set> get_result();
 
-    // waiting -- is_busy says whether the next result has yet to arrive,
-    // get_result then waiting for it, false when nothing was sent or the
-    // connection is not open; consume_input reads what the server has
-    // sent, without waiting, and returns true, throwing as every operation
+    // is_busy -- whether the next result has yet to arrive, get_result then
+    // waiting for it; false when nothing was sent or the connection is not
+    // open. In pipeline mode the result of a statement queued after the last
+    // synchronization point arrives only once asked for (pipeline_flush);
+    // and straight after a statement there fails, is_busy is false even
+    // while the next synchronization point's own result is still on its way,
+    // which get_result then waits for
     bool is_busy() const noexcept;
-    bool consume_input();
 
-    // -----------------------------------------------------------------
-    // parameterized queries
-    // -----------------------------------------------------------------
+    /**
+     * @brief Has the rows of the statements still to come arrive a few at a
+     *        time, as get_result reads them: each result up to `_chunk_size`
+     *        of a statement's rows, and then the statement's end, its columns
+     *        and none of its rows.
+     *
+     * @note Called before the rows it is for are looked at: straight after
+     *       send_query, or straight after a statement's last result is read,
+     *       for the statements after it. Outside pipeline mode it holds for
+     *       the rest of the SQL sent; in pipeline mode, for the next
+     *       statement alone. One row a result is libpq's single-row mode,
+     *       which every libpq has; more is libpq 17's
+     *       (supports_chunked_rows).
+     *
+     * @param[in] _chunk_size  the most rows a result holds; 1 or more.
+     * @throws query_exception with D_DB_INVALID_ARGUMENT for fewer than one
+     *         row; with D_DB_UNSUPPORTED for more than one with a libpq
+     *         before 17; with 08000 when it comes too late: no statement's
+     *         results are still to come, or the next one's have begun.
+     */
+    void set_chunked_rows_mode(int _chunk_size);
+
+    /**
+     * @brief Puts the connection in pipeline mode (libpq 14), where
+     *        send_query queues statements, one a call, without waiting for
+     *        any of them, and get_result reads their results in order.
+     *
+     * @note The server runs the statements between two synchronization
+     *       points (pipeline_sync) as one transaction, unless one begins its
+     *       own; a statement that fails has the server skip the rest, to the
+     *       next point. get_result returns each statement's rows, throws
+     *       query_exception for one that failed, with its SQLSTATE, and for
+     *       each one skipped, with 25P02, and answers nullptr at each
+     *       synchronization point, and once nothing is left to read. The
+     *       server holds a result until a synchronization point or until
+     *       asked for it -- get_result asks before it waits, and
+     *       pipeline_flush asks -- so a statement queued after the last
+     *       point has its results read all the same, though the transaction
+     *       it is part of ends only at the next one. Every other operation
+     *       that runs SQL throws query_exception, 08000, until
+     *       exit_pipeline.
+     *
+     * @throws query_exception with D_DB_UNSUPPORTED where libpq is older
+     *         than 14 (supports_pipeline); with 08000 while SQL sent before
+     *         has results to read, or a COPY is in progress.
+     */
+    void enter_pipeline();
+
+    // leaving, synchronizing and flushing -- exit_pipeline ends pipeline
+    // mode, which needs every result read, up to the last synchronization
+    // point; pipeline_sync marks a synchronization point and sends what is
+    // queued; pipeline_flush sends what is queued and asks the server for
+    // the results it has, without a synchronization point. Each throws
+    // query_exception: 08000 while results are still to read, or outside
+    // pipeline mode; D_DB_UNSUPPORTED where libpq has no pipelines.
+    // get_pipeline_status says whether the connection is in the mode, a
+    // failure having aborted it or not; off while the connection is not open
+    void               exit_pipeline();
+    void               pipeline_sync();
+    void               pipeline_flush();
+    pg_pipeline_status get_pipeline_status() const noexcept;
+
+    /**
+     * @brief Closes a statement the session prepared, by its name -- with
+     *        PREPARE, say, or through the face -- whether or not the session
+     *        has one of the name.
+     *
+     * @note libpq from 17 closes it by the protocol's own message, which a
+     *       failed transaction takes too; before 17, DEALLOCATE, which a
+     *       failed transaction refuses (25P02). The statements prepare()
+     *       makes close themselves, and their names, d_stmt_ and hexadecimal
+     *       digits, are theirs.
+     *
+     * @param[in] _stmt_name  the statement's name.
+     * @throws query_exception with D_DB_INVALID_ARGUMENT for an empty name or
+     *         one holding a NUL; with the server's SQLSTATE when it refuses.
+     */
+    void close_prepared(const std::string& _stmt_name);
+
+    /**
+     * @brief Copies a file of the client's into a new large object
+     *        (d_postgres_lo_import), in a transaction of its own where none
+     *        is open.
+     *
+     * @param[in] _path  the file, as the client's C library names it.
+     * @return the large object's OID.
+     * @throws query_exception with D_DB_NOT_FOUND for a file that is not
+     *         there, 58030 for one that cannot be read, D_DB_INVALID_ARGUMENT
+     *         for a path holding a NUL, or the server's SQLSTATE;
+     *         transaction_exception is not thrown: a failed transaction is
+     *         query_exception, 25P02.
+     */
+    unsigned int lo_import(const std::string& _path);
+
+    /**
+     * @brief Copies a large object into a file of the client's, made or
+     *        emptied first (d_postgres_lo_export).
+     *
+     * @param[in] _oid   the large object.
+     * @param[in] _path  the file.
+     * @throws query_exception with 42704 for an OID no large object has,
+     *         58030 for a file that cannot be made or written, otherwise as
+     *         lo_import.
+     */
+    void lo_export(unsigned int       _oid,
+                   const std::string& _path);
+
+    /**
+     * @brief Reads what the server has sent, without waiting.
+     *
+     * @return true; a failure throws.
+     * @throws as every operation when the connection is not open, or is
+     *         lost.
+     */
+    bool consume_input();
 
     /**
      * @brief Runs one statement with values for its parameters, $1 the
@@ -1167,10 +1432,6 @@ public:
         const std::string&                              _query,
         const std::vector<std::optional<std::string>>& _params);
 
-    // -----------------------------------------------------------------
-    // COPY protocol
-    // -----------------------------------------------------------------
-
     /**
      * @brief Runs a COPY ... FROM STDIN, which then waits for rows.
      *
@@ -1186,10 +1447,18 @@ public:
      */
     void copy_in_start(const std::string& _copy_sql);
 
-    // copy_data -- bytes of rows in the COPY's format, in chunks that may
-    // end anywhere, a row's middle included; query_exception with 08000
-    // when no COPY is in progress. A row the server cannot read is
-    // copy_end's failure, which the server's refusal reaches
+    /**
+     * @brief Sends bytes of rows, in the COPY's format, in chunks that may
+     *        end anywhere, a row's middle included.
+     *
+     * @note A row the server cannot read is copy_end's failure, which the
+     *       server's refusal reaches.
+     *
+     * @param[in] _data    the bytes.
+     * @param[in] _length  how many.
+     * @throws query_exception with 08000 when no COPY is in progress; as
+     *         every operation when the connection is not open, or is lost.
+     */
     void copy_data(const char*  _data,
                    std::size_t  _length);
 
@@ -1204,14 +1473,14 @@ public:
      */
     re_std::int64_t copy_end();
 
-    // copy_abort -- ends the COPY in progress keeping none of its rows, the
-    // reason the server's message for it; query_exception with 08000 when
-    // no COPY is in progress
+    /**
+     * @brief Ends the COPY in progress, keeping none of its rows.
+     *
+     * @param[in] _reason  the server's message for it.
+     * @throws query_exception with 08000 when no COPY is in progress; as
+     *         every operation when the connection is not open, or is lost.
+     */
     void copy_abort(const std::string& _reason);
-
-    // -----------------------------------------------------------------
-    // LISTEN / NOTIFY
-    // -----------------------------------------------------------------
 
     // channels -- listen subscribes the connection to a channel, unlisten
     // ends that, unlisten_all every subscription; inside a transaction each
@@ -1236,22 +1505,27 @@ public:
      */
     std::optional<pg_notification> get_notification();
 
-    // -----------------------------------------------------------------
-    // escaping
-    // -----------------------------------------------------------------
-
-    // escaping -- escape_literal quotes text as a string literal, for the
-    // connection's encoding, the quotes included ('it''s'); escape_identifier
-    // quotes a name in double quotes, any double quote doubled ("a""b"),
-    // and needs no connection. Each throws query_exception with
-    // D_DB_INVALID_ARGUMENT for text that holds a NUL; escape_literal throws
-    // as every operation when the connection is not open
+    /**
+     * @brief Quotes text as a string literal, for the connection's encoding,
+     *        the quotes included ('it''s').
+     *
+     * @param[in] _input  the text.
+     * @return the literal.
+     * @throws query_exception with D_DB_INVALID_ARGUMENT for text that holds
+     *         a NUL; as every operation when the connection is not open.
+     */
     std::string escape_literal(const std::string& _input) const;
-    std::string escape_identifier(const std::string& _input) const;
 
-    // -----------------------------------------------------------------
-    // connection diagnostics
-    // -----------------------------------------------------------------
+    /**
+     * @brief Quotes a name in double quotes, any double quote doubled
+     *        ("a""b"); it needs no connection.
+     *
+     * @param[in] _input  the name.
+     * @return the quoted name.
+     * @throws query_exception with D_DB_INVALID_ARGUMENT for a name that
+     *         holds a NUL.
+     */
+    std::string escape_identifier(const std::string& _input) const;
 
     // diagnostics, with no round trip -- the process id of the server's
     // backend for the connection, 0 when it is not open; where the
@@ -1265,98 +1539,138 @@ public:
     char        get_transaction_status() const noexcept;
     std::string get_parameter_status(const std::string& _name) const;
 
-    // -----------------------------------------------------------------
-    // schema introspection
-    // -----------------------------------------------------------------
+    /**
+     * @brief Says whether the current schema -- the first of the search
+     *        path that exists, as current_schema() names it -- has a table
+     *        of a name.
+     *
+     * @param[in] _table_name  the name.
+     * @return whether the table exists.
+     * @throws query_exception with D_DB_INVALID_ARGUMENT for a name holding a
+     *         NUL, and with the server's SQLSTATE when it cannot tell.
+     */
+    bool has_table(const std::string& _table_name) const;
 
-    // schema -- whether a table of the current schema exists (the first of
-    // the search path that does, as current_schema() names it), which
-    // throws when it cannot tell; and its tables' names, sorted
-    bool                     has_table(const std::string& _table_name) const;
+    /**
+     * @brief Lists the current schema's tables.
+     *
+     * @return the names, sorted.
+     * @throws query_exception with the server's SQLSTATE when it cannot
+     *         list them.
+     */
     std::vector<std::string> list_tables() const;
 
-    // -----------------------------------------------------------------
-    // feature queries (compile-time)
-    // -----------------------------------------------------------------
-
-    static constexpr bool supports_jsonb() noexcept
+    // feature queries -- what the server connected has, by its release, from
+    // libpq's copy of its version (d_postgres_supports, no round trip), and
+    // false while the connection is not open; and what the libpq loaded can
+    // do (d_postgres_client_supports), which needs no connection: pipelines
+    // (14), and rows read more than one at a time (17).
+    // client_capabilities answers for libpq's header at compile time. Every
+    // server the layer accepts, from 10, has JSONB, logical replication,
+    // declarative partitioning and parallel query. supports_modern_sql is
+    // CTEs, window functions, LATERAL, upsert, MERGE and row-level security
+    // together, as from 15; supports_modern_json, JSONB, the JSON path
+    // language, subscripts and the SQL/JSON constructors, as from 16
+    bool
+    supports_jsonb() const noexcept
     {
-        return type_support::has_jsonb;
+        return m_server_at_least(9u, 4u);
     }
 
-    static constexpr bool supports_jsonpath() noexcept
+    bool
+    supports_jsonpath() const noexcept
     {
-        return type_support::has_jsonpath;
+        return m_supports(D_POSTGRES_FEATURE_JSONPATH);
     }
 
-    static constexpr bool supports_multirange() noexcept
+    bool
+    supports_multirange() const noexcept
     {
-        return type_support::has_multirange;
+        return m_supports(D_POSTGRES_FEATURE_MULTIRANGES);
     }
 
-    static constexpr bool supports_merge() noexcept
+    bool
+    supports_merge() const noexcept
     {
-        return feature_support::has_merge;
+        return m_supports(D_POSTGRES_FEATURE_MERGE);
     }
 
-    static constexpr bool supports_pipeline() noexcept
+    static bool
+    supports_pipeline() noexcept
     {
-        return feature_support::has_pipeline;
+        return face::postgres::client_supports(D_POSTGRES_CLIENT_PIPELINE);
     }
 
-    static constexpr bool supports_logical_repl() noexcept
+    static bool
+    supports_chunked_rows() noexcept
     {
-        return feature_support::has_logical_repl;
+        return face::postgres::client_supports(
+            D_POSTGRES_CLIENT_CHUNKED_ROWS);
     }
 
-    static constexpr bool supports_partitioning() noexcept
+    bool
+    supports_logical_repl() const noexcept
     {
-        return feature_support::has_declarative_partitioning;
+        return m_server_at_least(10u, 0u);
     }
 
-    static constexpr bool supports_parallel_query() noexcept
+    bool
+    supports_partitioning() const noexcept
     {
-        return feature_support::has_parallel_query;
+        return m_server_at_least(10u, 0u);
     }
 
-    static constexpr bool supports_modern_sql() noexcept
+    bool
+    supports_parallel_query() const noexcept
     {
-        return feature_support::has_modern_sql;
+        return m_server_at_least(9u, 6u);
     }
 
-    static constexpr bool supports_modern_json() noexcept
+    bool
+    supports_modern_sql() const noexcept
     {
-        return feature_support::has_modern_json;
+        return m_supports(D_POSTGRES_FEATURE_MERGE);
     }
 
-    // -----------------------------------------------------------------
-    // data type mapping
-    // -----------------------------------------------------------------
+    bool
+    supports_modern_json() const noexcept
+    {
+        return m_supports(D_POSTGRES_FEATURE_SQL_JSON);
+    }
 
-    static field_type map_oid(unsigned int _oid) noexcept
+    // type mapping -- an OID as field_type, whether an OID is an array's,
+    // and a field_type as the type a column is declared with, as section 2
+    // maps them
+    static field_type
+    map_oid(
+        unsigned int _oid
+    ) noexcept
     {
         return pg_oid_to_field_type(_oid);
     }
 
-    static bool oid_is_array(unsigned int _oid) noexcept
+    static bool
+    oid_is_array(
+        unsigned int _oid
+    ) noexcept
     {
         return pg_oid_is_array(_oid);
     }
 
-    static const char* sql_type_name(field_type _type) noexcept
+    static const char*
+    sql_type_name(
+        field_type _type
+    ) noexcept
     {
         return field_type_to_pg_sql(_type);
     }
 
-    // -----------------------------------------------------------------
-    // PostgreSQL-specific configuration
-    // -----------------------------------------------------------------
-
-    // configuration -- the PostgreSQL settings, base among them, which
-    // connect(config) replaces; setting them replaces the generic
-    // configuration with theirs, for the next connect
-    const pg_connect_config& get_pg_config() const noexcept;
-    void                     set_pg_config(const pg_connect_config& _config);
+    // configuration -- the PostgreSQL settings, base among them as the
+    // connection's generic configuration now is, which connect(config)
+    // replaces; setting them replaces the generic configuration with
+    // theirs, for the next connect
+    pg_connect_config get_pg_config() const;
+    void              set_pg_config(const pg_connect_config& _config);
 
     // get_face -- the PostgreSQL layer's face, for the layer's other calls;
     // closing or replacing the connection through it is the connection's to
@@ -1364,70 +1678,62 @@ public:
     face::postgres&       get_face() noexcept;
     const face::postgres& get_face() const noexcept;
 
-    // -----------------------------------------------------------------
-    // hooks (postgres.cpp): database_connection calls these, programs the
-    // operations they implement
-    // -----------------------------------------------------------------
-
-    void            connect_helper();
-    void            disconnect_helper() noexcept;
-    bool            is_connected_helper() const noexcept;
-    bool            ping_helper() const noexcept;
-    face::rows      execute_query_helper(const std::string& _query);
-    re_std::int64_t execute_update_helper(const std::string& _query);
+    // hooks (postgres.cpp) -- database_connection calls these, programs the
+    // operations they implement, whose contracts they keep
+    void            connect_impl();
+    void            disconnect_impl() noexcept;
+    bool            is_connected_impl() const noexcept;
+    bool            ping_impl() const noexcept;
+    face::rows      execute_query_impl(const std::string& _query);
+    re_std::int64_t execute_update_impl(const std::string& _query);
     face::postgres_statement
-                    prepare_helper(const std::string& _query);
-    std::string     get_server_version_helper() const;
-    re_std::int64_t get_last_insert_id_helper() const;
-    void            begin_transaction_helper();
-    void            begin_transaction_helper(isolation_level _isolation);
-    void            commit_helper();
-    void            rollback_helper();
-    bool            in_transaction_helper() const noexcept;
-    isolation_level get_isolation_level_helper() const;
-    void            set_isolation_level_helper(isolation_level _level);
-    void            create_savepoint_helper(const std::string& _name);
-    void            release_savepoint_helper(const std::string& _name);
-    void            rollback_to_savepoint_helper(const std::string& _name);
+                    prepare_impl(const std::string& _query);
+    std::string     get_server_version_impl() const;
+    re_std::int64_t get_last_insert_id_impl() const;
+    void            begin_transaction_impl();
+    void            begin_transaction_impl(isolation_level _isolation);
+    void            commit_impl();
+    void            rollback_impl();
+    bool            in_transaction_impl() const noexcept;
+    isolation_level get_isolation_level_impl() const;
+    void            set_isolation_level_impl(isolation_level _level);
+    void            create_savepoint_impl(const std::string& _name);
+    void            release_savepoint_impl(const std::string& _name);
+    void            rollback_to_savepoint_impl(const std::string& _name);
     struct ::pg_conn*
-                    native_handle_helper() const noexcept;
-
-    // version-gated methods: declared where env detects the feature in
-    // libpq's header, and not yet defined -- the PostgreSQL layer has no
-    // pipeline, chunked results or closing by name for them to stand on
-
-#if D_ENV_PG_DETECTED
-    #if D_ENV_PG_HAS_LIBPQ_PIPELINE
-    // enter_pipeline / exit_pipeline / pipeline_sync
-    //   functions: pipeline mode API. Available since PostgreSQL 14.
-    void enter_pipeline();
-    void exit_pipeline();
-    void pipeline_sync();
-    #endif
-
-    #if D_ENV_PG_HAS_LIBPQ_CHUNKED_RESULT
-    // set_chunked_rows_mode
-    //   function: enables chunked result retrieval.
-    // Available since PostgreSQL 17.
-    void set_chunked_rows_mode(int _chunk_size);
-    #endif
-
-    #if D_ENV_PG_HAS_LIBPQ_CLOSE_PREPARED
-    // close_prepared
-    //   function: closes a server-side prepared statement.
-    // Available since PostgreSQL 17.
-    void close_prepared(const std::string& _stmt_name);
-    #endif
-#endif  // D_ENV_PG_DETECTED
+                    native_handle_impl() const noexcept;
 
 private:
-    // m_check -- nothing for 0; otherwise what the layer raises
+    /**
+     * @brief Raises a failure of the PostgreSQL layer, as
+     *        postgres_layer::raise does; a success returns.
+     *
+     * @param[in] _result     the call's result.
+     * @param[in] _kind       which exception a failure throws, unless it lost
+     *                        the connection.
+     * @param[in] _operation  the operation's name, for the message.
+     * @throws as postgres_layer::raise, unless `_result` is 0.
+     */
     void m_check(int          _result,
                  failure_kind _kind,
                  const char*  _operation) const;
 
-    // m_exec_params -- the rows of one statement run with values for its
-    // parameters, NULL for SQL NULL
+    // m_supports, m_server_at_least -- the layer's answers for the server
+    // connected, from libpq's copy of its version; false while the
+    // connection is not open
+    bool m_supports(d_postgres_feature _feature) const noexcept;
+    bool m_server_at_least(unsigned _major,
+                           unsigned _minor) const noexcept;
+
+    /**
+     * @brief Runs one statement with values for its parameters, and returns
+     *        its rows.
+     *
+     * @param[in] _query   the statement.
+     * @param[in] _values  the values, as C strings; NULL for SQL NULL.
+     * @return the rows, all of them, held apart from the connection.
+     * @throws as exec_params.
+     */
     std::unique_ptr<buffered_result_set> m_exec_params(
         const std::string&              _query,
         const std::vector<const char*>& _values);
@@ -1437,21 +1743,18 @@ private:
 };
 
 
-// ===========================================================================
-//                   CAPABILITY DETECTION (traits & concepts)
-// ===========================================================================
-//   Folded in from the former postgres_traits.hpp / postgres_concepts.hpp
-// so detection lives with the connection it describes. Traits build at C++17;
-// concepts appear under C++20.
 
-// =============================================================================
-// VIII. EXPRESSION DETECTORS
-// =============================================================================
+//==============================================================================
+// 8.  EXPRESSION DETECTORS
+//==============================================================================
+// Sections 8 to 12, once postgres_traits.hpp and postgres_concepts.hpp,
+// detect which of pg_connection's members a type has: as traits from C++17
+// and as concepts under C++20. A detector is the type of one member's call,
+// which is_detected tests.
 
-// -------------------------------------------------------------------------
-// A.  asynchronous query dispatch
-// -------------------------------------------------------------------------
 
+// 8.1    Asynchronous query dispatch
+//------------------------------------------------------------------------------
 // pg_send_query_t
 //   detector: send_query(const std::string&) method.
 // wraps PQsendQuery().
@@ -1480,10 +1783,8 @@ template<typename T>
 using pg_consume_input_t =
     decltype(std::declval<T&>().consume_input());
 
-// -------------------------------------------------------------------------
-// B.  pipeline mode
-// -------------------------------------------------------------------------
-
+// 8.2    Pipeline mode
+//------------------------------------------------------------------------------
 // pg_enter_pipeline_t
 //   detector: enter_pipeline() method.
 // wraps PQenterPipelineMode().
@@ -1505,10 +1806,15 @@ template<typename T>
 using pg_pipeline_sync_t =
     decltype(std::declval<T&>().pipeline_sync());
 
-// -------------------------------------------------------------------------
-// C.  COPY protocol
-// -------------------------------------------------------------------------
+// pg_pipeline_flush_t
+//   detector: pipeline_flush() method.
+// wraps PQsendFlushRequest().
+template<typename T>
+using pg_pipeline_flush_t =
+    decltype(std::declval<T&>().pipeline_flush());
 
+// 8.3    COPY protocol
+//------------------------------------------------------------------------------
 // pg_copy_in_start_t
 //   detector: copy_in_start(const std::string&) method.
 template<typename T>
@@ -1531,10 +1837,8 @@ template<typename T>
 using pg_copy_end_t =
     decltype(std::declval<T&>().copy_end());
 
-// -------------------------------------------------------------------------
-// D.  LISTEN / NOTIFY
-// -------------------------------------------------------------------------
-
+// 8.4    LISTEN and NOTIFY
+//------------------------------------------------------------------------------
 // pg_listen_t
 //   detector: listen(const std::string&) method.
 // executes LISTEN <channel>.
@@ -1557,10 +1861,8 @@ template<typename T>
 using pg_get_notification_t =
     decltype(std::declval<T&>().get_notification());
 
-// -------------------------------------------------------------------------
-// E.  parameterized execution
-// -------------------------------------------------------------------------
-
+// 8.5    Parameterized execution
+//------------------------------------------------------------------------------
 // pg_exec_params_t
 //   detector: exec_params(const std::string&,
 // const std::vector<std::string>&) method.
@@ -1570,10 +1872,8 @@ using pg_exec_params_t = decltype(std::declval<T&>().exec_params(
     std::declval<const std::string&>(),
     std::declval<const std::vector<std::string>&>()));
 
-// -------------------------------------------------------------------------
-// F.  connection diagnostics
-// -------------------------------------------------------------------------
-
+// 8.6    Connection diagnostics
+//------------------------------------------------------------------------------
 // pg_get_backend_pid_t
 //   detector: get_backend_pid() const method.
 // wraps PQbackendPID().
@@ -1596,22 +1896,8 @@ using pg_parameter_status_t =
     decltype(std::declval<const T&>().get_parameter_status(
         std::declval<const std::string&>()));
 
-// -------------------------------------------------------------------------
-// G.  result field OID introspection
-// -------------------------------------------------------------------------
-
-// pg_field_type_oid_t
-//   detector: field_type_oid(int) const method.
-// wraps PQftype().
-template<typename T>
-using pg_field_type_oid_t =
-    decltype(std::declval<const T&>().field_type_oid(
-        std::declval<int>()));
-
-// -------------------------------------------------------------------------
-// H.  schema introspection
-// -------------------------------------------------------------------------
-
+// 8.7    Schema introspection
+//------------------------------------------------------------------------------
 // pg_has_table_t
 //   detector: has_table(const std::string&) const method.
 template<typename T>
@@ -1625,10 +1911,8 @@ template<typename T>
 using pg_list_tables_t =
     decltype(std::declval<const T&>().list_tables());
 
-// -------------------------------------------------------------------------
-// I.  escape
-// -------------------------------------------------------------------------
-
+// 8.8    Escaping
+//------------------------------------------------------------------------------
 // pg_escape_literal_t
 //   detector: escape_literal(const std::string&) const method.
 // wraps PQescapeLiteral().
@@ -1645,10 +1929,8 @@ using pg_escape_identifier_t =
     decltype(std::declval<const T&>().escape_identifier(
         std::declval<const std::string&>()));
 
-// -------------------------------------------------------------------------
-// J.  large objects
-// -------------------------------------------------------------------------
-
+// 8.9    Large objects
+//------------------------------------------------------------------------------
 // pg_lo_import_t
 //   detector: lo_import(const std::string&) method.
 template<typename T>
@@ -1663,10 +1945,16 @@ using pg_lo_export_t = decltype(std::declval<T&>().lo_export(
     std::declval<const std::string&>()));
 
 
-// =============================================================================
-// IX.  TAGGED CAPABILITY TRAITS (struct-based)
-// =============================================================================
+//==============================================================================
+// 9.  TAGGED CAPABILITY TRAITS
+//==============================================================================
+// Each trait is a type with ::value, true where every detector it names finds
+// its member; name_v is the value, where the language has variable templates.
 
+
+// 9.1    Traits
+//------------------------------------------------------------------------------
+// 9.1.1
 // has_pg_async
 //   trait: checks if type T supports asynchronous query dispatch
 // (send_query + get_result + is_busy + consume_input).
@@ -1676,14 +1964,14 @@ struct has_pg_async : djinterp::conjunction<
     is_detected<pg_get_result_t, clean_t<T>>,
     is_detected<pg_is_busy_t, clean_t<T>>,
     is_detected<pg_consume_input_t, clean_t<T>>>
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename T>
     constexpr bool has_pg_async_v = has_pg_async<clean_t<T>>::value;
 #endif
 
+// 9.1.2
 // has_pg_pipeline
 //   trait: checks if type T supports pipeline mode
 // (enter_pipeline + exit_pipeline + pipeline_sync).
@@ -1692,14 +1980,14 @@ struct has_pg_pipeline : djinterp::conjunction<
     is_detected<pg_enter_pipeline_t, clean_t<T>>,
     is_detected<pg_exit_pipeline_t, clean_t<T>>,
     is_detected<pg_pipeline_sync_t, clean_t<T>>>
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename T>
     constexpr bool has_pg_pipeline_v = has_pg_pipeline<clean_t<T>>::value;
 #endif
 
+// 9.1.3
 // has_pg_copy
 //   trait: checks if type T supports the COPY protocol
 // (copy_in_start + copy_data + copy_end).
@@ -1708,14 +1996,14 @@ struct has_pg_copy : djinterp::conjunction<
     is_detected<pg_copy_in_start_t, clean_t<T>>,
     is_detected<pg_copy_data_t, clean_t<T>>,
     is_detected<pg_copy_end_t, clean_t<T>>>
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename T>
     constexpr bool has_pg_copy_v = has_pg_copy<clean_t<T>>::value;
 #endif
 
+// 9.1.4
 // has_pg_listen_notify
 //   trait: checks if type T supports LISTEN/NOTIFY
 // (listen + notify + get_notification).
@@ -1724,8 +2012,7 @@ struct has_pg_listen_notify : djinterp::conjunction<
     is_detected<pg_listen_t, clean_t<T>>,
     is_detected<pg_notify_t, clean_t<T>>,
     is_detected<pg_get_notification_t, clean_t<T>>>
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename T>
@@ -1733,6 +2020,7 @@ struct has_pg_listen_notify : djinterp::conjunction<
         has_pg_listen_notify<clean_t<T>>::value;
 #endif
 
+// 9.1.5
 // has_pg_diagnostics
 //   trait: checks if type T supports connection diagnostics
 // (get_backend_pid + get_transaction_status + get_parameter_status).
@@ -1741,8 +2029,7 @@ struct has_pg_diagnostics : djinterp::conjunction<
     is_detected<pg_get_backend_pid_t, clean_t<T>>,
     is_detected<pg_transaction_status_t, clean_t<T>>,
     is_detected<pg_parameter_status_t, clean_t<T>>>
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename T>
@@ -1750,6 +2037,7 @@ struct has_pg_diagnostics : djinterp::conjunction<
         has_pg_diagnostics<clean_t<T>>::value;
 #endif
 
+// 9.1.6
 // has_pg_escape
 //   trait: checks if type T supports PostgreSQL escaping
 // (escape_literal + escape_identifier).
@@ -1757,14 +2045,14 @@ template<typename T>
 struct has_pg_escape : djinterp::conjunction<
     is_detected<pg_escape_literal_t, clean_t<T>>,
     is_detected<pg_escape_identifier_t, clean_t<T>>>
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename T>
     constexpr bool has_pg_escape_v = has_pg_escape<clean_t<T>>::value;
 #endif
 
+// 9.1.7
 // has_pg_large_objects
 //   trait: checks if type T supports large object API
 // (lo_import + lo_export).
@@ -1772,8 +2060,7 @@ template<typename T>
 struct has_pg_large_objects : djinterp::conjunction<
     is_detected<pg_lo_import_t, clean_t<T>>,
     is_detected<pg_lo_export_t, clean_t<T>>>
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename T>
@@ -1781,6 +2068,7 @@ struct has_pg_large_objects : djinterp::conjunction<
         has_pg_large_objects<clean_t<T>>::value;
 #endif
 
+// 9.1.8
 // has_pg_schema_query
 //   trait: checks if type T supports schema introspection
 // (has_table + list_tables).
@@ -1788,8 +2076,7 @@ template<typename T>
 struct has_pg_schema_query : djinterp::conjunction<
     is_detected<pg_has_table_t, clean_t<T>>,
     is_detected<pg_list_tables_t, clean_t<T>>>
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename T>
@@ -1797,6 +2084,7 @@ struct has_pg_schema_query : djinterp::conjunction<
         has_pg_schema_query<clean_t<T>>::value;
 #endif
 
+// 9.1.9
 // is_pg_connection
 //   trait: compound trait verifying type T implements a PostgreSQL
 // connection interface (connection + async + diagnostics + escape +
@@ -1808,8 +2096,7 @@ struct is_pg_connection : djinterp::conjunction<
     has_pg_diagnostics<clean_t<T>>,
     has_pg_escape<clean_t<T>>,
     has_pg_schema_query<clean_t<T>>>
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename T>
@@ -1817,14 +2104,15 @@ struct is_pg_connection : djinterp::conjunction<
 #endif
 
 
-// =============================================================================
-// X.   TAGLESS CAPABILITY TRAITS (constexpr bool)
-// =============================================================================
+//==============================================================================
+// 10.  TAGLESS CAPABILITY TRAITS
+//==============================================================================
+// The same capabilities as constexpr bool variable templates, for a condition
+// that needs no type: one member each, then the sets.
 
-// -------------------------------------------------------------------------
-// A.  individual capability tags
-// -------------------------------------------------------------------------
 
+// 10.1   Individual capabilities
+//------------------------------------------------------------------------------
 // pg_can_send_query
 //   tagless trait: true if T has send_query().
 template<typename T,
@@ -1905,10 +2193,8 @@ template<typename T>
 constexpr bool pg_can_query_schema<T,
     std::void_t<pg_has_table_t<T>>> = true;
 
-// -------------------------------------------------------------------------
-// B.  compound capability tags
-// -------------------------------------------------------------------------
-
+// 10.2   Compound capabilities
+//------------------------------------------------------------------------------
 // pg_does_async
 //   tagless trait: true if T supports async query dispatch.
 template<typename T,
@@ -1969,10 +2255,13 @@ constexpr bool pg_is_full_connection =
       pg_can_query_schema<clean_t<T>> );
 
 
-// =============================================================================
-// XI.  SFINAE HELPERS
-// =============================================================================
+//==============================================================================
+// 11.  SFINAE HELPERS
+//==============================================================================
 
+
+// 11.1   enable_if helpers
+//------------------------------------------------------------------------------
 // enable_if_pg_connection
 //   type: SFINAE helper for PostgreSQL connection constraints.
 template<typename T>
@@ -2004,21 +2293,23 @@ using enable_if_has_pg_listen_notify =
     typename std::enable_if<has_pg_listen_notify<clean_t<T>>::value>::type;
 
 
-// ===========================================================================
-// XII. C++20 CONCEPTS
-// ===========================================================================
-//   The PostgreSQL classification concepts, folded in from the former
-// postgres_concepts.hpp.  Each forwards to a trait / tagless capability declared
-// above.  Gated on concept support so the traits remain usable at the C++17
-// baseline (matching functor.hpp / monoid.hpp).
+//==============================================================================
+// 12.  C++20 CONCEPTS
+//==============================================================================
+// Each concept forwards to a trait or a tagless capability above. They live
+// in djinterp::concepts (2026.10.21), where a concept may take the name of
+// the class it constrains; each former name in djinterp forwards to its
+// concept for one release. They exist where the compiler has concepts; the
+// traits serve at C++17 without them, as in functor.hpp and monoid.hpp.
+
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
+namespace concepts
+{
 
-// =============================================================================
-// A.   Core PostgreSQL Connection Concepts
-// =============================================================================
-
+// 12.1   Connection concepts
+//------------------------------------------------------------------------------
 // postgres_connection
 //   concept: constrains types implementing the PostgreSQL connection
 // interface.
@@ -2026,10 +2317,10 @@ template<typename Type>
 concept postgres_connection =
     is_pg_connection<clean_t<Type>>::value;
 
-// Pg_connection
+// pg_connection
 //   concept: alias for postgres_connection using the shorter pg prefix.
 template<typename Type>
-concept Pg_connection =
+concept pg_connection =
     postgres_connection<Type>;
 
 // non_postgres_connection
@@ -2094,11 +2385,8 @@ template<typename Type>
 concept postgres_schema_query_connection =
     has_pg_schema_query<clean_t<Type>>::value;
 
-
-// =============================================================================
-// B.  PostgreSQL Capability Concepts
-// =============================================================================
-
+// 12.2   Capability concepts
+//------------------------------------------------------------------------------
 // postgres_send_query_connection
 //   concept: constrains types exposing send_query(const string&).
 template<typename Type>
@@ -2140,6 +2428,13 @@ concept postgres_pipeline_exitable_connection =
 template<typename Type>
 concept postgres_pipeline_sync_connection =
     is_detected<pg_pipeline_sync_t, clean_t<Type>>::value;
+
+// postgres_pipeline_flush_connection
+//   concept: constrains types exposing pipeline_flush() (2026.10.22, so it
+// has no former name).
+template<typename Type>
+concept postgres_pipeline_flush_connection =
+    is_detected<pg_pipeline_flush_t, clean_t<Type>>::value;
 
 // postgres_copy_in_connection
 //   concept: constrains types exposing copy_in_start(const string&).
@@ -2201,12 +2496,6 @@ template<typename Type>
 concept postgres_parameter_status_connection =
     is_detected<pg_parameter_status_t, clean_t<Type>>::value;
 
-// postgres_field_oid_introspection_connection
-//   concept: constrains types exposing field_type_oid(int) const.
-template<typename Type>
-concept postgres_field_oid_introspection_connection =
-    is_detected<pg_field_type_oid_t, clean_t<Type>>::value;
-
 // postgres_has_table_query
 //   concept: constrains types exposing has_table(name) const.
 template<typename Type>
@@ -2243,11 +2532,8 @@ template<typename Type>
 concept postgres_lo_export_connection =
     is_detected<pg_lo_export_t, clean_t<Type>>::value;
 
-
-// =============================================================================
-// C. Tagless PostgreSQL Capability Concepts
-// =============================================================================
-
+// 12.3   Tagless capability concepts
+//------------------------------------------------------------------------------
 // postgres_async_dispatchable
 //   concept: constrains types satisfying the full tagless async query
 // dispatch capability set.
@@ -2289,6 +2575,288 @@ concept postgres_full_connection =
 template<typename Type>
 concept pg_full_connection =
     postgres_full_connection<Type>;
+
+}  // namespace concepts
+
+// 12.4   Former names
+//------------------------------------------------------------------------------
+// postgres_connection
+//   concept: concepts::postgres_connection, by its former name, for one
+// release.
+template<typename Type>
+concept postgres_connection =
+    concepts::postgres_connection<Type>;
+
+// Pg_connection
+//   concept: concepts::pg_connection, by its former name, for one release.
+template<typename Type>
+concept Pg_connection =
+    concepts::pg_connection<Type>;
+
+// non_postgres_connection
+//   concept: concepts::non_postgres_connection, by its former name, for one
+// release.
+template<typename Type>
+concept non_postgres_connection =
+    concepts::non_postgres_connection<Type>;
+
+// postgres_async_connection
+//   concept: concepts::postgres_async_connection, by its former name, for one
+// release.
+template<typename Type>
+concept postgres_async_connection =
+    concepts::postgres_async_connection<Type>;
+
+// postgres_pipeline_connection
+//   concept: concepts::postgres_pipeline_connection, by its former name, for
+// one release.
+template<typename Type>
+concept postgres_pipeline_connection =
+    concepts::postgres_pipeline_connection<Type>;
+
+// postgres_copy_connection
+//   concept: concepts::postgres_copy_connection, by its former name, for one
+// release.
+template<typename Type>
+concept postgres_copy_connection =
+    concepts::postgres_copy_connection<Type>;
+
+// postgres_listen_notify_connection
+//   concept: concepts::postgres_listen_notify_connection, by its former name,
+// for one release.
+template<typename Type>
+concept postgres_listen_notify_connection =
+    concepts::postgres_listen_notify_connection<Type>;
+
+// postgres_diagnostics_connection
+//   concept: concepts::postgres_diagnostics_connection, by its former name, for
+// one release.
+template<typename Type>
+concept postgres_diagnostics_connection =
+    concepts::postgres_diagnostics_connection<Type>;
+
+// postgres_escape_connection
+//   concept: concepts::postgres_escape_connection, by its former name, for one
+// release.
+template<typename Type>
+concept postgres_escape_connection =
+    concepts::postgres_escape_connection<Type>;
+
+// postgres_large_object_connection
+//   concept: concepts::postgres_large_object_connection, by its former name,
+// for one release.
+template<typename Type>
+concept postgres_large_object_connection =
+    concepts::postgres_large_object_connection<Type>;
+
+// postgres_schema_query_connection
+//   concept: concepts::postgres_schema_query_connection, by its former name,
+// for one release.
+template<typename Type>
+concept postgres_schema_query_connection =
+    concepts::postgres_schema_query_connection<Type>;
+
+// postgres_send_query_connection
+//   concept: concepts::postgres_send_query_connection, by its former name, for
+// one release.
+template<typename Type>
+concept postgres_send_query_connection =
+    concepts::postgres_send_query_connection<Type>;
+
+// postgres_result_polling_connection
+//   concept: concepts::postgres_result_polling_connection, by its former name,
+// for one release.
+template<typename Type>
+concept postgres_result_polling_connection =
+    concepts::postgres_result_polling_connection<Type>;
+
+// postgres_busy_state_query
+//   concept: concepts::postgres_busy_state_query, by its former name, for one
+// release.
+template<typename Type>
+concept postgres_busy_state_query =
+    concepts::postgres_busy_state_query<Type>;
+
+// postgres_input_consuming_connection
+//   concept: concepts::postgres_input_consuming_connection, by its former name,
+// for one release.
+template<typename Type>
+concept postgres_input_consuming_connection =
+    concepts::postgres_input_consuming_connection<Type>;
+
+// postgres_pipeline_enterable_connection
+//   concept: concepts::postgres_pipeline_enterable_connection, by its former
+// name, for one release.
+template<typename Type>
+concept postgres_pipeline_enterable_connection =
+    concepts::postgres_pipeline_enterable_connection<Type>;
+
+// postgres_pipeline_exitable_connection
+//   concept: concepts::postgres_pipeline_exitable_connection, by its former
+// name, for one release.
+template<typename Type>
+concept postgres_pipeline_exitable_connection =
+    concepts::postgres_pipeline_exitable_connection<Type>;
+
+// postgres_pipeline_sync_connection
+//   concept: concepts::postgres_pipeline_sync_connection, by its former name,
+// for one release.
+template<typename Type>
+concept postgres_pipeline_sync_connection =
+    concepts::postgres_pipeline_sync_connection<Type>;
+
+// postgres_copy_in_connection
+//   concept: concepts::postgres_copy_in_connection, by its former name, for one
+// release.
+template<typename Type>
+concept postgres_copy_in_connection =
+    concepts::postgres_copy_in_connection<Type>;
+
+// postgres_copy_data_connection
+//   concept: concepts::postgres_copy_data_connection, by its former name, for
+// one release.
+template<typename Type>
+concept postgres_copy_data_connection =
+    concepts::postgres_copy_data_connection<Type>;
+
+// postgres_copy_end_connection
+//   concept: concepts::postgres_copy_end_connection, by its former name, for
+// one release.
+template<typename Type>
+concept postgres_copy_end_connection =
+    concepts::postgres_copy_end_connection<Type>;
+
+// postgres_listenable_connection
+//   concept: concepts::postgres_listenable_connection, by its former name, for
+// one release.
+template<typename Type>
+concept postgres_listenable_connection =
+    concepts::postgres_listenable_connection<Type>;
+
+// postgres_notifiable_connection
+//   concept: concepts::postgres_notifiable_connection, by its former name, for
+// one release.
+template<typename Type>
+concept postgres_notifiable_connection =
+    concepts::postgres_notifiable_connection<Type>;
+
+// postgres_notification_query_connection
+//   concept: concepts::postgres_notification_query_connection, by its former
+// name, for one release.
+template<typename Type>
+concept postgres_notification_query_connection =
+    concepts::postgres_notification_query_connection<Type>;
+
+// postgres_parameterized_execution_connection
+//   concept: concepts::postgres_parameterized_execution_connection, by its
+// former name, for one release.
+template<typename Type>
+concept postgres_parameterized_execution_connection =
+    concepts::postgres_parameterized_execution_connection<Type>;
+
+// postgres_backend_pid_connection
+//   concept: concepts::postgres_backend_pid_connection, by its former name, for
+// one release.
+template<typename Type>
+concept postgres_backend_pid_connection =
+    concepts::postgres_backend_pid_connection<Type>;
+
+// postgres_transaction_status_connection
+//   concept: concepts::postgres_transaction_status_connection, by its former
+// name, for one release.
+template<typename Type>
+concept postgres_transaction_status_connection =
+    concepts::postgres_transaction_status_connection<Type>;
+
+// postgres_parameter_status_connection
+//   concept: concepts::postgres_parameter_status_connection, by its former
+// name, for one release.
+template<typename Type>
+concept postgres_parameter_status_connection =
+    concepts::postgres_parameter_status_connection<Type>;
+
+// postgres_has_table_query
+//   concept: concepts::postgres_has_table_query, by its former name, for one
+// release.
+template<typename Type>
+concept postgres_has_table_query =
+    concepts::postgres_has_table_query<Type>;
+
+// postgres_table_names_query
+//   concept: concepts::postgres_table_names_query, by its former name, for one
+// release.
+template<typename Type>
+concept postgres_table_names_query =
+    concepts::postgres_table_names_query<Type>;
+
+// postgres_escape_literal_connection
+//   concept: concepts::postgres_escape_literal_connection, by its former name,
+// for one release.
+template<typename Type>
+concept postgres_escape_literal_connection =
+    concepts::postgres_escape_literal_connection<Type>;
+
+// postgres_escape_identifier_connection
+//   concept: concepts::postgres_escape_identifier_connection, by its former
+// name, for one release.
+template<typename Type>
+concept postgres_escape_identifier_connection =
+    concepts::postgres_escape_identifier_connection<Type>;
+
+// postgres_lo_import_connection
+//   concept: concepts::postgres_lo_import_connection, by its former name, for
+// one release.
+template<typename Type>
+concept postgres_lo_import_connection =
+    concepts::postgres_lo_import_connection<Type>;
+
+// postgres_lo_export_connection
+//   concept: concepts::postgres_lo_export_connection, by its former name, for
+// one release.
+template<typename Type>
+concept postgres_lo_export_connection =
+    concepts::postgres_lo_export_connection<Type>;
+
+// postgres_async_dispatchable
+//   concept: concepts::postgres_async_dispatchable, by its former name, for one
+// release.
+template<typename Type>
+concept postgres_async_dispatchable =
+    concepts::postgres_async_dispatchable<Type>;
+
+// postgres_pipelined_connection
+//   concept: concepts::postgres_pipelined_connection, by its former name, for
+// one release.
+template<typename Type>
+concept postgres_pipelined_connection =
+    concepts::postgres_pipelined_connection<Type>;
+
+// postgres_copy_protocol_connection
+//   concept: concepts::postgres_copy_protocol_connection, by its former name,
+// for one release.
+template<typename Type>
+concept postgres_copy_protocol_connection =
+    concepts::postgres_copy_protocol_connection<Type>;
+
+// postgres_listen_notifiable_connection
+//   concept: concepts::postgres_listen_notifiable_connection, by its former
+// name, for one release.
+template<typename Type>
+concept postgres_listen_notifiable_connection =
+    concepts::postgres_listen_notifiable_connection<Type>;
+
+// postgres_full_connection
+//   concept: concepts::postgres_full_connection, by its former name, for one
+// release.
+template<typename Type>
+concept postgres_full_connection =
+    concepts::postgres_full_connection<Type>;
+
+// pg_full_connection
+//   concept: concepts::pg_full_connection, by its former name, for one release.
+template<typename Type>
+concept pg_full_connection =
+    concepts::pg_full_connection<Type>;
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS

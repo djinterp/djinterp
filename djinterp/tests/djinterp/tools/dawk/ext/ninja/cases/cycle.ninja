@@ -1,0 +1,6 @@
+rule r
+  command = $a
+  description = $a
+build x: r
+  a = $b
+  b = $a

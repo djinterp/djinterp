@@ -1,11 +1,14 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   dcheck.c
+* djinterp [tools]                                                      dcheck.c
 *
 * Check driver:
 *   Walks a tree, asks an extension to build nodes for each file, matches a
 * stylesheet against them, and reports what the registry says is wrong.  The
 * driver knows nothing about banners, properties or file formats; it knows
 * only how to run the loop.
+*   The files are headers, every C and C++ file, or the CMake files, as
+* source.files says; a CMake file's banner and delimiters are read in its own
+* `#` comments, and it has no guard or include block to read.
 *   Under --fix it applies at most one repair per file per pass.  A node's
 * columns are measured once, from the file as it was read, so a second repair
 * in the same pass would splice at offsets the first has already moved.  The
@@ -16,7 +19,7 @@
 * path:      /src/djinterp/tools/dawk/dcheck.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.10.10
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dmatch.h"  // corresponding header
 // std
@@ -25,27 +28,28 @@
 #include <stdlib.h>  // malloc, calloc, free
 #include <string.h>  // strcmp, strrchr
 // djinterp
-#include "../../../../inc/djinterp/tools/dawk/daudit.h"     // d_audit_verify
-#include "../../../../inc/djinterp/tools/dawk/dbanner.h"    // d_banner_build
-#include "../../../../inc/djinterp/tools/dawk/dedit.h"      // d_edit_rewrite_line
-#include "../../../../inc/djinterp/tools/dawk/drepair.h"    // d_repair_plan_*
-#include "../../../../inc/djinterp/tools/dawk/ext/dext_source.h"  // d_ext_source_build
-#include "../../../../inc/djinterp/tools/dawk/dfs.h"        // d_fs_full_path
-#include "../../../../inc/djinterp/tools/dawk/dgit.h"       // d_git_read
-#include "../../../../inc/djinterp/tools/dawk/dguard.h"     // d_guard_build
-#include "../../../../inc/djinterp/tools/dawk/dinclude.h"   // d_include_build
-#include "../../../../inc/djinterp/tools/dawk/dlayout.h"    // d_layout_table_repair
-#include "../../../../inc/djinterp/tools/dawk/dline.h"      // d_line_build
-#include "../../../../inc/djinterp/tools/dawk/dcascade.h"   // d_cascade_wins
-#include "../../../../inc/djinterp/tools/dawk/dschema.h"    // d_schema_validate
-#include "../../../../inc/djinterp/tools/dawk/dsymbol.h"    // d_symbol_table
-#include "../../../../inc/djinterp/tools/dawk/dsection.h"   // d_section_build
-#include "../../../../inc/djinterp/tools/dawk/dsettings.h"  // d_settings
-#include "../../../../inc/djinterp/tools/dawk/dnode.h"      // d_node_tree
-#include "../../../../inc/djinterp/tools/dawk/dproperty.h"  // d_property_evaluate
-#include "../../../../inc/djinterp/tools/dawk/dsource.h"    // d_awk_source
-#include "../../../../inc/djinterp/tools/dawk/dss.h"        // d_dss_sheet
-#include "../../../../inc/djinterp/tools/dawk/dtree.h"      // d_awk_source_tree_init
+#include "../../../../inc/djinterp/tools/dawk/daudit.h"                 // d_audit_verify
+#include "../../../../inc/djinterp/tools/dawk/dbanner.h"                // d_banner_build
+#include "../../../../inc/djinterp/tools/dawk/dedit.h"                  // d_edit_rewrite_line
+#include "../../../../inc/djinterp/tools/dawk/drepair.h"                // d_repair_plan_*
+#include "../../../../inc/djinterp/tools/dawk/ext/check/dext_cmake.h"   // d_ext_cmake_build_path
+#include "../../../../inc/djinterp/tools/dawk/ext/check/dext_source.h"  // d_ext_source_build
+#include "../../../../inc/djinterp/tools/dawk/dfs.h"                    // d_fs_full_path
+#include "../../../../inc/djinterp/tools/dawk/dgit.h"                   // d_git_read
+#include "../../../../inc/djinterp/tools/dawk/dguard.h"                 // d_guard_build
+#include "../../../../inc/djinterp/tools/dawk/dinclude.h"               // d_include_build
+#include "../../../../inc/djinterp/tools/dawk/dlayout.h"                // d_layout_table_repair
+#include "../../../../inc/djinterp/tools/dawk/dline.h"                  // d_line_build
+#include "../../../../inc/djinterp/tools/dawk/dcascade.h"               // d_cascade_wins
+#include "../../../../inc/djinterp/tools/dawk/dschema.h"                // d_schema_validate
+#include "../../../../inc/djinterp/tools/dawk/dsymbol.h"                // d_symbol_table
+#include "../../../../inc/djinterp/tools/dawk/dsection.h"               // d_section_build
+#include "../../../../inc/djinterp/tools/dawk/dsettings.h"              // d_settings
+#include "../../../../inc/djinterp/tools/dawk/dnode.h"                  // d_node_tree
+#include "../../../../inc/djinterp/tools/dawk/dproperty.h"              // d_property_evaluate
+#include "../../../../inc/djinterp/tools/dawk/dsource.h"                // d_awk_source
+#include "../../../../inc/djinterp/tools/dawk/dss.h"                    // d_dss_sheet
+#include "../../../../inc/djinterp/tools/dawk/dtree.h"                  // d_awk_source_tree_init
 
 
 // d_check_tally
@@ -758,7 +762,7 @@ static const char* const d_internal_level_choices[]   = { "off", "advise",
                                                           "warn", "error",
                                                           NULL };
 static const char* const d_internal_files_choices[]   = { "headers", "all",
-                                                          NULL };
+                                                          "cmake", NULL };
 
 static const struct d_setting_def d_check_settings[] =
 {
@@ -784,14 +788,16 @@ static const struct d_setting_def d_check_settings[] =
       "severity: message, before the summary; 0 lists none" },
     { "source.tree", D_SETTING_BOOL, "false", NULL, NULL, 0, 0, NULL,
       "build the C or C++ token, group and item tree beneath each file "
-      "(dext_c, dext_cpp), for sheets that select source structure" },
+      "(dext_c, dext_cpp), or a CMake file's command and block tree "
+      "(dext_cmake), for sheets that select source structure" },
     { "source.lines", D_SETTING_BOOL, "false", NULL, NULL, 0, 0, NULL,
       "build the text layer beneath each file (dline): a `text` node and a "
       "`line` node per physical line, for sheets that select line facts" },
     { "source.files", D_SETTING_ENUM, "headers", d_internal_files_choices,
       NULL, 0, 0, NULL,
-      "which files are checked: headers only (.h, .hpp), or every C and C++ "
-      "file, sources included; a guard is built for headers either way" }
+      "which files are checked: headers only (.h, .hpp), every C and C++ "
+      "file, sources included, or the CMake files (CMakeLists.txt, *.cmake, "
+      "*.cmake.in); a guard is built for headers either way" }
 };
 
 
@@ -1573,6 +1579,8 @@ main(
     size_t            listed      = 0u;
     const bool        every_file  = d_settings_is(settings,
                                                   "source.files", "all");
+    const bool        cmake_files = d_settings_is(settings,
+                                                  "source.files", "cmake");
     const char* const resolve     = d_settings_text(settings,
                                                     "cascade.resolve");
     // `first` and `layers` both pick one winning declaration per property;
@@ -1735,6 +1743,7 @@ main(
     size_t      advisories = 0;
     size_t      banners  = 0;
     size_t      lexical  = 0;
+    size_t      refusals = 0;
     const char* record   = NULL;
     size_t      length   = 0;
 
@@ -1746,9 +1755,14 @@ main(
                               ( (strcmp(dot, ".h") == 0) ||
                                 (strcmp(dot, ".hpp") == 0) ) );
 
-        // headers, or under source.files=all every C and C++ file
-        if ( (!header) &&
-             ( (!every_file) || (!d_ext_source_accepts(record)) ) )
+        const bool cmake = d_ext_cmake_accepts(record);
+
+        // headers; under source.files=all every C and C++ file; under
+        // source.files=cmake the CMake files, and nothing else
+        if ( (cmake_files)
+             ? (!cmake)
+             : ( (!header) &&
+                 ( (!every_file) || (!d_ext_source_accepts(record)) ) ) )
         {
             continue;
         }
@@ -1810,11 +1824,28 @@ main(
         }
 
 
-        (void)d_include_build(tree, file_node, record);
-        (void)d_section_build(tree, file_node, record);
+        // a CMake file has no include block, and its delimiters are `#`
+        if (cmake)
+        {
+            (void)d_section_build_marked(tree, file_node, record, "#");
+        }
+        else
+        {
+            (void)d_include_build(tree, file_node, record);
+            (void)d_section_build(tree, file_node, record);
+        }
 
-        // the C or C++ source tree, when a sheet selects source structure
-        if (sourcing)
+        // the source tree, when a sheet selects source structure: C or C++,
+        // or a CMake file's commands and blocks
+        if ( (sourcing) &&
+             (cmake) )
+        {
+            struct d_ext_cmake_stats built;
+
+            (void)d_ext_cmake_build_path(tree, file_node, record, &built);
+            refusals += built.refused ? 1u : 0u;
+        }
+        else if (sourcing)
         {
             struct d_token_node_stats built;
 
@@ -2377,10 +2408,17 @@ main(
     }
 
     (void)printf("\n%zu %s, %zu with a banner\n\n", files,
-                 every_file ? "files" : "headers", banners);
+                 (cmake_files) ? "CMake files"
+                 : (every_file) ? "files"
+                 :                "headers", banners);
 
     // the source tree's own findings, when one was built
-    if (sourcing)
+    if ( (sourcing) &&
+         (cmake_files) )
+    {
+        (void)printf("%zu files the CMake reader refused\n\n", refusals);
+    }
+    else if (sourcing)
     {
         (void)printf("%zu lexical errors in the source trees\n\n", lexical);
     }

@@ -20,14 +20,15 @@
 *        while still being able to construct the error path cleanly.
 *
 *   PORTABILITY:
-*   C++11+. Variadic templates, rvalue refs, default-member-init are
-* all required.
+*   C++98 and up. From C++11 the class below, with its variadic and
+* rvalue members; below C++11 a C++98 class with the same names that
+* takes and hands back the error by copy.
 *
 *
 * path:      /inc/re_std/expected/unexpected.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.05.19
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef RE_STD_EXPECTED_UNEXPECTED_HPP
@@ -36,7 +37,8 @@
 // re_std
 #include "../config.hpp"  // RE_STD_* configuration
 
-// gate: C++11+ baseline. Pre-C++11 not supported.
+// two tiers: the class below from C++11; below C++11, the C++98 class at
+// the end of this header, which holds and hands back the error by copy.
 #if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
@@ -187,6 +189,86 @@ template<typename E>
 unexpected(E) -> unexpected<E>;
 
 #endif
+
+
+}  // re_std
+
+
+#else  // C++98
+
+
+// std
+#include <algorithm>  // std::swap, for the two-step swap idiom below
+
+
+namespace re_std
+{
+
+
+// ===========================================================================
+// I.   UNEXPECTED<E>  (C++98)
+// ===========================================================================
+
+// unexpected<E>
+//   class: wraps an error value of type E, so expected<T, E> can tell error
+// construction from value construction. The C++98 tier: the error is taken
+// and handed back by copy, as C++98 can only copy; the in_place forms
+// (variadic) and the deduction guide (C++17) have no C++98 spelling.
+template<typename E>
+class unexpected
+{
+public:
+    typedef E error_type;
+
+    // unexpected(const Err&)
+    //   function: an unexpected holding an E made from _err; explicit, as
+    // std's is.
+    template<typename Err>
+    explicit unexpected(
+        const Err& _err
+    )
+        : m_error(_err)
+    {}
+
+    // unexpected(const unexpected&)
+    //   function: copy; preferred to the template above for an unexpected.
+    unexpected(
+        const unexpected& _other
+    )
+        : m_error(_other.m_error)
+    {}
+
+    // error
+    //   function: the error held.
+    E&
+    error() RE_STD_NOEXCEPT
+    {
+        return m_error;
+    }
+
+    const E&
+    error() const RE_STD_NOEXCEPT
+    {
+        return m_error;
+    }
+
+    // swap
+    //   function: exchanges this->m_error with _other.m_error via
+    // ADL swap (or std::swap fallback).
+    void
+    swap(
+        unexpected& _other
+    )
+    {
+        using std::swap;
+        swap(m_error, _other.m_error);
+
+        return;
+    }
+
+private:
+    E m_error;
+};
 
 
 }  // re_std

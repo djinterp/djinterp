@@ -11,7 +11,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_type.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_type.h"  // corresponding header
 // std
@@ -49,11 +49,17 @@ D_STATIC_ASSERT( ( (sizeof(TRUE_WORDS) / sizeof(TRUE_WORDS[0])) ==
                    D_INTERNAL_ARG_WORD_COUNT ),
                  "the truth words come in pairs" );
 
-/*
-d_arg_internal_first_value
-  The value a scalar converts: the first, as CLI11's lexical_conversion takes
-the first string, or the empty text when there is none.
-*/
+/**
+ * @brief Gives the value a scalar converts.
+ *
+ * @param[in] _values  the values; may be NULL.
+ * @param[in] _count   how many.
+ * @return the first value, as CLI11's lexical_conversion takes the first
+ *         string; the empty text when there is none.
+ *
+ * The value a scalar converts: the first, as CLI11's lexical_conversion takes
+ * the first string, or the empty text when there is none.
+ */
 D_STATIC struct d_pack_text
 d_arg_internal_first_value(
     const struct d_pack_text* _values,
@@ -74,11 +80,15 @@ d_arg_internal_first_value(
     return first;
 }
 
-/*
-d_arg_internal_rule_of
-  A conversion context's integer rule, or the configured default without
-one.
-*/
+/**
+ * @brief Gives a conversion context's integer rule.
+ *
+ * @param[in] _context  the context; may be NULL.
+ * @return its d_arg_integer_rule; the configured default without a context.
+ *
+ * A conversion context's integer rule, or the configured default without
+ * one.
+ */
 D_STATIC int
 d_arg_internal_rule_of(
     const struct d_arg_convert_context* _context
@@ -89,12 +99,19 @@ d_arg_internal_rule_of(
            : (int)D_INTERNAL_ARG_PARSER_INTEGER_RULE;
 }
 
-/*
-d_arg_internal_signed_value
-  CLI11's signed integral_conversion: the exact word `true` is 1, then an
-integer that must fit intmax_t. The magnitude of INTMAX_MIN is one more than
-INTMAX_MAX, so the negative bound is checked in uintmax_t.
-*/
+/**
+ * @brief Reads text as CLI11's signed integral_conversion does.
+ *
+ * @param[in]  _text  the text.
+ * @param[in]  _rule  the d_arg_integer_rule.
+ * @param[out] _out   receives the value; untouched on failure.
+ * @return D_ARG_OK, or D_ARG_ERROR_CONVERSION for text that is neither `true`
+ *         nor an integer within intmax_t.
+ *
+ * CLI11's signed integral_conversion: the exact word `true` is 1, then an
+ * integer that must fit intmax_t. The magnitude of INTMAX_MIN is one more than
+ * INTMAX_MAX, so the negative bound is checked in uintmax_t.
+ */
 D_STATIC int
 d_arg_internal_signed_value(
     struct d_pack_text _text,
@@ -141,11 +158,18 @@ d_arg_internal_signed_value(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_unsigned_value
-  CLI11's unsigned integral_conversion: any minus sign is refused, even on
-zero, since strtoull would silently wrap it; `true` is not a number here.
-*/
+/**
+ * @brief Reads text as CLI11's unsigned integral_conversion does.
+ *
+ * @param[in]  _text  the text.
+ * @param[in]  _rule  the d_arg_integer_rule.
+ * @param[out] _out   receives the value; untouched on failure.
+ * @return D_ARG_OK, or D_ARG_ERROR_CONVERSION for text that is not an integer
+ *         within uintmax_t, any with a minus sign among them.
+ *
+ * CLI11's unsigned integral_conversion: any minus sign is refused, even on
+ * zero, since strtoull would silently wrap it; `true` is not a number here.
+ */
 D_STATIC int
 d_arg_internal_unsigned_value(
     struct d_pack_text _text,
@@ -170,12 +194,17 @@ d_arg_internal_unsigned_value(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_flag_character
-  CLI11's to_flag_value for a single character, already folded to lower
-case: a digit from 1 to 9 is its value; 0, f, n and - are -1; t, y and +
-are 1; anything else is not a flag value.
-*/
+/**
+ * @brief Reads a single character as CLI11's to_flag_value does.
+ *
+ * @param[in]  _c    the character, folded to lower case.
+ * @param[out] _out  receives its value; untouched when it has none.
+ * @return `true` for a flag value; `false` otherwise.
+ *
+ * CLI11's to_flag_value for a single character, already folded to lower
+ * case: a digit from 1 to 9 is its value; 0, f, n and - are -1; t, y and +
+ * are 1; anything else is not a flag value.
+ */
 D_STATIC bool
 d_arg_internal_flag_character(
     char  _c,
@@ -216,12 +245,18 @@ d_arg_internal_flag_character(
     return false;
 }
 
-/*
-d_arg_internal_flag_word
-  CLI11's to_flag_value for everything but numbers: a single character by
-its own table, then the truth words, both with case folded, as CLI11 folds
-it.
-*/
+/**
+ * @brief Reads text that is not a number as CLI11's to_flag_value does.
+ *
+ * @param[in]  _text  the text.
+ * @param[out] _out   receives its value: 1 for a truth word, -1 for a
+ *                    falsehood; untouched when it has none.
+ * @return `true` for a flag value; `false` otherwise.
+ *
+ * CLI11's to_flag_value for everything but numbers: a single character by
+ * its own table, then the truth words, both with case folded, as CLI11 folds
+ * it.
+ */
 D_STATIC bool
 d_arg_internal_flag_word(
     struct d_pack_text _text,
@@ -259,14 +294,20 @@ d_arg_internal_flag_word(
     return false;
 }
 
-/*
-d_arg_internal_flag_shaped
-  Whether a number has the shape C23's strtoll reads, which CLI11's
-to_flag_value reads numbers with: no digit separator, at which strtoll stops
-short, and, past the space and the sign, no `0o` prefix, which no strtoll
-knows. A `0b` prefix is read, as C23 reads it -- and the C libraries that
-follow it, glibc's among them, where CLI11 is built most.
-*/
+/**
+ * @brief Tells whether a number has the shape C23's strtoll reads, as CLI11's
+ *        to_flag_value reads numbers.
+ *
+ * @param[in] _text  the text.
+ * @return `true` for a number without a digit separator or a `0o` prefix;
+ *         `false` otherwise.
+ *
+ * Whether a number has the shape C23's strtoll reads, which CLI11's
+ * to_flag_value reads numbers with: no digit separator, at which strtoll stops
+ * short, and, past the space and the sign, no `0o` prefix, which no strtoll
+ * knows. A `0b` prefix is read, as C23 reads it -- and the C libraries that
+ * follow it, glibc's among them, where CLI11 is built most.
+ */
 D_STATIC bool
 d_arg_internal_flag_shaped(
     struct d_pack_text _text
@@ -306,12 +347,23 @@ d_arg_internal_flag_shaped(
                 (_text.data[index + 1u] == 'O') ) );
 }
 
-/*
-d_arg_internal_convert_bool
-  d_arg_parse_bool into a `bool`, under the context's integer rule; the
-empty text is `false`, as CLI11's lexical_assign value-initializes every
-type but text from an empty value.
-*/
+/**
+ * @brief Converts a value into a `bool`, as d_arg_parse_bool reads it.
+ *
+ * @param[in]  _type     the descriptor; unused.
+ * @param[in]  _values   the values; the first is read.
+ * @param[in]  _count    how many.
+ * @param[out] _target   receives the `bool`; `false` for the empty text;
+ *                       untouched on failure.
+ * @param[in]  _context  the conversion's context, whose integer rule applies;
+ *                       may be NULL.
+ * @return D_ARG_OK, or D_ARG_ERROR_CONVERSION for a value that is no truth
+ *         value.
+ *
+ * d_arg_parse_bool into a `bool`, under the context's integer rule; the
+ * empty text is `false`, as CLI11's lexical_assign value-initializes every
+ * type but text from an empty value.
+ */
 D_STATIC int
 d_arg_internal_convert_bool(
     const struct d_arg_type*            _type,
@@ -348,12 +400,23 @@ d_arg_internal_convert_bool(
     return status;
 }
 
-/*
-d_arg_internal_convert_char
-  CLI11's char conversion: one character is itself -- untrimmed, so a space
-is a space -- and anything longer is a signed 8-bit integer, the range CLI11
-reads whatever the signedness of `char`; the empty text is NUL.
-*/
+/**
+ * @brief Converts a value into a `char`, as CLI11's char conversion.
+ *
+ * @param[in]  _type     the descriptor; unused.
+ * @param[in]  _values   the values; the first is read.
+ * @param[in]  _count    how many.
+ * @param[out] _target   receives the `char`; NUL for the empty text; untouched
+ *                       on failure.
+ * @param[in]  _context  the conversion's context, whose integer rule applies;
+ *                       may be NULL.
+ * @return D_ARG_OK, or D_ARG_ERROR_CONVERSION for a value of several characters
+ *         that is no signed 8-bit integer.
+ *
+ * CLI11's char conversion: one character is itself -- untrimmed, so a space
+ * is a space -- and anything longer is a signed 8-bit integer, the range CLI11
+ * reads whatever the signedness of `char`; the empty text is NUL.
+ */
 D_STATIC int
 d_arg_internal_convert_char(
     const struct d_arg_type*            _type,
@@ -405,13 +468,25 @@ d_arg_internal_convert_char(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_convert_integer
-  One converter for every integer descriptor, built-in or not: the kind and
-width come from the descriptor's flags and size, and the range check from
-d_arg_internal_number_store, so an enumeration's descriptor can reuse it.
-The empty text stores the number 0 of the descriptor's kind.
-*/
+/**
+ * @brief Converts a value into any integer descriptor's type.
+ *
+ * @param[in]  _type     the descriptor, whose flags and size give the kind and
+ *                       the width.
+ * @param[in]  _values   the values; the first is read.
+ * @param[in]  _count    how many.
+ * @param[out] _target   receives the integer, of the descriptor's kind and
+ *                       size; 0 for the empty text; untouched on failure.
+ * @param[in]  _context  the conversion's context, whose integer rule applies;
+ *                       may be NULL.
+ * @return D_ARG_OK, or D_ARG_ERROR_CONVERSION for a value that is no integer,
+ *         or one the type cannot hold.
+ *
+ * One converter for every integer descriptor, built-in or not: the kind and
+ * width come from the descriptor's flags and size, and the range check from
+ * d_arg_internal_number_store, so an enumeration's descriptor can reuse it.
+ * The empty text stores the number 0 of the descriptor's kind.
+ */
 D_STATIC int
 d_arg_internal_convert_integer(
     const struct d_arg_type*            _type,
@@ -464,11 +539,22 @@ d_arg_internal_convert_integer(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_convert_float
-  Through strtof, so a value is rounded once, to the type, where CLI11 reads
-every type as long double and rounds again. The empty text is zero.
-*/
+/**
+ * @brief Converts a value into a `float`, through strtof.
+ *
+ * @param[in]  _type     the descriptor; unused.
+ * @param[in]  _values   the values; the first is read.
+ * @param[in]  _count    how many.
+ * @param[out] _target   receives the `float`; 0 for the empty text; untouched
+ *                       on failure.
+ * @param[in]  _context  the conversion's context; unused.
+ * @return D_ARG_OK; D_ARG_ERROR_CONVERSION for a value that is no number of
+ *         the type; or D_ARG_ERROR_OUT_OF_MEMORY when a long value could not
+ *         be copied.
+ *
+ * Through strtof, so a value is rounded once, to the type, where CLI11 reads
+ * every type as long double and rounds again. The empty text is zero.
+ */
 D_STATIC int
 d_arg_internal_convert_float(
     const struct d_arg_type*            _type,
@@ -497,10 +583,21 @@ d_arg_internal_convert_float(
                                     _target);
 }
 
-/*
-d_arg_internal_convert_double
-  As d_arg_internal_convert_float, through strtod.
-*/
+/**
+ * @brief Converts a value into a `double`, through strtod.
+ *
+ * @param[in]  _type     the descriptor; unused.
+ * @param[in]  _values   the values; the first is read.
+ * @param[in]  _count    how many.
+ * @param[out] _target   receives the `double`; 0 for the empty text; untouched
+ *                       on failure.
+ * @param[in]  _context  the conversion's context; unused.
+ * @return D_ARG_OK; D_ARG_ERROR_CONVERSION for a value that is no number of
+ *         the type; or D_ARG_ERROR_OUT_OF_MEMORY when a long value could not
+ *         be copied.
+ *
+ * As d_arg_internal_convert_float, through strtod.
+ */
 D_STATIC int
 d_arg_internal_convert_double(
     const struct d_arg_type*            _type,
@@ -529,10 +626,21 @@ d_arg_internal_convert_double(
                                     _target);
 }
 
-/*
-d_arg_internal_convert_long_double
-  As d_arg_internal_convert_float, through strtold.
-*/
+/**
+ * @brief Converts a value into a `long double`, through strtold.
+ *
+ * @param[in]  _type     the descriptor; unused.
+ * @param[in]  _values   the values; the first is read.
+ * @param[in]  _count    how many.
+ * @param[out] _target   receives the `long double`; 0 for the empty text;
+ *                       untouched on failure.
+ * @param[in]  _context  the conversion's context; unused.
+ * @return D_ARG_OK; D_ARG_ERROR_CONVERSION for a value that is no number of
+ *         the type; or D_ARG_ERROR_OUT_OF_MEMORY when a long value could not
+ *         be copied.
+ *
+ * As d_arg_internal_convert_float, through strtold.
+ */
 D_STATIC int
 d_arg_internal_convert_long_double(
     const struct d_arg_type*            _type,
@@ -561,11 +669,20 @@ d_arg_internal_convert_long_double(
                                     _target);
 }
 
-/*
-d_arg_internal_convert_string
-  Points a `const char*` at the value itself, which every value a parse
-produces keeps NUL-terminated for as long as the parse's results live.
-*/
+/**
+ * @brief Points a `const char*` at a value.
+ *
+ * @param[in]  _type     the descriptor; unused.
+ * @param[in]  _values   the values; the first is read.
+ * @param[in]  _count    how many.
+ * @param[out] _target   receives the pointer, to the value's bytes,
+ *                       NUL-terminated.
+ * @param[in]  _context  the conversion's context; unused.
+ * @return D_ARG_OK.
+ *
+ * Points a `const char*` at the value itself, which every value a parse
+ * produces keeps NUL-terminated for as long as the parse's results live.
+ */
 D_STATIC int
 d_arg_internal_convert_string(
     const struct d_arg_type*            _type,
@@ -588,10 +705,18 @@ d_arg_internal_convert_string(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_convert_text
-  Copies the span itself, with the same lifetime as a string's.
-*/
+/**
+ * @brief Copies a value's span.
+ *
+ * @param[in]  _type     the descriptor; unused.
+ * @param[in]  _values   the values; the first is read.
+ * @param[in]  _count    how many.
+ * @param[out] _target   receives the d_pack_text.
+ * @param[in]  _context  the conversion's context; unused.
+ * @return D_ARG_OK.
+ *
+ * Copies the span itself, with the same lifetime as a string's.
+ */
 D_STATIC int
 d_arg_internal_convert_text(
     const struct d_arg_type*            _type,
@@ -614,10 +739,16 @@ d_arg_internal_convert_text(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_format_bool
-  "true" or "false", the words d_arg_parse_bool reads first.
-*/
+/**
+ * @brief Writes a `bool` as "true" or "false".
+ *
+ * @param[in] _type   the descriptor; unused.
+ * @param[in] _value  the `bool`.
+ * @param[in] _sink   receives the text.
+ * @return D_ARG_OK, or the sink's refusal.
+ *
+ * "true" or "false", the words d_arg_parse_bool reads first.
+ */
 D_STATIC int
 d_arg_internal_format_bool(
     const struct d_arg_type* _type,
@@ -631,10 +762,16 @@ d_arg_internal_format_bool(
                            (*(const bool*)_value) ? "true" : "false");
 }
 
-/*
-d_arg_internal_format_char
-  The character itself, which its converter reads back as itself.
-*/
+/**
+ * @brief Writes a `char` as itself.
+ *
+ * @param[in] _type   the descriptor; unused.
+ * @param[in] _value  the `char`.
+ * @param[in] _sink   receives the text.
+ * @return D_ARG_OK, or the sink's refusal.
+ *
+ * The character itself, which its converter reads back as itself.
+ */
 D_STATIC int
 d_arg_internal_format_char(
     const struct d_arg_type* _type,
@@ -649,10 +786,17 @@ d_arg_internal_format_char(
                             1u);
 }
 
-/*
-d_arg_internal_format_integer
-  Decimal, through the widened value, for any integer descriptor.
-*/
+/**
+ * @brief Writes any integer descriptor's value in decimal.
+ *
+ * @param[in] _type   the descriptor.
+ * @param[in] _value  the integer, of the descriptor's kind and size.
+ * @param[in] _sink   receives the text.
+ * @return D_ARG_OK; D_ARG_ERROR_UNSUPPORTED for a descriptor that is not an
+ *         integer's; or the sink's refusal.
+ *
+ * Decimal, through the widened value, for any integer descriptor.
+ */
 D_STATIC int
 d_arg_internal_format_integer(
     const struct d_arg_type* _type,
@@ -688,11 +832,19 @@ d_arg_internal_format_integer(
                             text.length);
 }
 
-/*
-d_arg_internal_format_real
-  The shortest text that reads back as the value, for the real type given;
-shared by the three floating-point descriptors.
-*/
+/**
+ * @brief Writes a floating-point value as the shortest text that reads back as
+ *        it.
+ *
+ * @param[in] _real   the type, a D_ARG_INTERNAL_REAL_* value.
+ * @param[in] _value  the value, of the type.
+ * @param[in] _sink   receives the text.
+ * @return D_ARG_OK; D_ARG_ERROR_UNSUPPORTED when the runtime cannot print the
+ *         number; or the sink's refusal.
+ *
+ * The shortest text that reads back as the value, for the real type given;
+ * shared by the three floating-point descriptors.
+ */
 D_STATIC int
 d_arg_internal_format_real(
     int                _real,
@@ -716,10 +868,17 @@ d_arg_internal_format_real(
                             text.length);
 }
 
-/*
-d_arg_internal_format_float
-  d_arg_internal_format_real for `float`.
-*/
+/**
+ * @brief Writes a `float` as the shortest text that reads back as it.
+ *
+ * @param[in] _type   the descriptor; unused.
+ * @param[in] _value  the `float`.
+ * @param[in] _sink   receives the text.
+ * @return D_ARG_OK; D_ARG_ERROR_UNSUPPORTED when the runtime cannot print the
+ *         number; or the sink's refusal.
+ *
+ * d_arg_internal_format_real for `float`.
+ */
 D_STATIC int
 d_arg_internal_format_float(
     const struct d_arg_type* _type,
@@ -734,10 +893,17 @@ d_arg_internal_format_float(
                                       _sink);
 }
 
-/*
-d_arg_internal_format_double
-  d_arg_internal_format_real for `double`.
-*/
+/**
+ * @brief Writes a `double` as the shortest text that reads back as it.
+ *
+ * @param[in] _type   the descriptor; unused.
+ * @param[in] _value  the `double`.
+ * @param[in] _sink   receives the text.
+ * @return D_ARG_OK; D_ARG_ERROR_UNSUPPORTED when the runtime cannot print the
+ *         number; or the sink's refusal.
+ *
+ * d_arg_internal_format_real for `double`.
+ */
 D_STATIC int
 d_arg_internal_format_double(
     const struct d_arg_type* _type,
@@ -752,10 +918,17 @@ d_arg_internal_format_double(
                                       _sink);
 }
 
-/*
-d_arg_internal_format_long_double
-  d_arg_internal_format_real for `long double`.
-*/
+/**
+ * @brief Writes a `long double` as the shortest text that reads back as it.
+ *
+ * @param[in] _type   the descriptor; unused.
+ * @param[in] _value  the `long double`.
+ * @param[in] _sink   receives the text.
+ * @return D_ARG_OK; D_ARG_ERROR_UNSUPPORTED when the runtime cannot print the
+ *         number; or the sink's refusal.
+ *
+ * d_arg_internal_format_real for `long double`.
+ */
 D_STATIC int
 d_arg_internal_format_long_double(
     const struct d_arg_type* _type,
@@ -770,10 +943,16 @@ d_arg_internal_format_long_double(
                                       _sink);
 }
 
-/*
-d_arg_internal_format_string
-  The string itself; NULL writes nothing.
-*/
+/**
+ * @brief Writes a string as itself.
+ *
+ * @param[in] _type   the descriptor; unused.
+ * @param[in] _value  the `const char*`; NULL writes nothing.
+ * @param[in] _sink   receives the text.
+ * @return D_ARG_OK, or the sink's refusal.
+ *
+ * The string itself; NULL writes nothing.
+ */
 D_STATIC int
 d_arg_internal_format_string(
     const struct d_arg_type* _type,
@@ -793,10 +972,16 @@ d_arg_internal_format_string(
                            text);
 }
 
-/*
-d_arg_internal_format_text
-  The span itself.
-*/
+/**
+ * @brief Writes a span as itself.
+ *
+ * @param[in] _type   the descriptor; unused.
+ * @param[in] _value  the d_pack_text.
+ * @param[in] _sink   receives the text.
+ * @return D_ARG_OK, or the sink's refusal.
+ *
+ * The span itself.
+ */
 D_STATIC int
 d_arg_internal_format_text(
     const struct d_arg_type* _type,
@@ -908,13 +1093,21 @@ D_STATIC_ASSERT( (sizeof(BUILTINS) / sizeof(BUILTINS[0])) ==
                  (size_t)D_ARG_BUILTIN_COUNT,
                  "every d_arg_builtin needs a descriptor" );
 
-/*
-d_arg_internal_sum_integers
-  The exact half of CLI11's sum_string_vector: every value a 64-bit integer
--- `true` counting as 1, as CLI11's signed conversion reads it -- and no
-partial sum overflowing. False when either fails, so the caller falls back
-to floating point.
-*/
+/**
+ * @brief Sums values as integers, the exact half of CLI11's sum_string_vector.
+ *
+ * @param[in]  _values  the values.
+ * @param[in]  _count   how many.
+ * @param[in]  _rule    the d_arg_integer_rule.
+ * @param[out] _sum     receives the sum; untouched on failure.
+ * @return `true` when every value is a 64-bit integer and no partial sum
+ *         overflows; `false` otherwise.
+ *
+ * The exact half of CLI11's sum_string_vector: every value a 64-bit integer
+ * -- `true` counting as 1, as CLI11's signed conversion reads it -- and no
+ * partial sum overflowing. False when either fails, so the caller falls back
+ * to floating point.
+ */
 D_STATIC bool
 d_arg_internal_sum_integers(
     const struct d_pack_text* _values,
@@ -951,11 +1144,23 @@ d_arg_internal_sum_integers(
     return true;
 }
 
-/*
-d_arg_internal_sum_reals
-  The floating half: each value as a double, or else as its flag value; a
-value that is neither ends the sum, and the caller concatenates instead.
-*/
+/**
+ * @brief Sums values as doubles, the floating half of CLI11's
+ *        sum_string_vector.
+ *
+ * @param[in]  _values  the values.
+ * @param[in]  _count   how many.
+ * @param[in]  _rule    the d_arg_integer_rule flag values are read under.
+ * @param[out] _sum     receives the sum; untouched on failure.
+ * @return `true` when every value is a number or a flag value; `false`
+ *         otherwise.
+ *
+ * The floating half: each value as a double, or else as its flag value; a
+ * value that is neither ends the sum, and the caller concatenates instead.
+ * Each flag value and each partial sum is the double CLI11's `tv` and `val`
+ * hold (d_arg_internal_double_stored), not one a unit with more precision
+ * kept, so that the sum is rounded at every step, as CLI11's is.
+ */
 D_STATIC bool
 d_arg_internal_sum_reals(
     const struct d_pack_text* _values,
@@ -975,13 +1180,14 @@ d_arg_internal_sum_reals(
         if (d_arg_parse_double(_values[index],
                                &value) == D_ARG_OK)
         {
-            sum += value;
+            sum = d_arg_internal_double_stored(sum + value);
         }
         else if (d_arg_flag_value_intmax(_values[index],
                                          _rule,
                                          &flag) == D_ARG_OK)
         {
-            sum += (double)flag;
+            value = d_arg_internal_double_stored((double)flag);
+            sum   = d_arg_internal_double_stored(sum + value);
         }
         else
         {
@@ -1408,13 +1614,21 @@ d_arg_format(
                          _sink);
 }
 
-/*
-d_arg_internal_sum_numbers
-  The first two tiers of CLI11's sum_string_vector: an exact integer sum
-when every value is an integer, else a `double` sum written to sixteen
-significant digits when every value is a number or a flag word; false when
-neither applies.
-*/
+/**
+ * @brief Sums values as the first two tiers of CLI11's sum_string_vector do.
+ *
+ * @param[in]  _values  the values.
+ * @param[in]  _count   how many.
+ * @param[in]  _rule    the d_arg_integer_rule.
+ * @param[out] _text    receives the sum's text: an exact integer sum, or a
+ *                      `double` sum to sixteen significant digits.
+ * @return `true` when either sum applies; `false` otherwise.
+ *
+ * The first two tiers of CLI11's sum_string_vector: an exact integer sum
+ * when every value is an integer, else a `double` sum written to sixteen
+ * significant digits when every value is a number or a flag word; false when
+ * neither applies.
+ */
 D_STATIC bool
 d_arg_internal_sum_numbers(
     const struct d_pack_text*          _values,

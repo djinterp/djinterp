@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_validator_extra_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_validator_extra_tests.h"  // corresponding header
 // std
@@ -1372,11 +1372,21 @@ struct d_tests_arg_extra_word
     char letters[WORD_MAX + 1];
 };
 
-/*
-d_tests_arg_extra_word_convert
-  WORD's conversion: one value of lowercase letters, at least one and at most
-WORD_MAX of them; the word `full` runs out of memory.
-*/
+/**
+ * @brief Converts one value into a WORD.
+ *
+ * @param[in]  _type     the descriptor; unused.
+ * @param[in]  _values   the values.
+ * @param[in]  _count    how many; one converts.
+ * @param[out] _target   receives the WORD.
+ * @param[in]  _context  the conversion's context; unused.
+ * @return D_ARG_OK; D_ARG_ERROR_OUT_OF_MEMORY for `full`;
+ *         D_ARG_ERROR_CONVERSION for a count other than one, or a value empty,
+ *         too long, or not all lowercase letters.
+ *
+ * WORD's conversion: one value of lowercase letters, at least one and at most
+ * WORD_MAX of them; the word `full` runs out of memory.
+ */
 static int
 d_tests_arg_extra_word_convert(
     const struct d_arg_type*            _type,
@@ -1445,11 +1455,17 @@ static const struct d_arg_type WORD_TYPE =
     0u
 };
 
-/*
-d_tests_arg_extra_numbers
-  Runs a check over NUMBERS and compares its transcript with the one
-expected.
-*/
+/**
+ * @brief Runs a check over NUMBERS and compares its transcript.
+ *
+ * @param[in] _what       the check's name, for the report.
+ * @param[in] _validator  the check, consumed.
+ * @param[in] _expected   the transcript expected.
+ * @return `true` when the transcript is the one expected; `false` otherwise.
+ *
+ * Runs a check over NUMBERS and compares its transcript with the one
+ * expected.
+ */
 static bool
 d_tests_arg_extra_numbers(
     const char*            _what,
@@ -1464,10 +1480,16 @@ d_tests_arg_extra_numbers(
                              _expected);
 }
 
-/*
-d_tests_arg_extra_typed
-  CLI11's TypeValidator of a built-in type, run over NUMBERS.
-*/
+/**
+ * @brief Runs CLI11's TypeValidator of a built-in type over NUMBERS.
+ *
+ * @param[in] _what      the check's name, for the report.
+ * @param[in] _builtin   the built-in type, a D_ARG_BUILTIN_*.
+ * @param[in] _expected  the transcript expected.
+ * @return `true` when the transcript is the one expected; `false` otherwise.
+ *
+ * CLI11's TypeValidator of a built-in type, run over NUMBERS.
+ */
 static bool
 d_tests_arg_extra_typed(
     const char* _what,
@@ -1481,10 +1503,15 @@ d_tests_arg_extra_typed(
                _expected);
 }
 
-/*
-d_tests_arg_extra_int_bound
-  CLI11's Bound over `int`.
-*/
+/**
+ * @brief Makes CLI11's Bound over `int`.
+ *
+ * @param[in] _low   the least value.
+ * @param[in] _high  the greatest value.
+ * @return the check.
+ *
+ * CLI11's Bound over `int`.
+ */
 static struct d_arg_validator
 d_tests_arg_extra_int_bound(
     int _low,
@@ -1496,10 +1523,15 @@ d_tests_arg_extra_int_bound(
                                  &_high);
 }
 
-/*
-d_tests_arg_extra_int_range
-  CLI11's Range over `int`.
-*/
+/**
+ * @brief Makes CLI11's Range over `int`.
+ *
+ * @param[in] _low   the least value.
+ * @param[in] _high  the greatest value.
+ * @return the check.
+ *
+ * CLI11's Range over `int`.
+ */
 static struct d_arg_validator
 d_tests_arg_extra_int_range(
     int _low,
@@ -1511,11 +1543,16 @@ d_tests_arg_extra_int_range(
                                  &_high);
 }
 
-/*
-d_tests_arg_extra_unmade
-  Whether a check could not be made for a bad argument: it holds
-D_ARG_ERROR_BAD_ARGUMENT, and runs as that error. The check is released.
-*/
+/**
+ * @brief Tells whether a check was refused for a bad argument, and releases it.
+ *
+ * @param[in] _validator  the check, consumed.
+ * @return `true` when it holds D_ARG_ERROR_BAD_ARGUMENT and runs as that error;
+ *         `false` otherwise.
+ *
+ * Whether a check could not be made for a bad argument: it holds
+ * D_ARG_ERROR_BAD_ARGUMENT, and runs as that error. The check is released.
+ */
 static bool
 d_tests_arg_extra_unmade(
     struct d_arg_validator _validator

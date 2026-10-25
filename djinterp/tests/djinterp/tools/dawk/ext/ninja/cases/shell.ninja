@@ -1,0 +1,4 @@
+rule r
+  command = echo $in $in_newline > $out
+  description = D $in $out
+build out$ file: r in$ 1 in'2 in"3 in;4 in$$5 a/b+c-d_e.f

@@ -27,13 +27,17 @@
 * observer (which must return `const std::type_info&`) is additionally
 * gated on `RE_STD_HAS_RTTI`.
 *
-*   Min standard: C++11. `function` needs variadic templates (to spell
-* `R(Args...)`) and rvalue references (move, perfect forwarding); the
-* whole header is gated on both, matching `invoke` / `not_fn`. There is
-* no C++98 path in this milestone -- a conforming C++98 `function` would
-* require Boost.Function-style fixed-arity (arity 0..N) specialisations,
-* which is tracked as a follow-on. `function` is never constexpr (heap
-* allocation and, where present, RTTI), matching std.
+*   Min standard: C++98, in two tiers. With variadic templates and rvalue
+* references (C++11) `function` is the class above, spelling `R(Args...)`
+* and forwarding through `invoke`. Below them it is the Boost.Function-
+* style fixed-arity form, a specialisation for each arity from 0 to 6
+* over a shared owner, calling its target with the call syntax (no
+* pointer to member there) and passing arguments as the signature
+* declares them; moves, nullptr and operator bool, which C++98 cannot
+* spell, are absent. Both tiers have `empty()`, the named test decision
+* 3.2 puts at every level (Boost.Function's, not std's). `function` is
+* never constexpr (heap allocation and, where present, RTTI), matching
+* std.
 *
 *   Deviations from `std::function`: the (deprecated in C++11, removed in
 * C++17) allocator-taking constructors and `assign(f, alloc)` are not
@@ -44,7 +48,7 @@
 * path:      /inc/re_std/functional/function.hpp
 * link(s):   TBA
 * author(s): re_std                                          created: 2026.07.25
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef RE_STD_FUNCTIONAL_FUNCTION_HPP
@@ -469,6 +473,17 @@ public:
         return m_ptr != 0;
     }
 
+    // empty
+    //   function: `true` iff the wrapper holds no target. Not std's: the
+    // named test decision 3.2 puts at every level, which the C++98 tier
+    // has too, where an explicit operator bool cannot be spelled
+    // (Boost.Function's empty()).
+    bool
+    empty() const noexcept
+    {
+        return m_ptr == 0;
+    }
+
     // operator()
     //   function: invokes the stored target; throws `bad_function_call`
     // when empty.
@@ -573,6 +588,1394 @@ operator!=(std::nullptr_t, const function<Ret(Args...)>& _f) noexcept
 }
 
 }  // re_std
+
+
+#else  // C++98
+
+
+// std
+#include <cstdlib>   // std::abort, where exceptions are off
+#if RE_STD_HAS_RTTI
+    // std
+    #include <typeinfo>  // std::type_info, for target_type
+#endif
+// re_std
+#include "re_std/functional/bad_function_call.hpp"
+
+
+namespace re_std
+{
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                THE C++98 TIER                                           ///
+///////////////////////////////////////////////////////////////////////////////
+// Below C++11, function is the fixed-arity form Boost.Function used before
+// variadic templates: a partial specialisation for each arity from none to
+// 6 arguments. Each owns its target through internal::fn98_owner, which
+// every arity shares, and calls it through an invoker its constructor
+// instantiates for the target's type. The surface is the C++11 tier's,
+// less what C++98 cannot spell -- moves, construction from and comparison
+// with nullptr, and operator bool, which only `explicit` makes safe; empty()
+// is the test at every level -- so code written to it means the same at
+// every level. A target is called with the call syntax, f(args...): a
+// function, a function pointer or a function object. A pointer to member,
+// which the C++11 tier reaches through invoke, is not taken below C++11.
+// Arguments pass as the signature declares them, and a void signature
+// discards the target's result.
+
+namespace internal
+{
+
+    // fn_type_id / fn_type_id_of
+    //   alias: typedef + function: RTTI-free per-type identity, as in the
+    // C++11 tier: the address of a distinct static member is unique per
+    // `Type`, and target<T>() compares it.
+    typedef const void* fn_type_id;
+
+    template<typename Type>
+    struct fn_type_tag
+    {
+        static const char s_id;
+    };
+
+    template<typename Type>
+    const char fn_type_tag<Type>::s_id = 0;
+
+    template<typename Type>
+    fn_type_id
+    fn_type_id_of()
+    {
+        return &fn_type_tag<Type>::s_id;
+    }
+
+    // fn98_holder
+    //   class: an owned target of any type, behind the operations every
+    // arity shares; the call itself is the invoker's.
+    class fn98_holder
+    {
+    public:
+        virtual ~fn98_holder() {}
+
+        virtual fn98_holder* clone() const = 0;
+        virtual fn_type_id   type_id() const = 0;
+        virtual void*        target_ptr() = 0;
+#if RE_STD_HAS_RTTI
+        virtual const std::type_info& type_info() const = 0;
+#endif
+    };
+
+    // fn98_target
+    //   class: the holder of a target of type Fn.
+    template<typename Fn>
+    class fn98_target : public fn98_holder
+    {
+    public:
+        explicit fn98_target(
+            const Fn& _fn
+        )
+            : m_fn(_fn)
+        {}
+
+        fn98_holder*
+        clone() const
+        {
+            return new fn98_target(m_fn);
+        }
+
+        fn_type_id
+        type_id() const
+        {
+            return fn_type_id_of<Fn>();
+        }
+
+        void*
+        target_ptr()
+        {
+            return &m_fn;
+        }
+
+#if RE_STD_HAS_RTTI
+        const std::type_info&
+        type_info() const
+        {
+            return typeid(Fn);
+        }
+#endif
+
+        Fn m_fn;
+    };
+
+    // fn98_owner
+    //   class: what every arity's function shares: the owned target, its
+    // copy, and the observers that need no signature.
+    class fn98_owner
+    {
+    public:
+        // empty
+        //   function: whether the wrapper holds no target.
+        bool
+        empty() const
+        {
+            return (m_held == 0);
+        }
+
+#if RE_STD_HAS_RTTI
+        // target_type
+        //   function: the type_info of the target, or typeid(void) when
+        // empty.
+        const std::type_info&
+        target_type() const
+        {
+            return (m_held) ? m_held->type_info()
+                            : typeid(void);
+        }
+#endif
+
+        // target
+        //   function: the target if it is exactly a Tp, else null;
+        // RTTI-free.
+        template<typename Tp>
+        Tp*
+        target()
+        {
+            return ( (m_held) &&
+                     (m_held->type_id() == fn_type_id_of<Tp>()) )
+                       ? static_cast<Tp*>(m_held->target_ptr())
+                       : 0;
+        }
+
+        template<typename Tp>
+        const Tp*
+        target() const
+        {
+            return ( (m_held) &&
+                     (m_held->type_id() == fn_type_id_of<Tp>()) )
+                       ? static_cast<const Tp*>(m_held->target_ptr())
+                       : 0;
+        }
+
+    protected:
+        fn98_owner()
+            : m_held(0)
+        {}
+
+        explicit fn98_owner(
+            fn98_holder* _held
+        )
+            : m_held(_held)
+        {}
+
+        fn98_owner(
+            const fn98_owner& _other
+        )
+            : m_held((_other.m_held) ? _other.m_held->clone()
+                                     : 0)
+        {}
+
+        ~fn98_owner()
+        {
+            delete m_held;
+        }
+
+        void
+        swap_held(
+            fn98_owner& _other
+        )
+        {
+            fn98_holder* const held = m_held;
+
+            m_held        = _other.m_held;
+            _other.m_held = held;
+
+            return;
+        }
+
+        // m_empty_call -- what a call does on an empty wrapper: throws, as
+        // std's does, or with exceptions off aborts
+        static void
+        m_empty_call()
+        {
+#if RE_STD_HAS_EXCEPTIONS
+            throw bad_function_call();
+#else
+            std::abort();
+#endif
+        }
+
+        fn98_holder* m_held;
+
+    private:
+        // assignment is each arity's, by copy and swap
+        fn98_owner& operator=(const fn98_owner&);
+    };
+
+    // fn98_invoke
+    //   struct: the invokers of a target of type Fn, one an arity: each
+    // casts the holder back to its target and calls it, returning the
+    // result as Ret. The void specialisation discards the result, which
+    // C++98 forbids a void function to return.
+    template<typename Fn,
+             typename Ret>
+    struct fn98_invoke
+    {
+        static Ret
+        call0(
+            fn98_holder* _held
+        )
+        {
+            return static_cast<fn98_target<Fn>*>(_held)->m_fn();
+        }
+
+        template<typename A1>
+        static Ret
+        call1(
+            fn98_holder* _held,
+            A1           _a1
+        )
+        {
+            return static_cast<fn98_target<Fn>*>(_held)->m_fn(_a1);
+        }
+
+        template<typename A1,
+                 typename A2>
+        static Ret
+        call2(
+            fn98_holder* _held,
+            A1           _a1,
+            A2           _a2
+        )
+        {
+            return static_cast<fn98_target<Fn>*>(_held)->m_fn(_a1,
+                                                              _a2);
+        }
+
+        template<typename A1,
+                 typename A2,
+                 typename A3>
+        static Ret
+        call3(
+            fn98_holder* _held,
+            A1           _a1,
+            A2           _a2,
+            A3           _a3
+        )
+        {
+            return static_cast<fn98_target<Fn>*>(_held)->m_fn(_a1,
+                                                              _a2,
+                                                              _a3);
+        }
+
+        template<typename A1,
+                 typename A2,
+                 typename A3,
+                 typename A4>
+        static Ret
+        call4(
+            fn98_holder* _held,
+            A1           _a1,
+            A2           _a2,
+            A3           _a3,
+            A4           _a4
+        )
+        {
+            return static_cast<fn98_target<Fn>*>(_held)->m_fn(_a1,
+                                                              _a2,
+                                                              _a3,
+                                                              _a4);
+        }
+
+        template<typename A1,
+                 typename A2,
+                 typename A3,
+                 typename A4,
+                 typename A5>
+        static Ret
+        call5(
+            fn98_holder* _held,
+            A1           _a1,
+            A2           _a2,
+            A3           _a3,
+            A4           _a4,
+            A5           _a5
+        )
+        {
+            return static_cast<fn98_target<Fn>*>(_held)->m_fn(_a1,
+                                                              _a2,
+                                                              _a3,
+                                                              _a4,
+                                                              _a5);
+        }
+
+        template<typename A1,
+                 typename A2,
+                 typename A3,
+                 typename A4,
+                 typename A5,
+                 typename A6>
+        static Ret
+        call6(
+            fn98_holder* _held,
+            A1           _a1,
+            A2           _a2,
+            A3           _a3,
+            A4           _a4,
+            A5           _a5,
+            A6           _a6
+        )
+        {
+            return static_cast<fn98_target<Fn>*>(_held)->m_fn(_a1,
+                                                              _a2,
+                                                              _a3,
+                                                              _a4,
+                                                              _a5,
+                                                              _a6);
+        }
+    };
+
+    template<typename Fn>
+    struct fn98_invoke<Fn, void>
+    {
+        static void
+        call0(
+            fn98_holder* _held
+        )
+        {
+            static_cast<fn98_target<Fn>*>(_held)->m_fn();
+
+            return;
+        }
+
+        template<typename A1>
+        static void
+        call1(
+            fn98_holder* _held,
+            A1           _a1
+        )
+        {
+            static_cast<fn98_target<Fn>*>(_held)->m_fn(_a1);
+
+            return;
+        }
+
+        template<typename A1,
+                 typename A2>
+        static void
+        call2(
+            fn98_holder* _held,
+            A1           _a1,
+            A2           _a2
+        )
+        {
+            static_cast<fn98_target<Fn>*>(_held)->m_fn(_a1,
+                                                       _a2);
+
+            return;
+        }
+
+        template<typename A1,
+                 typename A2,
+                 typename A3>
+        static void
+        call3(
+            fn98_holder* _held,
+            A1           _a1,
+            A2           _a2,
+            A3           _a3
+        )
+        {
+            static_cast<fn98_target<Fn>*>(_held)->m_fn(_a1,
+                                                       _a2,
+                                                       _a3);
+
+            return;
+        }
+
+        template<typename A1,
+                 typename A2,
+                 typename A3,
+                 typename A4>
+        static void
+        call4(
+            fn98_holder* _held,
+            A1           _a1,
+            A2           _a2,
+            A3           _a3,
+            A4           _a4
+        )
+        {
+            static_cast<fn98_target<Fn>*>(_held)->m_fn(_a1,
+                                                       _a2,
+                                                       _a3,
+                                                       _a4);
+
+            return;
+        }
+
+        template<typename A1,
+                 typename A2,
+                 typename A3,
+                 typename A4,
+                 typename A5>
+        static void
+        call5(
+            fn98_holder* _held,
+            A1           _a1,
+            A2           _a2,
+            A3           _a3,
+            A4           _a4,
+            A5           _a5
+        )
+        {
+            static_cast<fn98_target<Fn>*>(_held)->m_fn(_a1,
+                                                       _a2,
+                                                       _a3,
+                                                       _a4,
+                                                       _a5);
+
+            return;
+        }
+
+        template<typename A1,
+                 typename A2,
+                 typename A3,
+                 typename A4,
+                 typename A5,
+                 typename A6>
+        static void
+        call6(
+            fn98_holder* _held,
+            A1           _a1,
+            A2           _a2,
+            A3           _a3,
+            A4           _a4,
+            A5           _a5,
+            A6           _a6
+        )
+        {
+            static_cast<fn98_target<Fn>*>(_held)->m_fn(_a1,
+                                                       _a2,
+                                                       _a3,
+                                                       _a4,
+                                                       _a5,
+                                                       _a6);
+
+            return;
+        }
+    };
+
+}  // internal
+
+
+// function
+//   class: primary template, intentionally undefined. Below C++11 only a
+// function type of up to 6 parameters, R(A1, ...), names a wrapper.
+template<typename Signature>
+class function;
+
+// function<Ret()>
+//   class: an owning wrapper for any copyable target callable with 0
+// arguments (C++98).
+template<typename Ret>
+class function<Ret()> : private internal::fn98_owner
+{
+public:
+    typedef Ret result_type;
+
+    using internal::fn98_owner::empty;
+    using internal::fn98_owner::target;
+#if RE_STD_HAS_RTTI
+    using internal::fn98_owner::target_type;
+#endif
+
+    // function
+    //   function: constructs an empty wrapper.
+    function()
+        : internal::fn98_owner(),
+          m_invoke(0)
+    {}
+
+    // function
+    //   function: deep-copies the target.
+    function(
+        const function& _other
+    )
+        : internal::fn98_owner(_other),
+          m_invoke(_other.m_invoke)
+    {}
+
+    // function
+    //   function: wraps a copy of _fn, which must be callable as
+    // Ret().
+    template<typename Fn>
+    function(
+        Fn _fn
+    )
+        : internal::fn98_owner(new internal::fn98_target<Fn>(_fn)),
+          m_invoke(&internal::fn98_invoke<Fn, Ret>::call0)
+    {}
+
+    function&
+    operator=(
+        const function& _other
+    )
+    {
+        function(_other).swap(*this);
+
+        return *this;
+    }
+
+    template<typename Fn>
+    function&
+    operator=(
+        Fn _fn
+    )
+    {
+        function(_fn).swap(*this);
+
+        return *this;
+    }
+
+    // swap
+    //   function: O(1) exchange of the targets and their invokers.
+    void
+    swap(
+        function& _other
+    )
+    {
+        const invoker_type invoke = m_invoke;
+
+        swap_held(_other);
+        m_invoke        = _other.m_invoke;
+        _other.m_invoke = invoke;
+
+        return;
+    }
+
+    // operator()
+    //   function: calls the target; throws bad_function_call when empty,
+    // or aborts where exceptions are off.
+    Ret
+    operator()() const
+    {
+        // an empty wrapper has nothing to call
+        if (!m_held)
+        {
+            m_empty_call();
+        }
+
+        return m_invoke(m_held);
+    }
+
+private:
+    typedef Ret (*invoker_type)(internal::fn98_holder*);
+
+    invoker_type m_invoke;
+};
+
+// swap
+//   function: exchanges two wrappers; enables the ADL two-step swap.
+template<typename Ret>
+void
+swap(
+    function<Ret()>& _a,
+    function<Ret()>& _b
+)
+{
+    _a.swap(_b);
+
+    return;
+}
+
+// function<Ret(A1)>
+//   class: an owning wrapper for any copyable target callable with 1
+// argument (C++98).
+template<typename Ret,
+         typename A1>
+class function<Ret(A1)> : private internal::fn98_owner
+{
+public:
+    typedef Ret result_type;
+
+    using internal::fn98_owner::empty;
+    using internal::fn98_owner::target;
+#if RE_STD_HAS_RTTI
+    using internal::fn98_owner::target_type;
+#endif
+
+    // function
+    //   function: constructs an empty wrapper.
+    function()
+        : internal::fn98_owner(),
+          m_invoke(0)
+    {}
+
+    // function
+    //   function: deep-copies the target.
+    function(
+        const function& _other
+    )
+        : internal::fn98_owner(_other),
+          m_invoke(_other.m_invoke)
+    {}
+
+    // function
+    //   function: wraps a copy of _fn, which must be callable as
+    // Ret(A1).
+    template<typename Fn>
+    function(
+        Fn _fn
+    )
+        : internal::fn98_owner(new internal::fn98_target<Fn>(_fn)),
+          m_invoke(&internal::fn98_invoke<Fn, Ret>::template call1<A1>)
+    {}
+
+    function&
+    operator=(
+        const function& _other
+    )
+    {
+        function(_other).swap(*this);
+
+        return *this;
+    }
+
+    template<typename Fn>
+    function&
+    operator=(
+        Fn _fn
+    )
+    {
+        function(_fn).swap(*this);
+
+        return *this;
+    }
+
+    // swap
+    //   function: O(1) exchange of the targets and their invokers.
+    void
+    swap(
+        function& _other
+    )
+    {
+        const invoker_type invoke = m_invoke;
+
+        swap_held(_other);
+        m_invoke        = _other.m_invoke;
+        _other.m_invoke = invoke;
+
+        return;
+    }
+
+    // operator()
+    //   function: calls the target; throws bad_function_call when empty,
+    // or aborts where exceptions are off.
+    Ret
+    operator()(
+        A1 _a1
+    ) const
+    {
+        // an empty wrapper has nothing to call
+        if (!m_held)
+        {
+            m_empty_call();
+        }
+
+        return m_invoke(m_held,
+                        _a1);
+    }
+
+private:
+    typedef Ret (*invoker_type)(internal::fn98_holder*, A1);
+
+    invoker_type m_invoke;
+};
+
+// swap
+//   function: exchanges two wrappers; enables the ADL two-step swap.
+template<typename Ret,
+         typename A1>
+void
+swap(
+    function<Ret(A1)>& _a,
+    function<Ret(A1)>& _b
+)
+{
+    _a.swap(_b);
+
+    return;
+}
+
+// function<Ret(A1, A2)>
+//   class: an owning wrapper for any copyable target callable with 2
+// arguments (C++98).
+template<typename Ret,
+         typename A1,
+         typename A2>
+class function<Ret(A1, A2)> : private internal::fn98_owner
+{
+public:
+    typedef Ret result_type;
+
+    using internal::fn98_owner::empty;
+    using internal::fn98_owner::target;
+#if RE_STD_HAS_RTTI
+    using internal::fn98_owner::target_type;
+#endif
+
+    // function
+    //   function: constructs an empty wrapper.
+    function()
+        : internal::fn98_owner(),
+          m_invoke(0)
+    {}
+
+    // function
+    //   function: deep-copies the target.
+    function(
+        const function& _other
+    )
+        : internal::fn98_owner(_other),
+          m_invoke(_other.m_invoke)
+    {}
+
+    // function
+    //   function: wraps a copy of _fn, which must be callable as
+    // Ret(A1, A2).
+    template<typename Fn>
+    function(
+        Fn _fn
+    )
+        : internal::fn98_owner(new internal::fn98_target<Fn>(_fn)),
+          m_invoke(&internal::fn98_invoke<Fn, Ret>::template call2<A1, A2>)
+    {}
+
+    function&
+    operator=(
+        const function& _other
+    )
+    {
+        function(_other).swap(*this);
+
+        return *this;
+    }
+
+    template<typename Fn>
+    function&
+    operator=(
+        Fn _fn
+    )
+    {
+        function(_fn).swap(*this);
+
+        return *this;
+    }
+
+    // swap
+    //   function: O(1) exchange of the targets and their invokers.
+    void
+    swap(
+        function& _other
+    )
+    {
+        const invoker_type invoke = m_invoke;
+
+        swap_held(_other);
+        m_invoke        = _other.m_invoke;
+        _other.m_invoke = invoke;
+
+        return;
+    }
+
+    // operator()
+    //   function: calls the target; throws bad_function_call when empty,
+    // or aborts where exceptions are off.
+    Ret
+    operator()(
+        A1 _a1,
+        A2 _a2
+    ) const
+    {
+        // an empty wrapper has nothing to call
+        if (!m_held)
+        {
+            m_empty_call();
+        }
+
+        return m_invoke(m_held,
+                        _a1,
+                        _a2);
+    }
+
+private:
+    typedef Ret (*invoker_type)(internal::fn98_holder*, A1, A2);
+
+    invoker_type m_invoke;
+};
+
+// swap
+//   function: exchanges two wrappers; enables the ADL two-step swap.
+template<typename Ret,
+         typename A1,
+         typename A2>
+void
+swap(
+    function<Ret(A1, A2)>& _a,
+    function<Ret(A1, A2)>& _b
+)
+{
+    _a.swap(_b);
+
+    return;
+}
+
+// function<Ret(A1, A2, A3)>
+//   class: an owning wrapper for any copyable target callable with 3
+// arguments (C++98).
+template<typename Ret,
+         typename A1,
+         typename A2,
+         typename A3>
+class function<Ret(A1, A2, A3)> : private internal::fn98_owner
+{
+public:
+    typedef Ret result_type;
+
+    using internal::fn98_owner::empty;
+    using internal::fn98_owner::target;
+#if RE_STD_HAS_RTTI
+    using internal::fn98_owner::target_type;
+#endif
+
+    // function
+    //   function: constructs an empty wrapper.
+    function()
+        : internal::fn98_owner(),
+          m_invoke(0)
+    {}
+
+    // function
+    //   function: deep-copies the target.
+    function(
+        const function& _other
+    )
+        : internal::fn98_owner(_other),
+          m_invoke(_other.m_invoke)
+    {}
+
+    // function
+    //   function: wraps a copy of _fn, which must be callable as
+    // Ret(A1, A2, A3).
+    template<typename Fn>
+    function(
+        Fn _fn
+    )
+        : internal::fn98_owner(new internal::fn98_target<Fn>(_fn)),
+          m_invoke(&internal::fn98_invoke<Fn, Ret>::template call3<A1, A2, A3>)
+    {}
+
+    function&
+    operator=(
+        const function& _other
+    )
+    {
+        function(_other).swap(*this);
+
+        return *this;
+    }
+
+    template<typename Fn>
+    function&
+    operator=(
+        Fn _fn
+    )
+    {
+        function(_fn).swap(*this);
+
+        return *this;
+    }
+
+    // swap
+    //   function: O(1) exchange of the targets and their invokers.
+    void
+    swap(
+        function& _other
+    )
+    {
+        const invoker_type invoke = m_invoke;
+
+        swap_held(_other);
+        m_invoke        = _other.m_invoke;
+        _other.m_invoke = invoke;
+
+        return;
+    }
+
+    // operator()
+    //   function: calls the target; throws bad_function_call when empty,
+    // or aborts where exceptions are off.
+    Ret
+    operator()(
+        A1 _a1,
+        A2 _a2,
+        A3 _a3
+    ) const
+    {
+        // an empty wrapper has nothing to call
+        if (!m_held)
+        {
+            m_empty_call();
+        }
+
+        return m_invoke(m_held,
+                        _a1,
+                        _a2,
+                        _a3);
+    }
+
+private:
+    typedef Ret (*invoker_type)(internal::fn98_holder*, A1, A2, A3);
+
+    invoker_type m_invoke;
+};
+
+// swap
+//   function: exchanges two wrappers; enables the ADL two-step swap.
+template<typename Ret,
+         typename A1,
+         typename A2,
+         typename A3>
+void
+swap(
+    function<Ret(A1, A2, A3)>& _a,
+    function<Ret(A1, A2, A3)>& _b
+)
+{
+    _a.swap(_b);
+
+    return;
+}
+
+// function<Ret(A1, A2, A3, A4)>
+//   class: an owning wrapper for any copyable target callable with 4
+// arguments (C++98).
+template<typename Ret,
+         typename A1,
+         typename A2,
+         typename A3,
+         typename A4>
+class function<Ret(A1, A2, A3, A4)> : private internal::fn98_owner
+{
+public:
+    typedef Ret result_type;
+
+    using internal::fn98_owner::empty;
+    using internal::fn98_owner::target;
+#if RE_STD_HAS_RTTI
+    using internal::fn98_owner::target_type;
+#endif
+
+    // function
+    //   function: constructs an empty wrapper.
+    function()
+        : internal::fn98_owner(),
+          m_invoke(0)
+    {}
+
+    // function
+    //   function: deep-copies the target.
+    function(
+        const function& _other
+    )
+        : internal::fn98_owner(_other),
+          m_invoke(_other.m_invoke)
+    {}
+
+    // function
+    //   function: wraps a copy of _fn, which must be callable as
+    // Ret(A1, A2, A3, A4).
+    template<typename Fn>
+    function(
+        Fn _fn
+    )
+        : internal::fn98_owner(new internal::fn98_target<Fn>(_fn)),
+          m_invoke(&internal::fn98_invoke<Fn, Ret>::template call4<A1,
+                                                                   A2,
+                                                                   A3,
+                                                                   A4>)
+    {}
+
+    function&
+    operator=(
+        const function& _other
+    )
+    {
+        function(_other).swap(*this);
+
+        return *this;
+    }
+
+    template<typename Fn>
+    function&
+    operator=(
+        Fn _fn
+    )
+    {
+        function(_fn).swap(*this);
+
+        return *this;
+    }
+
+    // swap
+    //   function: O(1) exchange of the targets and their invokers.
+    void
+    swap(
+        function& _other
+    )
+    {
+        const invoker_type invoke = m_invoke;
+
+        swap_held(_other);
+        m_invoke        = _other.m_invoke;
+        _other.m_invoke = invoke;
+
+        return;
+    }
+
+    // operator()
+    //   function: calls the target; throws bad_function_call when empty,
+    // or aborts where exceptions are off.
+    Ret
+    operator()(
+        A1 _a1,
+        A2 _a2,
+        A3 _a3,
+        A4 _a4
+    ) const
+    {
+        // an empty wrapper has nothing to call
+        if (!m_held)
+        {
+            m_empty_call();
+        }
+
+        return m_invoke(m_held,
+                        _a1,
+                        _a2,
+                        _a3,
+                        _a4);
+    }
+
+private:
+    typedef Ret (*invoker_type)(internal::fn98_holder*, A1, A2, A3, A4);
+
+    invoker_type m_invoke;
+};
+
+// swap
+//   function: exchanges two wrappers; enables the ADL two-step swap.
+template<typename Ret,
+         typename A1,
+         typename A2,
+         typename A3,
+         typename A4>
+void
+swap(
+    function<Ret(A1, A2, A3, A4)>& _a,
+    function<Ret(A1, A2, A3, A4)>& _b
+)
+{
+    _a.swap(_b);
+
+    return;
+}
+
+// function<Ret(A1, A2, A3, A4, A5)>
+//   class: an owning wrapper for any copyable target callable with 5
+// arguments (C++98).
+template<typename Ret,
+         typename A1,
+         typename A2,
+         typename A3,
+         typename A4,
+         typename A5>
+class function<Ret(A1, A2, A3, A4, A5)> : private internal::fn98_owner
+{
+public:
+    typedef Ret result_type;
+
+    using internal::fn98_owner::empty;
+    using internal::fn98_owner::target;
+#if RE_STD_HAS_RTTI
+    using internal::fn98_owner::target_type;
+#endif
+
+    // function
+    //   function: constructs an empty wrapper.
+    function()
+        : internal::fn98_owner(),
+          m_invoke(0)
+    {}
+
+    // function
+    //   function: deep-copies the target.
+    function(
+        const function& _other
+    )
+        : internal::fn98_owner(_other),
+          m_invoke(_other.m_invoke)
+    {}
+
+    // function
+    //   function: wraps a copy of _fn, which must be callable as
+    // Ret(A1, A2, A3, A4, A5).
+    template<typename Fn>
+    function(
+        Fn _fn
+    )
+        : internal::fn98_owner(new internal::fn98_target<Fn>(_fn)),
+          m_invoke(&internal::fn98_invoke<Fn, Ret>::template call5<A1,
+                                                                   A2,
+                                                                   A3,
+                                                                   A4,
+                                                                   A5>)
+    {}
+
+    function&
+    operator=(
+        const function& _other
+    )
+    {
+        function(_other).swap(*this);
+
+        return *this;
+    }
+
+    template<typename Fn>
+    function&
+    operator=(
+        Fn _fn
+    )
+    {
+        function(_fn).swap(*this);
+
+        return *this;
+    }
+
+    // swap
+    //   function: O(1) exchange of the targets and their invokers.
+    void
+    swap(
+        function& _other
+    )
+    {
+        const invoker_type invoke = m_invoke;
+
+        swap_held(_other);
+        m_invoke        = _other.m_invoke;
+        _other.m_invoke = invoke;
+
+        return;
+    }
+
+    // operator()
+    //   function: calls the target; throws bad_function_call when empty,
+    // or aborts where exceptions are off.
+    Ret
+    operator()(
+        A1 _a1,
+        A2 _a2,
+        A3 _a3,
+        A4 _a4,
+        A5 _a5
+    ) const
+    {
+        // an empty wrapper has nothing to call
+        if (!m_held)
+        {
+            m_empty_call();
+        }
+
+        return m_invoke(m_held,
+                        _a1,
+                        _a2,
+                        _a3,
+                        _a4,
+                        _a5);
+    }
+
+private:
+    typedef Ret (*invoker_type)(internal::fn98_holder*, A1, A2, A3, A4, A5);
+
+    invoker_type m_invoke;
+};
+
+// swap
+//   function: exchanges two wrappers; enables the ADL two-step swap.
+template<typename Ret,
+         typename A1,
+         typename A2,
+         typename A3,
+         typename A4,
+         typename A5>
+void
+swap(
+    function<Ret(A1, A2, A3, A4, A5)>& _a,
+    function<Ret(A1, A2, A3, A4, A5)>& _b
+)
+{
+    _a.swap(_b);
+
+    return;
+}
+
+// function<Ret(A1, A2, A3, A4, A5, A6)>
+//   class: an owning wrapper for any copyable target callable with 6
+// arguments (C++98).
+template<typename Ret,
+         typename A1,
+         typename A2,
+         typename A3,
+         typename A4,
+         typename A5,
+         typename A6>
+class function<Ret(A1, A2, A3, A4, A5, A6)> : private internal::fn98_owner
+{
+public:
+    typedef Ret result_type;
+
+    using internal::fn98_owner::empty;
+    using internal::fn98_owner::target;
+#if RE_STD_HAS_RTTI
+    using internal::fn98_owner::target_type;
+#endif
+
+    // function
+    //   function: constructs an empty wrapper.
+    function()
+        : internal::fn98_owner(),
+          m_invoke(0)
+    {}
+
+    // function
+    //   function: deep-copies the target.
+    function(
+        const function& _other
+    )
+        : internal::fn98_owner(_other),
+          m_invoke(_other.m_invoke)
+    {}
+
+    // function
+    //   function: wraps a copy of _fn, which must be callable as
+    // Ret(A1, A2, A3, A4, A5, A6).
+    template<typename Fn>
+    function(
+        Fn _fn
+    )
+        : internal::fn98_owner(new internal::fn98_target<Fn>(_fn)),
+          m_invoke(&internal::fn98_invoke<Fn, Ret>::template call6<A1,
+                                                                   A2,
+                                                                   A3,
+                                                                   A4,
+                                                                   A5,
+                                                                   A6>)
+    {}
+
+    function&
+    operator=(
+        const function& _other
+    )
+    {
+        function(_other).swap(*this);
+
+        return *this;
+    }
+
+    template<typename Fn>
+    function&
+    operator=(
+        Fn _fn
+    )
+    {
+        function(_fn).swap(*this);
+
+        return *this;
+    }
+
+    // swap
+    //   function: O(1) exchange of the targets and their invokers.
+    void
+    swap(
+        function& _other
+    )
+    {
+        const invoker_type invoke = m_invoke;
+
+        swap_held(_other);
+        m_invoke        = _other.m_invoke;
+        _other.m_invoke = invoke;
+
+        return;
+    }
+
+    // operator()
+    //   function: calls the target; throws bad_function_call when empty,
+    // or aborts where exceptions are off.
+    Ret
+    operator()(
+        A1 _a1,
+        A2 _a2,
+        A3 _a3,
+        A4 _a4,
+        A5 _a5,
+        A6 _a6
+    ) const
+    {
+        // an empty wrapper has nothing to call
+        if (!m_held)
+        {
+            m_empty_call();
+        }
+
+        return m_invoke(m_held,
+                        _a1,
+                        _a2,
+                        _a3,
+                        _a4,
+                        _a5,
+                        _a6);
+    }
+
+private:
+    typedef Ret (*invoker_type)(internal::fn98_holder*, A1, A2, A3, A4, A5, A6);
+
+    invoker_type m_invoke;
+};
+
+// swap
+//   function: exchanges two wrappers; enables the ADL two-step swap.
+template<typename Ret,
+         typename A1,
+         typename A2,
+         typename A3,
+         typename A4,
+         typename A5,
+         typename A6>
+void
+swap(
+    function<Ret(A1, A2, A3, A4, A5, A6)>& _a,
+    function<Ret(A1, A2, A3, A4, A5, A6)>& _b
+)
+{
+    _a.swap(_b);
+
+    return;
+}
+
+
+}  // re_std
+
 #endif // variadic templates + rvalue references
 
 #endif  // RE_STD_FUNCTIONAL_FUNCTION_HPP

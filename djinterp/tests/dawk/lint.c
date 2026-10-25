@@ -13,8 +13,8 @@
 // it, run a sheet, and report every finding.  A rule carrying `severity`
 // reports each match; a rule carrying `start-column` reports each match
 // whose column differs.  Anything else is counted as unevaluated.
-#include "../../inc/djinterp/tools/dawk/ext/dext_c.h"
-#include "../../inc/djinterp/tools/dawk/ext/dext_cpp.h"
+#include "../../inc/djinterp/tools/dawk/ext/check/dext_c.h"
+#include "../../inc/djinterp/tools/dawk/ext/check/dext_cpp.h"
 #include "../../inc/djinterp/tools/dawk/dmatch.h"
 #include "../../inc/djinterp/tools/dawk/dss.h"
 #include "../../inc/djinterp/tools/dawk/dproperty.h"

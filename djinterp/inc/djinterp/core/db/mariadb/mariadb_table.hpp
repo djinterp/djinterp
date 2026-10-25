@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/core/db/mariadb/mariadb_table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.20
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -33,7 +33,7 @@ TABLE OF CONTENTS
 #define DJINTERP_DB_MARIADB_MARIADB_TABLE_HPP 1
 
 // djinterp
-#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: the floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
@@ -88,9 +88,15 @@ public:
     using typename base_type::schema_type;
     using self_type = mariadb_table<Config>;
 
-    using type_support    = mariadb_type_support;
-    using feature_support = mariadb_feature_support;
-    using version_info    = mariadb_version_info;
+    using client_capabilities = mariadb_client_capabilities;
+    using version_info        = mariadb_version_info;
+
+    // type_support, feature_support -- client_capabilities, by their former
+    // names (2026.10.21), for one release
+    using type_support [[deprecated("client_capabilities")]] =
+        mariadb_client_capabilities;
+    using feature_support [[deprecated("client_capabilities")]] =
+        mariadb_client_capabilities;
 
     // construction -- as database_table's
     mariadb_table()
@@ -318,6 +324,7 @@ public:
         m_after_write(keys,
                       [this, &result]() -> void
                       {
+                          base_type::adopt_read_row(result);
                           this->m_data.push_back(result);
                           this->m_original.push_back(result);
 
@@ -464,13 +471,13 @@ public:
     bool
     has_inet6_type_support() const noexcept
     {
-        return m_at_least(10u, 5u, 0u);
+        return m_supports(D_MARIADB_FEATURE_INET6);
     }
 
     bool
     has_uuid_type_support() const noexcept
     {
-        return m_at_least(10u, 7u, 0u);
+        return m_supports(D_MARIADB_FEATURE_UUID);
     }
 
 protected:
@@ -478,7 +485,7 @@ protected:
     bool                m_galera_sync_on_commit;
 
 private:
-    // m_supports, m_at_least -- the layer's answer for the connected server
+    // m_supports -- the layer's answer for the connected server
     bool
     m_supports(
         d_mariadb_feature _feature
@@ -486,21 +493,6 @@ private:
     {
         return ( (this->is_connected()) &&
                  (this->m_connection->get_face().supports(_feature)) );
-    }
-
-    bool
-    m_at_least(
-        unsigned _major,
-        unsigned _minor,
-        unsigned _patch
-    ) const noexcept
-    {
-        return ( (this->is_connected()) &&
-                 (this->m_connection->get_face().server_at_least(
-                     D_MARIADB_FLAVOR_MARIADB,
-                     _major,
-                     _minor,
-                     _patch)) );
     }
 
     // m_require_returning -- query_exception with D_DB_UNSUPPORTED before

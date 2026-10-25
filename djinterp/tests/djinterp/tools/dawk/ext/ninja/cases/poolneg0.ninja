@@ -1,0 +1,6 @@
+pool p
+  depth = -0
+rule r
+  command = c
+  pool = p
+build a: r

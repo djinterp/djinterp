@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/db/mariadb/mariadb_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 // D_INTERNAL_MARIADB_SOURCE
 //   macro: this file is one of the MariaDB layer's own sources, for which
@@ -59,8 +59,49 @@ d_internal_mariadb_feature_needs[] =
     { D_MARIADB_FEATURE_DESCENDING_INDEXES,  80001ul, 100801ul },
     { D_MARIADB_FEATURE_RETURNING,           0ul,     100500ul },
     { D_MARIADB_FEATURE_SEQUENCES,           0ul,     100300ul },
-    { D_MARIADB_FEATURE_SYSTEM_VERSIONING,   0ul,     100304ul }
+    { D_MARIADB_FEATURE_SYSTEM_VERSIONING,   0ul,     100304ul },
+    { D_MARIADB_FEATURE_INET6,               0ul,     100500ul },
+    { D_MARIADB_FEATURE_UUID,                0ul,     100700ul },
+    { D_MARIADB_FEATURE_BINARY_JSON,         50708ul, 0ul      },
+    { D_MARIADB_FEATURE_LATERAL_DERIVED,     80014ul, 0ul      },
+    { D_MARIADB_FEATURE_ROLES,               80000ul, 100005ul },
+    { D_MARIADB_FEATURE_ATOMIC_DDL,          80000ul, 100601ul },
+    { D_MARIADB_FEATURE_GALERA,              0ul,     100100ul },
+    { D_MARIADB_FEATURE_X_PROTOCOL,          50712ul, 0ul      },
+    { D_MARIADB_FEATURE_GROUP_REPLICATION,   50717ul, 0ul      },
+    { D_MARIADB_FEATURE_RESET_CONNECTION,    50703ul, 100204ul },
+    { D_MARIADB_FEATURE_SESSION_TRACKING,    50704ul, 100202ul },
+    { D_MARIADB_FEATURE_QUERY_ATTRIBUTES,    80023ul, 0ul      }
 };
+
+/*
+d_internal_mariadb_client_has
+  Whether the client the layer was built with has the call a feature of the
+client's needs (mariadb_internal.h, section 1.2); every other feature is the
+server's alone.
+*/
+static bool
+d_internal_mariadb_client_has(
+    enum d_mariadb_feature _feature
+)
+{
+    switch (_feature)
+    {
+        case D_MARIADB_FEATURE_RESET_CONNECTION:
+            return (D_INTERNAL_MARIADB_RESET == 1);
+
+        case D_MARIADB_FEATURE_SESSION_TRACKING:
+            return (D_INTERNAL_MARIADB_SESSION_TRACK == 1);
+
+        case D_MARIADB_FEATURE_QUERY_ATTRIBUTES:
+            return (D_INTERNAL_MARIADB_QUERY_ATTRIBUTES == 1);
+
+        default:
+            break;
+    }
+
+    return true;
+}
 
 //==============================================================================
 // 2.  LIBRARY
@@ -111,7 +152,7 @@ d_mariadb_client_is_mariadb(
 /*
 d_mariadb_result_message
   A client or server error's text lives with the connection that met it, so
-only d_mariadb_error_message can give it; this says so, save for the three
+only d_mariadb_error_message can give it; this says so, save for the four
 numbers the layer returns itself, which have no text there.
 */
 const char*
@@ -137,6 +178,10 @@ d_mariadb_result_message(
 
         case D_INTERNAL_MARIADB_INVALID_PARAMETER:
             return "the statement has no parameter of that number";
+
+        case D_INTERNAL_MARIADB_OUT_OF_SYNC:
+            return "a statement's run holds the connection, its rows still "
+                   "arriving";
 
         default:
             break;
@@ -235,7 +280,8 @@ d_mariadb_server_at_least(
 d_mariadb_supports
   The feature's row names a release for each flavor, 0 where the flavor has
 none; a server of unknown flavor supports nothing, and a value outside the
-table is no feature.
+table is no feature. A call the client lacks is no feature, whatever the
+server.
 */
 bool
 d_mariadb_supports(
@@ -246,8 +292,9 @@ d_mariadb_supports(
     const size_t count = sizeof(d_internal_mariadb_feature_needs) /
                          sizeof(d_internal_mariadb_feature_needs[0]);
 
-    // no server, no features
-    if (!_db)
+    // no server, or no call, no feature
+    if ( (!_db) ||
+         (!d_internal_mariadb_client_has(_feature)) )
     {
         return false;
     }

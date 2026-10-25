@@ -1,0 +1,3 @@
+# top
+rule r # not a comment
+  command = c

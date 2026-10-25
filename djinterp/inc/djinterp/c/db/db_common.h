@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/c/db/db_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -43,6 +43,10 @@ TABLE OF CONTENTS
     1.  Status codes
          1.  d_db_status
     2.  Status messages
+    3.  Waiting
+         1.  d_db_socket
+         2.  d_db_wait
+         3.  d_db_pending
 2.  FLAGS
     -----
     1.  Definition flags
@@ -123,8 +127,11 @@ enum d_db_status
     D_DB_INVALID_ARGUMENT = -4,  // an argument that cannot be right, from a
                                  // vendor with no code of its own for that
                                  // (SQLite has one: SQLITE_MISUSE)
-    D_DB_MISMATCH         = -5   // a value read as a type it neither is nor
+    D_DB_MISMATCH         = -5,  // a value read as a type it neither is nor
                                  // converts to exactly
+    D_DB_WAIT             = -6   // a call made without blocking has not
+                                 // finished: wait as its d_db_pending says,
+                                 // then continue it (1.3)
 };
 
 // 1.2    Status messages
@@ -133,6 +140,44 @@ enum d_db_status
 // for any other value, which a vendor layer then describes itself; never to
 // be freed
 const char* d_db_status_message(int _status) D_NOTHROW;
+
+// 1.3    Waiting
+//------------------------------------------------------------------------------
+// A call a layer makes without blocking (the audit's 11.26.6) starts, and
+// returns D_DB_WAIT until it is done, each time saying what it waits for: a
+// socket to become readable or writable, a deadline, or both. The program
+// waits so, in whatever loop it has, and continues the call with what came.
+
+// 1.3.1
+// d_db_socket
+//   type: a client's socket, wide enough for POSIX's int and Windows' SOCKET
+// alike; D_DB_SOCKET_NONE for none.
+typedef size_t d_db_socket;
+
+// D_DB_SOCKET_NONE
+//   constant: no socket.
+#define D_DB_SOCKET_NONE ((d_db_socket)-1)
+
+// 1.3.2
+// d_db_wait
+//   enum: what a call waits for, as a mask; and, given back, what came.
+enum d_db_wait
+{
+    D_DB_WAIT_READ    = 1,  // the socket readable
+    D_DB_WAIT_WRITE   = 2,  // the socket writable
+    D_DB_WAIT_TIMEOUT = 4   // a deadline the client keeps: continue the call
+                            // when it passes, ready or not
+};
+
+// 1.3.3
+// d_db_pending
+//   struct: what a call that has not finished waits for.
+struct d_db_pending
+{
+    d_db_socket socket;      // the socket to wait on
+    unsigned    events;      // d_db_wait, ORed
+    unsigned    timeout_ms;  // with D_DB_WAIT_TIMEOUT: the deadline, from now
+};
 
 
 //==============================================================================
@@ -231,6 +276,10 @@ enum d_db_type
 //     { "id", D_DB_TYPE_BIG_INTEGER, D_DB_COLUMN_PRIMARY_KEY }
 // and the members left out are zero. GCC's and Clang's -Wextra warn of the
 // members such a list leaves out; listing them all keeps it quiet.
+//   A composite primary key takes its columns in the order their key_place
+// numbers them, 1 to the key's count, each once; where every key_place is 0,
+// in the columns' order. A key_place on a column outside the key, or places
+// that skip or repeat a number, are the caller's error.
 struct d_db_column
 {
     const char*    name;         // the column's name; the layer quotes it
@@ -240,6 +289,8 @@ struct d_db_column
     unsigned       size;         // length, or DECIMAL precision; 0: default
     unsigned       scale;        // DECIMAL scale
     const char*    type_sql;     // the vendor's own type; overrides `type`
+    unsigned       key_place;    // its place in the primary key, from 1;
+                                 // 0: the columns' order
 };
 
 // 3.2    Type names
@@ -335,8 +386,9 @@ void d_db_free(void* _block) D_NOTHROW;
 // types arrive. The conversions convert only where nothing is lost.
 
 // 64-bit floor: a value holds a 64-bit integer, which dstdint.h declares only
-// where the build can spell one. Below it -- ISO strict C++98 on a 32-bit
-// target -- this section compiles to nothing.
+// where the build can spell one. Below it -- ISO strict C++98 wherever int64_t
+// is `long long`: a 32-bit target, 64-bit Windows or macOS -- this section
+// compiles to nothing.
 #if defined(INT64_MAX)
 
 

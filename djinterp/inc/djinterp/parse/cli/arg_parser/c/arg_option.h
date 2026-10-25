@@ -24,7 +24,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_option.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.17
 *******************************************************************************/
 
 /*
@@ -84,8 +84,9 @@ TABLE OF CONTENTS
     5.  Defaults
          1.  d_arg_option_set_default_text
          2.  d_arg_option_set_default_value
-         3.  d_arg_option_set_default_fn
-         4.  d_arg_option_capture_default
+         3.  d_arg_option_set_default_typed
+         4.  d_arg_option_set_default_fn
+         5.  d_arg_option_capture_default
     6.  Relations
          1.  d_arg_option_needs / d_arg_option_excludes
          2.  d_arg_option_needs_name / d_arg_option_excludes_name
@@ -621,6 +622,31 @@ int         d_arg_option_set_default_value(struct d_arg_option* _option,
                                            const char*          _text);
 
 // 4.5.3
+// d_arg_option_set_default_typed
+/**
+ * @brief Sets a default given as a value of a type; CLI11's default_val()
+ *        given a value, as d_arg_option_bind and d_arg_option_as take one.
+ *
+ * @note The value is written as its type writes it (d_arg_format), then
+ *       set as d_arg_option_set_default_value sets text. A value that could
+ *       not be written is the parser's definition error, as CLI11's
+ *       default_val() throws where the default is set; the default is then
+ *       kept as it was.
+ *
+ * @param[in,out] _option  the option.
+ * @param[in]     _type    the value's type.
+ * @param[in]     _value   the value, read as `_type` reads one.
+ * @return D_ARG_OK; the status of the type's writing --
+ *         D_ARG_ERROR_UNSUPPORTED for a type that writes no value,
+ *         D_ARG_ERROR_OUT_OF_MEMORY for text that could not be built -- or
+ *         of d_arg_option_set_default_value; D_ARG_ERROR_BAD_ARGUMENT for a
+ *         NULL argument.
+ */
+int         d_arg_option_set_default_typed(struct d_arg_option*     _option,
+                                           const struct d_arg_type* _type,
+                                           const void*              _value);
+
+// 4.5.4
 // d_arg_option_set_default_fn
 /**
  * @brief Sets how the default text is captured; CLI11's default_function().
@@ -638,7 +664,7 @@ void        d_arg_option_set_default_fn(struct d_arg_option* _option,
                                         void*                _context,
                                         d_arg_release_fn     _release);
 
-// 4.5.4
+// 4.5.5
 // d_arg_option_capture_default
 //   operation: CLI11's capture_default_str(): replaces the default text with
 // what the default function writes -- for a variable bound by

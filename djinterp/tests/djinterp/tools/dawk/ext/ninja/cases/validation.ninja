@@ -1,0 +1,5 @@
+rule r
+  command = c $in > $out
+build a: r b |@ v w
+build v: r
+build b: r

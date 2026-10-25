@@ -22,7 +22,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_completion_pwsh.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -524,11 +524,18 @@ static const size_t PWSH_LINE_COUNT =
 // 1.  QUOTING
 //==============================================================================
 
-/*
-d_arg_internal_complete_pwsh_decode
-  The code point UTF-8 text holds at `_at`, its length in bytes stored in
-`*_size`: U+FFFD, one byte long, for a byte that starts no valid sequence.
-*/
+/**
+ * @brief Decodes the code point UTF-8 text holds at a position.
+ *
+ * @param[in]  _text  the text.
+ * @param[in]  _at    the position, within the text.
+ * @param[out] _size  receives the sequence's length in bytes; 1 for a byte that
+ *                    starts no valid sequence.
+ * @return the code point; U+FFFD for a byte that starts no valid sequence.
+ *
+ * The code point UTF-8 text holds at `_at`, its length in bytes stored in
+ * `*_size`: U+FFFD, one byte long, for a byte that starts no valid sequence.
+ */
 D_STATIC uint32_t
 d_arg_internal_complete_pwsh_decode(
     struct d_pack_text _text,
@@ -583,12 +590,19 @@ d_arg_internal_complete_pwsh_decode(
     return point;
 }
 
-/*
-d_arg_internal_complete_pwsh_plain
-  Whether a character goes inside single quotes as itself: printable ASCII
--- and, in a line of a description, a control character, which becomes a
-space.
-*/
+/**
+ * @brief Tells whether a character goes inside single quotes as itself.
+ *
+ * @param[in] _point  the character.
+ * @param[in] _line   whether it is in a line of a description, where a control
+ *                    character becomes a space.
+ * @return `true` for printable ASCII, and in a line for a control character;
+ *         `false` otherwise.
+ *
+ * Whether a character goes inside single quotes as itself: printable ASCII
+ * -- and, in a line of a description, a control character, which becomes a
+ * space.
+ */
 D_STATIC bool
 d_arg_internal_complete_pwsh_plain(
     uint32_t _point,
@@ -602,11 +616,16 @@ d_arg_internal_complete_pwsh_plain(
              (_line) );
 }
 
-/*
-d_arg_internal_complete_pwsh_char
-  A character outside single quotes, as one [char] value per UTF-16 unit,
-each after " + ".
-*/
+/**
+ * @brief Appends a character outside single quotes, as [char] values.
+ *
+ * @param[in,out] _out    the buffer that gains the values, its failure kept in
+ *                        it.
+ * @param[in]     _point  the character.
+ *
+ * A character outside single quotes, as one [char] value per UTF-16 unit,
+ * each after " + ".
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_char(
     struct d_arg_buffer* _out,
@@ -632,13 +651,19 @@ d_arg_internal_complete_pwsh_char(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_put
-  One character of a string being written: inside the quoted run -- one
-opened, after " + ", when none is -- as itself, `'` doubled, or as a space
-for a control character of a line; else after the run, closed, as [char]
-values.
-*/
+/**
+ * @brief Appends one character of a string being written.
+ *
+ * @param[in,out] _out    the buffer that gains it, its failure kept in it.
+ * @param[in]     _point  the character.
+ * @param[in]     _line   whether the string is a line of a description.
+ * @param[in,out] _open   whether a quoted run is open; updated.
+ *
+ * One character of a string being written: inside the quoted run -- one
+ * opened, after " + ", when none is -- as itself, `'` doubled, or as a space
+ * for a control character of a line; else after the run, closed, as [char]
+ * values.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_put(
     struct d_arg_buffer* _out,
@@ -674,7 +699,7 @@ d_arg_internal_complete_pwsh_put(
 
     // the character itself
     if ( (_point != (uint32_t)'\'') &&
-         (_point >= 0x20u) &&
+         (_point >= 0x20u)          &&
          (_point < 0x7Fu) )
     {
         (void)d_arg_buffer_append_char(_out,
@@ -684,13 +709,20 @@ d_arg_internal_complete_pwsh_put(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_text
-  Text as a PowerShell string after a space: in single quotes, each `'`
-doubled, when every character goes inside them as itself; otherwise as a
-concatenation, in parentheses, of the empty string, quoted runs and [char]
-values. As a line of a description, each control character a space.
-*/
+/**
+ * @brief Appends text as a PowerShell string after a space.
+ *
+ * @param[in,out] _out   the buffer that gains the string, its failure kept in
+ *                       it.
+ * @param[in]     _text  the text.
+ * @param[in]     _line  whether it is a line of a description, each control
+ *                       character then a space.
+ *
+ * Text as a PowerShell string after a space: in single quotes, each `'`
+ * doubled, when every character goes inside them as itself; otherwise as a
+ * concatenation, in parentheses, of the empty string, quoted runs and [char]
+ * values. As a line of a description, each control character a space.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_text(
     struct d_arg_buffer* _out,
@@ -738,10 +770,16 @@ d_arg_internal_complete_pwsh_text(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_name
-  An option's name with its dashes, as a PowerShell string after a space.
-*/
+/**
+ * @brief Appends an option's name with its dashes, as a PowerShell string after
+ *        a space.
+ *
+ * @param[in,out] _out    the buffer that gains the string, its failure kept in
+ *                        it.
+ * @param[in]     _entry  the name's entry in the model.
+ *
+ * An option's name with its dashes, as a PowerShell string after a space.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_name(
     struct d_arg_buffer*                        _out,
@@ -785,11 +823,18 @@ struct d_arg_internal_complete_pwsh_table
     d_arg_internal_complete_pwsh_value value;
 };
 
-/*
-d_arg_internal_complete_pwsh_array
-  An array variable of the block: a value for each record the table covers,
-each on a line of its own.
-*/
+/**
+ * @brief Appends an array variable of the script block.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _table  the array's name, how many records it covers, and the
+ *                        function that writes each one's value.
+ * @param[in,out] _out    the buffer that gains the array, its failure kept in
+ *                        it.
+ *
+ * An array variable of the block: a value for each record the table covers,
+ * each on a line of its own.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_array(
     const struct d_arg_internal_model*               _model,
@@ -815,12 +860,18 @@ d_arg_internal_complete_pwsh_array(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_cmds
-  A command's row: its parent, switches and most subcommands, then where
-its subcommand names begin and how many, and where its option names begin
-and how many.
-*/
+/**
+ * @brief Appends a command's row of the `cmds` array.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the command's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * A command's row: its parent, switches and most subcommands, then where
+ * its subcommand names begin and how many, and where its option names begin
+ * and how many.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_cmds(
     const struct d_arg_internal_model* _model,
@@ -844,10 +895,16 @@ d_arg_internal_complete_pwsh_cmds(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_sn
-  A subcommand name.
-*/
+/**
+ * @brief Appends a subcommand name.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * A subcommand name.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_sn(
     const struct d_arg_internal_model* _model,
@@ -867,10 +924,16 @@ d_arg_internal_complete_pwsh_sn(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_sc
-  The command a subcommand name is under.
-*/
+/**
+ * @brief Appends the command a subcommand name is under.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * The command a subcommand name is under.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_sc(
     const struct d_arg_internal_model* _model,
@@ -885,10 +948,16 @@ d_arg_internal_complete_pwsh_sc(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_st
-  The command a subcommand name leads to.
-*/
+/**
+ * @brief Appends the command a subcommand name leads to.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * The command a subcommand name leads to.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_st(
     const struct d_arg_internal_model* _model,
@@ -903,10 +972,16 @@ d_arg_internal_complete_pwsh_st(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_sd
-  A subcommand name's description.
-*/
+/**
+ * @brief Appends a subcommand name's description.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * A subcommand name's description.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_sd(
     const struct d_arg_internal_model* _model,
@@ -925,10 +1000,16 @@ d_arg_internal_complete_pwsh_sd(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_on
-  An option name, with its dashes.
-*/
+/**
+ * @brief Appends an option name, with its dashes.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * An option name, with its dashes.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_on(
     const struct d_arg_internal_model* _model,
@@ -946,10 +1027,16 @@ d_arg_internal_complete_pwsh_on(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_oc
-  The command an option name is under: its option's.
-*/
+/**
+ * @brief Appends the command an option name is under: its option's.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * The command an option name is under: its option's.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_oc(
     const struct d_arg_internal_model* _model,
@@ -965,10 +1052,16 @@ d_arg_internal_complete_pwsh_oc(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_ov
-  The option a name stands for.
-*/
+/**
+ * @brief Appends the option a name stands for.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * The option a name stands for.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_ov(
     const struct d_arg_internal_model* _model,
@@ -983,10 +1076,16 @@ d_arg_internal_complete_pwsh_ov(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_od
-  An option name's description: its option's.
-*/
+/**
+ * @brief Appends an option name's description: its option's.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * An option name's description: its option's.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_od(
     const struct d_arg_internal_model* _model,
@@ -1006,11 +1105,17 @@ d_arg_internal_complete_pwsh_od(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_info
-  An option's row: its fewest and most values after a name, the letter of
-its kind, and where its choices begin and how many.
-*/
+/**
+ * @brief Appends an option's row of the `info` array.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the option's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * An option's row: its fewest and most values after a name, the letter of
+ * its kind, and where its choices begin and how many.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_info(
     const struct d_arg_internal_model* _model,
@@ -1032,11 +1137,16 @@ d_arg_internal_complete_pwsh_info(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_slot
-  Where a positional comes among its command's: the positionals before it
-under the same command.
-*/
+/**
+ * @brief Finds where a positional comes among its command's.
+ *
+ * @param[in] _model  the model.
+ * @param[in] _index  the positional's place in the model.
+ * @return how many positionals of the same command come before it.
+ *
+ * Where a positional comes among its command's: the positionals before it
+ * under the same command.
+ */
 D_STATIC size_t
 d_arg_internal_complete_pwsh_slot(
     const struct d_arg_internal_model* _model,
@@ -1059,10 +1169,17 @@ d_arg_internal_complete_pwsh_slot(
     return slot;
 }
 
-/*
-d_arg_internal_complete_pwsh_ps
-  A positional's key, as "command:slot"; nothing for another option.
-*/
+/**
+ * @brief Appends a positional's key, as "command:slot".
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the option's place in the model; one that is no
+ *                        positional writes nothing.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * A positional's key, as "command:slot"; nothing for another option.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_ps(
     const struct d_arg_internal_model* _model,
@@ -1086,11 +1203,18 @@ d_arg_internal_complete_pwsh_ps(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_pv
-  A positional's row: its option and the most values it takes; nothing for
-another option.
-*/
+/**
+ * @brief Appends a positional's row: its option and the most values it takes.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the option's place in the model; one that is no
+ *                        positional writes nothing.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * A positional's row: its option and the most values it takes; nothing for
+ * another option.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_pv(
     const struct d_arg_internal_model* _model,
@@ -1112,10 +1236,16 @@ d_arg_internal_complete_pwsh_pv(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_vv
-  A choice.
-*/
+/**
+ * @brief Appends a choice.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the choice's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * A choice.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_vv(
     const struct d_arg_internal_model* _model,
@@ -1135,10 +1265,15 @@ d_arg_internal_complete_pwsh_vv(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_data
-  Every array of the model.
-*/
+/**
+ * @brief Appends every array of the model.
+ *
+ * @param[in]     _model  the model.
+ * @param[in,out] _out    the buffer that gains the arrays, its failure kept in
+ *                        it.
+ *
+ * Every array of the model.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_data(
     const struct d_arg_internal_model* _model,
@@ -1178,11 +1313,16 @@ d_arg_internal_complete_pwsh_data(
 // 3.  THE SCRIPT
 //==============================================================================
 
-/*
-d_arg_internal_complete_pwsh_comment
-  The program's name in a comment: printable ASCII as it is, every other
-byte a `?`.
-*/
+/**
+ * @brief Appends a program's name as it goes in a comment.
+ *
+ * @param[in,out] _out      the buffer that gains the name, its failure kept in
+ *                          it.
+ * @param[in]     _program  the name.
+ *
+ * The program's name in a comment: printable ASCII as it is, every other
+ * byte a `?`.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_comment(
     struct d_arg_buffer* _out,
@@ -1204,12 +1344,17 @@ d_arg_internal_complete_pwsh_comment(
     return;
 }
 
-/*
-d_arg_internal_complete_pwsh_commands
-  The names the completer is registered for: the program's, and with
-".exe" after it -- as PowerShell may know the command on Windows -- unless
-it ends so already.
-*/
+/**
+ * @brief Appends the line that registers the completer for a program's names.
+ *
+ * @param[in,out] _out      the buffer that gains the line, its failure kept in
+ *                          it.
+ * @param[in]     _program  the program's name.
+ *
+ * The names the completer is registered for: the program's, and with
+ * ".exe" after it -- as PowerShell may know the command on Windows -- unless
+ * it ends so already.
+ */
 D_STATIC void
 d_arg_internal_complete_pwsh_commands(
     struct d_arg_buffer* _out,

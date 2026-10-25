@@ -40,7 +40,7 @@
 * path:      /inc/djinterp/net/tls/tls.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -90,8 +90,9 @@ TABLE OF CONTENTS
 #include "../../config/net/cfg_net.h"  // D_INTERNAL_NET_REQUIRE_BACKENDS
 
 
-// the kernel needs a 64-bit integer type; where there is none (ISO strict
-// C++98 on a 32-bit target) there is no TLS, and nothing here
+// the kernel needs a 64-bit integer type; where there is none (ISO strict C++98
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS)
+// there is no TLS, and nothing here
 #if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 

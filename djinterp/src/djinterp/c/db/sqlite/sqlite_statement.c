@@ -5,14 +5,15 @@
 *   A statement is SQLite's own, so most functions are a check and a call.
 * Running one goes through sqlite_internal.c, which resets the statement
 * before its first step and after its last: the next run then starts clean,
-* and no read lock outlives a run. Text and bytes are bound as copies
-* (SQLITE_TRANSIENT), so a caller's buffer need not outlive the call.
+* and no read lock outlives a run. A cursor's run steps only as far as its
+* rows are fetched, and is reset at its end. Text and bytes are bound as
+* copies (SQLITE_TRANSIENT), so a caller's buffer need not outlive the call.
 *
 *
 * path:      /src/djinterp/c/db/sqlite/sqlite_statement.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 // D_INTERNAL_SQLITE_SOURCE
 //   macro: this file is one of the SQLite layer's own sources, for which
@@ -467,7 +468,10 @@ d_sqlite_bind_blob(
 //------------------------------------------------------------------------------
 /*
 d_sqlite_clear_bindings
-  sqlite3_clear_bindings, which cannot fail.
+  sqlite3_clear_bindings, which cannot fail -- and which, unlike SQLite's
+binds, does not refuse a statement part-way through a run: the run may still
+be reading the values it would release, so the layer refuses it, as the binds
+do.
 */
 int
 d_sqlite_clear_bindings(
@@ -476,6 +480,12 @@ d_sqlite_clear_bindings(
 {
     // parameter validation
     if (!_statement)
+    {
+        return SQLITE_MISUSE;
+    }
+
+    // a run part-way through still reads the values
+    if (sqlite3_stmt_busy(_statement))
     {
         return SQLITE_MISUSE;
     }
@@ -541,6 +551,118 @@ d_sqlite_execute_query(
     }
 
     return d_internal_sqlite_collect_rows(_statement, _rows);
+}
+
+// 3.3    Rows a few at a time
+//------------------------------------------------------------------------------
+/*
+d_sqlite_open_cursor
+  A run is SQLite's own stepping: nothing is run before the first fetch, and
+a reset starts afresh.
+*/
+int
+d_sqlite_open_cursor(
+    sqlite3_stmt* _statement
+)
+{
+    // parameter validation
+    if (!_statement)
+    {
+        return SQLITE_MISUSE;
+    }
+
+    (void)sqlite3_reset(_statement);
+
+    return SQLITE_OK;
+}
+
+/*
+d_sqlite_fetch_rows
+  A step past the last row ends the run, the statement reset at once, so that
+no read lock outlives it; a fetch never steps further after the rows it was
+asked for, so the run goes on where it stopped. A failure drops what this
+fetch kept, and resets the statement too.
+*/
+int
+d_sqlite_fetch_rows(
+    sqlite3_stmt*     _statement,
+    size_t            _max,
+    struct d_db_rows* _rows
+)
+{
+    struct d_internal_db_rows builder =
+    {
+        { NULL, 0u, 0u }, { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u, 0u
+    };
+    size_t                    fetched = 0u;
+
+    // parameter validation
+    if ( (!_statement) ||
+         (!_rows)      ||
+         (_max == 0u) )
+    {
+        return SQLITE_MISUSE;
+    }
+
+    int step = d_internal_sqlite_describe_columns(_statement, &builder);
+
+    // up to the rows asked for, each kept as it arrives
+    while ( (step == SQLITE_OK) &&
+            (fetched < _max) )
+    {
+        step = sqlite3_step(_statement);
+
+        if (step == SQLITE_ROW)
+        {
+            step = d_internal_sqlite_keep_row(_statement, &builder);
+            ++fetched;
+        }
+    }
+
+    // the run's end, or its failure, ends it
+    if (step != SQLITE_OK)
+    {
+        (void)sqlite3_reset(_statement);
+    }
+
+    if ( (step != SQLITE_OK) &&
+         (step != SQLITE_DONE) )
+    {
+        d_internal_db_rows_release(&builder);
+
+        return step;
+    }
+
+    // rows that cannot be handed over end the run too, rather than leave a
+    // gap in it
+    if (!d_internal_db_rows_finish(&builder, _rows))
+    {
+        (void)sqlite3_reset(_statement);
+
+        return SQLITE_NOMEM;
+    }
+
+    return SQLITE_OK;
+}
+
+/*
+d_sqlite_close_cursor
+  The reset ends the run; what it reports is the run's, already seen.
+*/
+int
+d_sqlite_close_cursor(
+    sqlite3_stmt* _statement
+)
+{
+    // parameter validation
+    if (!_statement)
+    {
+        return SQLITE_MISUSE;
+    }
+
+    (void)sqlite3_reset(_statement);
+
+    return SQLITE_OK;
 }
 
 #else
@@ -810,6 +932,52 @@ d_sqlite_execute_query(
 {
     (void)_statement;
     (void)_rows;
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_sqlite_open_cursor
+  Without SQLite, D_DB_UNSUPPORTED.
+*/
+int
+d_sqlite_open_cursor(
+    struct sqlite3_stmt* _statement
+)
+{
+    (void)_statement;
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_sqlite_fetch_rows
+  Without SQLite, D_DB_UNSUPPORTED.
+*/
+int
+d_sqlite_fetch_rows(
+    struct sqlite3_stmt* _statement,
+    size_t               _max,
+    struct d_db_rows*    _rows
+)
+{
+    (void)_statement;
+    (void)_max;
+    (void)_rows;
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_sqlite_close_cursor
+  Without SQLite, D_DB_UNSUPPORTED.
+*/
+int
+d_sqlite_close_cursor(
+    struct sqlite3_stmt* _statement
+)
+{
+    (void)_statement;
 
     return D_DB_UNSUPPORTED;
 }

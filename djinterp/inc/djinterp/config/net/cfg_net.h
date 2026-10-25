@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/config/net/cfg_net.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -27,6 +27,8 @@ TABLE OF CONTENTS
          2.  D_CFG_NET_IO_CHUNK
     2.  Framing
          1.  D_CFG_NET_FRAME_MAX
+    3.  Absent backends
+         1.  D_CFG_NET_REQUIRE_BACKENDS
 2.  VALIDATION
     ----------
     1.  Knob validation
@@ -36,13 +38,14 @@ TABLE OF CONTENTS
          1.  D_INTERNAL_NET_HOST_MAX
          2.  D_INTERNAL_NET_IO_CHUNK
          3.  D_INTERNAL_NET_FRAME_MAX
+         4.  D_INTERNAL_NET_REQUIRE_BACKENDS
 */
 
 #ifndef DJINTERP_CONFIG_NET_CFG_NET_H
 #define DJINTERP_CONFIG_NET_CFG_NET_H 1
 
 // djinterp
-#include "../cfg_common.h"  // D_CFG_NORM
+#include "../cfg_common.h"  // D_CFG_NORM, D_CFG_IS_BOOL
 
 
 //==============================================================================
@@ -92,6 +95,19 @@ TABLE OF CONTENTS
 #endif  // D_CFG_NET_FRAME_MAX
 
 
+// 1.3    Absent backends
+//------------------------------------------------------------------------------
+// 1.3.1
+// D_CFG_NET_REQUIRE_BACKENDS
+//   configuration: 0, the default, lets a net header whose backend or floor is
+// absent -- epoll, a 64-bit integer type -- compile to nothing, as its banner
+// says; 1 turns that silence into an #error naming what is missing (decision
+// 101 of the register).
+#ifndef D_CFG_NET_REQUIRE_BACKENDS
+#   define D_CFG_NET_REQUIRE_BACKENDS 0
+#endif  // D_CFG_NET_REQUIRE_BACKENDS
+
+
 //==============================================================================
 // 2.  VALIDATION
 //==============================================================================
@@ -113,6 +129,10 @@ TABLE OF CONTENTS
       (D_CFG_NORM(D_CFG_NET_FRAME_MAX) > 4294967295) )
 #   error "cfg_net: D_CFG_NET_FRAME_MAX must lie in [1, 4294967295]"
 #endif  // D_CFG_NET_FRAME_MAX
+
+#if !D_CFG_IS_BOOL(D_CFG_NET_REQUIRE_BACKENDS)
+#   error "cfg_net: D_CFG_NET_REQUIRE_BACKENDS must be 0 or 1"
+#endif  // D_CFG_NET_REQUIRE_BACKENDS
 
 
 //==============================================================================
@@ -139,6 +159,11 @@ TABLE OF CONTENTS
 // D_INTERNAL_NET_FRAME_MAX
 //   value: the resolved default frame ceiling, in bytes.
 #define D_INTERNAL_NET_FRAME_MAX D_CFG_NORM(D_CFG_NET_FRAME_MAX)
+
+// 3.1.4
+// D_INTERNAL_NET_REQUIRE_BACKENDS
+//   value: the resolved switch, 0 or 1, that the gated headers read.
+#define D_INTERNAL_NET_REQUIRE_BACKENDS D_CFG_NORM(D_CFG_NET_REQUIRE_BACKENDS)
 
 
 #endif  // DJINTERP_CONFIG_NET_CFG_NET_H

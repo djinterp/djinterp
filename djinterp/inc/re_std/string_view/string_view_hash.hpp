@@ -10,8 +10,9 @@
 * but is NOT required to agree with any std::hash<std::string_view>.
 *
 *   PORTABILITY:
-*   Gated on C++11 (std added these specialisations in C++17 — a back-
-* port). The char8_t / u8string_view specialisation is gated on C++20.
+*   C++98 and up (std added these specialisations in C++17 — a back-
+* port). The char16_t / char32_t specialisations follow their types from
+* C++11, and the char8_t / u8string_view one is gated on C++20.
 *
 *   DEPENDENCIES:
 *   ../functional/hash.hpp for the primary re_std::hash template that
@@ -21,7 +22,7 @@
 * path:      /inc/re_std/string_view/string_view_hash.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef RE_STD_STRING_VIEW_STRING_VIEW_HASH_HPP
@@ -29,9 +30,6 @@
 
 // re_std
 #include "../config.hpp"  // RE_STD_* configuration
-
-
-#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 // re_std
@@ -110,6 +108,7 @@ struct hash<wstring_view>
     }
 };
 
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 // hash<u16string_view>
 template<>
 struct hash<u16string_view>
@@ -135,6 +134,7 @@ struct hash<u32string_view>
         return internal::sv_hash_bytes(_v);
     }
 };
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 #if RE_STD_LANG_IS_CPP20_OR_HIGHER
@@ -154,9 +154,6 @@ struct hash<u8string_view>
 
 
 }  // re_std
-
-
-#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 #endif  // RE_STD_STRING_VIEW_STRING_VIEW_HASH_HPP

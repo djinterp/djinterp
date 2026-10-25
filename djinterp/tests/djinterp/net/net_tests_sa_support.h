@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/net/net_tests_sa_support.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.14
 *******************************************************************************/
 
 #ifndef DJINTERP_NET_NET_TESTS_SA_SUPPORT_H
@@ -20,7 +20,7 @@
 // std
 #include <stddef.h>  // size_t
 // djinterp
-#include "../../../inc/djinterp/net/net.h"  // foundation
+#include "../../../inc/djinterp/net/net_common.h"  // foundation
 
 
 D_EXTERN_C_BEGIN
@@ -29,7 +29,7 @@ D_EXTERN_C_BEGIN
 // d_tests_net_mock
 //   struct: a scripted connection over caller memory. Reads deliver `input`,
 // at most `read_limit` bytes at a time, then report `read_error` -- the end of
-// the stream when that is D_NET_ERROR_NONE. Writes land in `output`, at most
+// the stream when that is D_NET_OK. Writes land in `output`, at most
 // `write_limit` bytes at a time, and report `write_error` once it is full. A
 // limit of 0 means none. The counters record every lifecycle call.
 struct d_tests_net_mock
@@ -51,6 +51,7 @@ struct d_tests_net_mock
     size_t                  shutdowns;        // shutdown calls
     enum d_net_shutdown     last_shutdown;    // the latest mode
     size_t                  destroys;         // destroy calls
+    bool                    knows_local;      // answers its local endpoint
 };
 
 // d_tests_net_sink_buffer
@@ -64,11 +65,13 @@ struct d_tests_net_sink_buffer
 
 // doubles -- d_tests_net_mock_init opens a mock with no input or output. A
 // full mock supplies every optional operation: shutdown, which it records; a
-// remote endpoint of 192.0.2.1:80; a local endpoint it refuses after
-// scribbling on the output; and destroy, which it counts. A minimal one
-// supplies only the four required operations. d_tests_net_sink wraps a
-// buffer as a sink; d_tests_net_pattern fills memory with bytes that differ
-// from one offset to the next.
+// remote endpoint of 192.0.2.1:80; a local endpoint of 198.51.100.7:8080
+// once `knows_local` is set, and until then refused after scribbling on the
+// output; destroy, which it counts; and available, the
+// input not yet delivered, which once closed it refuses after scribbling on
+// the count. A minimal one supplies only the four required operations.
+// d_tests_net_sink wraps a buffer as a sink; d_tests_net_pattern fills
+// memory with bytes that differ from one offset to the next.
 void               d_tests_net_mock_init(struct d_tests_net_mock* _mock,
                                          bool                     _full);
 void               d_tests_net_mock_input(struct d_tests_net_mock* _mock,

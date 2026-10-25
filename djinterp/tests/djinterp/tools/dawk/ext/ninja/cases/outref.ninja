@@ -1,0 +1,4 @@
+rule r
+  command = $out $in $in_newline
+  depfile = $out.d
+build x$ y z: r a b | c || d

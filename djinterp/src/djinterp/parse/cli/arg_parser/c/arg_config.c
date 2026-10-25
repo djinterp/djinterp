@@ -15,7 +15,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_config.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_config.h"  // corresponding header
 // std
@@ -330,11 +330,18 @@ d_arg_config_item_list_release(
     return;
 }
 
-/*
-d_arg_internal_config_keep
-  A copy of text kept in an item's storage, its span written to `_copy`;
-refused, the item and `_copy` stay as they were.
-*/
+/**
+ * @brief Keeps a copy of text in an item's storage.
+ *
+ * @param[in,out] _item  the item, whose storage gains the copy.
+ * @param[in]     _text  the text.
+ * @param[out]    _copy  receives the copy's span.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the item and `_copy`
+ *         unchanged.
+ *
+ * A copy of text kept in an item's storage, its span written to `_copy`;
+ * refused, the item and `_copy` stay as they were.
+ */
 D_STATIC int
 d_arg_internal_config_keep(
     struct d_arg_config_item* _item,
@@ -357,11 +364,18 @@ d_arg_internal_config_keep(
     return status;
 }
 
-/*
-d_arg_internal_config_append
-  A copy of text appended to one of an item's lists, room made first so
-that a refusal leaves no copy behind.
-*/
+/**
+ * @brief Appends a copy of text to one of an item's lists.
+ *
+ * @param[in,out] _item  the item, whose storage keeps the copy.
+ * @param[in,out] _list  the list, one of the item's.
+ * @param[in]     _text  the text.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the item and the list
+ *         holding what they held.
+ *
+ * A copy of text appended to one of an item's lists, room made first so
+ * that a refusal leaves no copy behind.
+ */
 D_STATIC int
 d_arg_internal_config_append(
     struct d_arg_config_item* _item,
@@ -386,11 +400,16 @@ d_arg_internal_config_append(
            : status;
 }
 
-/*
-d_arg_internal_config_text
-  A span given to a builder, its NULL data read as the empty string; NULL
-data with a length is refused.
-*/
+/**
+ * @brief Reads a span given to a builder.
+ *
+ * @param[in,out] _text  the span, made the empty string when its data is NULL.
+ * @return `true` for a span that can be read; `false` for NULL data with a
+ *         length.
+ *
+ * A span given to a builder, its NULL data read as the empty string; NULL
+ * data with a length is refused.
+ */
 D_STATIC bool
 d_arg_internal_config_text(
     struct d_pack_text* _text
@@ -736,7 +755,7 @@ d_arg_config_to_text(
     const struct d_arg_config_format* _format,
     const struct d_arg_command*       _command,
     int                               _mode,
-    bool                              _write_description,
+    bool                              _describe,
     struct d_pack_text                _prefix,
     struct d_arg_buffer*              _out
 )
@@ -756,13 +775,13 @@ d_arg_config_to_text(
            ? _format->vtable->to_config(_format,
                                         _command,
                                         _mode,
-                                        _write_description,
+                                        _describe,
                                         _prefix,
                                         _out)
            : d_arg_config_to_text_default(_format,
                                           _command,
                                           _mode,
-                                          _write_description,
+                                          _describe,
                                           _prefix,
                                           _out);
 }
@@ -776,7 +795,7 @@ int
 d_arg_command_config_to_sink(
     const struct d_arg_command* _command,
     int                         _mode,
-    bool                        _write_description,
+    bool                        _describe,
     struct d_pack_sink          _sink
 )
 {
@@ -799,7 +818,7 @@ d_arg_command_config_to_sink(
     int status = d_arg_config_to_text(format,
                                       _command,
                                       _mode,
-                                      _write_description,
+                                      _describe,
                                       d_arg_internal_span("",
                                                           0u),
                                       &text);

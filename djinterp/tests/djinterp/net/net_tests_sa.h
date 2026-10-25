@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/net/net_tests_sa.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.13
 *******************************************************************************/
 
 #ifndef DJINTERP_NET_NET_TESTS_SA_H
@@ -19,8 +19,8 @@
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
 // djinterp
-#include "../../../inc/djinterp/test/c/test_standalone.h"  // asserts
-#include "./net_tests_sa_support.h"                        // doubles
+#include "./net_tests_sa_assert.h"   // asserts
+#include "./net_tests_sa_support.h"  // doubles
 
 
 D_EXTERN_C_BEGIN
@@ -37,7 +37,9 @@ bool d_tests_sa_net_frame_codec(struct d_test_counter* _counter);
 
 // connections, algorithms, and framing
 bool d_tests_sa_net_dispatch(struct d_test_counter* _counter);
+bool d_tests_sa_net_complete(struct d_test_counter* _counter);
 bool d_tests_sa_net_lifetime(struct d_test_counter* _counter);
+bool d_tests_sa_net_available(struct d_test_counter* _counter);
 bool d_tests_sa_net_exact(struct d_test_counter* _counter);
 bool d_tests_sa_net_bulk(struct d_test_counter* _counter);
 bool d_tests_sa_net_frames(struct d_test_counter* _counter);
@@ -51,7 +53,13 @@ bool d_tests_sa_net_url_resolve(struct d_test_counter* _counter);
 bool d_tests_sa_net_url_normalize(struct d_test_counter* _counter);
 bool d_tests_sa_net_url_percent(struct d_test_counter* _counter);
 bool d_tests_sa_net_url_endpoints(struct d_test_counter* _counter);
+bool d_tests_sa_net_url_errors_to_net(struct d_test_counter* _counter);
 bool d_tests_sa_net_run_all(struct d_test_counter* _counter);
+
+// in-memory connections, of net_memory.h
+bool d_tests_sa_net_pipes(struct d_test_counter* _counter);
+bool d_tests_sa_net_pipe_ends(struct d_test_counter* _counter);
+bool d_tests_sa_net_memory(struct d_test_counter* _counter);
 
 
 D_EXTERN_C_END

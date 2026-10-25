@@ -35,7 +35,7 @@
 * path:      /inc/djinterp/env/net/imap/env_imap.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -43,8 +43,6 @@ TABLE OF CONTENTS
 =================
 1.  VERSION PROBE
     -------------
-    1.  Probe control
-         1.  D_CFG_ENV_IMAP_PROBE_VERSION
 2.  NATIVE TRANSPORT
     ----------------
     1.  Transport readiness
@@ -130,6 +128,7 @@ TABLE OF CONTENTS
 #include "../env_net.h"        // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP
 #include "../tls/env_tls.h"    // D_ENV_TLS_AVAILABLE
 #include "../curl/env_curl.h"  // D_ENV_CURL_AVAILABLE, D_ENV_CURL_VERSION_AT_LEAST
+#include "../../../config/core/env/net/imap/cfg_env_imap.h"  // D_CFG_ENV_IMAP_*
 
 
 //==============================================================================
@@ -137,21 +136,10 @@ TABLE OF CONTENTS
 //==============================================================================
 // Three libraries publish their version in a header that can be included on
 // its own: libetpan (libetpan_version.h), GNU SASL (gsasl-version.h), and
-// VMime (vmime/config.hpp, C++ only). One switch governs all three, as
-// D_CFG_ENV_CURL_PROBE_VERSION does for libcurl.
-
-
-// 1.1    Probe control
-//------------------------------------------------------------------------------
-// 1.1.1
-// D_CFG_ENV_IMAP_PROBE_VERSION
-//   config: set 0 before inclusion to suppress the automatic version-header
-// includes below, so that detection touches no third-party header. Version
-// macros then fall back to "unknown" unless pre-defined, and VMime reports no
-// IMAP support, since its build configuration is where that is recorded.
-#ifndef D_CFG_ENV_IMAP_PROBE_VERSION
-    #define D_CFG_ENV_IMAP_PROBE_VERSION 1
-#endif  // D_CFG_ENV_IMAP_PROBE_VERSION
+// VMime (vmime/config.hpp, C++ only). One switch governs all three,
+// cfg_env_imap.h's D_CFG_ENV_IMAP_PROBE_VERSION, as cfg_env_curl.h's
+// D_CFG_ENV_CURL_PROBE_VERSION does for libcurl; each header is included
+// where its library's section below reads it.
 
 
 //==============================================================================
@@ -182,9 +170,9 @@ TABLE OF CONTENTS
 // D_ENV_IMAP_CAN_NATIVE_TLS
 //   feature: 1 if a TLS backend can also run over that transport
 // (D_ENV_TLS_AVAILABLE), so a native engine could offer implicit TLS and
-// STARTTLS. The net TLS transport (net/tls.hpp) is written against the
-// OpenSSL family specifically; a native engine built on it should also test
-// D_ENV_TLS_HAS_OPENSSL.
+// STARTTLS. The net TLS transport (net/tls/tls.hpp) runs on the SSL kernel,
+// in the OpenSSL-family engine unless it is given another; a native engine
+// built on it with that engine should also test D_ENV_TLS_HAS_OPENSSL.
 #ifndef D_ENV_IMAP_CAN_NATIVE_TLS
     #if ( (D_ENV_IMAP_CAN_NATIVE) &&                                           \
           (D_ENV_TLS_AVAILABLE) )

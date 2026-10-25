@@ -13,7 +13,7 @@
 * path:      /inc/re_std/expected/expected_swap.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.05.19
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef RE_STD_EXPECTED_EXPECTED_SWAP_HPP
@@ -21,8 +21,6 @@
 
 // re_std
 #include "../config.hpp"  // RE_STD_* configuration
-
-#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 #include "./expected.hpp"
 #include "./unexpected.hpp"
@@ -83,9 +81,6 @@ swap(
 
 
 }  // re_std
-
-
-#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 #endif  // RE_STD_EXPECTED_EXPECTED_SWAP_HPP

@@ -15,15 +15,15 @@
 *   For shell completion, the sets and mappings list their members or keys,
 * and the bounds, the IPv4 check, the units and the type checks of
 * arithmetic and truth types complete as numbers (D_ARG_VALIDATOR_NUMBER).
-*   Everything here is compiled only with D_INTERNAL_ARG_PARSER_EXTRA_
-* VALIDATORS, as CLI11 compiles its own unless told not to; without it the
-* header declares nothing.
+*   Everything here is compiled only with
+* D_INTERNAL_ARG_PARSER_EXTRA_VALIDATORS, as CLI11 compiles its own unless
+* told not to; without it the header declares nothing.
 *
 *
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_validator_extra.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -193,7 +193,10 @@ D_EXTERN_C_END
 // d_arg_filter_fn
 //   type: writes the filtered form of `_value` into the empty buffer `_out`
 // -- CLI11's filter function, applied to a value and to every member before
-// they are compared. Returns D_ARG_OK, or the buffer's status.
+// they are compared. Returns D_ARG_OK, or an error status -- the buffer's,
+// or one of the function's own -- which stops the validation with it, as
+// CLI11's filter throwing does; a set or mapping never reads it as a value
+// that does not convert to its type.
 typedef int (*d_arg_filter_fn)(struct d_pack_text   _value,
                                struct d_arg_buffer* _out,
                                void*                _context);

@@ -17,7 +17,7 @@
 * path:      /src/djinterp/c/db/db_internal.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "./db_internal.h"  // corresponding header
 // std
@@ -1772,4 +1772,117 @@ d_internal_db_parse_real(
     }
 
     return d_internal_db_read_real(_text, _value);
+}
+
+//==============================================================================
+// 5.  COLUMN DEFINITIONS
+//==============================================================================
+
+// 5.1    Primary keys
+//------------------------------------------------------------------------------
+/*
+d_internal_db_key_places_ok
+  A place counted for each key column, and none for any other: with as many
+places as key columns, none beyond the count and none repeated, the places
+are 1 to the count. A repeat is found by comparing each place with those
+before it, which a column set's size keeps cheap.
+*/
+bool
+d_internal_db_key_places_ok(
+    const struct d_db_column* _columns,
+    size_t                    _count
+)
+{
+    size_t keys   = 0u;
+    size_t placed = 0u;
+
+    // the key's columns, and the columns that have a place
+    for (size_t i = 0u; i < _count; ++i)
+    {
+        const bool key = ((_columns[i].flags & D_DB_COLUMN_PRIMARY_KEY) != 0u);
+
+        // a place off the key
+        if ( (!key) &&
+             (_columns[i].key_place != 0u) )
+        {
+            return false;
+        }
+
+        keys   += (key) ? 1u : 0u;
+        placed += (_columns[i].key_place != 0u) ? 1u : 0u;
+    }
+
+    // no places at all: the columns' order
+    if (placed == 0u)
+    {
+        return true;
+    }
+
+    // places for some key columns and not others
+    if (placed != keys)
+    {
+        return false;
+    }
+
+    // each place within the count, and given once
+    for (size_t i = 0u; i < _count; ++i)
+    {
+        const unsigned place = _columns[i].key_place;
+
+        if ((size_t)place > keys)
+        {
+            return false;
+        }
+
+        for (size_t j = 0u; (place != 0u) && (j < i); ++j)
+        {
+            if (_columns[j].key_place == place)
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/*
+d_internal_db_key_column
+  Whether the set numbers its key is asked first: then the place is the
+number, and otherwise the count of key columns met so far.
+*/
+size_t
+d_internal_db_key_column(
+    const struct d_db_column* _columns,
+    size_t                    _count,
+    size_t                    _place
+)
+{
+    size_t seen   = 0u;
+    bool   placed = false;
+
+    // whether the set numbers its key at all
+    for (size_t i = 0u; (!placed) && (i < _count); ++i)
+    {
+        placed = (_columns[i].key_place != 0u);
+    }
+
+    for (size_t i = 0u; i < _count; ++i)
+    {
+        // the column numbered so, or the place-th key column in order
+        if ( (placed) &&
+             ((size_t)_columns[i].key_place == _place) )
+        {
+            return i;
+        }
+
+        if ( (!placed) &&
+             ((_columns[i].flags & D_DB_COLUMN_PRIMARY_KEY) != 0u) &&
+             (++seen == _place) )
+        {
+            return i;
+        }
+    }
+
+    return _count;
 }

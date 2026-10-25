@@ -12,7 +12,7 @@
 * path:      /src/djinterp/core/db/mysql/mysql_common.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 #include "../../../../../inc/djinterp/core/db/mysql/mysql_common.hpp"  // corresponding header
 
@@ -41,8 +41,9 @@ namespace
  *        client keeps no text for.
  *
  * @param[in] _result  the result.
- * @return `true` for 2000 (a failure without a number), 2008 (out of memory)
- *         and 2034 (no such parameter), and for every negative D_DB_*.
+ * @return `true` for 2000 (a failure without a number), 2008 (out of memory),
+ *         2014 (a run holds the connection: mariadb_statement.h 3.3) and
+ *         2034 (no such parameter), and for every negative D_DB_*.
  */
 bool
 layer_own_result(
@@ -52,6 +53,7 @@ layer_own_result(
     return ( (_result <= 0)    ||
              (_result == 2000) ||
              (_result == 2008) ||
+             (_result == 2014) ||
              (_result == 2034) );
 }
 
@@ -84,7 +86,7 @@ server_name(
 }  // namespace
 
 //==============================================================================
-// III. MYSQL-FAMILY COMMON CONNECTION TEMPLATE
+// 3.  MYSQL-FAMILY CONNECTION
 //==============================================================================
 
 /*
@@ -160,6 +162,16 @@ mariadb_layer::raise_as(
     }
 }
 
+/*
+mariadb_layer::raise
+  The failure is described before anything more is asked of the connection.
+A packet too large for the client (2020) is a statement's failure when the
+client refused to send a statement that large, which leaves the connection
+as it was, and the connection's when the server sent a row larger than the
+client takes, which closes it; a TLS failure (2026) is the connection's when
+the server closed it under TLS, as Connector/C before 3.4 reports that: a
+ping, which a closed connection answers without the server, tells which.
+*/
 void
 mariadb_layer::raise(
     handle_type  _db,
@@ -168,10 +180,17 @@ mariadb_layer::raise(
     int          _result
 )
 {
-    raise_as(_kind, describe(_db, _operation, _result), _result);
+    const std::string message = describe(_db, _operation, _result);
+    const bool        closed  = ( ( (_result == 2020) ||
+                                    (_result == 2026) ) &&
+                                  (_db)                 &&
+                                  (d_mariadb_ping(_db) != 0) );
+
+    raise_as((closed) ? failure_kind::connection : _kind, message, _result);
 }
 
 template class prepared_statement<mariadb_layer>;
+template class streaming_result_set<mariadb_layer>;
 
 NS_END  // djinterp
 

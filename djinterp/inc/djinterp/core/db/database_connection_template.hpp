@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/core/db/database_connection_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -49,7 +49,7 @@ TABLE OF CONTENTS
 #define DJINTERP_DB_DATABASE_CONNECTION_TEMPLATE_HPP 1
 
 // djinterp
-#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: the floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
@@ -390,7 +390,7 @@ struct vendor_traits<database_type::mssql>
 // connection_template
 //   class template: connection<Derived> with a vendor's traits: its
 // metadata at compile time, its default configuration, and its native
-// handle. Derived lends the handle through native_handle_helper(), which
+// handle. Derived lends the handle through native_handle_impl(), which
 // returns native_handle_type, and is needed only where get_native_handle()
 // is called. Made with no configuration, a connection has the vendor's
 // defaults; made with one, the vendor's port where it names none. Not
@@ -449,7 +449,7 @@ public:
     native_handle_type
     get_native_handle() const noexcept
     {
-        return static_cast<const Derived&>(*this).native_handle_helper();
+        return static_cast<const Derived&>(*this).native_handle_impl();
     }
 
     // compile-time vendor queries

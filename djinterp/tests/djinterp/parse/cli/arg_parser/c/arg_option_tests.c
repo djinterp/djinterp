@@ -12,7 +12,9 @@
 * from the error the parser reports; a validator CLI11 does not find, which
 * it throws as OptionNotFound and the module answers with NULL, as `none`.
 * Two transcripts depart from CLI11, and their constants say why: item
-* counts too large for an `int`, and a variable a refused default leaves.
+* counts too large for an `int`, and a variable a refused default leaves;
+* a third, of defaults given as typed values, ends with the module's own
+* refusals.
 *   The cases of the earlier option probes -- counts and policies, values
 * split and reduced, values and defaults read as a list, flag values,
 * callbacks -- are those probes' own, run here on options a command made.
@@ -21,7 +23,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_option_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 #include "./arg_option_tests.h"  // corresponding header
 // std
@@ -2685,6 +2687,35 @@ static const char DEFAULTS[] =
     "kept a default=<5> results=[1] <r>\n"
     "default_function a default=<fn> results=[1] <r>\n";
 
+// DEFAULT_TYPED
+//   constant: CLI11's default text of options given defaults as values of
+// their types -- an `int`, a `double`, text -- rather than as text, and the
+// variables the values reached. Then the module's own: a type that writes no
+// value refused, the default kept, where CLI11 sets the nothing it writes
+// for one as the default (ISSUES 60); and NULL arguments refused with
+// nothing recorded.
+static const char DEFAULT_TYPED[] =
+    "[default_val b 12] ok\n"
+    "default_val b default=<12> results=[0]\n"
+    "n=12\n"
+    "[default_val d 2.5] ok\n"
+    "default_val d default=<2.5> results=[0]\n"
+    "d=2.5\n"
+    "[default_val c given] ok\n"
+    "default_val c default=<given> results=[0]\n"
+    "s=given\n"
+    "[default_val p 4] ok\n"
+    "default_val p default=<4> results=[0]\n"
+    "[default_val p -1] ERR ValidationError 105: -p: Value -1 not in range "
+    "[4.94066e-324 - 1.79769e+308]\n"
+    "kept p default=<4> results=[0]\n"
+    "[default_val b 20] ok\n"
+    "no callback b default=<20> results=[0]\n"
+    "n=12\n"
+    "[default_val p unwritable] ERR Unsupported 127: Unsupported\n"
+    "kept p default=<4> results=[0]\n"
+    "[default_val NULL] BadArgument BadArgument BadArgument recorded=0\n";
+
 // RELATIONS
 //   constant: CLI11's needs and excludes of four options, set by option and
 // by name, refused, and removed.
@@ -4779,6 +4810,50 @@ d_tests_arg_option_default_try(
 }
 
 /**
+ * @brief Appends a default given as a typed value, or its refusal, as
+ *        DEFAULT_TYPED writes it: `[default_val <name> <text>] ok`, or the
+ *        refusal as CLI11's exception.
+ *
+ * @param[in,out] _run     the run whose parser records a refusal.
+ * @param[in,out] _out     the transcript.
+ * @param[in]     _label   the option's label, then the value's text, in
+ *                         the line.
+ * @param[in,out] _option  the option.
+ * @param[in]     _type    the value's type.
+ * @param[in]     _value   the value.
+ */
+static void
+d_tests_arg_option_typed_try(
+    struct d_tests_arg_run*  _run,
+    struct d_arg_buffer*     _out,
+    const char*              _label,
+    struct d_arg_option*     _option,
+    const struct d_arg_type* _type,
+    const void*              _value
+)
+{
+    (void)d_arg_buffer_printf(_out,
+                              "[default_val %s] ",
+                              _label);
+
+    // a default refused, as CLI11 throws
+    if (d_arg_option_set_default_typed(_option,
+                                       _type,
+                                       _value) != (int)D_ARG_OK)
+    {
+        d_tests_arg_option_refused(_out,
+                                   _run);
+    }
+    else
+    {
+        (void)d_arg_buffer_append_cstr(_out,
+                                       "ok\n");
+    }
+
+    return;
+}
+
+/**
  * @brief Appends DEFAULTS' first lines: each option new, then each
  *        option's default captured -- the `int`'s again once it changed.
  *
@@ -6433,6 +6508,179 @@ d_tests_arg_option_defaults(void)
 }
 
 /*
+d_tests_arg_option_default_typed
+  Defaults given as values of their types, as CLI11's default_val given a
+value rather than text.
+  Tests the following:
+  - an `int`, a `double` and text, each written as its type writes it and
+    set as a default value, the bound variable taking it; a value a
+    validator refuses, with ValidationError, the default kept; a value set
+    without the callback, the variable kept
+  - a type that writes no value refused and recorded as the definition
+    error, the default kept
+  - NULL arguments refused, nothing recorded
+*/
+bool
+d_tests_arg_option_default_typed(void)
+{
+    struct d_tests_arg_run      run         = { 0 };
+    struct d_arg_command* const app         = d_tests_arg_begin(&run);
+    struct d_arg_buffer         out         = D_ARG_BUFFER_INIT;
+    const struct d_arg_type*    int_type    = d_arg_type_builtin(
+                                                  D_ARG_BUILTIN_INT);
+    const struct d_arg_type*    double_type = d_arg_type_builtin(
+                                                  D_ARG_BUILTIN_DOUBLE);
+    const struct d_arg_type*    string_type = d_arg_type_builtin(
+                                                  D_ARG_BUILTIN_STRING);
+    struct d_arg_type           unwritable  = *int_type;
+    int                         n           = 3;
+    double                      d           = 0.0;
+    const char*                 s           = "start";
+    const int                   twelve      = 12;
+    const double                real        = 2.5;
+    const char* const           given       = "given";
+    const int                   four        = 4;
+    const int                   minus_one   = -1;
+    const int                   twenty      = 20;
+
+    struct d_arg_option* const number = d_arg_command_add_option_bound(
+                                            app,
+                                            "--b",
+                                            &n,
+                                            int_type,
+                                            NULL);
+    struct d_arg_option* const ratio  = d_arg_command_add_option_bound(
+                                            app,
+                                            "--d",
+                                            &d,
+                                            double_type,
+                                            NULL);
+    struct d_arg_option* const text   = d_arg_command_add_option_bound(
+                                            app,
+                                            "--c",
+                                            &s,
+                                            string_type,
+                                            NULL);
+    struct d_arg_option* const plain  = d_arg_command_add_option(app,
+                                                                 "-p",
+                                                                 NULL);
+
+    (void)d_arg_option_check(plain,
+                             d_arg_validator_positive_number(),
+                             NULL);
+
+    // each type's value, as CLI11's default_val takes it
+    d_tests_arg_option_typed_try(&run,
+                                 &out,
+                                 "b 12",
+                                 number,
+                                 int_type,
+                                 &twelve);
+    d_tests_arg_option_default_show(&out,
+                                    "default_val b",
+                                    number);
+    (void)d_arg_buffer_printf(&out,
+                              "n=%d\n",
+                              n);
+    d_tests_arg_option_typed_try(&run,
+                                 &out,
+                                 "d 2.5",
+                                 ratio,
+                                 double_type,
+                                 &real);
+    d_tests_arg_option_default_show(&out,
+                                    "default_val d",
+                                    ratio);
+    (void)d_arg_buffer_printf(&out,
+                              "d=%g\n",
+                              d);
+    d_tests_arg_option_typed_try(&run,
+                                 &out,
+                                 "c given",
+                                 text,
+                                 string_type,
+                                 &given);
+    d_tests_arg_option_default_show(&out,
+                                    "default_val c",
+                                    text);
+    (void)d_arg_buffer_printf(&out,
+                              "s=%s\n",
+                              s);
+    d_tests_arg_option_typed_try(&run,
+                                 &out,
+                                 "p 4",
+                                 plain,
+                                 int_type,
+                                 &four);
+    d_tests_arg_option_default_show(&out,
+                                    "default_val p",
+                                    plain);
+    d_tests_arg_option_typed_try(&run,
+                                 &out,
+                                 "p -1",
+                                 plain,
+                                 int_type,
+                                 &minus_one);
+    d_tests_arg_option_default_show(&out,
+                                    "kept p",
+                                    plain);
+    d_arg_option_set_run_callback_for_default(number,
+                                              false);
+    d_tests_arg_option_typed_try(&run,
+                                 &out,
+                                 "b 20",
+                                 number,
+                                 int_type,
+                                 &twenty);
+    d_tests_arg_option_default_show(&out,
+                                    "no callback b",
+                                    number);
+    (void)d_arg_buffer_printf(&out,
+                              "n=%d\n",
+                              n);
+
+    // the module's own: a type that writes nothing, and NULL arguments
+    unwritable.format = NULL;
+    d_tests_arg_option_typed_try(&run,
+                                 &out,
+                                 "p unwritable",
+                                 plain,
+                                 &unwritable,
+                                 &four);
+    d_tests_arg_option_default_show(&out,
+                                    "kept p",
+                                    plain);
+
+    const int no_option = d_arg_option_set_default_typed(NULL,
+                                                         int_type,
+                                                         &four);
+    const int no_type   = d_arg_option_set_default_typed(plain,
+                                                         NULL,
+                                                         &four);
+    const int no_value  = d_arg_option_set_default_typed(plain,
+                                                         int_type,
+                                                         NULL);
+
+    (void)d_arg_buffer_printf(
+        &out,
+        "[default_val NULL] %s %s %s recorded=%d\n",
+        d_arg_status_name(no_option),
+        d_arg_status_name(no_type),
+        d_arg_status_name(no_value),
+        (int)(d_arg_parser_definition_error(&run.parser)->status !=
+              D_ARG_OK));
+
+    const bool same = d_tests_arg_same("DEFAULT_TYPED",
+                                       d_arg_buffer_text(&out),
+                                       DEFAULT_TYPED);
+
+    d_arg_buffer_release(&out);
+    d_tests_arg_end(&run);
+
+    return same;
+}
+
+/*
 d_tests_arg_option_relations
   Options an option needs and excludes, as CLI11's needs, excludes,
 remove_needs and remove_excludes.
@@ -6864,6 +7112,8 @@ const struct d_tests_section d_tests_arg_option[] =
       d_tests_arg_option_counts },
     { "arg_option_defaults",
       d_tests_arg_option_defaults },
+    { "arg_option_default_typed",
+      d_tests_arg_option_default_typed },
     { "arg_option_relations",
       d_tests_arg_option_relations },
     { "arg_option_validators",

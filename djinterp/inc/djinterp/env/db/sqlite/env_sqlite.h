@@ -13,16 +13,17 @@
 * MINOR*1000 + PATCH (3.46.0 is 3046000). Many features also depend on how
 * the library was built: SQLITE_ENABLE_*, SQLITE_OMIT_* and SQLITE_THREADSAFE.
 *   D_ENV_SQLITE_HAS_* are capability flags, and D_ENV_SQLITE_VERSION_* the
-* version and its parts. Sections 4 onward exist only when SQLite is
-* detected. Settings live in cfg_env_sqlite.h: D_CFG_ENV_USING_SQLITE includes
-* sqlite3.h, and D_CFG_ENV_SQLITE_CUSTOM switches to manual detection. This
-* header also includes env_db.h, for the base database detection.
+* version and its parts. Sections 4 onward read SQLite when it is detected;
+* without it, each of their macros is defined as 0. Settings live in
+* cfg_env_sqlite.h: D_CFG_ENV_USING_SQLITE includes sqlite3.h, and
+* D_CFG_ENV_SQLITE_CUSTOM switches to manual detection. This header also
+* includes env_db.h, for the base database detection.
 *
 *
 * path:      /inc/djinterp/env/db/sqlite/env_sqlite.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -207,7 +208,8 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../../config/core/env/db/sqlite/cfg_env_sqlite.h"  // config
-#include "../env_db.h"  // base database detection (D_ENV_DB_*)
+#include "../../env_os.h"  // D_ENV_OS_ID, D_ENV_IS_OS_POSIX_LIKE
+#include "../env_db.h"     // base database detection (D_ENV_DB_*)
 
 
 //==============================================================================
@@ -303,12 +305,16 @@ TABLE OF CONTENTS
 // 3.1.1
 // D_ENV_SQLITE_VERSION_<MAJOR>_<MINOR>_<PATCH>
 //   constant: encoded IDs of the releases that gate features below, each with
-// what it introduced.
+// what it introduced, as SQLite's release log has it; and of the releases
+// since, which manual detection (3.2.1) can name. 3.52.0 was withdrawn for a
+// WAL-reset bug and re-released, fixed, as 3.53.0.
+#define D_ENV_SQLITE_VERSION_3_6_8      3006008  // SAVEPOINT, RELEASE
 #define D_ENV_SQLITE_VERSION_3_6_11     3006011  // online backup API
-#define D_ENV_SQLITE_VERSION_3_6_19     3006019  // WAL journal mode
-#define D_ENV_SQLITE_VERSION_3_7_0      3007000  // WAL mode stable
+#define D_ENV_SQLITE_VERSION_3_6_19     3006019  // foreign key constraints
+#define D_ENV_SQLITE_VERSION_3_7_0      3007000  // WAL journal mode
+#define D_ENV_SQLITE_VERSION_3_7_6      3007006  // sqlite3_wal_checkpoint_v2
 #define D_ENV_SQLITE_VERSION_3_7_11     3007011  // multiple VALUES rows
-#define D_ENV_SQLITE_VERSION_3_7_15     3007015  // RELEASE syntax
+#define D_ENV_SQLITE_VERSION_3_7_15     3007015  // sqlite3_errstr
 #define D_ENV_SQLITE_VERSION_3_7_17     3007017  // memory-mapped I/O
 #define D_ENV_SQLITE_VERSION_3_8_0      3008000  // partial indexes
 #define D_ENV_SQLITE_VERSION_3_8_2      3008002  // WITH (CTE)
@@ -318,30 +324,43 @@ TABLE OF CONTENTS
 #define D_ENV_SQLITE_VERSION_3_8_12     3008012  // FTS5
 #define D_ENV_SQLITE_VERSION_3_9_0      3009000  // JSON1 extension
 #define D_ENV_SQLITE_VERSION_3_10_0     3010000  // LIKE with ESCAPE
-#define D_ENV_SQLITE_VERSION_3_14_0     3014000  // row values partial
+#define D_ENV_SQLITE_VERSION_3_14_0     3014000  // sqlite3_trace_v2
 #define D_ENV_SQLITE_VERSION_3_15_0     3015000  // row values
 #define D_ENV_SQLITE_VERSION_3_18_0     3018000  // INSERT into WITH
 #define D_ENV_SQLITE_VERSION_3_20_0     3020000  // pointer passing iface
-#define D_ENV_SQLITE_VERSION_3_22_0     3022000  // UPSERT (partial)
-#define D_ENV_SQLITE_VERSION_3_24_0     3024000  // UPSERT full
-#define D_ENV_SQLITE_VERSION_3_25_0     3025000  // window functions
-#define D_ENV_SQLITE_VERSION_3_26_0     3026000  // UPSERT enhancements
-#define D_ENV_SQLITE_VERSION_3_28_0     3028000  // RENAME COLUMN
+#define D_ENV_SQLITE_VERSION_3_22_0     3022000
+#define D_ENV_SQLITE_VERSION_3_24_0     3024000  // UPSERT
+#define D_ENV_SQLITE_VERSION_3_25_0     3025000  // window functions,
+                                                 // RENAME COLUMN
+#define D_ENV_SQLITE_VERSION_3_26_0     3026000  // SQLITE_DBCONFIG_DEFENSIVE
+#define D_ENV_SQLITE_VERSION_3_28_0     3028000  // window frames: GROUPS,
+                                                 // EXCLUDE
 #define D_ENV_SQLITE_VERSION_3_30_0     3030000  // FILTER clause
 #define D_ENV_SQLITE_VERSION_3_31_0     3031000  // generated columns
 #define D_ENV_SQLITE_VERSION_3_33_0     3033000  // UPDATE FROM
 #define D_ENV_SQLITE_VERSION_3_34_0     3034000  // multiple recursive CTE
-#define D_ENV_SQLITE_VERSION_3_35_0     3035000  // DROP COLUMN, math fns
-#define D_ENV_SQLITE_VERSION_3_36_0     3036000  // RETURNING clause
+#define D_ENV_SQLITE_VERSION_3_35_0     3035000  // RETURNING, DROP COLUMN,
+                                                 // math functions, several
+                                                 // ON CONFLICT clauses
+#define D_ENV_SQLITE_VERSION_3_36_0     3036000  // serialize built in
 #define D_ENV_SQLITE_VERSION_3_37_0     3037000  // STRICT tables
-#define D_ENV_SQLITE_VERSION_3_38_0     3038000  // -> ->> JSON operators
-#define D_ENV_SQLITE_VERSION_3_39_0     3039000  // multi ON CONFLICT
-#define D_ENV_SQLITE_VERSION_3_40_0     3040000  // JSONB
+#define D_ENV_SQLITE_VERSION_3_38_0     3038000  // JSON built in, -> ->>
+#define D_ENV_SQLITE_VERSION_3_39_0     3039000  // RIGHT and FULL JOIN
+#define D_ENV_SQLITE_VERSION_3_40_0     3040000  // WASM, recovery extension
 #define D_ENV_SQLITE_VERSION_3_41_0     3041000
-#define D_ENV_SQLITE_VERSION_3_43_0     3043000  // JSON5 support
+#define D_ENV_SQLITE_VERSION_3_42_0     3042000  // JSON5
+#define D_ENV_SQLITE_VERSION_3_43_0     3043000  // contentless-delete FTS5
 #define D_ENV_SQLITE_VERSION_3_44_0     3044000
-#define D_ENV_SQLITE_VERSION_3_45_0     3045000
-#define D_ENV_SQLITE_VERSION_3_46_0     3046000
+#define D_ENV_SQLITE_VERSION_3_45_0     3045000  // JSONB
+#define D_ENV_SQLITE_VERSION_3_46_0     3046000  // json_pretty, digit
+                                                 // separators
+#define D_ENV_SQLITE_VERSION_3_47_0     3047000  // sqlite3_rsync
+#define D_ENV_SQLITE_VERSION_3_48_0     3048000  // autosetup build
+#define D_ENV_SQLITE_VERSION_3_49_0     3049000
+#define D_ENV_SQLITE_VERSION_3_50_0     3050000
+#define D_ENV_SQLITE_VERSION_3_51_0     3051000  // jsonb_each, jsonb_tree
+#define D_ENV_SQLITE_VERSION_3_53_0     3053000  // 3.52.0, re-released fixed
+#define D_ENV_SQLITE_VERSION_3_54_0     3054000  // diskused, printf's %J
 
 // 3.2    Detected version
 //------------------------------------------------------------------------------
@@ -394,6 +413,62 @@ TABLE OF CONTENTS
         #define D_ENV_SQLITE_VERSION_PATCH                                     \
             D_ENV_SQLITE_DECODE_PATCH(D_ENV_SQLITE_DETECTED_VERSION)
         #define D_ENV_SQLITE_VERSION_STRING    "manual"
+
+    #elif defined(D_ENV_SQLITE_DETECTED_3_54)
+        #define D_ENV_SQLITE_DETECTED          1
+        #define D_ENV_SQLITE_VERSION_ID        D_ENV_SQLITE_VERSION_3_54_0
+        #define D_ENV_SQLITE_VERSION_MAJOR     3
+        #define D_ENV_SQLITE_VERSION_MINOR     54
+        #define D_ENV_SQLITE_VERSION_PATCH     0
+        #define D_ENV_SQLITE_VERSION_STRING    "3.54.0"
+
+    #elif defined(D_ENV_SQLITE_DETECTED_3_53)
+        #define D_ENV_SQLITE_DETECTED          1
+        #define D_ENV_SQLITE_VERSION_ID        D_ENV_SQLITE_VERSION_3_53_0
+        #define D_ENV_SQLITE_VERSION_MAJOR     3
+        #define D_ENV_SQLITE_VERSION_MINOR     53
+        #define D_ENV_SQLITE_VERSION_PATCH     0
+        #define D_ENV_SQLITE_VERSION_STRING    "3.53.0"
+
+    #elif defined(D_ENV_SQLITE_DETECTED_3_51)
+        #define D_ENV_SQLITE_DETECTED          1
+        #define D_ENV_SQLITE_VERSION_ID        D_ENV_SQLITE_VERSION_3_51_0
+        #define D_ENV_SQLITE_VERSION_MAJOR     3
+        #define D_ENV_SQLITE_VERSION_MINOR     51
+        #define D_ENV_SQLITE_VERSION_PATCH     0
+        #define D_ENV_SQLITE_VERSION_STRING    "3.51.0"
+
+    #elif defined(D_ENV_SQLITE_DETECTED_3_50)
+        #define D_ENV_SQLITE_DETECTED          1
+        #define D_ENV_SQLITE_VERSION_ID        D_ENV_SQLITE_VERSION_3_50_0
+        #define D_ENV_SQLITE_VERSION_MAJOR     3
+        #define D_ENV_SQLITE_VERSION_MINOR     50
+        #define D_ENV_SQLITE_VERSION_PATCH     0
+        #define D_ENV_SQLITE_VERSION_STRING    "3.50.0"
+
+    #elif defined(D_ENV_SQLITE_DETECTED_3_49)
+        #define D_ENV_SQLITE_DETECTED          1
+        #define D_ENV_SQLITE_VERSION_ID        D_ENV_SQLITE_VERSION_3_49_0
+        #define D_ENV_SQLITE_VERSION_MAJOR     3
+        #define D_ENV_SQLITE_VERSION_MINOR     49
+        #define D_ENV_SQLITE_VERSION_PATCH     0
+        #define D_ENV_SQLITE_VERSION_STRING    "3.49.0"
+
+    #elif defined(D_ENV_SQLITE_DETECTED_3_48)
+        #define D_ENV_SQLITE_DETECTED          1
+        #define D_ENV_SQLITE_VERSION_ID        D_ENV_SQLITE_VERSION_3_48_0
+        #define D_ENV_SQLITE_VERSION_MAJOR     3
+        #define D_ENV_SQLITE_VERSION_MINOR     48
+        #define D_ENV_SQLITE_VERSION_PATCH     0
+        #define D_ENV_SQLITE_VERSION_STRING    "3.48.0"
+
+    #elif defined(D_ENV_SQLITE_DETECTED_3_47)
+        #define D_ENV_SQLITE_DETECTED          1
+        #define D_ENV_SQLITE_VERSION_ID        D_ENV_SQLITE_VERSION_3_47_0
+        #define D_ENV_SQLITE_VERSION_MAJOR     3
+        #define D_ENV_SQLITE_VERSION_MINOR     47
+        #define D_ENV_SQLITE_VERSION_PATCH     0
+        #define D_ENV_SQLITE_VERSION_STRING    "3.47.0"
 
     #elif defined(D_ENV_SQLITE_DETECTED_3_46)
         #define D_ENV_SQLITE_DETECTED          1
@@ -522,7 +597,8 @@ TABLE OF CONTENTS
 #endif  // D_CFG_ENV_SQLITE_CUSTOM
 
 
-// sections 4 to 19 exist only when D_ENV_SQLITE_DETECTED is 1; see 3.2.1
+// sections 4 to 19 read SQLite when D_ENV_SQLITE_DETECTED is 1 (see 3.2.1),
+// and define each of their macros as 0 when it is not
 #if D_ENV_SQLITE_DETECTED
 
 
@@ -702,7 +778,7 @@ TABLE OF CONTENTS
 // JSON support depends on the version and the compile options. From 3.9.0 to
 // 3.37.x, JSON1 is a loadable extension that needs SQLITE_ENABLE_JSON1; from
 // 3.38.0 the JSON functions are built in, and the -> and ->> operators
-// arrive; 3.40.0 adds the JSONB binary format, and 3.43.0 JSON5 input.
+// arrive; 3.42.0 adds JSON5 input, and 3.45.0 the JSONB binary format.
 
 
 // 7.1    JSON
@@ -740,16 +816,16 @@ TABLE OF CONTENTS
     // 7.1.4
     // D_ENV_SQLITE_HAS_JSONB
     //   feature: detect if JSONB binary JSON format and jsonb() function
-    // family are available. Introduced in 3.40.0.
+    // family are available. Introduced in 3.45.0.
     #define D_ENV_SQLITE_HAS_JSONB                                             \
-        D_ENV_SQLITE_VERSION_AT_LEAST(3, 40, 0)
+        D_ENV_SQLITE_VERSION_AT_LEAST(3, 45, 0)
 
     // 7.1.5
     // D_ENV_SQLITE_HAS_JSON5
     //   feature: detect if JSON5 input support (trailing commas, comments,
-    // single-quoted strings, etc.) is available. Introduced in 3.43.0.
+    // single-quoted strings, etc.) is available. Introduced in 3.42.0.
     #define D_ENV_SQLITE_HAS_JSON5                                             \
-        D_ENV_SQLITE_VERSION_AT_LEAST(3, 43, 0)
+        D_ENV_SQLITE_VERSION_AT_LEAST(3, 42, 0)
 
 
 //==============================================================================
@@ -1014,9 +1090,14 @@ TABLE OF CONTENTS
 //------------------------------------------------------------------------------
     // 11.1.1
     // D_ENV_SQLITE_HAS_WAL
-    //   feature: WAL (Write-Ahead Logging) journal mode. 3.7.0+.
-    #define D_ENV_SQLITE_HAS_WAL                                               \
-        D_ENV_SQLITE_VERSION_AT_LEAST(3, 7, 0)
+    //   feature: WAL (Write-Ahead Logging) journal mode. 3.7.0+, unless the
+    // library was built with SQLITE_OMIT_WAL.
+    #if defined(SQLITE_OMIT_WAL)
+        #define D_ENV_SQLITE_HAS_WAL 0
+    #else
+        #define D_ENV_SQLITE_HAS_WAL                                           \
+            D_ENV_SQLITE_VERSION_AT_LEAST(3, 7, 0)
+    #endif
 
     // 11.1.2
     // D_ENV_SQLITE_HAS_WAL2
@@ -1045,10 +1126,11 @@ TABLE OF CONTENTS
 
     // 11.1.4
     // D_ENV_SQLITE_HAS_CHECKPOINT
-    //   feature: WAL checkpointing API (sqlite3_wal_checkpoint_v2).
-    // Available since WAL was introduced (3.7.0).
+    //   feature: WAL checkpointing API (sqlite3_wal_checkpoint_v2), from
+    // 3.7.6, where the library has WAL.
     #define D_ENV_SQLITE_HAS_CHECKPOINT                                        \
-        D_ENV_SQLITE_VERSION_AT_LEAST(3, 7, 0)
+        ( (D_ENV_SQLITE_HAS_WAL) &&                                            \
+          (D_ENV_SQLITE_VERSION_AT_LEAST(3, 7, 6)) )
 
     // 11.1.5
     // D_ENV_SQLITE_HAS_SNAPSHOT
@@ -1155,9 +1237,11 @@ TABLE OF CONTENTS
     // D_ENV_SQLITE_HAS_SERIALIZE
     //   feature: serialize/deserialize API (sqlite3_serialize,
     // sqlite3_deserialize). Enabled via SQLITE_ENABLE_DESERIALIZE.
-    // Built-in since 3.36.0.
+    // Built-in since 3.36.0, unless omitted with SQLITE_OMIT_DESERIALIZE.
     #ifndef D_ENV_SQLITE_HAS_SERIALIZE
-        #if D_ENV_SQLITE_VERSION_AT_LEAST(3, 36, 0)
+        #if defined(SQLITE_OMIT_DESERIALIZE)
+            #define D_ENV_SQLITE_HAS_SERIALIZE 0
+        #elif D_ENV_SQLITE_VERSION_AT_LEAST(3, 36, 0)
             #define D_ENV_SQLITE_HAS_SERIALIZE 1
         #elif defined(SQLITE_ENABLE_DESERIALIZE)
             #define D_ENV_SQLITE_HAS_SERIALIZE 1
@@ -1735,6 +1819,251 @@ TABLE OF CONTENTS
           (D_ENV_SQLITE_HAS_WAL) )
 
 
+#else
+    // decision 92 of the register: without SQLite, every macro sections
+    // 4 to 19 define is defined, as 0, the comparisons for any version among
+    // them, so that #if and code may read each whatever the build; a flag
+    // a build may pre-define keeps its value
+    #define D_ENV_SQLITE_VERSION_AT_LEAST(major, minor, patch) 0
+    #define D_ENV_SQLITE_VERSION_BELOW(major, minor, patch) 0
+    #define D_ENV_SQLITE_VERSION_EXACT(major, minor, patch) 0
+    #define D_ENV_SQLITE_VERSION_IN_RANGE(min_maj,                             \
+                                          min_min,                             \
+                                          min_pat,                             \
+                                          max_maj,                             \
+                                          max_min,                             \
+                                          max_pat) 0
+    #define D_ENV_SQLITE_THREADSAFE 0
+    #define D_ENV_SQLITE_IS_SINGLE_THREAD 0
+    #define D_ENV_SQLITE_IS_MULTI_THREAD 0
+    #define D_ENV_SQLITE_IS_SERIALIZED 0
+    #define D_ENV_SQLITE_HAS_THREAD_SAFETY 0
+    #define D_ENV_SQLITE_HAS_MUTEX 0
+    #ifndef D_ENV_SQLITE_HAS_FTS3
+        #define D_ENV_SQLITE_HAS_FTS3 0
+    #endif  // D_ENV_SQLITE_HAS_FTS3
+    #ifndef D_ENV_SQLITE_HAS_FTS3_PARENTHESIS
+        #define D_ENV_SQLITE_HAS_FTS3_PARENTHESIS 0
+    #endif  // D_ENV_SQLITE_HAS_FTS3_PARENTHESIS
+    #ifndef D_ENV_SQLITE_HAS_FTS3_TOKENIZER
+        #define D_ENV_SQLITE_HAS_FTS3_TOKENIZER 0
+    #endif  // D_ENV_SQLITE_HAS_FTS3_TOKENIZER
+    #ifndef D_ENV_SQLITE_HAS_FTS4
+        #define D_ENV_SQLITE_HAS_FTS4 0
+    #endif  // D_ENV_SQLITE_HAS_FTS4
+    #ifndef D_ENV_SQLITE_HAS_FTS5
+        #define D_ENV_SQLITE_HAS_FTS5 0
+    #endif  // D_ENV_SQLITE_HAS_FTS5
+    #define D_ENV_SQLITE_HAS_ANY_FTS 0
+    #ifndef D_ENV_SQLITE_HAS_JSON
+        #define D_ENV_SQLITE_HAS_JSON 0
+    #endif  // D_ENV_SQLITE_HAS_JSON
+    #define D_ENV_SQLITE_JSON_IS_BUILTIN 0
+    #define D_ENV_SQLITE_HAS_JSON_OPERATORS 0
+    #define D_ENV_SQLITE_HAS_JSONB 0
+    #define D_ENV_SQLITE_HAS_JSON5 0
+    #ifndef D_ENV_SQLITE_HAS_RTREE
+        #define D_ENV_SQLITE_HAS_RTREE 0
+    #endif  // D_ENV_SQLITE_HAS_RTREE
+    #ifndef D_ENV_SQLITE_HAS_GEOPOLY
+        #define D_ENV_SQLITE_HAS_GEOPOLY 0
+    #endif  // D_ENV_SQLITE_HAS_GEOPOLY
+    #ifndef D_ENV_SQLITE_HAS_VTAB
+        #define D_ENV_SQLITE_HAS_VTAB 0
+    #endif  // D_ENV_SQLITE_HAS_VTAB
+    #ifndef D_ENV_SQLITE_HAS_DBSTAT_VTAB
+        #define D_ENV_SQLITE_HAS_DBSTAT_VTAB 0
+    #endif  // D_ENV_SQLITE_HAS_DBSTAT_VTAB
+    #ifndef D_ENV_SQLITE_HAS_DBPAGE_VTAB
+        #define D_ENV_SQLITE_HAS_DBPAGE_VTAB 0
+    #endif  // D_ENV_SQLITE_HAS_DBPAGE_VTAB
+    #ifndef D_ENV_SQLITE_HAS_STMTVTAB
+        #define D_ENV_SQLITE_HAS_STMTVTAB 0
+    #endif  // D_ENV_SQLITE_HAS_STMTVTAB
+    #ifndef D_ENV_SQLITE_HAS_BYTECODE_VTAB
+        #define D_ENV_SQLITE_HAS_BYTECODE_VTAB 0
+    #endif  // D_ENV_SQLITE_HAS_BYTECODE_VTAB
+    #define D_ENV_SQLITE_HAS_CTE 0
+    #define D_ENV_SQLITE_HAS_CTE_RECURSIVE 0
+    #define D_ENV_SQLITE_HAS_CTE_MATERIALIZED 0
+    #define D_ENV_SQLITE_HAS_PARTIAL_INDEX 0
+    #define D_ENV_SQLITE_HAS_UPSERT 0
+    #define D_ENV_SQLITE_HAS_WINDOW_FUNCTIONS 0
+    #define D_ENV_SQLITE_HAS_FILTER_CLAUSE 0
+    #define D_ENV_SQLITE_HAS_GENERATED_COLUMNS 0
+    #define D_ENV_SQLITE_HAS_UPDATE_FROM 0
+    #define D_ENV_SQLITE_HAS_DROP_COLUMN 0
+    #define D_ENV_SQLITE_HAS_RENAME_COLUMN 0
+    #define D_ENV_SQLITE_HAS_RETURNING 0
+    #define D_ENV_SQLITE_HAS_STRICT_TABLES 0
+    #define D_ENV_SQLITE_HAS_ROW_VALUES 0
+    #define D_ENV_SQLITE_HAS_MULTI_INSERT_VALUES 0
+    #define D_ENV_SQLITE_HAS_VALUES_CLAUSE 0
+    #ifndef D_ENV_SQLITE_HAS_MATH_FUNCTIONS
+        #define D_ENV_SQLITE_HAS_MATH_FUNCTIONS 0
+    #endif  // D_ENV_SQLITE_HAS_MATH_FUNCTIONS
+    #ifndef D_ENV_SQLITE_HAS_SOUNDEX
+        #define D_ENV_SQLITE_HAS_SOUNDEX 0
+    #endif  // D_ENV_SQLITE_HAS_SOUNDEX
+    #ifndef D_ENV_SQLITE_HAS_LIKE_DOESNT_MATCH_BLOBS
+        #define D_ENV_SQLITE_HAS_LIKE_DOESNT_MATCH_BLOBS 0
+    #endif  // D_ENV_SQLITE_HAS_LIKE_DOESNT_MATCH_BLOBS
+    #ifndef D_ENV_SQLITE_HAS_DQS_CONTROL
+        #define D_ENV_SQLITE_HAS_DQS_CONTROL 0
+    #endif  // D_ENV_SQLITE_HAS_DQS_CONTROL
+    #define D_ENV_SQLITE_HAS_WAL 0
+    #ifndef D_ENV_SQLITE_HAS_WAL2
+        #define D_ENV_SQLITE_HAS_WAL2 0
+    #endif  // D_ENV_SQLITE_HAS_WAL2
+    #ifndef D_ENV_SQLITE_WAL_IS_DEFAULT
+        #define D_ENV_SQLITE_WAL_IS_DEFAULT 0
+    #endif  // D_ENV_SQLITE_WAL_IS_DEFAULT
+    #define D_ENV_SQLITE_HAS_CHECKPOINT 0
+    #ifndef D_ENV_SQLITE_HAS_SNAPSHOT
+        #define D_ENV_SQLITE_HAS_SNAPSHOT 0
+    #endif  // D_ENV_SQLITE_HAS_SNAPSHOT
+    #ifndef D_ENV_SQLITE_HAS_MEMORY_MANAGEMENT
+        #define D_ENV_SQLITE_HAS_MEMORY_MANAGEMENT 0
+    #endif  // D_ENV_SQLITE_HAS_MEMORY_MANAGEMENT
+    #ifndef D_ENV_SQLITE_HAS_MEMSYS5
+        #define D_ENV_SQLITE_HAS_MEMSYS5 0
+    #endif  // D_ENV_SQLITE_HAS_MEMSYS5
+    #ifndef D_ENV_SQLITE_HAS_MEMSYS3
+        #define D_ENV_SQLITE_HAS_MEMSYS3 0
+    #endif  // D_ENV_SQLITE_HAS_MEMSYS3
+    #ifndef D_ENV_SQLITE_HAS_MEMSTATUS
+        #define D_ENV_SQLITE_HAS_MEMSTATUS 0
+    #endif  // D_ENV_SQLITE_HAS_MEMSTATUS
+    #define D_ENV_SQLITE_HAS_MMAP 0
+    #ifndef D_ENV_SQLITE_ZERO_MALLOC
+        #define D_ENV_SQLITE_ZERO_MALLOC 0
+    #endif  // D_ENV_SQLITE_ZERO_MALLOC
+    #define D_ENV_SQLITE_HAS_BACKUP_API 0
+    #ifndef D_ENV_SQLITE_HAS_SERIALIZE
+        #define D_ENV_SQLITE_HAS_SERIALIZE 0
+    #endif  // D_ENV_SQLITE_HAS_SERIALIZE
+    #ifndef D_ENV_SQLITE_HAS_SESSION
+        #define D_ENV_SQLITE_HAS_SESSION 0
+    #endif  // D_ENV_SQLITE_HAS_SESSION
+    #ifndef D_ENV_SQLITE_HAS_PREUPDATE_HOOK
+        #define D_ENV_SQLITE_HAS_PREUPDATE_HOOK 0
+    #endif  // D_ENV_SQLITE_HAS_PREUPDATE_HOOK
+    #ifndef D_ENV_SQLITE_HAS_RBU
+        #define D_ENV_SQLITE_HAS_RBU 0
+    #endif  // D_ENV_SQLITE_HAS_RBU
+    #ifndef D_ENV_SQLITE_HAS_ENCRYPTION
+        #define D_ENV_SQLITE_HAS_ENCRYPTION 0
+    #endif  // D_ENV_SQLITE_HAS_ENCRYPTION
+    #ifndef D_ENV_SQLITE_HAS_SEE
+        #define D_ENV_SQLITE_HAS_SEE 0
+    #endif  // D_ENV_SQLITE_HAS_SEE
+    #ifndef D_ENV_SQLITE_HAS_SQLCIPHER
+        #define D_ENV_SQLITE_HAS_SQLCIPHER 0
+    #endif  // D_ENV_SQLITE_HAS_SQLCIPHER
+    #ifndef D_ENV_SQLITE_HAS_API_ARMOR
+        #define D_ENV_SQLITE_HAS_API_ARMOR 0
+    #endif  // D_ENV_SQLITE_HAS_API_ARMOR
+    #ifndef D_ENV_SQLITE_HAS_URI_FILENAMES
+        #define D_ENV_SQLITE_HAS_URI_FILENAMES 0
+    #endif  // D_ENV_SQLITE_HAS_URI_FILENAMES
+    #define D_ENV_SQLITE_HAS_DEFENSIVE_MODE 0
+    #define D_ENV_SQLITE_HAS_TRUSTED_SCHEMA 0
+    #ifndef D_ENV_SQLITE_HAS_LOAD_EXTENSION
+        #define D_ENV_SQLITE_HAS_LOAD_EXTENSION 0
+    #endif  // D_ENV_SQLITE_HAS_LOAD_EXTENSION
+    #ifndef D_ENV_SQLITE_HAS_AUTO_EXTENSION
+        #define D_ENV_SQLITE_HAS_AUTO_EXTENSION 0
+    #endif  // D_ENV_SQLITE_HAS_AUTO_EXTENSION
+    #ifndef D_ENV_SQLITE_HAS_ICU
+        #define D_ENV_SQLITE_HAS_ICU 0
+    #endif  // D_ENV_SQLITE_HAS_ICU
+    #ifndef D_ENV_SQLITE_HAS_UNLOCK_NOTIFY
+        #define D_ENV_SQLITE_HAS_UNLOCK_NOTIFY 0
+    #endif  // D_ENV_SQLITE_HAS_UNLOCK_NOTIFY
+    #ifndef D_ENV_SQLITE_HAS_COLUMN_METADATA
+        #define D_ENV_SQLITE_HAS_COLUMN_METADATA 0
+    #endif  // D_ENV_SQLITE_HAS_COLUMN_METADATA
+    #ifndef D_ENV_SQLITE_HAS_STAT4
+        #define D_ENV_SQLITE_HAS_STAT4 0
+    #endif  // D_ENV_SQLITE_HAS_STAT4
+    #ifndef D_ENV_SQLITE_HAS_UPDATE_DELETE_LIMIT
+        #define D_ENV_SQLITE_HAS_UPDATE_DELETE_LIMIT 0
+    #endif  // D_ENV_SQLITE_HAS_UPDATE_DELETE_LIMIT
+    #ifndef D_ENV_SQLITE_HAS_NORMALIZE
+        #define D_ENV_SQLITE_HAS_NORMALIZE 0
+    #endif  // D_ENV_SQLITE_HAS_NORMALIZE
+    #ifndef D_ENV_SQLITE_HAS_EXPLAIN_COMMENTS
+        #define D_ENV_SQLITE_HAS_EXPLAIN_COMMENTS 0
+    #endif  // D_ENV_SQLITE_HAS_EXPLAIN_COMMENTS
+    #ifndef D_ENV_SQLITE_HAS_STMT_SCANSTATUS
+        #define D_ENV_SQLITE_HAS_STMT_SCANSTATUS 0
+    #endif  // D_ENV_SQLITE_HAS_STMT_SCANSTATUS
+    #ifndef D_ENV_SQLITE_HAS_UNIX_VFS
+        #define D_ENV_SQLITE_HAS_UNIX_VFS 0
+    #endif  // D_ENV_SQLITE_HAS_UNIX_VFS
+    #ifndef D_ENV_SQLITE_HAS_WIN32_VFS
+        #define D_ENV_SQLITE_HAS_WIN32_VFS 0
+    #endif  // D_ENV_SQLITE_HAS_WIN32_VFS
+    #ifndef D_ENV_SQLITE_HAS_CUSTOM_VFS
+        #define D_ENV_SQLITE_HAS_CUSTOM_VFS 0
+    #endif  // D_ENV_SQLITE_HAS_CUSTOM_VFS
+    #ifndef D_ENV_SQLITE_HAS_FOREIGN_KEYS
+        #define D_ENV_SQLITE_HAS_FOREIGN_KEYS 0
+    #endif  // D_ENV_SQLITE_HAS_FOREIGN_KEYS
+    #ifndef D_ENV_SQLITE_HAS_TRIGGERS
+        #define D_ENV_SQLITE_HAS_TRIGGERS 0
+    #endif  // D_ENV_SQLITE_HAS_TRIGGERS
+    #ifndef D_ENV_SQLITE_HAS_VIEWS
+        #define D_ENV_SQLITE_HAS_VIEWS 0
+    #endif  // D_ENV_SQLITE_HAS_VIEWS
+    #ifndef D_ENV_SQLITE_HAS_SUBQUERY
+        #define D_ENV_SQLITE_HAS_SUBQUERY 0
+    #endif  // D_ENV_SQLITE_HAS_SUBQUERY
+    #ifndef D_ENV_SQLITE_HAS_COMPOUND_SELECT
+        #define D_ENV_SQLITE_HAS_COMPOUND_SELECT 0
+    #endif  // D_ENV_SQLITE_HAS_COMPOUND_SELECT
+    #ifndef D_ENV_SQLITE_HAS_ALTERTABLE
+        #define D_ENV_SQLITE_HAS_ALTERTABLE 0
+    #endif  // D_ENV_SQLITE_HAS_ALTERTABLE
+    #ifndef D_ENV_SQLITE_HAS_ANALYZE
+        #define D_ENV_SQLITE_HAS_ANALYZE 0
+    #endif  // D_ENV_SQLITE_HAS_ANALYZE
+    #ifndef D_ENV_SQLITE_HAS_ATTACH
+        #define D_ENV_SQLITE_HAS_ATTACH 0
+    #endif  // D_ENV_SQLITE_HAS_ATTACH
+    #ifndef D_ENV_SQLITE_HAS_AUTOINCREMENT
+        #define D_ENV_SQLITE_HAS_AUTOINCREMENT 0
+    #endif  // D_ENV_SQLITE_HAS_AUTOINCREMENT
+    #ifndef D_ENV_SQLITE_HAS_AUTHORIZATION
+        #define D_ENV_SQLITE_HAS_AUTHORIZATION 0
+    #endif  // D_ENV_SQLITE_HAS_AUTHORIZATION
+    #ifndef D_ENV_SQLITE_HAS_VACUUM
+        #define D_ENV_SQLITE_HAS_VACUUM 0
+    #endif  // D_ENV_SQLITE_HAS_VACUUM
+    #ifndef D_ENV_SQLITE_HAS_INTEGRITY_CHECK
+        #define D_ENV_SQLITE_HAS_INTEGRITY_CHECK 0
+    #endif  // D_ENV_SQLITE_HAS_INTEGRITY_CHECK
+    #ifndef D_ENV_SQLITE_HAS_SCHEMA_PRAGMAS
+        #define D_ENV_SQLITE_HAS_SCHEMA_PRAGMAS 0
+    #endif  // D_ENV_SQLITE_HAS_SCHEMA_PRAGMAS
+    #ifndef D_ENV_SQLITE_HAS_PROGRESS_CALLBACK
+        #define D_ENV_SQLITE_HAS_PROGRESS_CALLBACK 0
+    #endif  // D_ENV_SQLITE_HAS_PROGRESS_CALLBACK
+    #ifndef D_ENV_SQLITE_HAS_TRACE
+        #define D_ENV_SQLITE_HAS_TRACE 0
+    #endif  // D_ENV_SQLITE_HAS_TRACE
+    #ifndef D_ENV_SQLITE_HAS_UTF16
+        #define D_ENV_SQLITE_HAS_UTF16 0
+    #endif  // D_ENV_SQLITE_HAS_UTF16
+    #ifndef D_ENV_SQLITE_HAS_COMPLETE
+        #define D_ENV_SQLITE_HAS_COMPLETE 0
+    #endif  // D_ENV_SQLITE_HAS_COMPLETE
+    #define D_ENV_SQLITE_HAS_MODERN_SQL 0
+    #define D_ENV_SQLITE_HAS_MODERN_JSON 0
+    #define D_ENV_SQLITE_HAS_MODERN_DDL 0
+    #define D_ENV_SQLITE_HAS_FULL_SEARCH 0
+    #define D_ENV_SQLITE_HAS_STRICT_MODE 0
+    #define D_ENV_SQLITE_IS_FULLY_MODERN 0
 #endif  // D_ENV_SQLITE_DETECTED
 
 

@@ -1,11 +1,9 @@
-/* includes.c: an include of the root says what the file takes from it */
+/* includes.c: the one include summary the guide fixes word for word */
 // djinterp
 #include "../djinterp.h"         // framework root
-#include "../../c/djinterp.h"    // D_INLINE, D_STATIC_ASSERT
+#include "../../c/djinterp.h"    // the root, differently worded
 #include "djinterp.h"
-#include "./not_djinterp.h"      // framework root
-#include "../djinterp.hpp"       // framework root
-#include "../djinterp.h"         // framework root: and what it brings
+#include "./not_djinterp.h"      // not the root, so free to word
 
 
 int d_includes;

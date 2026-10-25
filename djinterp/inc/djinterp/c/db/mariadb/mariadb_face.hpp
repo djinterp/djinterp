@@ -425,6 +425,46 @@ public:
     }
 #endif  // D_INTERNAL_DB_FACE_EXPECTED
 
+    int
+    open_cursor() D_NOEXCEPT
+    {
+        return d_mariadb_open_cursor(m_statement);
+    }
+
+    int
+    fetch_rows(
+        std::size_t _max,
+        rows&       _rows
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_fetch_rows(m_statement, _max, _rows.out());
+    }
+
+#if D_INTERNAL_DB_FACE_EXPECTED
+    D_NODISCARD std::expected<rows, int>
+    fetch_rows(
+        std::size_t _max
+    ) D_NOEXCEPT
+    {
+        rows      value{};
+        const int result = d_mariadb_fetch_rows(m_statement, _max, value.out());
+
+        // the value, or the layer's result when it failed
+        if (result != 0)
+        {
+            return std::unexpected(result);
+        }
+
+        return value;
+    }
+#endif  // D_INTERNAL_DB_FACE_EXPECTED
+
+    int
+    close_cursor() D_NOEXCEPT
+    {
+        return d_mariadb_close_cursor(m_statement);
+    }
+
 private:
     D_DELETED_FN_MSG(mariadb_statement(const mariadb_statement&),
                      "a statement owns what the server prepared; move it")
@@ -869,6 +909,12 @@ public:
     }
 
     int
+    reset_connection() D_NOEXCEPT
+    {
+        return d_mariadb_reset_connection(m_db);
+    }
+
+    int
     ping() D_NOEXCEPT
     {
         return d_mariadb_ping(m_db);
@@ -957,6 +1003,15 @@ public:
     warning_count() const D_NOEXCEPT
     {
         return d_mariadb_warning_count(m_db);
+    }
+
+    D_NODISCARD int
+    get_option(
+        int   _option,
+        void* _value
+    ) const D_NOEXCEPT
+    {
+        return d_mariadb_get_option(m_db, _option, _value);
     }
 
     // 1.2.1.5
@@ -1494,6 +1549,23 @@ public:
         const text result(d_mariadb_quote_literal(m_db, _text.c_str()));
 
         return result.str();
+    }
+
+    int
+    set_query_attribute(
+        string_arg _name,
+        string_arg _value
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_set_query_attribute(m_db,
+                                             _name.c_str(),
+                                             _value.c_str());
+    }
+
+    int
+    clear_query_attributes() D_NOEXCEPT
+    {
+        return d_mariadb_clear_query_attributes(m_db);
     }
 
     // 1.2.1.6
@@ -2955,6 +3027,48 @@ public:
         const int result = d_mariadb_get_variable(m_db,
                                                   _name.c_str(),
                                                   value.out());
+
+        // the value, or the layer's result when it failed
+        if (result != 0)
+        {
+            return std::unexpected(result);
+        }
+
+        return value;
+    }
+#endif  // D_INTERNAL_DB_FACE_EXPECTED
+
+    int
+    session_track(
+        d_mariadb_track _kind,
+        name_list&      _entries
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_session_track(m_db, _kind, _entries.out());
+    }
+
+    int
+    session_track(
+        d_mariadb_track           _kind,
+        std::vector<std::string>& _entries
+    )
+    {
+        name_list names;
+        const int result = d_mariadb_session_track(m_db, _kind, names.out());
+
+        names.to_vector(_entries);
+
+        return result;
+    }
+
+#if D_INTERNAL_DB_FACE_EXPECTED
+    D_NODISCARD std::expected<name_list, int>
+    session_track(
+        d_mariadb_track _kind
+    ) D_NOEXCEPT
+    {
+        name_list value{};
+        const int result = d_mariadb_session_track(m_db, _kind, value.out());
 
         // the value, or the layer's result when it failed
         if (result != 0)

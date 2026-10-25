@@ -19,7 +19,7 @@
 * path:      /src/djinterp/c/filesys/file_ops.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_ops.h"  // corresponding header
 // std
@@ -31,7 +31,8 @@
 #include "../../../../inc/djinterp/c/filesys/file_desc.h"    // d_file_open, d_file_close_fd
 #include "../../../../inc/djinterp/c/filesys/file_io.h"      // d_file_read_fd, d_file_write_full_fd
 #include "../../../../inc/djinterp/c/filesys/file_seek.h"    // d_file_truncate_fd64
-#include "../../../../inc/djinterp/c/filesys/file_stat.h"    // d_file_stat_fd64, d_file_chmod, d_file_exists
+#include "../../../../inc/djinterp/c/filesys/file_stat.h"    // d_file_stat_fd64, d_file_chmod,
+                                                                // d_file_exists, d_dir_exists
 #include "../../../../inc/djinterp/config/c/filesys/cfg_file_ops.h"  // D_INTERNAL_FILE_OPS_*
 // re_std
 #include "../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t
@@ -593,9 +594,19 @@ d_internal_ops_copy(
     const int in = d_file_open(_src,
                                O_RDONLY);
 
-    // d_file_open has already reported the failure
+    // d_file_open has already reported the failure. A directory is refused
+    // there on Windows, which cannot open one as a file; the contract names a
+    // source that is not a regular file EINVAL, as the fstat below does where
+    // a directory opens
     if (in < 0)
     {
+        const int code = errno;
+
+        D_INTERNAL_FILE_SET_ERR( ( ( (code == EACCES) ||
+                                     (code == EISDIR) ) &&
+                                   (d_dir_exists(_src)) ) ? EINVAL
+                                                          : code );
+
         return -1;
     }
 

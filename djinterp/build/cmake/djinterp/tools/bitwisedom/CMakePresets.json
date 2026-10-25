@@ -13,13 +13,15 @@
       "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
         "DJINTERP_ROOT": "${sourceDir}/../../../../..",
-        "BITWISEDOM_BUILD_TESTS": "ON"
+        "UXOXO_ROOT": "D:/sam/code/projects/frameworks/uxoxo/uxoxo-project",
+        "BITWISEDOM_BUILD_TESTS": "ON",
+        "BITWISEDOM_BUILD_APP": "ON"
       }
     },
     {
       "name": "msvc",
       "displayName": "MSVC (cl, Ninja Multi-Config)",
-      "description": "Run from a Developer Command Prompt so cl is on PATH.",
+      "description": "Run from a Developer Command Prompt so cl is on PATH. The window is Win32 + Direct3D 11.",
       "inherits": "base",
       "generator": "Ninja Multi-Config",
       "cacheVariables": {
@@ -85,7 +87,7 @@
     {
       "name": "gcc",
       "displayName": "GCC (Ninja Multi-Config)",
-      "description": "Linux, macOS, the BSDs, WSL or CI.",
+      "description": "Linux, WSL or CI; the window is GLFW + OpenGL 3. Pass -DDJINTERP_ROOT and -DUXOXO_ROOT: the defaults are Windows paths.",
       "inherits": "base",
       "generator": "Ninja Multi-Config",
       "cacheVariables": {
@@ -101,7 +103,7 @@
     {
       "name": "clang",
       "displayName": "Clang (Ninja Multi-Config)",
-      "description": "Linux, macOS, the BSDs, WSL or CI.",
+      "description": "Linux, WSL or CI; the window is GLFW + OpenGL 3. Pass -DDJINTERP_ROOT and -DUXOXO_ROOT: the defaults are Windows paths.",
       "inherits": "base",
       "generator": "Ninja Multi-Config",
       "cacheVariables": {
@@ -134,7 +136,7 @@
     {
       "name": "mingw-cross",
       "displayName": "MinGW-w64 cross build for Windows (from Linux)",
-      "description": "Windows programs built on Linux; tests are off, as they cannot run here.",
+      "description": "A Windows bitwisedom.exe built on Linux; tests are off, as they cannot run here.",
       "inherits": "base",
       "generator": "Ninja Multi-Config",
       "toolchainFile": "${sourceDir}/cmake/toolchains/mingw-w64-x86_64.cmake",

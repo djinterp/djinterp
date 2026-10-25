@@ -17,13 +17,14 @@
 * path:      /tests/djinterp/core/db/t_db_core.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CORE_DB_T_DB_CORE_HPP
 #define DJINTERP_TESTS_CORE_DB_T_DB_CORE_HPP 1
 
 // std
+#include <algorithm>  // std::reverse
 #include <chrono>     // std::chrono::system_clock, seconds, microseconds
 #include <climits>    // LLONG_MIN
 #include <cstdio>     // std::printf
@@ -42,7 +43,7 @@
                                                   // database_table
 #include "../../../../inc/djinterp/core/db/database_table_render.hpp"
                                                   // relational_table_view,
-                                                  // store_D, retrieve_D
+                                                  // store_table, load_table
 
 
 namespace d_tests_db_core
@@ -543,6 +544,9 @@ errors
     beginning with the name of the server that answered, then the
     operation; get_last_error_code and has_error follow, clear_error
     forgets; the connection stays open
+  - each operation names itself in its failure and in get_last_error:
+    execute, execute_update, execute_query, execute_scalar and
+    execute_single_row, though several run the same hook
   - a duplicate key, the vendor's code for it
   - SQL, or a savepoint's name, holding a NUL: query_exception with
     D_DB_INVALID_ARGUMENT, before the database sees it
@@ -568,9 +572,36 @@ errors(
                                            _dialect.vendor,
                                            std::strlen(_dialect.vendor)) ==
                               0);
-        D_TESTS_DB_CORE_CHECK(std::strstr(e.what(), " execute_update: ") !=
+        D_TESTS_DB_CORE_CHECK(std::strstr(e.what(), " execute: ") !=
                               nullptr);
     }
+
+    // each operation under its own name, the hook it shares notwithstanding
+    const auto names = [&_db](auto&& _call, const char* _label) -> void
+    {
+        try
+        {
+            _call();
+            D_TESTS_DB_CORE_CHECK(false);
+        }
+        catch (const db::query_exception& e)
+        {
+            D_TESTS_DB_CORE_CHECK( (std::strstr(e.what(), _label) != nullptr) &&
+                                   (_db.get_last_error().find(_label) !=
+                                    std::string::npos) );
+        }
+
+        return;
+    };
+
+    names([&_db]() { (void)_db.execute_update("SELEC 1"); },
+          " execute_update: ");
+    names([&_db]() { (void)_db.execute_query("SELEC 1"); },
+          " execute_query: ");
+    names([&_db]() { (void)_db.execute_scalar("SELEC 1"); },
+          " execute_scalar: ");
+    names([&_db]() { (void)_db.execute_single_row("SELEC 1"); },
+          " execute_single_row: ");
 
     D_TESTS_DB_CORE_CHECK( (_db.has_error()) &&
                            (_db.get_last_error_code() ==
@@ -616,6 +647,229 @@ errors(
 }
 
 /*
+streams
+  Rows a page at a time.
+  Tests the following:
+  - a stream's rows are the buffered run's, value for value, its first page
+    read before execute_stream returns -- the columns known; row_count is -1
+    until the last page, then every row; current_row counts across pages
+  - while the run is open the connection's operations, a prepare, another
+    statement's run and another stream throw query_exception with the
+    layer's busy code where its runs hold the connection, and run where they
+    do not (SQLite); the statement's own values cannot change, on every
+    vendor; the run's end frees the connection
+  - forward only: previous, first beyond the first page and absolute behind
+    throw D_DB_UNSUPPORTED; first within it, absolute ahead and last read on;
+    a negative absolute counts back within the last page; a page filled
+    exactly ends with an empty one
+  - running the statement again, closing the stream, destroying it, or the
+    statement going, ends the run: the stream is closed, its next move
+    throws, and the connection is free; a page of no rows is refused
+  - stream_query's stream holds a statement of its own
+*/
+template<typename Connection>
+void
+streams(
+    Connection&    _db,
+    const dialect& _dialect
+)
+{
+    using layer_type = typename Connection::layer_type;
+
+    std::printf("streams\n");
+
+    const re_std::int64_t before = count_rows(_db);
+    const std::string     query  = "SELECT name, small FROM core_t WHERE "
+                                   "name = 'stream' ORDER BY small";
+    auto                  insert = _db.prepare(_dialect.insert);
+
+    // seven rows to read, small 1 to 7
+    for (re_std::int32_t i = 1; i <= 7; ++i)
+    {
+        insert->clear_parameters();
+        insert->bind_string(1u, "stream");
+        insert->bind_int(3u, i);
+        (void)insert->execute_update();
+    }
+
+    std::unique_ptr<db::buffered_result_set> all = _db.execute_query(query);
+    auto select = _db.prepare(query);
+    auto other  = _db.prepare("SELECT COUNT(*) FROM core_t");
+
+    // pages of three: the buffered run's rows
+    {
+        auto            stream = select->execute_stream(3u);
+        re_std::int64_t read   = 0;
+        bool            same   = true;
+
+        D_TESTS_DB_CORE_CHECK( (stream->is_open())            &&
+                               (!stream->is_ended())          &&
+                               (stream->column_count() == 2u) &&
+                               (stream->column_name(1u) == "small") &&
+                               (stream->row_count() == -1)    &&
+                               (stream->current_row() == -1) );
+
+        // each row against the buffered run's
+        while (stream->next())
+        {
+            same = ( (same)                                         &&
+                     (all->next())                                  &&
+                     (stream->current_row() == read)                &&
+                     (stream->get_long(1u) == all->get_long(1u))    &&
+                     (stream->get_string("name") ==
+                      all->get_string("name")) );
+            ++read;
+        }
+
+        D_TESTS_DB_CORE_CHECK( (same)                         &&
+                               (read == 7)                    &&
+                               (stream->row_count() == 7)     &&
+                               (stream->current_row() == 7)   &&
+                               (stream->is_ended())           &&
+                               (!stream->next()) );
+    }
+
+    // while the run is open
+    {
+        auto stream = select->execute_stream(3u);
+
+        D_TESTS_DB_CORE_CHECK(stream->next());
+
+        // the connection is the run's where the layer's runs hold it
+        if constexpr (layer_type::holds_connection)
+        {
+            D_TESTS_DB_CORE_THROWS(_db.execute("SELECT 1"),
+                                   db::query_exception,
+                                   layer_type::busy_code);
+            D_TESTS_DB_CORE_THROWS((void)_db.prepare("SELECT 1"),
+                                   db::query_exception,
+                                   layer_type::busy_code);
+            D_TESTS_DB_CORE_THROWS((void)other->execute_query(),
+                                   db::query_exception,
+                                   layer_type::busy_code);
+            D_TESTS_DB_CORE_THROWS((void)other->execute_stream(),
+                                   db::query_exception,
+                                   layer_type::busy_code);
+            D_TESTS_DB_CORE_THROWS((void)_db.stream_query("SELECT 1"),
+                                   db::query_exception,
+                                   layer_type::busy_code);
+            D_TESTS_DB_CORE_CHECK(_db.is_connected());
+        }
+        else
+        {
+            D_TESTS_DB_CORE_CHECK(count_rows(_db) == before + 7);
+            D_TESTS_DB_CORE_CHECK(other->execute_query()->next());
+        }
+
+        // the statement's own values, on every vendor
+        D_TESTS_DB_CORE_THROWS(select->clear_parameters(),
+                               db::query_exception,
+                               D_DB_INVALID_ARGUMENT);
+        D_TESTS_DB_CORE_THROWS(select->bind_long(1u, 1),
+                               db::query_exception,
+                               D_DB_INVALID_ARGUMENT);
+
+        // the rest, and the connection free again
+        const db::result_rows rest = stream->get_all_rows();
+
+        D_TESTS_DB_CORE_CHECK( (rest.size() == 6u) &&
+                               (stream->is_ended()) );
+        D_TESTS_DB_CORE_CHECK(count_rows(_db) == before + 7);
+        select->clear_parameters();
+    }
+
+    // forward only
+    {
+        auto stream = select->execute_stream(3u);
+
+        D_TESTS_DB_CORE_CHECK( (stream->next()) && (stream->next()) );
+        D_TESTS_DB_CORE_THROWS((void)stream->previous(),
+                               db::query_exception,
+                               D_DB_UNSUPPORTED);
+        D_TESTS_DB_CORE_CHECK( (stream->first()) &&
+                               (stream->current_row() == 0) );
+        D_TESTS_DB_CORE_CHECK( (stream->absolute(4)) &&
+                               (stream->get_long(1u).value_or(0) == 5) );
+        D_TESTS_DB_CORE_THROWS((void)stream->first(),
+                               db::query_exception,
+                               D_DB_UNSUPPORTED);
+        D_TESTS_DB_CORE_THROWS((void)stream->absolute(2),
+                               db::query_exception,
+                               D_DB_UNSUPPORTED);
+        D_TESTS_DB_CORE_CHECK( (stream->absolute(-1))                    &&
+                               (stream->get_long(1u).value_or(0) == 7)  &&
+                               (stream->row_count() == 7) );
+        D_TESTS_DB_CORE_THROWS((void)stream->absolute(-3),
+                               db::query_exception,
+                               D_DB_UNSUPPORTED);
+        D_TESTS_DB_CORE_CHECK( (!stream->absolute(9)) &&
+                               (stream->current_row() == 7) );
+    }
+
+    // a page filled exactly, then an empty one; last over both
+    {
+        auto stream = select->execute_stream(7u);
+
+        D_TESTS_DB_CORE_CHECK( (!stream->is_ended())                    &&
+                               (stream->last())                         &&
+                               (stream->get_long(1u).value_or(0) == 7)  &&
+                               (stream->current_row() == 6)             &&
+                               (stream->row_count() == 7) );
+        D_TESTS_DB_CORE_CHECK( (!stream->next())           &&
+                               (stream->column_count() == 2u) );
+    }
+
+    // ending a run part-way: running again, closing, destroying, and the
+    // statement going
+    {
+        auto stream = select->execute_stream(2u);
+
+        D_TESTS_DB_CORE_CHECK(stream->next());
+        D_TESTS_DB_CORE_CHECK(select->execute_query()->row_count() == 7);
+        D_TESTS_DB_CORE_CHECK(!stream->is_open());
+        D_TESTS_DB_CORE_THROWS_ANY((void)stream->next(), db::query_exception);
+        D_TESTS_DB_CORE_CHECK(count_rows(_db) == before + 7);
+
+        stream = select->execute_stream(2u);
+        stream->close();
+        D_TESTS_DB_CORE_CHECK( (!stream->is_open()) &&
+                               (count_rows(_db) == before + 7) );
+
+        stream = select->execute_stream(2u);
+        stream.reset();
+        D_TESTS_DB_CORE_CHECK(count_rows(_db) == before + 7);
+
+        auto brief = _db.prepare(query);
+
+        stream = brief->execute_stream(2u);
+        brief.reset();
+        D_TESTS_DB_CORE_CHECK(!stream->is_open());
+        D_TESTS_DB_CORE_THROWS_ANY((void)stream->next(), db::query_exception);
+        D_TESTS_DB_CORE_CHECK(count_rows(_db) == before + 7);
+
+        D_TESTS_DB_CORE_THROWS((void)select->execute_stream(0u),
+                               db::query_exception,
+                               D_DB_INVALID_ARGUMENT);
+    }
+
+    // the connection's own stream, over a statement of its own
+    {
+        auto stream = _db.stream_query(query, 4u);
+
+        D_TESTS_DB_CORE_CHECK( (stream->next()) &&
+                               (stream->get_string(0u).value_or("") ==
+                                "stream") );
+        D_TESTS_DB_CORE_CHECK(stream->get_all_rows().size() == 6u);
+        D_TESTS_DB_CORE_CHECK(count_rows(_db) == before + 7);
+    }
+
+    (void)_db.execute_update("DELETE FROM core_t WHERE name = 'stream'");
+    D_TESTS_DB_CORE_CHECK(count_rows(_db) == before);
+
+    return;
+}
+
+/*
 lifetimes
   How statements and connections live and die together. `_make` makes a
 connection to the harness's database, not yet connected.
@@ -623,6 +877,7 @@ connection to the harness's database, not yet connected.
   - disconnect closes every statement prepared on the connection, which then
     refuses to run; the connection refuses too, not connected; reconnect
     opens it again
+  - disconnect closes a stream open on the connection, and frees it
   - a connection moved: the one moved to is open, its statements with it;
     the one moved from is disconnected
   - a connection that goes closes its statements first
@@ -654,6 +909,18 @@ lifetimes(
                                db::connection_exception);
     db.reconnect();
     D_TESTS_DB_CORE_CHECK(db.is_connected());
+
+    // a stream open as its connection disconnects
+    {
+        auto stream = db.stream_query("SELECT 1 UNION ALL SELECT 2", 1u);
+
+        D_TESTS_DB_CORE_CHECK(stream->next());
+        db.disconnect();
+        D_TESTS_DB_CORE_CHECK(!stream->is_open());
+        D_TESTS_DB_CORE_THROWS_ANY((void)stream->next(), db::query_exception);
+        db.reconnect();
+        D_TESTS_DB_CORE_CHECK(db.execute_scalar("SELECT 3").has_value());
+    }
 
     // moves
     auto follows = db.prepare("SELECT 1");
@@ -795,6 +1062,8 @@ table class.
     success under IF NOT EXISTS and a failure without it; exists
   - fetch_schema: the columns' names, types, NULLs, defaults, declared types
     and the key
+  - a composite key in primary_key_columns' order, read back so; a list
+    naming a column twice or one the schema lacks, D_DB_INVALID_ARGUMENT
   - commit: new rows inserted, the keys the database chose read back; a
     changed row updated alone; a removed row deleted; a key given kept; a
     NULL left to a default; two rows of one key refused before anything is
@@ -804,13 +1073,19 @@ table class.
   - an OFFSET without a LIMIT, on every vendor
   - without a key: rows never read inserted, then read; a filtered cache
     replacing only the rows its filter read; a page refused, D_DB_UNSUPPORTED
+  - a key changed in place, the child rows following it under ON UPDATE
+    CASCADE: a chain of changes ordered so that each key is free when taken;
+    rows exchanging keys refused, D_DB_UNSUPPORTED, nothing written, the cache
+    kept; a cell changed through a reference committed; rows reordered no
+    change, and a reordered row's key still changed in place
   - a generated column, where the server has them: described so, never
-    written, its values read again after an insert or an update; a schema
-    holding one refused by create_table, D_DB_UNSUPPORTED
+    written, its values read again after an insert or an update; a change to
+    one refused, D_DB_UNSUPPORTED, by update_cell and, through a reference,
+    by commit; a schema holding one refused by create_table, D_DB_UNSUPPORTED
   - the alter_ members, refused while the cache is dirty; rename_table
   - a view: read, never changed; a temporary table found and written
   - sync: auto_commit, and on_access reading a stale cache again
-  - the render view, its key as commit() takes it; store_D and retrieve_D,
+  - the render view, its key as commit() takes it; store_table and load_table,
     a connection other than the table's refused, D_DB_INVALID_ARGUMENT
   - truncate_table, drop_table; refusals of NUL text, of a schema of no
     columns and of another width; a table with no connection; moves
@@ -850,6 +1125,46 @@ tables(
     D_TESTS_DB_CORE_CHECK(made.exists());
     made.create_table();
     D_TESTS_DB_CORE_THROWS_ANY(made.create_table(false), db::query_exception);
+
+    // a composite key in the order primary_key_columns gives, not the
+    // table's; a list naming a column twice, or one the schema lacks
+    db::table_schema keyed;
+
+    keyed.table_name          = "core_keyed";
+    keyed.columns             = {
+        db::column_info("a", db::field_type::integer, false),
+        db::column_info("b", db::field_type::integer, false),
+        db::column_info("c", db::field_type::integer) };
+    keyed.primary_key_columns = { "b", "a" };
+
+    Table ordered(_db, keyed);
+
+    ordered.drop_table();
+    ordered.create_table();
+
+    Table reread(_db, std::string("core_keyed"));
+
+    reread.fetch_schema();
+    D_TESTS_DB_CORE_CHECK( (reread.get_schema().primary_key_columns ==
+                            std::vector<std::string>{ "b", "a" }) &&
+                           (reread.key_columns() ==
+                            std::vector<std::size_t>{ 1u, 0u }) );
+    ordered.drop_table();
+    keyed.primary_key_columns = { "b", "b" };
+
+    Table twice(_db, keyed);
+
+    D_TESTS_DB_CORE_THROWS(twice.create_table(),
+                           db::query_exception,
+                           D_DB_INVALID_ARGUMENT);
+    keyed.primary_key_columns = { "b", "nope" };
+
+    Table missing(_db, keyed);
+
+    D_TESTS_DB_CORE_THROWS(missing.create_table(),
+                           db::query_exception,
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_DB_CORE_CHECK(!missing.exists());
 
     // described by the database
     Table t(_db, std::string("core_tables"));
@@ -1012,6 +1327,71 @@ tables(
     plain.set_limit(std::nullopt);
     plain.refresh();
 
+    // a key changed in place: its child rows follow it, as ON UPDATE
+    // CASCADE has them, where a delete and an insert would have taken them
+    // with ON DELETE CASCADE
+    _db.execute("CREATE TABLE core_parent (id INTEGER NOT NULL, "
+                "name VARCHAR(20), PRIMARY KEY (id))");
+    _db.execute("CREATE TABLE core_child (id INTEGER NOT NULL, "
+                "parent INTEGER, PRIMARY KEY (id), FOREIGN KEY (parent) "
+                "REFERENCES core_parent (id) ON UPDATE CASCADE "
+                "ON DELETE CASCADE)");
+    _db.execute("INSERT INTO core_parent (id, name) VALUES (1, 'one'), "
+                "(2, 'two'), (3, 'three')");
+    _db.execute("INSERT INTO core_child (id, parent) VALUES (10, 1), "
+                "(20, 2), (30, 3)");
+
+    Table parents(_db, std::string("core_parent"));
+
+    parents.fetch_schema();
+    parents.set_order("id");
+    parents.refresh();
+
+    // a chain: each key the next one up, the last moved first
+    for (std::size_t r = 0; r < 3u; ++r)
+    {
+        parents.update_cell(r, "id", int_value(static_cast<int>(r) + 2));
+    }
+
+    parents.commit();
+    D_TESTS_DB_CORE_CHECK( (scalar(_db, "SELECT COUNT(*) FROM core_child") ==
+                            3) &&
+                           (scalar(_db, "SELECT parent FROM core_child "
+                                        "WHERE id = 10") == 2) &&
+                           (scalar(_db, "SELECT parent FROM core_child "
+                                        "WHERE id = 30") == 4) );
+
+    // an exchange, which no vendor writes row by row: refused, nothing
+    // written, the cache kept
+    parents.update_cell(0u, "id", int_value(3));
+    parents.update_cell(1u, "id", int_value(2));
+    D_TESTS_DB_CORE_THROWS(parents.commit(),
+                           db::query_exception,
+                           D_DB_UNSUPPORTED);
+    D_TESTS_DB_CORE_CHECK( (parents.is_dirty()) &&
+                           (scalar(_db, "SELECT parent FROM core_child "
+                                        "WHERE id = 10") == 2) );
+    parents.refresh();
+
+    // a cell changed through a reference is a change; rows reordered are not
+    parents.cell(0u, 1u) = text_value("uno");
+    D_TESTS_DB_CORE_CHECK(parents.is_dirty());
+    parents.commit();
+    D_TESTS_DB_CORE_CHECK(scalar(_db, "SELECT COUNT(*) FROM core_parent "
+                                      "WHERE name = 'uno'") == 1);
+    std::reverse(parents.begin(), parents.end());
+    D_TESTS_DB_CORE_CHECK(!parents.is_dirty());
+
+    // a row sorted elsewhere keeps its row read: its key changed in place
+    parents.update_cell(0u, "id", int_value(9));
+    parents.commit();
+    D_TESTS_DB_CORE_CHECK( (scalar(_db, "SELECT parent FROM core_child "
+                                        "WHERE id = 30") == 9) &&
+                           (scalar(_db, "SELECT COUNT(*) FROM core_child") ==
+                            3) );
+    _db.execute("DROP TABLE core_child");
+    parents.drop_table();
+
     // a generated column: read, never written, its values read again
     if (_can.generated_columns)
     {
@@ -1035,9 +1415,16 @@ tables(
         computed.update_cell(0u, "a", int_value(4));
         computed.commit();
         D_TESTS_DB_CORE_CHECK(number(computed.cell(0u, 2u)) == 8);
-        computed.update_cell(0u, "b", int_value(99));
-        computed.commit();
+        D_TESTS_DB_CORE_THROWS(computed.update_cell(0u, "b", int_value(99)),
+                               db::query_exception,
+                               D_DB_UNSUPPORTED);
+        computed.cell(0u, 2u) = int_value(99);
+        D_TESTS_DB_CORE_CHECK(computed.is_dirty());
+        D_TESTS_DB_CORE_THROWS(computed.commit(),
+                               db::query_exception,
+                               D_DB_UNSUPPORTED);
         D_TESTS_DB_CORE_CHECK(scalar(_db, "SELECT b FROM core_gen") == 8);
+        computed.refresh();
 
         db::table_schema copy = computed.get_schema();
 
@@ -1166,22 +1553,22 @@ tables(
                            (&seen.cell(0u, 1u) == &t.cell(0u, 1u)) &&
                            (&seen.table() == &t) );
     t.update_cell(0u, "score", int_value(32));
-    db::store_D(_db, t);
+    db::store_table(_db, t);
     D_TESTS_DB_CORE_CHECK( (!t.is_dirty()) &&
                            (scalar(_db, "SELECT score FROM core_tables "
                                         "WHERE id = 1") == 32) );
     t.invalidate();
-    db::retrieve_D(_db, t);
+    db::load_table(_db, t);
     D_TESTS_DB_CORE_CHECK(!t.is_stale());
 
     // a connection other than the table's is refused, nothing written
     Connection elsewhere;
 
     t.update_cell(0u, "score", int_value(33));
-    D_TESTS_DB_CORE_THROWS(db::store_D(elsewhere, t),
+    D_TESTS_DB_CORE_THROWS(db::store_table(elsewhere, t),
                            db::query_exception,
                            D_DB_INVALID_ARGUMENT);
-    D_TESTS_DB_CORE_THROWS(db::retrieve_D(elsewhere, t),
+    D_TESTS_DB_CORE_THROWS(db::load_table(elsewhere, t),
                            db::query_exception,
                            D_DB_INVALID_ARGUMENT);
     D_TESTS_DB_CORE_CHECK( (t.is_dirty()) &&

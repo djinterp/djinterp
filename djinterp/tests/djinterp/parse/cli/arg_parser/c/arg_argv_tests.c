@@ -9,13 +9,14 @@
 * either end is AddressSanitizer's to see; files are made in a scratch
 * directory. The rows keep the tags the reference gives them: P, W, C and
 * G a set of rules' lines, F a switch ignored, O the module's own, Q a
-* word, N a program's name, R a file read, E a parse, U wide text.
+* word, N a program's name, R a file read, E a parse, U wide text, B UTF-8
+* made wide.
 *
 *
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_argv_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_argv_tests.h"  // corresponding header
 // std
@@ -1384,6 +1385,124 @@ static const char WIDE_TEXT_UTF32[] =
     "U13 [ffffffff]: [\xef\xbf\xbd]\n"
     "U14 [436 20 1f600]: [\xd0\xb6 \xf0\x9f\x98\x80]\n"
     "U15 [0 61]: [\\x00a]\n";
+
+// d_tests_arg_argv_utf8
+//   struct: UTF-8 converted to wide text: its tag, and its bytes and how
+// many.
+struct d_tests_arg_argv_utf8
+{
+    const char* tag;
+    const char* text;
+    size_t      length;
+};
+
+// WIDE_BACK_ROWS
+//   constant: the UTF-8 d_tests_arg_argv_wide_back converts.
+static const struct d_tests_arg_argv_utf8 WIDE_BACK_ROWS[] =
+{
+    { "B01", "", 0u },
+    { "B02", "a", 1u },
+    { "B03", "\x7f\xc2\x80", 3u },
+    { "B04", "\xdf\xbf\xe0\xa0\x80", 5u },
+    { "B05", "\xef\xbf\xbf\xf0\x90\x80\x80", 7u },
+    { "B06", "\xf0\x9f\x98\x80", 4u },
+    { "B07", "\xf4\x8f\xbf\xbf", 4u },
+    { "B08", "\xed\x9f\xbf\xee\x80\x80", 6u },
+    { "B09", "\xef\xbf\xbd", 3u },
+    { "B10", "\xef\xbb\xbf" "a", 4u },
+    { "B11", "\x00" "a", 2u },
+    { "B12", "\xd0\xb6 \xf0\x9f\x98\x80", 7u },
+    { "B13", "\x80", 1u },
+    { "B14", "\xbf", 1u },
+    { "B15", "\xc0\xaf", 2u },
+    { "B16", "\xc1\xbf", 2u },
+    { "B17", "\xe0\x9f\xbf", 3u },
+    { "B18", "\xf0\x8f\xbf\xbf", 4u },
+    { "B19", "\xed\xa0\x80", 3u },
+    { "B20", "\xed\xbf\xbf", 3u },
+    { "B21", "\xf4\x90\x80\x80", 4u },
+    { "B22", "\xf5\x80\x80\x80", 4u },
+    { "B23", "\xfe", 1u },
+    { "B24", "\xff", 1u },
+    { "B25", "\xe2\x82", 2u },
+    { "B26", "a\xf0\x9f\x98", 4u },
+    { "B27", "\xc3(", 2u },
+    { "B28", "\xe0\xa0\xc0", 3u },
+    { "B29", "a\x80" "b", 3u }
+};
+
+// WIDE_BACK_COUNT
+//   constant: how many rows WIDE_BACK_ROWS holds.
+static const size_t WIDE_BACK_COUNT =
+    sizeof(WIDE_BACK_ROWS) / sizeof(WIDE_BACK_ROWS[0]);
+
+// WIDE_BACK_UTF16
+//   constant: what the rows of WIDE_BACK_ROWS come to where `wchar_t` has 16
+// bits: Python's strict UTF-8 codec's text as UTF-16 units, or `refused`.
+static const char WIDE_BACK_UTF16[] =
+    "B01 []: []\n"
+    "B02 [61]: [61]\n"
+    "B03 [7f c2 80]: [7f 80]\n"
+    "B04 [df bf e0 a0 80]: [7ff 800]\n"
+    "B05 [ef bf bf f0 90 80 80]: [ffff d800 dc00]\n"
+    "B06 [f0 9f 98 80]: [d83d de00]\n"
+    "B07 [f4 8f bf bf]: [dbff dfff]\n"
+    "B08 [ed 9f bf ee 80 80]: [d7ff e000]\n"
+    "B09 [ef bf bd]: [fffd]\n"
+    "B10 [ef bb bf 61]: [feff 61]\n"
+    "B11 [00 61]: [0 61]\n"
+    "B12 [d0 b6 20 f0 9f 98 80]: [436 20 d83d de00]\n"
+    "B13 [80]: refused\n"
+    "B14 [bf]: refused\n"
+    "B15 [c0 af]: refused\n"
+    "B16 [c1 bf]: refused\n"
+    "B17 [e0 9f bf]: refused\n"
+    "B18 [f0 8f bf bf]: refused\n"
+    "B19 [ed a0 80]: refused\n"
+    "B20 [ed bf bf]: refused\n"
+    "B21 [f4 90 80 80]: refused\n"
+    "B22 [f5 80 80 80]: refused\n"
+    "B23 [fe]: refused\n"
+    "B24 [ff]: refused\n"
+    "B25 [e2 82]: refused\n"
+    "B26 [61 f0 9f 98]: refused\n"
+    "B27 [c3 28]: refused\n"
+    "B28 [e0 a0 c0]: refused\n"
+    "B29 [61 80 62]: refused\n";
+
+// WIDE_BACK_UTF32
+//   constant: what the rows of WIDE_BACK_ROWS come to where `wchar_t` has more:
+// Python's strict UTF-8 codec's code points, or `refused`.
+static const char WIDE_BACK_UTF32[] =
+    "B01 []: []\n"
+    "B02 [61]: [61]\n"
+    "B03 [7f c2 80]: [7f 80]\n"
+    "B04 [df bf e0 a0 80]: [7ff 800]\n"
+    "B05 [ef bf bf f0 90 80 80]: [ffff 10000]\n"
+    "B06 [f0 9f 98 80]: [1f600]\n"
+    "B07 [f4 8f bf bf]: [10ffff]\n"
+    "B08 [ed 9f bf ee 80 80]: [d7ff e000]\n"
+    "B09 [ef bf bd]: [fffd]\n"
+    "B10 [ef bb bf 61]: [feff 61]\n"
+    "B11 [00 61]: [0 61]\n"
+    "B12 [d0 b6 20 f0 9f 98 80]: [436 20 1f600]\n"
+    "B13 [80]: refused\n"
+    "B14 [bf]: refused\n"
+    "B15 [c0 af]: refused\n"
+    "B16 [c1 bf]: refused\n"
+    "B17 [e0 9f bf]: refused\n"
+    "B18 [f0 8f bf bf]: refused\n"
+    "B19 [ed a0 80]: refused\n"
+    "B20 [ed bf bf]: refused\n"
+    "B21 [f4 90 80 80]: refused\n"
+    "B22 [f5 80 80 80]: refused\n"
+    "B23 [fe]: refused\n"
+    "B24 [ff]: refused\n"
+    "B25 [e2 82]: refused\n"
+    "B26 [61 f0 9f 98]: refused\n"
+    "B27 [c3 28]: refused\n"
+    "B28 [e0 a0 c0]: refused\n"
+    "B29 [61 80 62]: refused\n";
 
 // WIDE_PARSE
 //   constant: what the parses of d_tests_arg_argv_wide_parse come to, as
@@ -3555,9 +3674,12 @@ d_tests_arg_argv_split_kept(void)
           (posix == D_ARG_ERROR_INVALID)         &&
           (cli11 == D_ARG_ERROR_INVALID)         &&
           (words.count == 3u)                    &&
-          (strcmp(words.items[0], "x") == 0)     &&
-          (strcmp(words.items[1], "a") == 0)     &&
-          (strcmp(words.items[2], "b") == 0) );
+          (strcmp(words.items[0],
+                  "x") == 0)                     &&
+          (strcmp(words.items[1],
+                  "a") == 0)                     &&
+          (strcmp(words.items[2],
+                  "b") == 0) );
 
     d_arg_string_list_release(&words);
 
@@ -4828,8 +4950,10 @@ d_tests_arg_argv_response_kept(void)
           (broken == D_ARG_ERROR_INVALID)                             &&
           (read == D_ARG_OK)                                          &&
           (words.count == 4u)                                         &&
-          (strcmp(words.items[0], "x") == 0)                          &&
-          (strcmp(words.items[3], "c") == 0)                          &&
+          (strcmp(words.items[0],
+                  "x") == 0)                                          &&
+          (strcmp(words.items[3],
+                  "c") == 0)                                          &&
           (d_tests_arg_same("the descriptions of three failures",
                             d_arg_buffer_text(&error),
                             "missing.rsp was not readable (missing?)"
@@ -4967,8 +5091,8 @@ d_tests_arg_argv_response_state(
 /**
  * @brief The parser's switch for response files: off at first, with the
  *        platform's rules; turned on with rules of the caller's, which rules
- *        that are none leave as they were; and turned off, an `@file` then
- *        an argument like any other -- and nothing set on no parser.
+ *        that are none leave as they were; and turned off, an `\@file`
+ *        then an argument like any other -- and nothing set on no parser.
  *
  * @return whether the parser held each setting, and parsed as it said.
  */
@@ -5233,7 +5357,364 @@ d_tests_arg_argv_wide_text(void)
 #endif  // D_INTERNAL_ARG_PARSER_WIDE_ARGV
 
 //==============================================================================
-// 26. WIDE ARGUMENTS
+// 26. WIDE TEXT FROM UTF-8
+//==============================================================================
+
+#if (D_INTERNAL_ARG_PARSER_WIDE_ARGV == 1)
+
+/**
+ * @brief Appends units as the transcripts write them: in brackets, each in
+ *        hexadecimal, parted by spaces.
+ *
+ * @param[in,out] _out    the transcript.
+ * @param[in]     _units  the units; may be NULL when `_count` is 0.
+ * @param[in]     _count  how many.
+ */
+static void
+d_tests_arg_argv_units(
+    struct d_arg_buffer* _out,
+    const wchar_t*       _units,
+    size_t               _count
+)
+{
+    (void)d_arg_buffer_append_char(_out,
+                                   '[');
+
+    // each unit, after a space when one comes before it
+    for (size_t index = 0u; index < _count; ++index)
+    {
+        (void)d_arg_buffer_printf(_out,
+                                  (index > 0u) ? " %lx" : "%lx",
+                                  (unsigned long)(uint32_t)_units[index]);
+    }
+
+    (void)d_arg_buffer_append_char(_out,
+                                   ']');
+
+    return;
+}
+
+/**
+ * @brief Converts UTF-8 where the conversion must write nothing, into room
+ *        for `_capacity` units -- and one past them -- filled with a mark.
+ *
+ * @param[in] _text      the UTF-8, in storage of exactly its length.
+ * @param[in] _length    its length.
+ * @param[in] _capacity  the room the conversion is offered.
+ * @param[in] _status    the status it must return.
+ * @param[in] _needed    the count it must leave: what it reports, or
+ *                       `(size_t)-1` where it must report nothing.
+ * @return whether the room was had, the status and the count were as
+ *         expected, and every unit kept its mark.
+ */
+static bool
+d_tests_arg_argv_untouched(
+    const char* _text,
+    size_t      _length,
+    size_t      _capacity,
+    int         _status,
+    size_t      _needed
+)
+{
+    // MARK
+    //   constant: what the room is filled with before the conversion.
+    static const wchar_t MARK = (wchar_t)0x5A5A;
+
+    wchar_t* const room   = (wchar_t*)malloc((_capacity + 1u) *
+                                             sizeof(wchar_t));
+    size_t         needed = (size_t)-1;
+    bool           marked = (room != NULL);
+
+    // the room marked throughout, the unit past it too
+    for (size_t index = 0u;
+         (room != NULL) && (index <= _capacity);
+         ++index)
+    {
+        room[index] = MARK;
+    }
+
+    const int status = (room != NULL)
+                       ? d_arg_wide_from_utf8(_text,
+                                              _length,
+                                              room,
+                                              _capacity,
+                                              &needed)
+                       : D_ARG_ERROR_OUT_OF_MEMORY;
+
+    // each unit still marked
+    for (size_t index = 0u;
+         (room != NULL) && (index <= _capacity);
+         ++index)
+    {
+        marked = (room[index] == MARK) && marked;
+    }
+
+    free(room);
+
+    return ( (status == _status) &&
+             (needed == _needed) &&
+             (marked) );
+}
+
+/**
+ * @brief Converts UTF-8 a measure accepted into storage of exactly the
+ *        units it takes, appends the units, and converts them back.
+ *
+ * @param[in,out] _out     the transcript.
+ * @param[in]     _text    the UTF-8, in storage of exactly its length.
+ * @param[in]     _length  its length.
+ * @param[in]     _needed  the units the measure reported.
+ * @return whether the storage was had, the conversion reported the measure's
+ *         count, the units converted back to the bytes, and a unit too few
+ *         wrote nothing.
+ */
+static bool
+d_tests_arg_argv_utf8_units(
+    struct d_arg_buffer* _out,
+    const char*          _text,
+    size_t               _length,
+    size_t               _needed
+)
+{
+    wchar_t* const      units   = (_needed > 0u)
+                                  ? (wchar_t*)malloc(_needed *
+                                                     sizeof(wchar_t))
+                                  : NULL;
+    const bool          had     = ( (_needed == 0u) ||
+                                    (units != NULL) );
+    size_t              written = 0u;
+    const int           status  = (had)
+                                  ? d_arg_wide_from_utf8(_text,
+                                                         _length,
+                                                         units,
+                                                         _needed,
+                                                         &written)
+                                  : D_ARG_ERROR_OUT_OF_MEMORY;
+    struct d_arg_buffer back    = D_ARG_BUFFER_INIT;
+
+    d_tests_arg_argv_units(_out,
+                           units,
+                           (status == D_ARG_OK) ? written : 0u);
+
+    // the units, as UTF-8 again, are the bytes they came from
+    const bool returned =
+        ( (status == D_ARG_OK)                             &&
+          (written == _needed)                             &&
+          (d_arg_utf8_from_wide(units,
+                                written,
+                                &back) == D_ARG_OK)        &&
+          (back.length == _length)                         &&
+          ( (_length == 0u) ||
+            (memcmp(back.data,
+                    _text,
+                    _length) == 0) ) );
+    const bool short_kept = ( (_needed == 0u) ||
+                              (d_tests_arg_argv_untouched(_text,
+                                                          _length,
+                                                          _needed - 1u,
+                                                          D_ARG_OK,
+                                                          _needed)) );
+
+    d_arg_buffer_release(&back);
+    free(units);
+
+    return ( (returned) &&
+             (short_kept) );
+}
+
+/**
+ * @brief Appends `refused` for UTF-8 a measure refused, and converts it
+ *        again, given room.
+ *
+ * @param[in,out] _out       the transcript.
+ * @param[in]     _text      the UTF-8, in storage of exactly its length.
+ * @param[in]     _length    its length.
+ * @param[in]     _measured  the status the measure returned.
+ * @return whether the measure refused the text as not UTF-8, and the
+ *         conversion refused it again without a unit or the count written.
+ */
+static bool
+d_tests_arg_argv_utf8_refused(
+    struct d_arg_buffer* _out,
+    const char*          _text,
+    size_t               _length,
+    int                  _measured
+)
+{
+    (void)d_arg_buffer_append_cstr(_out,
+                                   "refused");
+
+    return ( (_measured == D_ARG_ERROR_CONVERSION) &&
+             (d_tests_arg_argv_untouched(_text,
+                                         _length,
+                                         _length + 1u,
+                                         D_ARG_ERROR_CONVERSION,
+                                         (size_t)-1)) );
+}
+
+/**
+ * @brief Measures a row's UTF-8, from storage of exactly its length, then
+ *        converts it, and appends its line: `<tag> [<bytes, hexadecimal>]:
+ *        [<units, hexadecimal>]`, or `: refused`.
+ *
+ * @param[in,out] _out  the transcript.
+ * @param[in]     _row  the row.
+ * @return whether the storage was had, text measured was converted as
+ *         d_tests_arg_argv_utf8_units checks, and text refused was refused
+ *         again, given room, without a unit or the count written.
+ */
+static bool
+d_tests_arg_argv_utf8_row(
+    struct d_arg_buffer*                _out,
+    const struct d_tests_arg_argv_utf8* _row
+)
+{
+    const unsigned char* const bytes    =
+        (const unsigned char*)_row->text;
+    bool                       had      = false;
+    char* const                exact    = d_tests_arg_argv_exact(
+                                              d_pack_text_from_span(
+                                                  _row->text,
+                                                  _row->length),
+                                              &had);
+    size_t                     needed   = 0u;
+    const int                  measured = d_arg_wide_from_utf8(exact,
+                                                               _row->length,
+                                                               NULL,
+                                                               0u,
+                                                               &needed);
+
+    (void)d_arg_buffer_printf(_out,
+                              "%s [",
+                              _row->tag);
+
+    // each byte in hexadecimal
+    for (size_t index = 0u; index < _row->length; ++index)
+    {
+        (void)d_arg_buffer_printf(_out,
+                                  (index > 0u) ? " %02x" : "%02x",
+                                  (unsigned int)bytes[index]);
+    }
+
+    (void)d_arg_buffer_append_cstr(_out,
+                                   "]: ");
+
+    // text measured converted, text refused refused again
+    const bool held = (measured == D_ARG_OK)
+                      ? d_tests_arg_argv_utf8_units(_out,
+                                                    exact,
+                                                    _row->length,
+                                                    needed)
+                      : d_tests_arg_argv_utf8_refused(_out,
+                                                      exact,
+                                                      _row->length,
+                                                      measured);
+
+    (void)d_arg_buffer_append_char(_out,
+                                   '\n');
+    free(exact);
+
+    return d_tests_arg_argv_held(( (had) &&
+                                   (held) ),
+                                 _row->tag);
+}
+
+/**
+ * @brief Conversion refused without a count, with text that is not there,
+ *        or with room that is not there, each writing nothing; and text
+ *        that is not there, with no length, measured as nothing.
+ *
+ * @return whether each came to that.
+ */
+static bool
+d_tests_arg_argv_wide_back_kept(void)
+{
+    wchar_t    room[2] = { L'x', L'x' };
+    size_t     needed  = 7u;
+    const bool held    =
+        ( (d_arg_wide_from_utf8("ab",
+                                2u,
+                                room,
+                                2u,
+                                NULL) == D_ARG_ERROR_BAD_ARGUMENT)     &&
+          (d_arg_wide_from_utf8(NULL,
+                                1u,
+                                room,
+                                2u,
+                                &needed) == D_ARG_ERROR_BAD_ARGUMENT)  &&
+          (d_arg_wide_from_utf8("ab",
+                                2u,
+                                NULL,
+                                1u,
+                                &needed) == D_ARG_ERROR_BAD_ARGUMENT)  &&
+          (needed == 7u)                                               &&
+          (room[0] == L'x')                                            &&
+          (room[1] == L'x')                                            &&
+          (d_arg_wide_from_utf8(NULL,
+                                0u,
+                                NULL,
+                                0u,
+                                &needed) == D_ARG_OK)                  &&
+          (needed == 0u) );
+
+    return d_tests_arg_argv_held(held,
+                                 "converting without a count, text or room, "
+                                 "and converting no text");
+}
+
+/*
+d_tests_arg_argv_wide_back
+  UTF-8 converted to wide text (d_arg_wide_from_utf8): UTF-16 units where
+`wchar_t` has 16 bits, code points where it has more -- the transcript for
+the build's `wchar_t` -- as Python's strict UTF-8 codec converts it.
+  Tests the following:
+  - text of one, two, three and four bytes, at the edges of each length and
+    beside the surrogates; U+FFFD itself; a byte-order mark and a NUL kept
+  - surrogate pairs, where `wchar_t` has 16 bits
+  - refused: stray continuation bytes, overlong forms, surrogates, values
+    past U+10FFFF, bytes that lead nothing, sequences cut short or broken
+  - measured, then converted into storage of exactly the units, which
+    convert back to the bytes; a unit too few, or a refusal, writes nothing
+  - conversion refused without a count, text or room; no text measured as
+    nothing
+*/
+bool
+d_tests_arg_argv_wide_back(void)
+{
+    const bool          sixteen = (WCHAR_MAX <= 0xFFFF);
+    struct d_arg_buffer written = D_ARG_BUFFER_INIT;
+    bool                held    = true;
+
+    // each row
+    for (size_t index = 0u; index < WIDE_BACK_COUNT; ++index)
+    {
+        held = d_tests_arg_argv_utf8_row(&written,
+                                         &WIDE_BACK_ROWS[index]) && held;
+    }
+
+    const char* const name     = (sixteen)
+                                 ? "WIDE_BACK_UTF16"
+                                 : "WIDE_BACK_UTF32";
+    const char* const expected = (sixteen)
+                                 ? WIDE_BACK_UTF16
+                                 : WIDE_BACK_UTF32;
+    const bool        same     = d_tests_arg_same(name,
+                                                  d_arg_buffer_text(&written),
+                                                  expected);
+    const bool        kept     = ( (written.failed == 0) &&
+                                   (d_tests_arg_argv_wide_back_kept()) );
+
+    d_arg_buffer_release(&written);
+
+    return ( (held) &&
+             (same) &&
+             (kept) );
+}
+
+#endif  // D_INTERNAL_ARG_PARSER_WIDE_ARGV
+
+//==============================================================================
+// 27. WIDE ARGUMENTS
 //==============================================================================
 
 #if (D_INTERNAL_ARG_PARSER_WIDE_ARGV == 1)
@@ -5828,7 +6309,7 @@ d_tests_arg_argv_wide_parse(void)
 #endif  // D_INTERNAL_ARG_PARSER_WIDE_ARGV
 
 //==============================================================================
-// 27. THE SUITE
+// 28. THE SUITE
 //==============================================================================
 
 // d_tests_arg_text
@@ -5898,6 +6379,10 @@ const struct d_tests_section d_tests_arg_text[] =
 #if (D_INTERNAL_ARG_PARSER_WIDE_ARGV == 1)
     { "arg_argv_wide_text",
       d_tests_arg_argv_wide_text },
+#endif  // D_INTERNAL_ARG_PARSER_WIDE_ARGV
+#if (D_INTERNAL_ARG_PARSER_WIDE_ARGV == 1)
+    { "arg_argv_wide_back",
+      d_tests_arg_argv_wide_back },
 #endif  // D_INTERNAL_ARG_PARSER_WIDE_ARGV
 #if (D_INTERNAL_ARG_PARSER_WIDE_ARGV == 1)
     { "arg_argv_wide_parse",

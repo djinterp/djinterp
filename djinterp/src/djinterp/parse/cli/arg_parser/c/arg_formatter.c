@@ -15,7 +15,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_formatter.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_formatter.h"  // corresponding header
 // std
@@ -29,7 +29,7 @@
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_command.h"  // d_arg_command
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_common.h"  // buffers, lists, statuses
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_parser.h"  // d_arg_parser
-#include "./arg_internal.h"  // spans, copies, string lists
+#include "./arg_internal.h"  // spans, copies, string lists, stored floats
 // re_std
 #include "../../../../../../inc/re_std/cstdint/dstdint.h"  // uint32_t
 
@@ -103,12 +103,18 @@ d_arg_formatter_release(
     return;
 }
 
-/*
-d_arg_internal_formatter_copy_labels
-  The source's labels copied, pair by pair, into a destination that has
-none; on failure the pairs copied so far are freed again, so the
-destination is left with none.
-*/
+/**
+ * @brief Copies a formatter's labels into one that has none.
+ *
+ * @param[in,out] _destination  the formatter that gains the labels.
+ * @param[in]     _source       the formatter whose labels are copied.
+ * @return D_ARG_OK, or the failure of a pair's copy, the destination then left
+ *         with none.
+ *
+ * The source's labels copied, pair by pair, into a destination that has
+ * none; on failure the pairs copied so far are freed again, so the
+ * destination is left with none.
+ */
 D_STATIC int
 d_arg_internal_formatter_copy_labels(
     struct d_arg_formatter*       _destination,
@@ -119,7 +125,7 @@ d_arg_internal_formatter_copy_labels(
 
     // each key with its value
     for (size_t index = 0u;
-         (status == D_ARG_OK) &&
+         (status == D_ARG_OK)                &&
          (index < _source->label_keys.count) &&
          (index < _source->label_values.count);
          ++index)
@@ -906,7 +912,9 @@ d_arg_internal_help_ratio
   CLI11's long_option_alignment_ratio() setter: a ratio from 0 to 1 kept, one
 above inverted, a negative one taken by its magnitude (and inverted past
 -1). A NaN, which CLI11 would keep and later convert to an int as undefined
-behaviour, compares false with everything and is caught first.
+behaviour, compares false with everything and is caught first. An inverse
+is the float CLI11's member holds (d_arg_internal_float_stored), not the
+quotient a unit with more precision computed.
 */
 float
 d_arg_internal_help_ratio(
@@ -924,11 +932,11 @@ d_arg_internal_help_ratio(
     {
         return (_ratio <= 1.0f)
                ? _ratio
-               : 1.0f / _ratio;
+               : d_arg_internal_float_stored(1.0f / _ratio);
     }
 
     return (_ratio < -1.0f)
-           ? 1.0f / (-_ratio)
+           ? d_arg_internal_float_stored(1.0f / (-_ratio))
            : -_ratio;
 }
 
@@ -1002,13 +1010,18 @@ d_arg_internal_help_pad(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_help_word
-  The next word of a line from `*_at` on -- the run of characters up to a
-space, the spaces before it skipped -- with `*_at` moved past it; an empty
-span when none is left. CLI11 reads the words with `>>`, whose spaces are
-the "C" locale's six.
-*/
+/**
+ * @brief Takes the next word of a line.
+ *
+ * @param[in]     _line  the line.
+ * @param[in,out] _at    the place to read from, moved past the word.
+ * @return the word; an empty span when none is left.
+ *
+ * The next word of a line from `*_at` on -- the run of characters up to a
+ * space, the spaces before it skipped -- with `*_at` moved past it; an empty
+ * span when none is left. CLI11 reads the words with `>>`, whose spaces are
+ * the "C" locale's six.
+ */
 D_STATIC struct d_pack_text
 d_arg_internal_help_word(
     struct d_pack_text _line,
@@ -1035,12 +1048,19 @@ d_arg_internal_help_word(
                                *_at - start);
 }
 
-/*
-d_arg_internal_help_words
-  One line of a paragraph: its words rejoined by single spaces, a line feed
-and the prefix going before a word that would carry the line past the
-width.
-*/
+/**
+ * @brief Writes one line of a paragraph, wrapped to a width.
+ *
+ * @param[in,out] _out     the buffer that gains the line.
+ * @param[in]     _line    the line.
+ * @param[in]     _width   the width to keep within.
+ * @param[in]     _prefix  how many spaces begin each line the wrapping adds.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * One line of a paragraph: its words rejoined by single spaces, a line feed
+ * and the prefix going before a word that would carry the line past the
+ * width.
+ */
 D_STATIC int
 d_arg_internal_help_words(
     struct d_arg_buffer* _out,
@@ -1274,10 +1294,14 @@ d_arg_internal_help_fitted(
 
 #if (D_INTERNAL_ARG_PARSER_TERMINAL_WIDTH == 1)
 
-/*
-d_arg_internal_help_terminal
-  The terminal's width, as arg_system.c measures it; 0 when unknown.
-*/
+/**
+ * @brief Measures the terminal's width.
+ *
+ * @return the width in columns; 0 when it is unknown, or in a build that
+ *         measures none.
+ *
+ * The terminal's width, as arg_system.c measures it; 0 when unknown.
+ */
 D_STATIC size_t
 d_arg_internal_help_terminal(void)
 {
@@ -1286,10 +1310,14 @@ d_arg_internal_help_terminal(void)
 
 #else
 
-/*
-d_arg_internal_help_terminal
-  No terminal is measured in this build.
-*/
+/**
+ * @brief Measures the terminal's width.
+ *
+ * @return the width in columns; 0 when it is unknown, or in a build that
+ *         measures none.
+ *
+ * No terminal is measured in this build.
+ */
 D_STATIC size_t
 d_arg_internal_help_terminal(void)
 {
@@ -1298,13 +1326,19 @@ d_arg_internal_help_terminal(void)
 
 #endif  // D_INTERNAL_ARG_PARSER_TERMINAL_WIDTH
 
-/*
-d_arg_internal_help_fit
-  The line width a formatter lays help out within: its own; one less than
-the terminal's, measured now, when it asks for that and the terminal is
-narrower; and, once it keeps to a width at all, no more than the room the
-help it is part of leaves it (`_limit`, 0 for no such limit).
-*/
+/**
+ * @brief Gives the line width a formatter lays help out within.
+ *
+ * @param[in] _formatter  the formatter.
+ * @param[in] _limit      the room the help it is part of leaves it; 0 for no
+ *                        limit.
+ * @return the width; 0 for none.
+ *
+ * The line width a formatter lays help out within: its own; one less than
+ * the terminal's, measured now, when it asks for that and the terminal is
+ * narrower; and, once it keeps to a width at all, no more than the room the
+ * help it is part of leaves it (`_limit`, 0 for no such limit).
+ */
 D_STATIC size_t
 d_arg_internal_help_fit(
     const struct d_arg_formatter* _formatter,
@@ -1334,14 +1368,21 @@ d_arg_internal_help_fit(
            : width;
 }
 
-/*
-d_arg_internal_help_reached
-  The command whose help App::help gives: the last subcommand the last
-parse used, followed down the tree. The name is built on the way, the words
-before and each command's own joined by a space unless there are none
-before -- so a nameless command after words leaves a trailing space, as in
-CLI11.
-*/
+/**
+ * @brief Finds the command whose help App::help gives, building its name.
+ *
+ * @param[in]     _command  the command help was asked of.
+ * @param[in,out] _name     the buffer that gains the name.
+ * @param[in,out] _status   the status so far, the walk ending when it is not
+ *                          D_ARG_OK; receives the buffer's failure.
+ * @return the command reached.
+ *
+ * The command whose help App::help gives: the last subcommand the last
+ * parse used, followed down the tree. The name is built on the way, the words
+ * before and each command's own joined by a space unless there are none
+ * before -- so a nameless command after words leaves a trailing space, as in
+ * CLI11.
+ */
 D_STATIC const struct d_arg_command*
 d_arg_internal_help_reached(
     const struct d_arg_command* _command,

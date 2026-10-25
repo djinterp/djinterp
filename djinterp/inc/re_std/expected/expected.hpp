@@ -6,7 +6,9 @@
 * holding either a value (type T) or an unexpected error (type E).
 * C++23 in std; re_std targets C++11+ for runtime correctness, with
 * constexpr promoted to C++20 (where placement-new becomes constexpr-
-* accessible via std::construct_at).
+* accessible via std::construct_at). Below C++11 a C++98 tier (section
+* III) holds the same states by copy: value(), error(), has_value(),
+* value_or, emplace (up to two arguments), swap, and the comparisons.
 *
 *   STORAGE MODEL:
 *   A private anonymous union holds either m_val (the value) or
@@ -50,7 +52,7 @@
 * path:      /inc/re_std/expected/expected.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.05.19
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 /*
@@ -64,6 +66,9 @@ I.    EXPECTED<T, E>  — primary template
 
 II.   EXPECTED<void, E>  — partial specialisation
       -------------------------------------------
+
+III.  THE C++98 TIER  — both classes below C++11
+      ------------------------------------------
 */
 
 #ifndef RE_STD_EXPECTED_EXPECTED_HPP
@@ -72,9 +77,9 @@ II.   EXPECTED<void, E>  — partial specialisation
 // re_std
 #include "../config.hpp"  // RE_STD_* configuration
 
-// gate: C++11+ baseline. Variadic templates, rvalue refs,
-// default-member-init, decltype, deleted/defaulted special members
-// are all required.
+// two tiers: the classes below from C++11, which need variadic templates,
+// rvalue references, decltype and defaulted members; below C++11, the C++98
+// classes at the end of this header (section III).
 #if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 // std
@@ -1234,6 +1239,711 @@ private:
         (void)m_storage.m_err;
 #endif
     }
+};
+
+
+}  // re_std
+
+
+#else  // C++98
+
+
+// std
+#include <algorithm>  // std::swap
+#include <cstddef>    // std::size_t
+#include <cstdlib>    // std::abort, where exceptions are off
+#include <new>        // placement new
+// re_std
+#include "./unexpect.hpp"
+#include "./bad_expected_access.hpp"
+#include "./unexpected.hpp"
+#include "../type_traits/alignment_of.hpp"
+#include "../type_traits/conditional.hpp"
+
+
+namespace re_std
+{
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                III.  THE C++98 TIER                                     ///
+///////////////////////////////////////////////////////////////////////////////
+// Below C++11 expected is the class below: the same names and the same
+// states, with everything taken and handed back by copy, as C++98 can only
+// copy. What has no C++98 spelling is absent rather than imitated: the
+// move and forwarding members, in_place construction (variadic), the
+// monadic operations (their result types need decltype), and operator bool,
+// which only `explicit` makes safe -- has_value() is the test. As in the
+// C++11 tier, an assignment that changes which member is held destroys the
+// old member before copying in the new one, so it is exception-safe only
+// where that copy cannot throw.
+
+namespace internal
+{
+
+    // exp98_max
+    //   trait: the larger of two sizes, as a constant expression.
+    template<std::size_t A,
+             std::size_t B>
+    struct exp98_max
+    {
+        static const std::size_t value = (A > B) ? A : B;
+    };
+
+    // exp98_aligner
+    //   trait: a fundamental type whose alignment is Align, for raw storage
+    // to start on. long double, the strictest fundamental type, serves for
+    // anything no candidate matches.
+    template<std::size_t Align>
+    struct exp98_aligner
+    {
+        typedef typename conditional<
+            alignment_of<char>::value == Align, char,
+            typename conditional<
+                alignment_of<short>::value == Align, short,
+                typename conditional<
+                    alignment_of<int>::value == Align, int,
+                    typename conditional<
+                        alignment_of<long>::value == Align, long,
+                        typename conditional<
+                            alignment_of<double>::value == Align, double,
+                            typename conditional<
+                                alignment_of<void*>::value == Align, void*,
+                                long double
+                            >::type
+                        >::type
+                    >::type
+                >::type
+            >::type
+        >::type type;
+    };
+
+    // exp98_storage
+    //   union: raw bytes enough for either A or B, aligned for both. C++98
+    // forbids union members with constructors, so the member held is built
+    // in the bytes with placement new.
+    template<typename A,
+             typename B>
+    union exp98_storage
+    {
+        unsigned char bytes[exp98_max<sizeof(A), sizeof(B)>::value];
+        typename exp98_aligner<
+            exp98_max<alignment_of<A>::value,
+                      alignment_of<B>::value>::value>::type align;
+    };
+
+    // exp98_bad_access
+    //   function: what value() does without a value: throws
+    // bad_expected_access<E> carrying the error, or, where exceptions are
+    // off, stops the program.
+    template<typename E>
+    void
+    exp98_bad_access(
+        const E& _error
+    )
+    {
+#if RE_STD_HAS_EXCEPTIONS
+        throw bad_expected_access<E>(_error);
+#else
+        (void)_error;
+        std::abort();
+#endif
+    }
+
+}  // internal
+
+
+// expected<T, E>
+//   class: holds either a value of type T or an error of type E (C++98).
+template<typename T,
+         typename E>
+class expected
+{
+public:
+    typedef T             value_type;
+    typedef E             error_type;
+    typedef unexpected<E> unexpected_type;
+
+    // expected()
+    //   function: holds a value-initialized T.
+    expected()
+        : m_has_value(true)
+    {
+        new (m_raw()) T();
+    }
+
+    expected(
+        const expected& _other
+    )
+        : m_has_value(_other.m_has_value)
+    {
+        m_copy_from(_other);
+    }
+
+    // expected(const T&)
+    //   function: holds a copy of the value; implicit, as std's is for a T.
+    expected(
+        const T& _value
+    )
+        : m_has_value(true)
+    {
+        new (m_raw()) T(_value);
+    }
+
+    // expected(const unexpected<G>&)
+    //   function: holds an E made from the unexpected's error.
+    template<typename G>
+    expected(
+        const unexpected<G>& _unexpected
+    )
+        : m_has_value(false)
+    {
+        new (m_raw()) E(_unexpected.error());
+    }
+
+    // expected(unexpect_t, const G&)
+    //   function: holds an E made from _error.
+    template<typename G>
+    expected(
+        unexpect_t,
+        const G&   _error
+    )
+        : m_has_value(false)
+    {
+        new (m_raw()) E(_error);
+    }
+
+    ~expected()
+    {
+        m_destroy();
+    }
+
+    expected&
+    operator=(
+        const expected& _other
+    )
+    {
+        // assigning an expected to itself keeps what it holds
+        if (this == &_other)
+        {
+            return *this;
+        }
+
+        // the same member on both sides is assigned in place
+        if (m_has_value == _other.m_has_value)
+        {
+            if (m_has_value)
+            {
+                *m_value() = *_other.m_value();
+            }
+            else
+            {
+                *m_error() = *_other.m_error();
+            }
+
+            return *this;
+        }
+
+        m_destroy();
+        m_has_value = _other.m_has_value;
+        m_copy_from(_other);
+
+        return *this;
+    }
+
+    expected&
+    operator=(
+        const T& _value
+    )
+    {
+        // a value replaces a value in place
+        if (m_has_value)
+        {
+            *m_value() = _value;
+
+            return *this;
+        }
+
+        m_destroy();
+        new (m_raw()) T(_value);
+        m_has_value = true;
+
+        return *this;
+    }
+
+    template<typename G>
+    expected&
+    operator=(
+        const unexpected<G>& _unexpected
+    )
+    {
+        // an error replaces an error in place
+        if (!m_has_value)
+        {
+            *m_error() = _unexpected.error();
+
+            return *this;
+        }
+
+        m_destroy();
+        new (m_raw()) E(_unexpected.error());
+        m_has_value = false;
+
+        return *this;
+    }
+
+    // emplace
+    //   function: destroys what is held and builds a T from the arguments;
+    // C++98 takes up to two, by const reference.
+    T&
+    emplace()
+    {
+        m_destroy();
+        new (m_raw()) T();
+        m_has_value = true;
+
+        return *m_value();
+    }
+
+    template<typename A1>
+    T&
+    emplace(
+        const A1& _a1
+    )
+    {
+        m_destroy();
+        new (m_raw()) T(_a1);
+        m_has_value = true;
+
+        return *m_value();
+    }
+
+    template<typename A1,
+             typename A2>
+    T&
+    emplace(
+        const A1& _a1,
+        const A2& _a2
+    )
+    {
+        m_destroy();
+        new (m_raw()) T(_a1,
+                        _a2);
+        m_has_value = true;
+
+        return *m_value();
+    }
+
+    void
+    swap(
+        expected& _other
+    )
+    {
+        // like members swap as they are
+        if (m_has_value == _other.m_has_value)
+        {
+            using std::swap;
+
+            if (m_has_value)
+            {
+                swap(*m_value(),
+                     *_other.m_value());
+            }
+            else
+            {
+                swap(*m_error(),
+                     *_other.m_error());
+            }
+
+            return;
+        }
+
+        expected& valued = m_has_value ? *this : _other;
+        expected& failed = m_has_value ? _other : *this;
+        const T   held(*valued.m_value());
+
+        valued.m_destroy();
+        new (valued.m_raw()) E(*failed.m_error());
+        valued.m_has_value = false;
+        failed.m_destroy();
+        new (failed.m_raw()) T(held);
+        failed.m_has_value = true;
+
+        return;
+    }
+
+    // the value, unchecked
+    const T*
+    operator->() const RE_STD_NOEXCEPT
+    {
+        return m_value();
+    }
+
+    T*
+    operator->() RE_STD_NOEXCEPT
+    {
+        return m_value();
+    }
+
+    const T&
+    operator*() const RE_STD_NOEXCEPT
+    {
+        return *m_value();
+    }
+
+    T&
+    operator*() RE_STD_NOEXCEPT
+    {
+        return *m_value();
+    }
+
+    // has_value -- whether a value is held, not an error
+    bool
+    has_value() const RE_STD_NOEXCEPT
+    {
+        return m_has_value;
+    }
+
+    // value -- the value, checked: without one, bad_expected_access<E>
+    const T&
+    value() const
+    {
+        // no value: the error goes out as the exception
+        if (!m_has_value)
+        {
+            internal::exp98_bad_access(*m_error());
+        }
+
+        return *m_value();
+    }
+
+    T&
+    value()
+    {
+        // no value: the error goes out as the exception
+        if (!m_has_value)
+        {
+            internal::exp98_bad_access(*m_error());
+        }
+
+        return *m_value();
+    }
+
+    // the error, unchecked
+    const E&
+    error() const RE_STD_NOEXCEPT
+    {
+        return *m_error();
+    }
+
+    E&
+    error() RE_STD_NOEXCEPT
+    {
+        return *m_error();
+    }
+
+    // value_or -- the value, or the fallback converted
+    template<typename U>
+    T
+    value_or(
+        const U& _fallback
+    ) const
+    {
+        return (m_has_value) ? *m_value()
+                             : static_cast<T>(_fallback);
+    }
+
+private:
+    void*
+    m_raw() RE_STD_NOEXCEPT
+    {
+        return static_cast<void*>(m_storage.bytes);
+    }
+
+    const void*
+    m_raw() const RE_STD_NOEXCEPT
+    {
+        return static_cast<const void*>(m_storage.bytes);
+    }
+
+    T*
+    m_value() RE_STD_NOEXCEPT
+    {
+        return static_cast<T*>(m_raw());
+    }
+
+    const T*
+    m_value() const RE_STD_NOEXCEPT
+    {
+        return static_cast<const T*>(m_raw());
+    }
+
+    E*
+    m_error() RE_STD_NOEXCEPT
+    {
+        return static_cast<E*>(m_raw());
+    }
+
+    const E*
+    m_error() const RE_STD_NOEXCEPT
+    {
+        return static_cast<const E*>(m_raw());
+    }
+
+    // m_copy_from -- builds the member _other holds; m_has_value is set
+    void
+    m_copy_from(
+        const expected& _other
+    )
+    {
+        // the value or the error, as the other holds
+        if (_other.m_has_value)
+        {
+            new (m_raw()) T(*_other.m_value());
+        }
+        else
+        {
+            new (m_raw()) E(*_other.m_error());
+        }
+
+        return;
+    }
+
+    // m_destroy -- ends the member's lifetime; the bytes stay
+    void
+    m_destroy() RE_STD_NOEXCEPT
+    {
+        // the value or the error, whichever lives
+        if (m_has_value)
+        {
+            m_value()->~T();
+        }
+        else
+        {
+            m_error()->~E();
+        }
+
+        return;
+    }
+
+    internal::exp98_storage<T, E> m_storage;
+    bool                          m_has_value;
+};
+
+
+// expected<void, E>
+//   class: success with nothing to hold, or an error of type E (C++98).
+template<typename E>
+class expected<void, E>
+{
+public:
+    typedef void          value_type;
+    typedef E             error_type;
+    typedef unexpected<E> unexpected_type;
+
+    expected()
+        : m_has_value(true)
+    {}
+
+    expected(
+        const expected& _other
+    )
+        : m_has_value(_other.m_has_value)
+    {
+        // only an error has anything to copy
+        if (!m_has_value)
+        {
+            new (m_raw()) E(*_other.m_error());
+        }
+    }
+
+    template<typename G>
+    expected(
+        const unexpected<G>& _unexpected
+    )
+        : m_has_value(false)
+    {
+        new (m_raw()) E(_unexpected.error());
+    }
+
+    template<typename G>
+    expected(
+        unexpect_t,
+        const G&   _error
+    )
+        : m_has_value(false)
+    {
+        new (m_raw()) E(_error);
+    }
+
+    ~expected()
+    {
+        m_destroy();
+    }
+
+    expected&
+    operator=(
+        const expected& _other
+    )
+    {
+        // assigning an expected to itself keeps what it holds
+        if (this == &_other)
+        {
+            return *this;
+        }
+
+        // an error replaces an error in place
+        if ( (!m_has_value) &&
+             (!_other.m_has_value) )
+        {
+            *m_error() = *_other.m_error();
+
+            return *this;
+        }
+
+        m_destroy();
+        m_has_value = _other.m_has_value;
+
+        // only an error has anything to copy
+        if (!m_has_value)
+        {
+            new (m_raw()) E(*_other.m_error());
+        }
+
+        return *this;
+    }
+
+    template<typename G>
+    expected&
+    operator=(
+        const unexpected<G>& _unexpected
+    )
+    {
+        // an error replaces an error in place
+        if (!m_has_value)
+        {
+            *m_error() = _unexpected.error();
+
+            return *this;
+        }
+
+        new (m_raw()) E(_unexpected.error());
+        m_has_value = false;
+
+        return *this;
+    }
+
+    // emplace -- success, dropping any error
+    void
+    emplace()
+    {
+        m_destroy();
+        m_has_value = true;
+
+        return;
+    }
+
+    void
+    swap(
+        expected& _other
+    )
+    {
+        // two errors swap as they are; two successes have nothing to swap
+        if (m_has_value == _other.m_has_value)
+        {
+            if (!m_has_value)
+            {
+                using std::swap;
+                swap(*m_error(),
+                     *_other.m_error());
+            }
+
+            return;
+        }
+
+        expected& valued = m_has_value ? *this : _other;
+        expected& failed = m_has_value ? _other : *this;
+
+        new (valued.m_raw()) E(*failed.m_error());
+        valued.m_has_value = false;
+        failed.m_destroy();
+        failed.m_has_value = true;
+
+        return;
+    }
+
+    void
+    operator*() const RE_STD_NOEXCEPT
+    {
+        return;
+    }
+
+    bool
+    has_value() const RE_STD_NOEXCEPT
+    {
+        return m_has_value;
+    }
+
+    // value -- nothing, checked: without it, bad_expected_access<E>
+    void
+    value() const
+    {
+        // no value: the error goes out as the exception
+        if (!m_has_value)
+        {
+            internal::exp98_bad_access(*m_error());
+        }
+
+        return;
+    }
+
+    const E&
+    error() const RE_STD_NOEXCEPT
+    {
+        return *m_error();
+    }
+
+    E&
+    error() RE_STD_NOEXCEPT
+    {
+        return *m_error();
+    }
+
+private:
+    void*
+    m_raw() RE_STD_NOEXCEPT
+    {
+        return static_cast<void*>(m_storage.bytes);
+    }
+
+    E*
+    m_error() RE_STD_NOEXCEPT
+    {
+        return static_cast<E*>(m_raw());
+    }
+
+    const E*
+    m_error() const RE_STD_NOEXCEPT
+    {
+        return static_cast<const E*>(
+                   static_cast<const void*>(m_storage.bytes));
+    }
+
+    // m_destroy -- ends the error's lifetime, if one lives
+    void
+    m_destroy() RE_STD_NOEXCEPT
+    {
+        // a success holds nothing
+        if (!m_has_value)
+        {
+            m_error()->~E();
+        }
+
+        return;
+    }
+
+    internal::exp98_storage<E, E> m_storage;
+    bool                          m_has_value;
 };
 
 

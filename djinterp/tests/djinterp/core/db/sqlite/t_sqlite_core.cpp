@@ -20,7 +20,7 @@
 * path:      /tests/djinterp/core/db/sqlite/t_sqlite_core.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // djinterp
 #include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -30,9 +30,11 @@
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
-#include <cstdio>   // std::remove
-#include <string>   // std::string
-#include <vector>   // std::vector
+#include <cstdio>       // std::remove
+#include <memory>       // std::unique_ptr
+#include <string>       // std::string
+#include <type_traits>  // std::is_same_v
+#include <vector>       // std::vector
 // djinterp
 #include "../../../../../inc/djinterp/core/db/sqlite/sqlite.hpp"  // under test
 #include "../../../../../inc/djinterp/core/db/sqlite/sqlite_table.hpp"
@@ -45,10 +47,95 @@ namespace
 
 namespace db = djinterp;
 
-// RESULT_ERROR, RESULT_CANTOPEN, RESULT_CONSTRAINT
+// the concepts (C++20) -- djinterp::concepts' own, every one of which the
+// class satisfies, none of which int does; and a former name, which
+// forwards to its concept for one release
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+using concepts_tested = db::sqlite_connection;
+
+static_assert(db::concepts::sqlite_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_connection<int>);
+static_assert(db::concepts::sqlite_openable_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_openable_connection<int>);
+static_assert(db::concepts::sqlite_flag_openable_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_flag_openable_connection<int>);
+static_assert(db::concepts::sqlite_closable_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_closable_connection<int>);
+static_assert(db::concepts::sqlite_basic_file_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_basic_file_connection<int>);
+static_assert(db::concepts::sqlite_journal_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_journal_connection<int>);
+static_assert(db::concepts::sqlite_pragma_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_pragma_connection<int>);
+static_assert(db::concepts::sqlite_backup_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_backup_connection<int>);
+static_assert(db::concepts::sqlite_attach_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_attach_connection<int>);
+static_assert(db::concepts::sqlite_schema_query_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_schema_query_connection<int>);
+static_assert(
+    db::concepts::sqlite_extension_loading_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_extension_loading_connection<int>);
+static_assert(db::concepts::sqlite_serialization_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_serialization_connection<int>);
+static_assert(db::concepts::sqlite_busy_timeout_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_busy_timeout_connection<int>);
+static_assert(db::concepts::sqlite_checkpoint_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_checkpoint_connection<int>);
+static_assert(db::concepts::sqlite_attachable_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_attachable_connection<int>);
+static_assert(db::concepts::sqlite_detachable_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_detachable_connection<int>);
+static_assert(
+    db::concepts::sqlite_schema_table_query_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_schema_table_query_connection<int>);
+static_assert(
+    db::concepts::sqlite_table_name_query_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_table_name_query_connection<int>);
+static_assert(
+    db::concepts::sqlite_extension_loadable_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_extension_loadable_connection<int>);
+static_assert(
+    db::concepts::sqlite_extension_toggle_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_extension_toggle_connection<int>);
+static_assert(db::concepts::sqlite_serializable_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_serializable_connection<int>);
+static_assert(db::concepts::sqlite_deserializable_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_deserializable_connection<int>);
+static_assert(
+    db::concepts::sqlite_transaction_modes_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_transaction_modes_connection<int>);
+static_assert(
+    db::concepts::sqlite_deferred_transaction_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_deferred_transaction_connection<int>);
+static_assert(
+    db::concepts::sqlite_immediate_transaction_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_immediate_transaction_connection<int>);
+static_assert(
+    db::concepts::sqlite_exclusive_transaction_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_exclusive_transaction_connection<int>);
+static_assert(db::concepts::sqlite_journaling_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_journaling_connection<int>);
+static_assert(db::concepts::sqlite_pragmatic_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_pragmatic_connection<int>);
+static_assert(db::concepts::sqlite_backup_capable_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_backup_capable_connection<int>);
+static_assert(db::concepts::sqlite_attached_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_attached_connection<int>);
+static_assert(db::concepts::sqlite_full_connection<concepts_tested>);
+static_assert(!db::concepts::sqlite_full_connection<int>);
+static_assert(db::concepts::sqlite_connection<const concepts_tested&>);
+static_assert(db::concepts::non_sqlite_connection<int>);
+static_assert(!db::concepts::non_sqlite_connection<concepts_tested>);
+static_assert(db::Sqlite_connection<concepts_tested>);
+static_assert(!db::Sqlite_connection<int>);
+#endif
+
+// RESULT_ERROR, RESULT_READONLY, RESULT_CANTOPEN, RESULT_CONSTRAINT
 //   constants: the SQLite result codes the checks compare with, by value,
 // as sqlite3.h names them.
 const int RESULT_ERROR      = 1;   // SQLITE_ERROR
+const int RESULT_READONLY   = 8;   // SQLITE_READONLY
 const int RESULT_CANTOPEN   = 14;  // SQLITE_CANTOPEN
 const int RESULT_CONSTRAINT = 19;  // SQLITE_CONSTRAINT
 
@@ -93,6 +180,9 @@ d_tests_sqlite_core_opening
   - each constructor names the file to open; connect opens it, and the
     state, the vendor and the library's version follow
   - ping, a native handle, is_in_memory; disconnect, close and reconnect
+  - the file connect(config) names is the configuration's and in memory or
+    not as it says: ":memory:", and, with the uri flag, "file::memory:" and
+    mode=memory among a URI's parameters, but not mode=memoryx
   - open names another file, which is made; open with flags opens read only
   - a file that cannot be opened: connection_exception with
     SQLITE_CANTOPEN, the connection in error, its message naming the path
@@ -128,6 +218,36 @@ d_tests_sqlite_core_opening(
                            (memory.get_native_handle() == nullptr) );
     memory.reconnect();
     D_TESTS_DB_CORE_CHECK(memory.is_connected());
+
+    // the file connect(config) names, and whether it is in memory
+    db::sqlite_connection renamed(path);
+    db::connection_config in_memory;
+
+    in_memory.database = ":memory:";
+    renamed.connect(in_memory);
+    D_TESTS_DB_CORE_CHECK( (renamed.is_in_memory()) &&
+                           (renamed.get_sqlite_config().file_path ==
+                            ":memory:") );
+    renamed.close();
+
+    db::sqlite_connect_config uri;
+
+    uri.open_flags = db::sqlite_open_flag::read_write |
+                     db::sqlite_open_flag::create     |
+                     db::sqlite_open_flag::uri;
+
+    for (const char* name : { "file::memory:",
+                              "file:shared?cache=shared&mode=memory",
+                              "file:once?mode=memory" })
+    {
+        uri.file_path = name;
+        renamed.set_sqlite_config(uri);
+        D_TESTS_DB_CORE_CHECK(renamed.is_in_memory());
+    }
+
+    uri.file_path = "file:never?mode=memoryx";
+    renamed.set_sqlite_config(uri);
+    D_TESTS_DB_CORE_CHECK(!renamed.is_in_memory());
 
     // a file, made, written, and opened read only
     db::sqlite_connection file;
@@ -483,12 +603,265 @@ d_tests_sqlite_core_tables(
 }
 
 /*
+d_tests_sqlite_core_support
+  What the library loaded can do, asked of it at run time.
+  Tests the following:
+  - each supports_* answers by the library's release: CTEs (3.8.3), upsert
+    (3.24.0), window functions (3.25.0), generated columns (3.31.0),
+    RETURNING (3.35.0), STRICT tables (3.37.0); supports_modern_sql the
+    first five together
+  - JSON and FTS5 as the library's build says, read with PRAGMA
+    compile_options; WAL, which no build here leaves out; encryption, which
+    none here has; a library built thread-safe, as every build here is
+  - the compile-time struct by its name, and by its former name
+*/
+void
+d_tests_sqlite_core_support(
+    db::sqlite_connection& _db
+)
+{
+    std::printf("support\n");
+
+    const int library = db::face::sqlite::library_version_number();
+
+    D_TESTS_DB_CORE_CHECK( (db::sqlite_connection::supports_cte() ==
+                            (library >= 3008003)) &&
+                           (db::sqlite_connection::supports_upsert() ==
+                            (library >= 3024000)) &&
+                           (db::sqlite_connection::supports_window_functions()
+                            == (library >= 3025000)) &&
+                           (db::sqlite_connection::supports_generated_columns()
+                            == (library >= 3031000)) &&
+                           (db::sqlite_connection::supports_returning() ==
+                            (library >= 3035000)) &&
+                           (db::sqlite_connection::supports_strict_tables() ==
+                            (library >= 3037000)) &&
+                           (db::sqlite_connection::supports_modern_sql() ==
+                            (library >= 3035000)) );
+
+    // the build's options, as the library lists them
+    std::vector<std::string>                 options;
+    std::unique_ptr<db::buffered_result_set> rows =
+        _db.execute_query("PRAGMA compile_options");
+
+    while (rows->next())
+    {
+        options.push_back(rows->get_string(0u).value_or(""));
+    }
+
+    const auto built_with = [&options](const char* _option) -> bool
+    {
+        // an option, with or without its value ("THREADSAFE=1")
+        for (const std::string& option : options)
+        {
+            if (option.compare(0u, std::string(_option).size(), _option) == 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    };
+    const bool json = (library >= 3038000) ? !built_with("OMIT_JSON")
+                                           : built_with("ENABLE_JSON1");
+
+    D_TESTS_DB_CORE_CHECK( (!options.empty()) &&
+                           (db::sqlite_connection::supports_json() == json) &&
+                           (db::sqlite_connection::supports_fts5() ==
+                            built_with("ENABLE_FTS5")) &&
+                           (db::sqlite_connection::supports_wal()) &&
+                           (!db::sqlite_connection::supports_encryption()) &&
+                           (db::sqlite_connection::is_thread_safe()) );
+
+    // the compile-time struct, and its former name
+    static_assert(std::is_same_v<
+                      db::sqlite_connection::client_capabilities,
+                      db::sqlite_client_capabilities>,
+                  "client_capabilities is the compile-time struct");
+#if defined(__GNUC__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+    static_assert(std::is_same_v<db::sqlite_type_support,
+                                 db::sqlite_client_capabilities>,
+                  "sqlite_type_support is the struct's former name");
+#if defined(__GNUC__)
+    #pragma GCC diagnostic pop
+#endif
+
+    return;
+}
+
+/*
+d_tests_sqlite_core_bytes
+  Databases as bytes, and extensions.
+  Tests the following:
+  - supports_serialization by the library's release (3.36.0; none of the
+    builds here has it before, by option)
+  - serialize: the file's header first; no such database, D_DB_NOT_FOUND; a
+    name holding a NUL, D_DB_INVALID_ARGUMENT
+  - deserialize into a file connection's main: its rows there, is_in_memory
+    until the next open, which finds the file as it was; read-only, which
+    refuses writes (SQLITE_READONLY); "temp", SQLITE_ERROR
+  - where the library cannot, D_DB_UNSUPPORTED; before connecting,
+    connection_exception
+  - supports_extension_loading, which every build here has; a library that
+    is not there, SQLITE_ERROR with SQLite's words; with the test extension
+    (DJINTERP_TEST_SQLITE_EXTENSION), its function by the default entry
+    point and by a named one, an entry point it lacks refused, and SQL's
+    load_extension off until enable_load_extension turns it on (from 3.13.0;
+    before, the C API too)
+*/
+void
+d_tests_sqlite_core_bytes(
+    const std::string& _directory
+)
+{
+    std::printf("bytes and extensions\n");
+
+    const int         library   = db::face::sqlite::library_version_number();
+    const std::string path      = _directory + "/t_sqlite_core_bytes.db";
+    const std::string extension =
+        d_tests_db_core::setting("DJINTERP_TEST_SQLITE_EXTENSION", "");
+
+    db::sqlite_connection memory(":memory:");
+    db::sqlite_connection file(path);
+
+    D_TESTS_DB_CORE_CHECK(db::sqlite_connection::supports_serialization() ==
+                          (library >= 3036000));
+    D_TESTS_DB_CORE_THROWS_ANY((void)memory.serialize(),
+                               db::connection_exception);
+    memory.connect();
+    memory.execute("CREATE TABLE b (id INTEGER PRIMARY KEY, v TEXT)");
+    memory.execute("INSERT INTO b VALUES (1, 'one'), (2, 'two')");
+    (void)std::remove(path.c_str());
+    file.connect();
+    file.execute("CREATE TABLE f (x)");
+
+    // a library without it
+    if (!db::sqlite_connection::supports_serialization())
+    {
+        D_TESTS_DB_CORE_THROWS((void)memory.serialize(),
+                               db::query_exception,
+                               D_DB_UNSUPPORTED);
+        D_TESTS_DB_CORE_THROWS(file.deserialize(
+                                   std::vector<re_std::uint8_t>(1u, 0u)),
+                               db::query_exception,
+                               D_DB_UNSUPPORTED);
+    }
+    else
+    {
+        const std::vector<re_std::uint8_t> bytes = memory.serialize();
+
+        D_TESTS_DB_CORE_CHECK( (bytes.size() >= 512u) &&
+                               (std::string(bytes.begin(),
+                                            bytes.begin() + 15) ==
+                                "SQLite format 3") );
+        D_TESTS_DB_CORE_THROWS((void)memory.serialize("nope"),
+                               db::query_exception,
+                               D_DB_NOT_FOUND);
+        D_TESTS_DB_CORE_THROWS((void)memory.serialize(std::string("a\0", 2)),
+                               db::query_exception,
+                               D_DB_INVALID_ARGUMENT);
+        D_TESTS_DB_CORE_CHECK(!file.is_in_memory());
+        file.deserialize(bytes);
+        D_TESTS_DB_CORE_CHECK( (file.is_in_memory()) &&
+                               (d_tests_db_core::scalar(
+                                    file,
+                                    "SELECT id FROM b WHERE v = 'two'") ==
+                                2) );
+        file.execute("INSERT INTO b VALUES (3, 'three')");
+        D_TESTS_DB_CORE_THROWS(file.deserialize(bytes, "temp"),
+                               db::query_exception,
+                               RESULT_ERROR);
+        file.disconnect();
+        file.connect();
+        D_TESTS_DB_CORE_CHECK( (!file.is_in_memory()) &&
+                               (file.has_table("f")) &&
+                               (!file.has_table("b")) );
+        file.deserialize(bytes, "main", true);
+        D_TESTS_DB_CORE_THROWS(file.execute("INSERT INTO b VALUES (4, 'x')"),
+                               db::query_exception,
+                               RESULT_READONLY);
+    }
+
+    file.close();
+    (void)std::remove(path.c_str());
+
+    // extensions: a library that is not there
+    D_TESTS_DB_CORE_CHECK(db::sqlite_connection::supports_extension_loading());
+
+    // before 3.13.0 the C API needs loading on
+    if (library < 3013000)
+    {
+        D_TESTS_DB_CORE_THROWS(memory.load_extension("t_sqlite_nothing"),
+                               db::query_exception,
+                               RESULT_ERROR);
+        memory.enable_load_extension(true);
+    }
+
+    try
+    {
+        memory.load_extension("t_sqlite_no/such_lib");
+        D_TESTS_DB_CORE_CHECK(false);
+    }
+    catch (const db::query_exception& e)
+    {
+        D_TESTS_DB_CORE_CHECK( (e.error_code() == RESULT_ERROR) &&
+                               (std::string(e.what()).find(
+                                    "load_extension: ") !=
+                                std::string::npos) );
+    }
+
+    // the test extension, where it was built
+    if (extension.empty())
+    {
+        std::printf("  (no extension built)\n");
+
+        return;
+    }
+
+    memory.load_extension(extension);
+    D_TESTS_DB_CORE_CHECK(d_tests_db_core::scalar(memory,
+                                                  "SELECT d_tests_answer()") ==
+                          42);
+    D_TESTS_DB_CORE_THROWS(memory.load_extension(extension, "d_tests_no_init"),
+                           db::query_exception,
+                           RESULT_ERROR);
+    memory.load_extension(extension, "d_tests_sqlite_extension_init");
+    D_TESTS_DB_CORE_CHECK(d_tests_db_core::scalar(memory,
+                                                  "SELECT d_tests_named()") ==
+                          7);
+
+    // SQL's own switch, from 3.13.0
+    if (library >= 3013000)
+    {
+        db::sqlite_connection other(":memory:");
+        const std::string     sql = "SELECT load_extension('" + extension +
+                                    "')";
+
+        other.connect();
+        D_TESTS_DB_CORE_THROWS_ANY(other.execute(sql), db::query_exception);
+        other.enable_load_extension(true);
+        other.execute(sql);
+        D_TESTS_DB_CORE_CHECK(d_tests_db_core::scalar(
+                                  other,
+                                  "SELECT d_tests_answer()") == 42);
+        other.enable_load_extension(false);
+        D_TESTS_DB_CORE_THROWS_ANY(other.execute(sql), db::query_exception);
+    }
+
+    return;
+}
+
+/*
 d_tests_sqlite_core_stubs
   Over a layer built without SQLite.
   Tests the following:
   - connect throws connection_exception with D_DB_UNSUPPORTED, and leaves
     the connection in error
   - every operation then refuses, not connected, and so does a table's
+  - there is no library to support anything
 */
 void
 d_tests_sqlite_core_stubs(
@@ -509,6 +882,10 @@ d_tests_sqlite_core_stubs(
                                db::connection_exception);
     D_TESTS_DB_CORE_THROWS_ANY((void)memory.prepare("SELECT 1"),
                                db::connection_exception);
+    D_TESTS_DB_CORE_CHECK( (!db::sqlite_connection::supports_wal()) &&
+                           (!db::sqlite_connection::supports_cte()) &&
+                           (!db::sqlite_connection::supports_modern_sql()) &&
+                           (!db::sqlite_connection::is_thread_safe()) );
 
     // a table on it
     db::sqlite_table<> notes(memory, std::string("notes"));
@@ -554,6 +931,7 @@ main(
     d_tests_db_core::statements(memory, g_dialect);
     d_tests_db_core::transactions(memory);
     d_tests_db_core::errors(memory, g_dialect);
+    d_tests_db_core::streams(memory, g_dialect);
     d_tests_db_core::lifetimes<db::sqlite_connection>(
         []() { return db::sqlite_connection(":memory:"); });
     d_tests_db_core::tables<db::database_table<db::sqlite_connection>>(
@@ -565,9 +943,11 @@ main(
             db::face::sqlite::library_version_number() >= 3035000,
             db::face::sqlite::library_version_number() >= 3031000
         });
+    d_tests_sqlite_core_support(memory);
     d_tests_sqlite_core_opening(directory);
     d_tests_sqlite_core_settings(directory);
     d_tests_sqlite_core_schema(directory);
+    d_tests_sqlite_core_bytes(directory);
     d_tests_sqlite_core_tables();
 
     return d_tests_db_core::summary(std::string("SQLite ") +

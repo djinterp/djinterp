@@ -12,7 +12,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_command_set.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_command.h"  // corresponding header
 // std
@@ -32,19 +32,25 @@
 // 1.  NAMES AND TEXT
 //==============================================================================
 
-/*
-d_arg_internal_command_clash
-  CLI11's check in name() and alias(): a name or alias of a subcommand that
-matches one of its fallthrough parent's other subcommands; NULL for a
-root, which is not checked.
-*/
+/**
+ * @brief Finds a name on which a subcommand clashes with its fallthrough
+ *        parent's others.
+ *
+ * @param[in] _command  the subcommand.
+ * @return the name or alias that clashes, owned by one of the commands; NULL
+ *         when none does, or for a root.
+ *
+ * CLI11's check in name() and alias(): a name or alias of a subcommand that
+ * matches one of its fallthrough parent's other subcommands; NULL for a
+ * root, which is not checked.
+ */
 D_STATIC const char*
 d_arg_internal_command_clash(
     const struct d_arg_command* _command
 )
 {
     return (_command->parent != NULL)
-           ? d_arg_internal_compare_subcommand_names(
+           ? d_arg_internal_subcommand_clash(
                  _command,
                  d_arg_internal_fallthrough_parent(_command))
            : NULL;
@@ -189,11 +195,18 @@ d_arg_command_clear_aliases(
     return;
 }
 
-/*
-d_arg_internal_command_replace_text
-  An owned text field replaced with a copy -- NULL clears it -- the old
-text freed only once the copy exists.
-*/
+/**
+ * @brief Replaces an owned text field of a command with a copy.
+ *
+ * @param[in,out] _command  the command the field belongs to.
+ * @param[in,out] _field    the field, its old text freed once the copy exists.
+ * @param[in]     _text     the text, copied; NULL clears the field.
+ * @return D_ARG_OK; D_ARG_ERROR_OUT_OF_MEMORY, recorded as a definition error,
+ *         the field then unchanged.
+ *
+ * An owned text field replaced with a copy -- NULL clears it -- the old
+ * text freed only once the copy exists.
+ */
 D_STATIC int
 d_arg_internal_command_replace_text(
     struct d_arg_command* _command,
@@ -289,12 +302,19 @@ d_arg_command_set_group(
            : D_ARG_ERROR_BAD_ARGUMENT;
 }
 
-/*
-d_arg_internal_command_keep_callback
-  A callback's context put in place of the one kept -- freed unless given
-again -- and, when no function came with it, freed too, for a removed
-callback keeps nothing.
-*/
+/**
+ * @brief Puts a callback's new context in place of the one kept.
+ *
+ * @param[in]     _given        whether a function came with it.
+ * @param[in,out] _context      the context kept.
+ * @param[in,out] _release      the function that frees it.
+ * @param[in]     _new_context  the new context.
+ * @param[in]     _new_release  frees it; NULL leaves it borrowed.
+ *
+ * A callback's context put in place of the one kept -- freed unless given
+ * again -- and, when no function came with it, freed too, for a removed
+ * callback keeps nothing.
+ */
 D_STATIC void
 d_arg_internal_command_keep_callback(
     bool              _given,
@@ -485,10 +505,15 @@ d_arg_command_set_allow_config_extras_bool(
     return;
 }
 
-/*
-d_arg_internal_command_switch
-  Sets or clears one D_ARG_COMMAND_* flag of a command, if there is one.
-*/
+/**
+ * @brief Sets or clears one D_ARG_COMMAND_* flag of a command.
+ *
+ * @param[in,out] _command  the command; NULL is ignored.
+ * @param[in]     _flag     the flag.
+ * @param[in]     _value    whether it is set.
+ *
+ * Sets or clears one D_ARG_COMMAND_* flag of a command, if there is one.
+ */
 D_STATIC void
 d_arg_internal_command_switch(
     struct d_arg_command* _command,
@@ -713,13 +738,24 @@ d_arg_command_set_subcommand_fallthrough(
     return;
 }
 
-/*
-d_arg_internal_command_set_matching
-  CLI11's ignore_case() and ignore_underscore(): turning the switch on is
-refused when the command's names would then match another of its
-fallthrough parent's subcommands -- a root's own, at the root -- the switch
-left off; anything else is simply set.
-*/
+/**
+ * @brief Turns a command's ignore-case or ignore-underscore switch on or off.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _flag     the switch: D_ARG_COMMAND_IGNORE_CASE or
+ *                          D_ARG_COMMAND_IGNORE_UNDERSCORE.
+ * @param[in]     _value    whether it is turned on.
+ * @param[in]     _word     the switch's word in CLI11's message: `case` or
+ *                          `underscore`.
+ * @return D_ARG_OK; D_ARG_ERROR_BAD_ARGUMENT for no command;
+ *         D_ARG_ERROR_OPTION_ALREADY_ADDED, recorded as a definition error with
+ *         the switch left off, when the command's names would then clash.
+ *
+ * CLI11's ignore_case() and ignore_underscore(): turning the switch on is
+ * refused when the command's names would then match another of its
+ * fallthrough parent's subcommands -- a root's own, at the root -- the switch
+ * left off; anything else is simply set.
+ */
 D_STATIC int
 d_arg_internal_command_set_matching(
     struct d_arg_command* _command,
@@ -741,7 +777,7 @@ d_arg_internal_command_set_matching(
     {
         _command->flags |= _flag;
 
-        const char* const clash = d_arg_internal_compare_subcommand_names(
+        const char* const clash = d_arg_internal_subcommand_clash(
                                       _command,
                                       (_command->parent != NULL)
                                       ? d_arg_internal_fallthrough_parent(
@@ -803,11 +839,14 @@ d_arg_command_set_ignore_underscore(
                "underscore");
 }
 
-/*
-d_arg_internal_command_swap_callbacks
-  The final and parse-complete callbacks change places, each with its
-context and the function that frees it.
-*/
+/**
+ * @brief Swaps a command's final and parse-complete callbacks.
+ *
+ * @param[in,out] _command  the command.
+ *
+ * The final and parse-complete callbacks change places, each with its
+ * context and the function that frees it.
+ */
 D_STATIC void
 d_arg_internal_command_swap_callbacks(
     struct d_arg_command* _command
@@ -918,12 +957,18 @@ d_arg_command_set_enabled_by_default(
 // 3.  REQUIREMENTS
 //==============================================================================
 
-/*
-d_arg_internal_command_count_limits
-  CLI11's reading of require_subcommand(int) and require_option(int): `n`
-is exactly `n`, `-n` at most `n` -- its magnitude taken without
-overflowing at INT_MIN, where CLI11's negation overflows.
-*/
+/**
+ * @brief Reads a count as CLI11's require_subcommand(int) and
+ *        require_option(int) do.
+ *
+ * @param[in]  _value    the count: `n` for exactly `n`, `-n` for at most `n`.
+ * @param[out] _minimum  receives the least.
+ * @param[out] _maximum  receives the most.
+ *
+ * CLI11's reading of require_subcommand(int) and require_option(int): `n`
+ * is exactly `n`, `-n` at most `n` -- its magnitude taken without
+ * overflowing at INT_MIN, where CLI11's negation overflows.
+ */
 D_STATIC void
 d_arg_internal_command_count_limits(
     int     _value,
@@ -1241,11 +1286,18 @@ d_arg_command_set_failure_message(
 // 5.  RELATIONS
 //==============================================================================
 
-/*
-d_arg_internal_command_check_option
-  An option a command may be linked to: CLI11's refusal of nothing, then
-the refusal of another parser's option, either recorded.
-*/
+/**
+ * @brief Checks that an option may be linked to a command.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _option   the option.
+ * @return D_ARG_OK; D_ARG_ERROR_OPTION_NOT_FOUND for no option, or
+ *         D_ARG_ERROR_INCORRECT_CONSTRUCTION for another parser's, either
+ *         recorded as a definition error.
+ *
+ * An option a command may be linked to: CLI11's refusal of nothing, then
+ * the refusal of another parser's option, either recorded.
+ */
 D_STATIC int
 d_arg_internal_command_check_option(
     const struct d_arg_command* _command,
@@ -1271,12 +1323,20 @@ d_arg_internal_command_check_option(
                  "linked");
 }
 
-/*
-d_arg_internal_command_check_command
-  A command another may be linked to: CLI11's refusals of nothing and of
-the command itself, worded for `_relation`, then the refusal of another
-parser's command, each recorded.
-*/
+/**
+ * @brief Checks that a command may be linked to another.
+ *
+ * @param[in] _command   the command.
+ * @param[in] _other     the other command.
+ * @param[in] _relation  the link's word in CLI11's message.
+ * @return D_ARG_OK; D_ARG_ERROR_OPTION_NOT_FOUND for no command or the command
+ *         itself, or D_ARG_ERROR_INCORRECT_CONSTRUCTION for another parser's,
+ *         each recorded as a definition error.
+ *
+ * A command another may be linked to: CLI11's refusals of nothing and of
+ * the command itself, worded for `_relation`, then the refusal of another
+ * parser's command, each recorded.
+ */
 D_STATIC int
 d_arg_internal_command_check_command(
     const struct d_arg_command* _command,
@@ -1313,11 +1373,18 @@ d_arg_internal_command_check_command(
                  "commands of different parsers cannot be linked");
 }
 
-/*
-d_arg_internal_command_keep_option
-  An option inserted into one of a command's lists, as into CLI11's set; a
-list that could not grow is recorded.
-*/
+/**
+ * @brief Inserts an option into one of a command's lists, as into CLI11's set.
+ *
+ * @param[in,out] _command  the command the list belongs to.
+ * @param[in,out] _list     the list.
+ * @param[in]     _option   the option, kept, not owned.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded as a definition
+ *         error, the list unchanged.
+ *
+ * An option inserted into one of a command's lists, as into CLI11's set; a
+ * list that could not grow is recorded.
+ */
 D_STATIC int
 d_arg_internal_command_keep_option(
     struct d_arg_command*     _command,

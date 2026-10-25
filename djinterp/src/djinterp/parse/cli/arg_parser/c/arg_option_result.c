@@ -12,7 +12,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_option_result.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_option.h"  // corresponding header
 // std
@@ -201,11 +201,16 @@ d_arg_option_is_nonpositional(
                (_option->long_names.count > 0u) ) );
 }
 
-/*
-d_arg_internal_option_base_type_name
-  The type name before the validators': the function's text, the fixed
-name, or the bound type's.
-*/
+/**
+ * @brief Writes an option's type name, before its validators'.
+ *
+ * @param[in]     _option  the option.
+ * @param[in,out] _out     the buffer that gains the name.
+ * @return D_ARG_OK, or the function's or the buffer's status.
+ *
+ * The type name before the validators': the function's text, the fixed
+ * name, or the bound type's.
+ */
 D_STATIC int
 d_arg_internal_option_base_type_name(
     const struct d_arg_option* _option,
@@ -230,11 +235,17 @@ d_arg_internal_option_base_type_name(
                    : NULL ));
 }
 
-/*
-d_arg_internal_option_describe_one
-  `:` and a validator's description, the colon taken back when the
-description is empty.
-*/
+/**
+ * @brief Appends `:` and a validator's description.
+ *
+ * @param[in]     _validator  the validator.
+ * @param[in,out] _out        the buffer that gains them, the colon taken back
+ *                            when the description is empty.
+ * @return D_ARG_OK, or the description's status.
+ *
+ * `:` and a validator's description, the colon taken back when the
+ * description is empty.
+ */
 D_STATIC int
 d_arg_internal_option_describe_one(
     const struct d_arg_validator* _validator,
@@ -329,10 +340,15 @@ d_arg_option_is_given(
                                       D_ARG_OPTION_FORCE_CALLBACK)) ) );
 }
 
-/*
-d_arg_internal_option_view
-  A list as a view: its count written, its array returned, NULL when empty.
-*/
+/**
+ * @brief Views a list as an array.
+ *
+ * @param[in]  _list   the list.
+ * @param[out] _count  receives its count; may be NULL.
+ * @return its array; NULL when it is empty.
+ *
+ * A list as a view: its count written, its array returned, NULL when empty.
+ */
 D_STATIC const struct d_pack_text*
 d_arg_internal_option_view(
     const struct d_arg_text_list* _list,
@@ -413,10 +429,15 @@ d_arg_option_callback_run(
 // 3.  CONVERSION AND CALLBACKS
 //==============================================================================
 
-/*
-d_arg_internal_option_checked
-  Records a list's refused allocation, the one failure a list call reports.
-*/
+/**
+ * @brief Records a list's refused allocation.
+ *
+ * @param[in] _option  the option concerned.
+ * @param[in] _status  the list call's status.
+ * @return `_status`, recorded when it is a failure.
+ *
+ * Records a list's refused allocation, the one failure a list call reports.
+ */
 D_STATIC int
 d_arg_internal_option_checked(
     const struct d_arg_option* _option,
@@ -431,11 +452,15 @@ d_arg_internal_option_checked(
                                  NULL);
 }
 
-/*
-d_arg_internal_option_convert_failed
-  CLI11's ConversionError(name, results): "Could not convert: <name> =
-<values>", the values as given, joined by commas.
-*/
+/**
+ * @brief Records CLI11's ConversionError for an option's values.
+ *
+ * @param[in] _option  the option.
+ * @return D_ARG_ERROR_CONVERSION, recorded.
+ *
+ * CLI11's ConversionError(name, results): "Could not convert: <name> =
+ * <values>", the values as given, joined by commas.
+ */
 D_STATIC int
 d_arg_internal_option_convert_failed(
     const struct d_arg_option* _option
@@ -464,11 +489,17 @@ d_arg_internal_option_convert_failed(
     return status;
 }
 
-/*
-d_arg_internal_option_refused
-  Records why values were refused: the reason a converter gave; for a
-conversion with none, CLI11's ConversionError; any other status as it is.
-*/
+/**
+ * @brief Records why an option's values were refused.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _status  the refusal.
+ * @param[in] _reason  the converter's reason; empty for none.
+ * @return `_status`, recorded.
+ *
+ * Records why values were refused: the reason a converter gave; for a
+ * conversion with none, CLI11's ConversionError; any other status as it is.
+ */
 D_STATIC int
 d_arg_internal_option_refused(
     const struct d_arg_option* _option,
@@ -498,10 +529,14 @@ d_arg_internal_option_refused(
                                NULL);
 }
 
-/*
-d_arg_internal_option_has_callback
-  Whether values have anywhere to go: a bound variable, or a callback.
-*/
+/**
+ * @brief Tells whether an option's values have anywhere to go.
+ *
+ * @param[in] _option  the option.
+ * @return `true` for a bound variable or a callback; `false` otherwise.
+ *
+ * Whether values have anywhere to go: a bound variable, or a callback.
+ */
 D_STATIC bool
 d_arg_internal_option_has_callback(
     const struct d_arg_option* _option
@@ -512,12 +547,18 @@ d_arg_internal_option_has_callback(
              (_option->callback != NULL) );
 }
 
-/*
-d_arg_internal_option_invoke
-  Hands values to the bound variable, through its type's conversion, then
-to the callback; the first refusal ends the call, a converter's reason
-written into `_reason`.
-*/
+/**
+ * @brief Hands values to an option's bound variable, then to its callback.
+ *
+ * @param[in,out] _option  the option.
+ * @param[in]     _values  the values.
+ * @param[in,out] _reason  receives a converter's reason for a refusal.
+ * @return D_ARG_OK, or the first refusal, which ends the call.
+ *
+ * Hands values to the bound variable, through its type's conversion, then
+ * to the callback; the first refusal ends the call, a converter's reason
+ * written into `_reason`.
+ */
 D_STATIC int
 d_arg_internal_option_invoke(
     struct d_arg_option*          _option,
@@ -554,14 +595,21 @@ d_arg_internal_option_invoke(
     return status;
 }
 
-/*
-d_arg_internal_option_call_back
-  The second half of CLI11's run_callback: the values the policy kept, else
-those given, handed on -- nothing when there are none or nowhere to hand
-them -- with the parser's report watched; then a forced default dropped
-again, before a refusal the callback did not record is reported over the
-values that are left, as CLI11 reports it.
-*/
+/**
+ * @brief Hands an option's values on, as the second half of CLI11's
+ *        run_callback.
+ *
+ * @param[in,out] _option  the option.
+ * @param[in]     _forced  whether its values are a forced default, dropped once
+ *                         handed on.
+ * @return D_ARG_OK, or the refusal, recorded.
+ *
+ * The second half of CLI11's run_callback: the values the policy kept, else
+ * those given, handed on -- nothing when there are none or nowhere to hand
+ * them -- with the parser's report watched; then a forced default dropped
+ * again, before a refusal the callback did not record is reported over the
+ * values that are left, as CLI11 reports it.
+ */
 D_STATIC int
 d_arg_internal_option_call_back(
     struct d_arg_option* _option,
@@ -667,11 +715,17 @@ d_arg_option_run_callback(
                                            forced);
 }
 
-/*
-d_arg_internal_option_reduce_over
-  Reduces a list into a second one, which takes the first's place when the
-policy kept anything.
-*/
+/**
+ * @brief Reduces a list in place by an option's policy.
+ *
+ * @param[in,out] _option  the option, which keeps a new value's copy.
+ * @param[in,out] _list    the values, replaced by what the policy kept when it
+ *                         kept any.
+ * @return D_ARG_OK, or the failure of the reduction, recorded.
+ *
+ * Reduces a list into a second one, which takes the first's place when the
+ * policy kept anything.
+ */
 D_STATIC int
 d_arg_internal_option_reduce_over(
     struct d_arg_option*    _option,
@@ -745,11 +799,19 @@ d_arg_internal_option_reduced(
            : status;
 }
 
-/*
-d_arg_internal_option_as_default
-  The default text as CLI11's results(T&) takes it for an option without
-values: added to the list, validated, and reduced over.
-*/
+/**
+ * @brief Takes an option's default text as its values, as CLI11's results(T&)
+ *        does for an option without values.
+ *
+ * @param[in,out] _option  the option.
+ * @param[in,out] _values  the list that gains the default, validated and
+ *                         reduced.
+ * @return D_ARG_OK, or the failure of the addition, the validation or the
+ *         reduction, recorded.
+ *
+ * The default text as CLI11's results(T&) takes it for an option without
+ * values: added to the list, validated, and reduced over.
+ */
 D_STATIC int
 d_arg_internal_option_as_default(
     struct d_arg_option*    _option,
@@ -776,12 +838,16 @@ d_arg_internal_option_as_default(
            : status;
 }
 
-/*
-d_arg_internal_option_as_fresh
-  CLI11's results(T&) for values not yet reduced: the reduced values; with
-none, the default text's; without one, a single empty value. Whichever they
-are become `processed`.
-*/
+/**
+ * @brief Settles values not yet reduced, as CLI11's results(T&) does.
+ *
+ * @param[in,out] _option  the option, whose `processed` values receive them.
+ * @return D_ARG_OK, or the failure, recorded.
+ *
+ * CLI11's results(T&) for values not yet reduced: the reduced values; with
+ * none, the default text's; without one, a single empty value. Whichever they
+ * are become `processed`.
+ */
 D_STATIC int
 d_arg_internal_option_as_fresh(
     struct d_arg_option* _option
@@ -825,12 +891,17 @@ d_arg_internal_option_as_fresh(
     return status;
 }
 
-/*
-d_arg_internal_option_as_settled
-  CLI11's results(T&) for reduced values, or a single value with no
-validator to run: the values stand, but none at all become a single empty
-value in `processed`.
-*/
+/**
+ * @brief Settles reduced values, as CLI11's results(T&) does.
+ *
+ * @param[in,out] _option  the option, whose `processed` values gain one empty
+ *                         value when it has none at all.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * CLI11's results(T&) for reduced values, or a single value with no
+ * validator to run: the values stand, but none at all become a single empty
+ * value in `processed`.
+ */
 D_STATIC int
 d_arg_internal_option_as_settled(
     struct d_arg_option* _option
@@ -850,11 +921,17 @@ d_arg_internal_option_as_settled(
                                                             0u)));
 }
 
-/*
-d_arg_internal_option_convert_into
-  The values the policy kept, else those given, into the variable through
-the type, a refusal reported as d_arg_internal_option_refused reports it.
-*/
+/**
+ * @brief Converts an option's values into a variable through a type.
+ *
+ * @param[in]  _option  the option.
+ * @param[in]  _type    the type.
+ * @param[out] _target  the variable.
+ * @return D_ARG_OK, or the refusal, recorded.
+ *
+ * The values the policy kept, else those given, into the variable through
+ * the type, a refusal reported as d_arg_internal_option_refused reports it.
+ */
 D_STATIC int
 d_arg_internal_option_convert_into(
     const struct d_arg_option* _option,
@@ -930,13 +1007,23 @@ d_arg_option_as(
 // 4.  FLAGS
 //==============================================================================
 
-/*
-d_arg_internal_option_override
-  CLI11's check of a flag that disables overrides: a name with a value of
-its own takes only that value -- or the default text of a forced option,
-which then stands as given, setting `*_stands` -- and any other name takes
-only "true". A refusal is CLI11's ArgumentMismatch::FlagOverride.
-*/
+/**
+ * @brief Checks a flag that disables overrides, as CLI11 does.
+ *
+ * @param[in]  _option  the option.
+ * @param[in]  _name    the flag name given.
+ * @param[in]  _input   the input.
+ * @param[in]  _index   the name's place among the flag names; -1 for none.
+ * @param[out] _stands  set to `true` when a forced option's default text stands
+ *                      as given; untouched otherwise.
+ * @return D_ARG_OK; D_ARG_ERROR_ARGUMENT_MISMATCH, recorded as CLI11's
+ *         FlagOverride, otherwise.
+ *
+ * CLI11's check of a flag that disables overrides: a name with a value of
+ * its own takes only that value -- or the default text of a forced option,
+ * which then stands as given, setting `*_stands` -- and any other name takes
+ * only "true". A refusal is CLI11's ArgumentMismatch::FlagOverride.
+ */
 D_STATIC int
 d_arg_internal_option_override(
     const struct d_arg_option* _option,
@@ -983,12 +1070,17 @@ d_arg_internal_option_override(
                                _name.data);
 }
 
-/*
-d_arg_internal_option_negated
-  The text of a flag value's negation, worked out in uintmax_t where the
-value is negative, so that the most negative `long long` negates too: to
-its magnitude, where CLI11's std::to_string(-val) overflows.
-*/
+/**
+ * @brief Appends the text of a flag value's negation.
+ *
+ * @param[in]     _value  the value.
+ * @param[in,out] _out    the buffer that gains the text.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The text of a flag value's negation, worked out in uintmax_t where the
+ * value is negative, so that the most negative `long long` negates too: to
+ * its magnitude, where CLI11's std::to_string(-val) overflows.
+ */
 D_STATIC int
 d_arg_internal_option_negated(
     intmax_t             _value,
@@ -1014,13 +1106,20 @@ d_arg_internal_option_negated(
                                text.length);
 }
 
-/*
-d_arg_internal_option_invert
-  An input to a name standing for "false", inverted as CLI11 inverts it: 1
-is "false", -1 is "true", any other flag value its negation; an input that
-is no flag value stands as given. The value is read over CLI11's whole
-range, which a `long` may not hold.
-*/
+/**
+ * @brief Appends the input to a name standing for "false", inverted as CLI11
+ *        inverts it.
+ *
+ * @param[in]     _option  the option.
+ * @param[in]     _input   the input.
+ * @param[in,out] _out     the buffer that gains the text.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * An input to a name standing for "false", inverted as CLI11 inverts it: 1
+ * is "false", -1 is "true", any other flag value its negation; an input that
+ * is no flag value stands as given. The value is read over CLI11's whole
+ * range, which a `long` may not hold.
+ */
 D_STATIC int
 d_arg_internal_option_invert(
     const struct d_arg_option* _option,
@@ -1051,11 +1150,17 @@ d_arg_internal_option_invert(
                                          _out);
 }
 
-/*
-d_arg_internal_option_flag_default
-  The value of a flag name given without an input: the name's own value;
-for a name without one, "true" for a flag, the default text otherwise.
-*/
+/**
+ * @brief Appends the value of a flag name given without an input.
+ *
+ * @param[in]     _option  the option.
+ * @param[in]     _index   the name's place among the flag names; -1 for none.
+ * @param[in,out] _out     the buffer that gains the value.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The value of a flag name given without an input: the name's own value;
+ * for a name without one, "true" for a flag, the default text otherwise.
+ */
 D_STATIC int
 d_arg_internal_option_flag_default(
     const struct d_arg_option* _option,
@@ -1078,11 +1183,16 @@ d_arg_internal_option_flag_default(
                : d_arg_option_default_text(_option));
 }
 
-/*
-d_arg_internal_option_flag_index
-  CLI11's find_member of a name among the flag names, under the option's
-ignore-case and ignore-underscore switches: its index, or -1.
-*/
+/**
+ * @brief Finds a name among an option's flag names, as CLI11's find_member.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _name    the name.
+ * @return its index; -1 when it is not one.
+ *
+ * CLI11's find_member of a name among the flag names, under the option's
+ * ignore-case and ignore-underscore switches: its index, or -1.
+ */
 D_STATIC long
 d_arg_internal_option_flag_index(
     const struct d_arg_option* _option,
@@ -1098,11 +1208,18 @@ d_arg_internal_option_flag_index(
                                      D_ARG_OPTION_IGNORE_UNDERSCORE));
 }
 
-/*
-d_arg_internal_option_flag_input
-  The value of a flag name given an input: the input inverted for a name
-standing for "false", the input itself otherwise.
-*/
+/**
+ * @brief Appends the value of a flag name given an input.
+ *
+ * @param[in]     _option  the option.
+ * @param[in]     _index   the name's place among the flag names; -1 for none.
+ * @param[in]     _input   the input.
+ * @param[in,out] _out     the buffer that gains the value.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The value of a flag name given an input: the input inverted for a name
+ * standing for "false", the input itself otherwise.
+ */
 D_STATIC int
 d_arg_internal_option_flag_input(
     const struct d_arg_option* _option,

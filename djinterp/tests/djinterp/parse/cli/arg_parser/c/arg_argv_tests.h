@@ -5,7 +5,7 @@
 * split by each set of rules -- a POSIX shell's, the C runtime's, CLI11's,
 * GCC's -- under each switch; words quoted to survive a split; program names
 * found on disk; response files read, and expanded in a parse; and wide
-* text converted, and parsed.
+* text converted both ways, and parsed.
 *   Every expected transcript is a reference's -- dash and bash, the
 * Universal C Runtime's rules and LLVM's, CLI11's, libiberty's -- from the
 * argv suite's reference program, but the module's own: the lines no
@@ -16,7 +16,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_argv_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.17
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_CLI_ARG_PARSER_C_ARG_ARGV_TESTS_H
@@ -135,7 +135,14 @@ bool d_tests_arg_argv_wide_text(void);
 
 #if (D_INTERNAL_ARG_PARSER_WIDE_ARGV == 1)
 
-// 26. WIDE ARGUMENTS
+// 26. WIDE TEXT FROM UTF-8
+bool d_tests_arg_argv_wide_back(void);
+
+#endif  // D_INTERNAL_ARG_PARSER_WIDE_ARGV
+
+#if (D_INTERNAL_ARG_PARSER_WIDE_ARGV == 1)
+
+// 27. WIDE ARGUMENTS
 bool d_tests_arg_argv_wide_parse(void);
 
 #endif  // D_INTERNAL_ARG_PARSER_WIDE_ARGV

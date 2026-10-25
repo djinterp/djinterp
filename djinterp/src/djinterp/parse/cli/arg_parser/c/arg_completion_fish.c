@@ -18,7 +18,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_completion_fish.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -464,13 +464,22 @@ static const size_t FISH_LINE_COUNT =
 // 1.  QUOTING
 //==============================================================================
 
-/*
-d_arg_internal_complete_fish_word
-  Text as one single-quoted word after a space -- `\` and `'` escaped with
-a backslash, as fish reads them between single quotes -- and, as a line of
-a description, each control character a space; `_dashes` before it, inside
-the quotes.
-*/
+/**
+ * @brief Appends text as one single-quoted word after a space, as fish reads
+ *        it.
+ *
+ * @param[in,out] _out     the buffer that gains the word, its failure kept in
+ *                         it.
+ * @param[in]     _dashes  what goes before the text, inside the quotes.
+ * @param[in]     _text    the text.
+ * @param[in]     _line    whether it is a line of a description, each control
+ *                         character then a space.
+ *
+ * Text as one single-quoted word after a space -- `\` and `'` escaped with
+ * a backslash, as fish reads them between single quotes -- and, as a line of
+ * a description, each control character a space; `_dashes` before it, inside
+ * the quotes.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_word(
     struct d_arg_buffer* _out,
@@ -514,10 +523,14 @@ d_arg_internal_complete_fish_word(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_line
-  Text in a comment: each control character a space.
-*/
+/**
+ * @brief Appends text as it goes in a comment.
+ *
+ * @param[in,out] _out   the buffer that gains the text, its failure kept in it.
+ * @param[in]     _text  the text.
+ *
+ * Text in a comment: each control character a space.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_line(
     struct d_arg_buffer* _out,
@@ -562,11 +575,19 @@ struct d_arg_internal_complete_fish_table
     d_arg_internal_complete_fish_value value;
 };
 
-/*
-d_arg_internal_complete_fish_list
-  A global list, named after the program: its first line, then a value for
-each record the table covers, each on a line of its own.
-*/
+/**
+ * @brief Appends a global list named after the program.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _ident  the program's identifier.
+ * @param[in]     _table  the list's name, how many records it covers, and the
+ *                        function that writes each one's value.
+ * @param[in,out] _out    the buffer that gains the list, its failure kept in
+ *                        it.
+ *
+ * A global list, named after the program: its first line, then a value for
+ * each record the table covers, each on a line of its own.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_list(
     const struct d_arg_internal_model*               _model,
@@ -597,10 +618,13 @@ d_arg_internal_complete_fish_list(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_next
-  The break before a list's next value.
-*/
+/**
+ * @brief Appends the break before a list's next value.
+ *
+ * @param[in,out] _out  the buffer that gains it, its failure kept in it.
+ *
+ * The break before a list's next value.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_next(
     struct d_arg_buffer* _out
@@ -612,12 +636,18 @@ d_arg_internal_complete_fish_next(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_cmds
-  A command's row: its parent, switches and most subcommands, then where
-its subcommand names begin and how many, and where its option names begin
-and how many, counting from 1.
-*/
+/**
+ * @brief Appends a command's row of the `cmds` list.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the command's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * A command's row: its parent, switches and most subcommands, then where
+ * its subcommand names begin and how many, and where its option names begin
+ * and how many, counting from 1.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_cmds(
     const struct d_arg_internal_model* _model,
@@ -642,10 +672,16 @@ d_arg_internal_complete_fish_cmds(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_sk
-  A subcommand name's key: its command and the name, as "command:name".
-*/
+/**
+ * @brief Appends a subcommand name's key, as "command:name".
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * A subcommand name's key: its command and the name, as "command:name".
+ */
 D_STATIC void
 d_arg_internal_complete_fish_sk(
     const struct d_arg_internal_model* _model,
@@ -670,10 +706,16 @@ d_arg_internal_complete_fish_sk(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_sn
-  A subcommand name.
-*/
+/**
+ * @brief Appends a subcommand name.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * A subcommand name.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_sn(
     const struct d_arg_internal_model* _model,
@@ -691,10 +733,16 @@ d_arg_internal_complete_fish_sn(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_st
-  The command a subcommand name leads to.
-*/
+/**
+ * @brief Appends the command a subcommand name leads to.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * The command a subcommand name leads to.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_st(
     const struct d_arg_internal_model* _model,
@@ -710,10 +758,16 @@ d_arg_internal_complete_fish_st(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_sd
-  A subcommand name's description.
-*/
+/**
+ * @brief Appends a subcommand name's description.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * A subcommand name's description.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_sd(
     const struct d_arg_internal_model* _model,
@@ -730,11 +784,17 @@ d_arg_internal_complete_fish_sd(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_ok
-  An option name's key: its command and the name with its dashes, as
-"command:--name".
-*/
+/**
+ * @brief Appends an option name's key, as "command:--name".
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * An option name's key: its command and the name with its dashes, as
+ * "command:--name".
+ */
 D_STATIC void
 d_arg_internal_complete_fish_ok(
     const struct d_arg_internal_model* _model,
@@ -763,10 +823,16 @@ d_arg_internal_complete_fish_ok(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_on
-  An option name, with its dashes.
-*/
+/**
+ * @brief Appends an option name, with its dashes.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * An option name, with its dashes.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_on(
     const struct d_arg_internal_model* _model,
@@ -786,10 +852,16 @@ d_arg_internal_complete_fish_on(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_ov
-  The option a name stands for.
-*/
+/**
+ * @brief Appends the option a name stands for.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * The option a name stands for.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_ov(
     const struct d_arg_internal_model* _model,
@@ -805,10 +877,16 @@ d_arg_internal_complete_fish_ov(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_od
-  An option name's description: its option's.
-*/
+/**
+ * @brief Appends an option name's description: its option's.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the name's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * An option name's description: its option's.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_od(
     const struct d_arg_internal_model* _model,
@@ -826,11 +904,17 @@ d_arg_internal_complete_fish_od(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_info
-  An option's row: its fewest and most values after a name, the letter of
-its kind, and where its choices begin, counting from 1, and how many.
-*/
+/**
+ * @brief Appends an option's row of the `info` list.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the option's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * An option's row: its fewest and most values after a name, the letter of
+ * its kind, and where its choices begin, counting from 1, and how many.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_info(
     const struct d_arg_internal_model* _model,
@@ -853,11 +937,16 @@ d_arg_internal_complete_fish_info(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_slot
-  Where a positional comes among its command's: the positionals before it
-under the same command.
-*/
+/**
+ * @brief Finds where a positional comes among its command's.
+ *
+ * @param[in] _model  the model.
+ * @param[in] _index  the positional's place in the model.
+ * @return how many positionals of the same command come before it.
+ *
+ * Where a positional comes among its command's: the positionals before it
+ * under the same command.
+ */
 D_STATIC size_t
 d_arg_internal_complete_fish_slot(
     const struct d_arg_internal_model* _model,
@@ -880,10 +969,17 @@ d_arg_internal_complete_fish_slot(
     return slot;
 }
 
-/*
-d_arg_internal_complete_fish_pk
-  A positional's key, as "command:slot"; nothing for another option.
-*/
+/**
+ * @brief Appends a positional's key, as "command:slot".
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the option's place in the model; one that is no
+ *                        positional writes nothing.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * A positional's key, as "command:slot"; nothing for another option.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_pk(
     const struct d_arg_internal_model* _model,
@@ -908,11 +1004,18 @@ d_arg_internal_complete_fish_pk(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_pv
-  A positional's row: its option and the most values it takes; nothing
-for another option.
-*/
+/**
+ * @brief Appends a positional's row: its option and the most values it takes.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the option's place in the model; one that is no
+ *                        positional writes nothing.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * A positional's row: its option and the most values it takes; nothing
+ * for another option.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_pv(
     const struct d_arg_internal_model* _model,
@@ -935,10 +1038,16 @@ d_arg_internal_complete_fish_pv(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_vv
-  A choice.
-*/
+/**
+ * @brief Appends a choice.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _index  the choice's place in the model.
+ * @param[in,out] _out    the buffer that gains the value, its failure kept in
+ *                        it.
+ *
+ * A choice.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_vv(
     const struct d_arg_internal_model* _model,
@@ -956,10 +1065,16 @@ d_arg_internal_complete_fish_vv(
     return;
 }
 
-/*
-d_arg_internal_complete_fish_data
-  Every list of the model.
-*/
+/**
+ * @brief Appends every list of the model.
+ *
+ * @param[in]     _model  the model.
+ * @param[in]     _ident  the program's identifier.
+ * @param[in,out] _out    the buffer that gains the lists, its failure kept in
+ *                        it.
+ *
+ * Every list of the model.
+ */
 D_STATIC void
 d_arg_internal_complete_fish_data(
     const struct d_arg_internal_model* _model,

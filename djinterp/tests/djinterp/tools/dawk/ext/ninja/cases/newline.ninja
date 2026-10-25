@@ -1,0 +1,4 @@
+ninja_required_version = 1.14
+rule r
+  command = a$^b
+build x: r

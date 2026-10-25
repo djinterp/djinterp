@@ -6,13 +6,15 @@
 * exactly when the name is not attached, which needs no statement at all.
 * Files are created by opening them, recognised by reading their catalogue,
 * and deleted through the default VFS -- the same calls SQLite itself makes,
-* so a path means what it means to SQLite on every platform.
+* so a path means what it means to SQLite on every platform. A database's
+* bytes come back in the C runtime's memory, which d_db_free releases, and go
+* in through SQLite's, which SQLite releases when the database closes.
 *
 *
 * path:      /src/djinterp/c/db/sqlite/sqlite_database.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 // D_INTERNAL_SQLITE_SOURCE
 //   macro: this file is one of the SQLite layer's own sources, for which
@@ -415,6 +417,209 @@ d_sqlite_is_database_file(
     return (result == SQLITE_OK);
 }
 
+//==============================================================================
+// 3.  DATABASES AS BYTES
+//==============================================================================
+
+// 3.1    Serializing
+//------------------------------------------------------------------------------
+/*
+d_sqlite_serialize
+  The database's page count is read first, through the layer: that opens a
+temporary database not yet opened, which sqlite3_serialize would answer for
+with nothing, and reports a database that cannot be read -- locked, or
+damaged -- with the connection's own message, which sqlite3_serialize leaves
+no trace of. SQLite's block is asked for without copying where SQLite holds
+the database in one (one deserialized), and made otherwise; either is copied
+into the C runtime's memory, which d_db_free releases.
+*/
+int
+d_sqlite_serialize(
+    sqlite3*    _db,
+    const char* _schema,
+    void**      _bytes,
+    size_t*     _size
+)
+{
+    // parameter validation
+    if ( (!_db)                                 ||
+         (!_bytes)                              ||
+         (!_size)                               ||
+         (!d_internal_sqlite_schema_ok(_schema)) )
+    {
+        return SQLITE_MISUSE;
+    }
+
+    // a library, and a build, with it
+    if (!d_sqlite_supports(D_SQLITE_FEATURE_SERIALIZE))
+    {
+        return D_DB_UNSUPPORTED;
+    }
+
+#if (D_INTERNAL_SQLITE_SERIALIZE == 1)
+    const char*   schema    = d_internal_sqlite_schema(_schema);
+    sqlite3_stmt* statement = NULL;
+    int64_t       pages     = 0;
+    bool          exists    = false;
+    int           result    = d_sqlite_has_database_s(_db, schema, &exists);
+
+    // a database that is there, and can be read
+    if (result != SQLITE_OK)
+    {
+        return result;
+    }
+
+    if (!exists)
+    {
+        return D_DB_NOT_FOUND;
+    }
+
+    result = d_internal_sqlite_prepare(_db,
+                                       &statement,
+                                       "PRAGMA \"%w\".page_count",
+                                       schema);
+
+    if (result == SQLITE_OK)
+    {
+        result = d_internal_sqlite_step_int64(statement, &pages);
+    }
+
+    if (result != SQLITE_OK)
+    {
+        return result;
+    }
+
+    // SQLite's own block, else a copy SQLite makes, read under the
+    // connection's mutex so that no other thread writes while it is copied
+    sqlite3_mutex* const mutex  = sqlite3_db_mutex(_db);
+    sqlite3_int64        size   = -1;
+    unsigned char*       made   = NULL;
+    const unsigned char* shared = NULL;
+    void*                copy   = NULL;
+
+    sqlite3_mutex_enter(mutex);
+    shared = sqlite3_serialize(_db, schema, &size, SQLITE_SERIALIZE_NOCOPY);
+
+    if (!shared)
+    {
+        made   = sqlite3_serialize(_db, schema, &size, 0u);
+        shared = made;
+    }
+
+    // nothing of a size: memory ran out, or the read failed; nothing of none:
+    // an empty database
+    if ( (!shared) &&
+         (size != 0) )
+    {
+        result = (size > 0)                           ? SQLITE_NOMEM
+               : (sqlite3_errcode(_db) != SQLITE_OK) ? sqlite3_errcode(_db)
+                                                     : SQLITE_ERROR;
+    }
+    else if (size > 0)
+    {
+        // the C runtime's copy, for d_db_free
+        copy = malloc((size_t)size);
+
+        if (copy)
+        {
+            memcpy(copy, shared, (size_t)size);
+        }
+        else
+        {
+            result = SQLITE_NOMEM;
+        }
+    }
+
+    sqlite3_mutex_leave(mutex);
+    sqlite3_free(made);
+
+    // the bytes, where there are any to give
+    if (result == SQLITE_OK)
+    {
+        *_bytes = copy;
+        *_size  = (size_t)size;
+    }
+
+    return result;
+#else
+    return D_DB_UNSUPPORTED;
+#endif  // D_INTERNAL_SQLITE_SERIALIZE
+}
+
+// 3.2    Deserializing
+//------------------------------------------------------------------------------
+/*
+d_sqlite_deserialize
+  SQLite keeps the bytes it is given, so they are copied into its own memory,
+which it frees when the database closes (FREEONCLOSE), and on a failure
+before it returns, and may grow as the database does (RESIZEABLE); a read-only
+database never grows. An empty database is no block at all.
+*/
+int
+d_sqlite_deserialize(
+    sqlite3*    _db,
+    const char* _schema,
+    const void* _bytes,
+    size_t      _size,
+    bool        _read_only
+)
+{
+    // parameter validation
+    if ( (!_db)                                 ||
+         ( (!_bytes) &&
+           (_size != 0u) )                      ||
+         (!d_internal_sqlite_schema_ok(_schema)) )
+    {
+        return SQLITE_MISUSE;
+    }
+
+    // a library, and a build, with it
+    if (!d_sqlite_supports(D_SQLITE_FEATURE_SERIALIZE))
+    {
+        return D_DB_UNSUPPORTED;
+    }
+
+#if (D_INTERNAL_SQLITE_SERIALIZE == 1)
+    // a size SQLite can count
+    if ((uint64_t)_size > (uint64_t)INT64_MAX)
+    {
+        return SQLITE_TOOBIG;
+    }
+
+    unsigned char* copy = NULL;
+
+    // SQLite's copy, which it frees
+    if (_size > 0u)
+    {
+        copy = (unsigned char*)sqlite3_malloc64((sqlite3_uint64)_size);
+
+        if (!copy)
+        {
+            return SQLITE_NOMEM;
+        }
+
+        memcpy(copy, _bytes, _size);
+    }
+
+    const unsigned flags =
+        (unsigned)SQLITE_DESERIALIZE_FREEONCLOSE |
+        ((_read_only) ? (unsigned)SQLITE_DESERIALIZE_READONLY
+                      : (unsigned)SQLITE_DESERIALIZE_RESIZEABLE);
+
+    return sqlite3_deserialize(_db,
+                               d_internal_sqlite_schema(_schema),
+                               copy,
+                               (sqlite3_int64)_size,
+                               (sqlite3_int64)_size,
+                               flags);
+#else
+    (void)_size;
+    (void)_read_only;
+
+    return D_DB_UNSUPPORTED;
+#endif  // D_INTERNAL_SQLITE_SERIALIZE
+}
+
 #else
 
 //==============================================================================
@@ -558,6 +763,48 @@ d_sqlite_is_database_file(
     (void)_path;
 
     return false;
+}
+
+/*
+d_sqlite_serialize
+  Without SQLite, D_DB_UNSUPPORTED.
+*/
+int
+d_sqlite_serialize(
+    struct sqlite3* _db,
+    const char*     _schema,
+    void**          _bytes,
+    size_t*         _size
+)
+{
+    (void)_db;
+    (void)_schema;
+    (void)_bytes;
+    (void)_size;
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_sqlite_deserialize
+  Without SQLite, D_DB_UNSUPPORTED.
+*/
+int
+d_sqlite_deserialize(
+    struct sqlite3* _db,
+    const char*     _schema,
+    const void*     _bytes,
+    size_t          _size,
+    bool            _read_only
+)
+{
+    (void)_db;
+    (void)_schema;
+    (void)_bytes;
+    (void)_size;
+    (void)_read_only;
+
+    return D_DB_UNSUPPORTED;
 }
 
 #endif  // D_INTERNAL_SQLITE

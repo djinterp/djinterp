@@ -1,20 +1,24 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                  dbanner.c
+* djinterp [tools]                                                     dbanner.c
 *
 * Banner extension:
 *   The reference extension.  It supplies node types, attributes and source
 * geometry, and nothing else in the tool knows what a banner is.  Everything a
 * stylesheet can say about a banner is a consequence of those three.
-*
+*   A banner is read in either of two comment forms, the same template in
+* each: C's, a slash and a run of stars to a run of stars and a slash, with
+* `* ` before every line between, and the `#` form a CMake file carries, `#`
+* and a run of stars at either end, with `# ` before every line between.
+* The columns are the same in both, so one sheet judges both.
 *
 * path:      /src/djinterp/tools/dawk/dbanner.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.20
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dbanner.h"  // corresponding header
 // std
-#include <stdio.h>   // FILE, fopen, fgets
+#include <stdio.h>   // FILE, fopen, fgets, snprintf
 #include <string.h>  // strlen, strchr, strrchr, strncmp, strstr, memcpy
 // djinterp
 #include "../../../../inc/djinterp/tools/dawk/dedit.h"  // d_edit_trim_end
@@ -190,12 +194,13 @@ d_internal_span_unit(
 /*
 d_internal_repository_part
   Where, in a root, the part a banner spells begins.  A banner's path starts
-at the repository: /inc/djinterp/..., /src/djinterp/..., /tests/...  So the
-part begins at the root's last `inc`, `src` or `tests` directory, however far
-below it the root reaches and whatever stands above it -- a checkout's own
-directory, a copy made elsewhere.  A root that names none of the three is
-taken by its last two directories, which is what every root was taken by
-before, and was right only for a root exactly two deep.
+at the repository: /inc/djinterp/..., /src/djinterp/..., /tests/...,
+/build/cmake/...  So the part begins at the root's last `inc`, `src`, `tests`
+or `build` directory, however far below it the root reaches and whatever
+stands above it -- a checkout's own directory, a copy made elsewhere.  A root
+that names none of them is taken by its last two directories, which is what
+every root was taken by before, and was right only for a root exactly two
+deep.
 */
 static size_t
 d_internal_repository_part(
@@ -203,7 +208,7 @@ d_internal_repository_part(
     size_t      _length
 )
 {
-    static const char* const tops[] = { "inc", "src", "tests" };
+    static const char* const tops[] = { "inc", "src", "tests", "build" };
     const size_t             count  = sizeof(tops) / sizeof(tops[0]);
     size_t                   end    = _length;
     size_t                   base   = _length;
@@ -344,6 +349,38 @@ d_banner_file(
         top[0] = '\0';
     }
 
+    // Under build/, the subsystem a file builds or tests is the directory
+    // after the last `djinterp` on its way down, as it is under inc/ and
+    // src/: build/cmake/config/testing/djinterp/tools/dawk is tools.  A file
+    // with no such directory keeps its first.
+    if ( (split > base) &&
+         ((split - base) >= 5u) &&
+         (strncmp(_root + base, "build", 5u) == 0) &&
+         ( ((split - base) == 5u) || (_root[base + 5u] == '/') ) )
+    {
+        const char* found = NULL;
+
+        for (const char* at = strstr(relative, "djinterp/"); at;
+             at = strstr(at + 1, "djinterp/"))
+        {
+            // a whole directory, not the end of a longer name
+            if ( (at == relative) ||
+                 (at[-1] == '/') )
+            {
+                found = at + strlen("djinterp/");
+            }
+        }
+
+        const char* const end = found ? strchr(found, '/') : NULL;
+
+        if ( (end) &&
+             ((size_t)(end - found) < sizeof(top)) )
+        {
+            memcpy(top, found, (size_t)(end - found));
+            top[end - found] = '\0';
+        }
+    }
+
     (void)d_node_set_attribute(_tree, file, "top", top);
 
     return file;
@@ -381,8 +418,16 @@ d_banner_build(
 
     size_t length = d_edit_trim_end(buffer, strlen(buffer));
 
+    // the `#` form opens with `#*`; its lines begin `# ` where C's begin `* `
+    const bool hashed = ( (length >= 2u)     &&
+                          (buffer[0] == '#') &&
+                          (buffer[1] == '*') );
+    const char lead   = hashed ? '#' : '*';
+
     // a file whose first line is not an opening rule has no banner
-    if ((length < 2u) || (buffer[0] != '/') || (buffer[1] != '*'))
+    if ( (length < 2u) ||
+         ( ( (buffer[0] != '/') || (buffer[1] != '*') ) &&
+           (!hashed) ) )
     {
         (void)fclose(handle);
 
@@ -419,10 +464,15 @@ d_banner_build(
         // The closing rule is a run of '*' then '/', and nothing else.  A
         // looser test ends the banner on any prose line that happens to end
         // in a slash, of which this tree has 158; the banner is then
-        // truncated and every field after the cut reads as missing.
-        bool is_close = ((length >= 2u) && (buffer[length - 1u] == '/'));
+        // truncated and every field after the cut reads as missing.  In the
+        // `#` form it is `#` then a run of '*', as the opening rule is.
+        bool is_close = (hashed)
+                      ? ( (length >= 2u) && (buffer[0] == '#') )
+                      : ( (length >= 2u) && (buffer[length - 1u] == '/') );
 
-        for (size_t at = 0; (is_close) && (at < (length - 1u)); ++at)
+        for (size_t at = (hashed) ? 1u : 0u;
+             (is_close) && (at < ( (hashed) ? length : (length - 1u) ));
+             ++at)
         {
             if (buffer[at] != '*')
             {
@@ -534,9 +584,15 @@ d_banner_build(
 
         for (size_t which = 0; which < 4u; ++which)
         {
-            const size_t prefix_length = strlen(fields[which].prefix);
+            // the table's prefixes are C's; the form's own lead replaces `*`
+            char prefix[32];
 
-            if (strncmp(buffer, fields[which].prefix, prefix_length) != 0)
+            (void)snprintf(prefix, sizeof(prefix), "%c%s", lead,
+                           fields[which].prefix + 1);
+
+            const size_t prefix_length = strlen(prefix);
+
+            if (strncmp(buffer, prefix, prefix_length) != 0)
             {
                 continue;
             }

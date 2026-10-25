@@ -10,7 +10,7 @@
 * path:      /src/djinterp/env/util/archive/env_archive.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../../inc/djinterp/env/util/archive/env_archive.h"
 #include "../../../../../inc/djinterp/env/util/compress/env_compress_link.h"
@@ -19,7 +19,26 @@
 #include <stdio.h>   // printf
 #include <stdlib.h>  // getenv
 #include <string.h>  // memcpy, strchr, strlen
+#if D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS
+    #include <io.h>      // _access
+#else
+    #include <unistd.h>  // access, X_OK
+#endif
 
+
+// D_INTERNAL_ENV_ARCHIVE_ACCESS / _PATH_SEP / _DIR_SEP
+//   macro: the executable-access test, PATH-list separator, and directory
+// separator the tool probe (d_env_archive_has_tool) uses. They live here, not
+// in env_archive.h, whose includers need none of them (decision 122).
+#if D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS
+    #define D_INTERNAL_ENV_ARCHIVE_ACCESS(p)  _access((p), 0)
+    #define D_INTERNAL_ENV_ARCHIVE_PATH_SEP   ';'
+    #define D_INTERNAL_ENV_ARCHIVE_DIR_SEP    '\\'
+#else
+    #define D_INTERNAL_ENV_ARCHIVE_ACCESS(p)  access((p), X_OK)
+    #define D_INTERNAL_ENV_ARCHIVE_PATH_SEP   ':'
+    #define D_INTERNAL_ENV_ARCHIVE_DIR_SEP    '/'
+#endif
 
 // d_env_archive_backend_name
 //   function: human-readable name for a backend identifier.

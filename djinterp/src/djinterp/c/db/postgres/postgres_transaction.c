@@ -14,7 +14,7 @@
 * path:      /src/djinterp/c/db/postgres/postgres_transaction.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -104,7 +104,9 @@ d_postgres_begin_transaction(
     // one transaction at a time
     if (d_postgres_in_transaction(_db))
     {
-        return D_POSTGRES_SQLSTATE_ACTIVE_SQL_TRANSACTION;
+        return d_internal_postgres_answer(
+                   _db,
+                   D_POSTGRES_SQLSTATE_ACTIVE_SQL_TRANSACTION);
     }
 
     return d_internal_postgres_send(_db,
@@ -138,7 +140,9 @@ d_postgres_commit(
             const int result = d_internal_postgres_send(_db, "ROLLBACK", NULL);
 
             return (result == 0)
-                       ? D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION
+                       ? d_internal_postgres_answer(
+                             _db,
+                             D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION)
                        : result;
         }
 

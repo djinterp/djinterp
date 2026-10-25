@@ -12,8 +12,10 @@
 *
 *   RE_STD AHEAD OF STD:
 *   std::basic_string_view landed in C++17; re_std back-ports the C++17
-* interface to C++11. starts_with / ends_with (std C++20) and contains
-* (std C++23) are likewise available from C++11 in re_std. The whole
+* interface to C++98. starts_with / ends_with (std C++20) and contains
+* (std C++23) are likewise available from C++98 in re_std. Below C++11
+* the copy members are the implicit ones, and the nullptr_t deletion is
+* absent: C++98 has no null pointer type to overload on. The whole
 * surface becomes constexpr at C++14 (relaxed constexpr — the find /
 * compare loops and the mutating modifiers) versus the standard's
 * C++17: trivial observers (size, data, operator[], begin/end, front,
@@ -39,7 +41,7 @@
 * path:      /inc/re_std/string_view/basic_string_view.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.04
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef RE_STD_STRING_VIEW_BASIC_STRING_VIEW_HPP
@@ -47,9 +49,6 @@
 
 // re_std
 #include "../config.hpp"  // RE_STD_* configuration
-
-
-#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 // re_std
@@ -131,7 +130,7 @@ public:
     // npos
     //   constant: returned by the search operations to signal "not
     // found"; the largest representable size_type.
-    static RE_STD_CONSTEXPR size_type npos = static_cast<size_type>(-1);
+    static RE_STD_CONSTEXPR_VAR size_type npos = static_cast<size_type>(-1);
 
     // -------------------------------------------------------------------------
     // construction
@@ -146,11 +145,14 @@ public:
     {}
 
     // basic_string_view(const basic_string_view&)
-    //   function: copy — defaulted, trivial.
+    //   function: copy — defaulted, trivial. Below C++11 the implicit copy
+    // constructor is the same one, undeclared.
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
     RE_STD_CONSTEXPR
     basic_string_view(
         const basic_string_view&  _other
     ) RE_STD_NOEXCEPT = default;
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     // basic_string_view(const CharT*, size_type)
     //   function: view the _count characters beginning at _s.
@@ -174,19 +176,23 @@ public:
         , m_size(traits_type::length(_s))
     {}
 
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
     // basic_string_view(nullptr_t) = delete
     //   function: back-port of the C++23 deletion — forbids
-    // constructing a view from a null pointer literal.
+    // constructing a view from a null pointer literal. C++11 and up: C++98
+    // has no null pointer type to overload on.
     basic_string_view(
         decltype(nullptr)
     ) = delete;
 
     // operator=
-    //   function: copy assignment — defaulted, trivial.
+    //   function: copy assignment — defaulted, trivial. Below C++11 the
+    // implicit copy assignment is the same one, undeclared.
     RE_STD_CONSTEXPR_CPP14 basic_string_view&
     operator=(
         const basic_string_view&  _other
     ) RE_STD_NOEXCEPT = default;
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
     // -------------------------------------------------------------------------
     // iterators
@@ -875,15 +881,12 @@ private:
 #if !RE_STD_LANG_IS_CPP17_OR_HIGHER
 template<typename CharT,
          typename Traits>
-RE_STD_CONSTEXPR typename basic_string_view<CharT, Traits>::size_type
+RE_STD_CONSTEXPR_VAR typename basic_string_view<CharT, Traits>::size_type
 basic_string_view<CharT, Traits>::npos;
 #endif
 
 
 }  // re_std
-
-
-#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 #endif  // RE_STD_STRING_VIEW_BASIC_STRING_VIEW_HPP

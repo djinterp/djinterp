@@ -18,7 +18,7 @@
 * path:      /tests/djinterp/c/db/postgres/t_postgres_stubs.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // std
 #include <stdio.h>   // printf
@@ -104,12 +104,14 @@ d_tests_postgres_stubs_common(
     printf("postgres_common\n");
 
     D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_client_version_number() == 0);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        !d_postgres_client_supports(D_POSTGRES_CLIENT_PIPELINE));
     D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_server_version(db) == NULL);
     D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_server_version_number(db) == 0);
     D_TESTS_POSTGRES_STUBS_CHECK(!d_postgres_server_at_least(db, 0u, 0u));
 
     for (int f = D_POSTGRES_FEATURE_PROCEDURES;
-         f <= D_POSTGRES_FEATURE_RETURNING_OLD_NEW;
+         f <= D_POSTGRES_FEATURE_JSONPATH;
          ++f)
     {
         D_TESTS_POSTGRES_STUBS_CHECK(
@@ -263,7 +265,8 @@ d_tests_postgres_stubs_statement
   Tests the following:
   - preparing is D_DB_UNSUPPORTED, leaving the statement NULL as a failed
     prepare does
-  - finalizing succeeds; the describers answer 0 and NULL
+  - finalizing succeeds; the describers answer 0 and NULL; closing by name
+    is D_DB_UNSUPPORTED
   - every bind, clear and run is D_DB_UNSUPPORTED, the count and the rows
     untouched
 */
@@ -293,6 +296,7 @@ d_tests_postgres_stubs_statement(
 
     statement = (struct d_postgres_statement*)(void*)&g_marker;
     D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_finalize(NULL) == 0);
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_close_prepared(db, "p"));
     D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_parameter_count(statement) == 0u);
     D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_statement_connection(statement) ==
                                  NULL);
@@ -312,6 +316,10 @@ d_tests_postgres_stubs_statement(
         d_postgres_execute_update(statement, &changes));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(
         d_postgres_execute_query(statement, &rows));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_open_cursor(statement));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(
+        d_postgres_fetch_rows(statement, 1u, &rows));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_close_cursor(statement));
     D_TESTS_POSTGRES_STUBS_CHECK(changes == 7);
     D_TESTS_POSTGRES_STUBS_CHECK( (rows.column_count == 7u) &&
                                   (rows.row_count == 7u) );
@@ -389,7 +397,7 @@ d_tests_postgres_stubs_tables(
     int64_t                  count   = 7;
     const struct d_db_column column  =
     {
-        "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL
+        "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL, 0u
     };
 
     printf("postgres_schema: tables and columns\n");
@@ -613,9 +621,11 @@ d_tests_postgres_stubs_maintenance(
 
 /*
 d_tests_postgres_stubs_protocol
-  COPY, notifications and statements sent.
+  COPY, notifications, statements sent, their rows a few at a time, and
+pipelines.
   Tests the following:
-  - every function is D_DB_UNSUPPORTED, writing nothing; nothing is busy
+  - every function is D_DB_UNSUPPORTED, writing nothing; nothing is busy,
+    and no pipeline on
 */
 static void
 d_tests_postgres_stubs_protocol(
@@ -627,6 +637,7 @@ d_tests_postgres_stubs_protocol(
     char*                 payload = (char*)(void*)&g_marker;
     int                   pid     = 7;
     int64_t               changes = 7;
+    unsigned int          oid     = 7u;
     struct d_db_rows      rows    = { 7u, 7u, NULL, NULL };
 
     printf("postgres_protocol\n");
@@ -639,12 +650,22 @@ d_tests_postgres_stubs_protocol(
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_listen(db, "c"));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_unlisten(db, NULL));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_notify(db, "c", "p"));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_lo_import(db, "f", &oid));
+    D_TESTS_POSTGRES_STUBS_CHECK(oid == 7u);
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_lo_export(db, 1u, "f"));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(
         d_postgres_next_notification(db, &channel, &payload, &pid));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_send_query(db, "SELECT 1"));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_next_result(db, &rows,
                                                               &changes));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_consume_input(db));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_set_chunked_rows(db, 1));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_enter_pipeline(db));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_exit_pipeline(db));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_pipeline_sync(db));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_pipeline_flush(db));
+    D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_pipeline_status(db) ==
+                                 D_POSTGRES_PIPELINE_OFF);
     D_TESTS_POSTGRES_STUBS_CHECK(!d_postgres_is_busy(db));
     D_TESTS_POSTGRES_STUBS_CHECK( (channel == (char*)(void*)&g_marker) &&
                                   (payload == (char*)(void*)&g_marker) &&

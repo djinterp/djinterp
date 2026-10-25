@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [c]                                               sqlite_connection.h
 *
-* Opening and closing SQLite connections, and what a connection can say about
-* itself.
+* Opening and closing SQLite connections, what a connection can say about
+* itself, and the extensions it loads.
 *   d_sqlite_open and its siblings open a connection and set it up with the
 * defaults cfg_sqlite_connection.h chooses -- a busy timeout and foreign
 * keys, unless the build says otherwise; d_sqlite_open_with takes SQLite's
@@ -13,12 +13,16 @@
 * clean up.
 *   Paths are UTF-8 on every platform, as SQLite takes them, including
 * Windows, where SQLite converts them for the system.
+*   An extension is a shared library SQLite loads into a connection: its
+* functions, collations and virtual tables join the connection's. The layer
+* loads one through SQLite's C API alone, which it enables for that call;
+* SQL's load_extension() stays off unless the program turns it on.
 *
 *
 * path:      /inc/djinterp/c/db/sqlite/sqlite_connection.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -40,6 +44,10 @@ TABLE OF CONTENTS
     2.  Opening and closing
     3.  Location and access
     4.  Rows changed
+2.  EXTENSIONS
+    ----------
+    1.  Loading
+    2.  Allowing SQL to load
 */
 
 #ifndef DJINTERP_C_DB_SQLITE_SQLITE_CONNECTION_H
@@ -53,9 +61,10 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict
-// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
-// ruling of 2026.10.03 on round 3's question 1, (a)).
+// declares only where the build can spell one. Below it -- ISO strict C++98
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
+// question 1, (a)).
 #if defined(INT64_MAX)
 
 
@@ -246,6 +255,76 @@ bool        d_sqlite_is_readonly(struct sqlite3* _db,
 int64_t     d_sqlite_last_insert_id(struct sqlite3* _db) D_NOTHROW;
 int64_t     d_sqlite_changes(struct sqlite3* _db) D_NOTHROW;
 int64_t     d_sqlite_total_changes(struct sqlite3* _db) D_NOTHROW;
+
+
+//==============================================================================
+// 2.  EXTENSIONS
+//==============================================================================
+// Extension loading is SQLite's sqlite3_load_extension and
+// sqlite3_enable_load_extension, which a library may leave out
+// (OMIT_LOAD_EXTENSION), and Apple's system SQLite does; the layer's build
+// calls them as cfg_sqlite_common.h's D_CFG_SQLITE_LOAD_EXTENSION says.
+// d_sqlite_supports(D_SQLITE_FEATURE_LOAD_EXTENSION) says whether both the
+// library loaded and the layer's build have them; where either lacks them,
+// both functions answer D_DB_UNSUPPORTED.
+
+
+// 2.1    Loading
+//------------------------------------------------------------------------------
+/**
+ * @brief Loads an SQLite extension from a shared library into the connection,
+ *        through SQLite's C API, which the call turns on for itself alone
+ *        (SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, 3.13.0) and leaves as it
+ *        was: SQL's load_extension() stays as d_sqlite_enable_load_extension
+ *        left it.
+ *
+ * @note Before SQLite 3.13.0 the C API has no switch of its own: loading is
+ *       refused unless d_sqlite_enable_load_extension turned it on. The
+ *       failure's description is `_message`'s, not the connection's
+ *       (sqlite3_errmsg), which SQLite leaves as it was.
+ *
+ * @param[in]  _db           the connection.
+ * @param[in]  _path         the shared library, in UTF-8, as the platform's
+ *                           loader finds it: a path, or a name it searches
+ *                           for; SQLite tries it with the platform's suffix
+ *                           (".so", ".dll", ".dylib") too.
+ * @param[in]  _entry_point  the extension's initialization function; `NULL`
+ *                           for the one SQLite derives from the file's name
+ *                           (sqlite3_<name>_init), or else
+ *                           sqlite3_extension_init.
+ * @param[out] _message      receives SQLite's description of a failure,
+ *                           which the caller releases with d_db_free; may be
+ *                           `NULL`. `NULL` on success, and where SQLite gave
+ *                           none.
+ * @return SQLITE_OK; SQLITE_ERROR when the library cannot be loaded, has no
+ *         such entry point, or its initialization fails, and before 3.13.0
+ *         when loading is off; SQLITE_NOMEM when memory runs out;
+ *         D_DB_UNSUPPORTED where the library or the layer's build has no
+ *         extension loading; SQLITE_MISUSE for a `NULL` connection or path.
+ */
+int         d_sqlite_load_extension(struct sqlite3* _db,
+                                    const char*     _path,
+                                    const char*     _entry_point,
+                                    char**          _message) D_NOTHROW;
+
+// 2.2    Allowing SQL to load
+//------------------------------------------------------------------------------
+/**
+ * @brief Turns extension loading on or off for the connection, SQL's
+ *        load_extension() and the C API together, as
+ *        sqlite3_enable_load_extension does.
+ *
+ * @warning With it on, any SQL the connection runs can load a shared
+ *          library -- SQL from outside the program among it. d_sqlite_load_
+ *          extension needs it only before SQLite 3.13.0.
+ *
+ * @param[in] _db       the connection.
+ * @param[in] _enabled  whether to allow loading.
+ * @return SQLITE_OK; D_DB_UNSUPPORTED where the library or the layer's build
+ *         has no extension loading; SQLITE_MISUSE for a `NULL` connection.
+ */
+int         d_sqlite_enable_load_extension(struct sqlite3* _db,
+                                           bool            _enabled) D_NOTHROW;
 
 
 D_EXTERN_C_END

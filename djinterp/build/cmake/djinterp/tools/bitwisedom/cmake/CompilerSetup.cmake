@@ -4,7 +4,7 @@
 # The flags this build gives the code it owns, and the few it gives the code
 # it only compiles.
 #   bitwisedom_apply_compiler_defaults() is for this project's own sources --
-# the library, the command line, the window and the tests -- and with OWN holds
+# the library, the generator, the window and the tests -- and with OWN holds
 # them to the style guide's whole baseline: -Wall -Wextra -Wshadow
 # -Wcast-qual -Wconversion under -pedantic-errors and -Werror=undef, and
 # under Clang -Wreserved-identifier and -Wdocumentation besides. Every
@@ -13,9 +13,8 @@
 #   bitwisedom_apply_dependency_defaults() is for code this build compiles
 # without owning it: the level and the source character set, and, under cl,
 # the conforming preprocessor, since that code reads djinterp's headers too.
-#   LEVELS. bitwisedom's floor is C++17 -- the floor of the djinterp
-# headers it stands on, and of uxoxo's, which build/ui adds for the window --
-# and BITWISEDOM_CXX_STANDARD picks 17, 20 or
+#   LEVELS. bitwisedom's floor is C++17 -- the floor of the uxoxo and
+# djinterp headers it stands on -- and BITWISEDOM_CXX_STANDARD picks 17, 20 or
 # 23, defaulting to 20. Below the floor every bitwisedom header is empty, as
 # djinterp's are below theirs.
 #   UNDER A CL-STYLE DRIVER (cl, clang-cl): /utf-8, because the trees are
@@ -25,7 +24,7 @@
 # path:      /build/cmake/djinterp/tools/bitwisedom/cmake/CompilerSetup.cmake
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-#                                                            revised: 2026.10.22
+#                                                            revised: 2026.10.07
 #*******************************************************************************
 include_guard(GLOBAL)
 

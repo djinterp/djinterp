@@ -35,7 +35,7 @@
 * path:      /tests/djinterp/c/db/postgres/t_postgres.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // D_CFG_ENV_USING_POSTGRESQL
 //   knob (env's): on, since the harness calls libpq itself, as a program
@@ -265,7 +265,9 @@ d_tests_postgres_probes[] =
       "SELECT uuidv7()" },
     { D_POSTGRES_FEATURE_RETURNING_OLD_NEW,
       "CREATE TABLE p_ret (a int); "
-      "INSERT INTO p_ret VALUES (1) RETURNING old.a, new.a" }
+      "INSERT INTO p_ret VALUES (1) RETURNING old.a, new.a" },
+    { D_POSTGRES_FEATURE_JSONPATH,
+      "SELECT jsonb_path_query('[1]'::jsonb, '$[*]')" }
 };
 
 // d_tests_postgres_every_type
@@ -276,29 +278,30 @@ d_tests_postgres_every_type[] =
 {
     { "id",       D_DB_TYPE_BIG_INTEGER,
       D_DB_COLUMN_PRIMARY_KEY | D_DB_COLUMN_AUTO_INCREMENT,
-      NULL,       0u,  0u, NULL },
+      NULL,       0u,  0u, NULL, 0u },
     { "flag",     D_DB_TYPE_BOOLEAN,        D_DB_COLUMN_NOT_NULL,
-      "TRUE",     0u,  0u, NULL },
-    { "count",    D_DB_TYPE_INTEGER,        0u, "0",    0u,  0u, NULL },
-    { "ratio",    D_DB_TYPE_FLOATING_POINT, 0u, NULL,   0u,  0u, NULL },
-    { "price",    D_DB_TYPE_DECIMAL,        0u, "1.50", 10u, 2u, NULL },
-    { "plain",    D_DB_TYPE_DECIMAL,        0u, NULL,   0u,  0u, NULL },
+      "TRUE",     0u,  0u, NULL, 0u },
+    { "count",    D_DB_TYPE_INTEGER,        0u, "0",    0u,  0u, NULL, 0u },
+    { "ratio",    D_DB_TYPE_FLOATING_POINT, 0u, NULL,   0u,  0u, NULL, 0u },
+    { "price",    D_DB_TYPE_DECIMAL,        0u, "1.50", 10u, 2u, NULL, 0u },
+    { "plain",    D_DB_TYPE_DECIMAL,        0u, NULL,   0u,  0u, NULL, 0u },
     { "name",     D_DB_TYPE_STRING,
       D_DB_COLUMN_NOT_NULL | D_DB_COLUMN_UNIQUE,
-      "'none'",   80u, 0u, NULL },
-    { "note",     D_DB_TYPE_STRING,         0u, NULL,   0u,  0u, NULL },
+      "'none'",   80u, 0u, NULL, 0u },
+    { "note",     D_DB_TYPE_STRING,         0u, NULL,   0u,  0u, NULL, 0u },
     { "tag",      D_DB_TYPE_STRING,         D_DB_COLUMN_UNIQUE,
-      NULL,       0u,  0u, NULL },
-    { "blob",     D_DB_TYPE_BINARY,         0u, NULL,   0u,  0u, NULL },
-    { "digest",   D_DB_TYPE_BINARY,         0u, NULL,   32u, 0u, NULL },
-    { "born",     D_DB_TYPE_DATE,           0u, NULL,   0u,  0u, NULL },
-    { "alarm",    D_DB_TYPE_TIME,           0u, NULL,   3u,  0u, NULL },
-    { "seen",     D_DB_TYPE_DATETIME,       0u, NULL,   0u,  0u, NULL },
-    { "stamp",    D_DB_TYPE_TIMESTAMP,      0u, NULL,   6u,  0u, NULL },
-    { "doc",      D_DB_TYPE_JSON,           0u, NULL,   0u,  0u, NULL },
-    { "page",     D_DB_TYPE_XML,            0u, NULL,   0u,  0u, NULL },
-    { "uuid",     D_DB_TYPE_UUID,           0u, NULL,   0u,  0u, NULL },
-    { "own",      D_DB_TYPE_NONE,           0u, NULL,   0u,  0u, "smallint" }
+      NULL,       0u,  0u, NULL, 0u },
+    { "blob",     D_DB_TYPE_BINARY,         0u, NULL,   0u,  0u, NULL, 0u },
+    { "digest",   D_DB_TYPE_BINARY,         0u, NULL,   32u, 0u, NULL, 0u },
+    { "born",     D_DB_TYPE_DATE,           0u, NULL,   0u,  0u, NULL, 0u },
+    { "alarm",    D_DB_TYPE_TIME,           0u, NULL,   3u,  0u, NULL, 0u },
+    { "seen",     D_DB_TYPE_DATETIME,       0u, NULL,   0u,  0u, NULL, 0u },
+    { "stamp",    D_DB_TYPE_TIMESTAMP,      0u, NULL,   6u,  0u, NULL, 0u },
+    { "doc",      D_DB_TYPE_JSON,           0u, NULL,   0u,  0u, NULL, 0u },
+    { "page",     D_DB_TYPE_XML,            0u, NULL,   0u,  0u, NULL, 0u },
+    { "uuid",     D_DB_TYPE_UUID,           0u, NULL,   0u,  0u, NULL, 0u },
+    { "own",      D_DB_TYPE_NONE,           0u, NULL,   0u,  0u, "smallint",
+      0u }
 };
 
 // d_tests_postgres_every_type_sql
@@ -325,11 +328,22 @@ static const struct d_db_column
 d_tests_postgres_composite[] =
 {
     { "label",  D_DB_TYPE_STRING,  0u,                      NULL, 0u, 0u,
-      NULL },
+      NULL, 0u },
     { "code",   D_DB_TYPE_INTEGER, D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u,
-      NULL },
+      NULL, 0u },
     { "region", D_DB_TYPE_STRING,  D_DB_COLUMN_PRIMARY_KEY, NULL, 8u, 0u,
-      NULL }
+      NULL, 0u }
+};
+
+// d_tests_postgres_ordered
+//   table: a composite key whose places order it b, a: otherwise than the
+// table.
+static const struct d_db_column
+d_tests_postgres_ordered[] =
+{
+    { "a", D_DB_TYPE_INTEGER, D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL, 2u },
+    { "b", D_DB_TYPE_INTEGER, D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL, 1u },
+    { "c", D_DB_TYPE_INTEGER, 0u,                      NULL, 0u, 0u, NULL, 0u }
 };
 
 // d_tests_postgres_refused
@@ -340,18 +354,18 @@ d_tests_postgres_composite[] =
 static const struct d_db_column
 d_tests_postgres_refused[][2] =
 {
-    { { "a", D_DB_TYPE_NONE,     0u,    NULL, 0u, 0u, NULL } },
-    { { "a", (enum d_db_type)99, 0u,    NULL, 0u, 0u, NULL } },
-    { { "a", D_DB_TYPE_INTEGER,  0x80u, NULL, 0u, 0u, NULL } },
-    { { "",  D_DB_TYPE_INTEGER,  0u,    NULL, 0u, 0u, NULL } },
-    { { "a", D_DB_TYPE_DECIMAL,  0u,    NULL, 0u, 2u, NULL } },
+    { { "a", D_DB_TYPE_NONE,     0u,    NULL, 0u, 0u, NULL, 0u } },
+    { { "a", (enum d_db_type)99, 0u,    NULL, 0u, 0u, NULL, 0u } },
+    { { "a", D_DB_TYPE_INTEGER,  0x80u, NULL, 0u, 0u, NULL, 0u } },
+    { { "",  D_DB_TYPE_INTEGER,  0u,    NULL, 0u, 0u, NULL, 0u } },
+    { { "a", D_DB_TYPE_DECIMAL,  0u,    NULL, 0u, 2u, NULL, 0u } },
     { { "a", D_DB_TYPE_INTEGER,  D_DB_COLUMN_AUTO_INCREMENT, NULL, 0u, 0u,
-        NULL } },
+        NULL, 0u } },
     { { "a", D_DB_TYPE_INTEGER,
         D_DB_COLUMN_PRIMARY_KEY | D_DB_COLUMN_AUTO_INCREMENT, NULL, 0u, 0u,
-        NULL },
+        NULL, 0u },
       { "b", D_DB_TYPE_INTEGER,  D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u,
-        NULL } }
+        NULL, 0u } }
 };
 
 // d_tests_postgres_refused_counts
@@ -692,6 +706,88 @@ d_tests_postgres_find_column(
 }
 
 /*
+d_tests_postgres_same_page
+  Whether a page of rows read a few at a time holds the columns of the rows
+read all at once, and `_count` of their rows from `_first`, value for value.
+*/
+static bool
+d_tests_postgres_same_page(
+    const struct d_db_rows* _page,
+    const struct d_db_rows* _all,
+    size_t                  _first,
+    size_t                  _count
+)
+{
+    // the same columns, and as many rows as expected
+    if ( (_page->column_count != _all->column_count) ||
+         (_page->row_count != _count)                ||
+         ((_first + _count) > _all->row_count) )
+    {
+        return false;
+    }
+
+    for (size_t c = 0u; c < _all->column_count; ++c)
+    {
+        // a column named or typed otherwise
+        if ( (strcmp(_page->columns[c].name, _all->columns[c].name) != 0) ||
+             (_page->columns[c].type != _all->columns[c].type)            ||
+             (strcmp(_page->columns[c].type_name,
+                     _all->columns[c].type_name) != 0) )
+        {
+            return false;
+        }
+    }
+
+    // the same values, row by row
+    for (size_t i = 0u; i < (_count * _all->column_count); ++i)
+    {
+        const struct d_db_value* const got  = &_page->values[i];
+        const struct d_db_value* const want =
+            &_all->values[(_first * _all->column_count) + i];
+        bool                           same = ( (got->type == want->type) &&
+                                                (got->size == want->size) );
+
+        // the value itself, as its type holds it
+        if (same)
+        {
+            switch (got->type)
+            {
+                case D_DB_VALUE_INTEGER:
+                    same = (got->as.integer == want->as.integer);
+
+                    break;
+
+                case D_DB_VALUE_REAL:
+                    same = (memcmp(&got->as.real,
+                                   &want->as.real,
+                                   sizeof(double)) == 0);
+
+                    break;
+
+                case D_DB_VALUE_TEXT:
+                case D_DB_VALUE_BLOB:
+                    same = ( (got->size == 0u) ||
+                             (memcmp(got->as.blob, want->as.blob, got->size) ==
+                              0) );
+
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        // a value read otherwise
+        if (!same)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/*
 d_tests_postgres_at_least
   Whether the server is that major version or later.
 */
@@ -772,7 +868,8 @@ d_tests_postgres_db_common(
     D_TESTS_POSTGRES_CHECK(D_DB_MISMATCH < 0);
     D_TESTS_POSTGRES_CHECK(D_DB_MISMATCH != D_DB_INVALID_ARGUMENT);
     D_TESTS_POSTGRES_CHECK(d_db_status_message(D_DB_MISMATCH) != NULL);
-    D_TESTS_POSTGRES_CHECK(d_db_status_message(D_DB_MISMATCH - 1) == NULL);
+    D_TESTS_POSTGRES_CHECK(d_db_status_message(D_DB_WAIT) != NULL);
+    D_TESTS_POSTGRES_CHECK(d_db_status_message(D_DB_WAIT - 1) == NULL);
     D_TESTS_POSTGRES_CHECK(
         d_db_status_message(D_POSTGRES_SQLSTATE_UNDEFINED_TABLE) == NULL);
 
@@ -930,19 +1027,51 @@ d_tests_postgres_client
   The client library.
   Tests the following:
   - its version is libpq's own, PQlibVersion's, at or above the floor
+  - what it can do, by the header's feature macros and the library's
+    release: pipelines (14), chunked rows and closing a statement (17); a
+    value outside the enumeration is no feature
 */
 static void
 d_tests_postgres_client(
     void
 )
 {
+    const int library = PQlibVersion();
+
     printf("postgres_common: client (libpq %d)\n",
            d_postgres_client_version_number());
 
-    D_TESTS_POSTGRES_CHECK(d_postgres_client_version_number() ==
-                           PQlibVersion());
+    D_TESTS_POSTGRES_CHECK(d_postgres_client_version_number() == library);
     D_TESTS_POSTGRES_CHECK(d_postgres_client_version_number() >=
                            D_POSTGRES_FLOOR_CLIENT_VERSION_NUM);
+#if defined(LIBPQ_HAS_PIPELINING)
+    D_TESTS_POSTGRES_CHECK(d_postgres_client_supports(
+                               D_POSTGRES_CLIENT_PIPELINE) ==
+                           (library >= 140000));
+#else
+    D_TESTS_POSTGRES_CHECK(!d_postgres_client_supports(
+                               D_POSTGRES_CLIENT_PIPELINE));
+#endif
+#if defined(LIBPQ_HAS_CHUNK_MODE)
+    D_TESTS_POSTGRES_CHECK(d_postgres_client_supports(
+                               D_POSTGRES_CLIENT_CHUNKED_ROWS) ==
+                           (library >= 170000));
+#else
+    D_TESTS_POSTGRES_CHECK(!d_postgres_client_supports(
+                               D_POSTGRES_CLIENT_CHUNKED_ROWS));
+#endif
+#if defined(LIBPQ_HAS_CLOSE_PREPARED)
+    D_TESTS_POSTGRES_CHECK(d_postgres_client_supports(
+                               D_POSTGRES_CLIENT_CLOSE_PREPARED) ==
+                           (library >= 170000));
+#else
+    D_TESTS_POSTGRES_CHECK(!d_postgres_client_supports(
+                               D_POSTGRES_CLIENT_CLOSE_PREPARED));
+#endif
+    D_TESTS_POSTGRES_CHECK(!d_postgres_client_supports(
+                               (enum d_postgres_client_feature)99));
+    D_TESTS_POSTGRES_CHECK(!d_postgres_client_supports(
+                               (enum d_postgres_client_feature)-1));
 
     return;
 }
@@ -1205,6 +1334,121 @@ d_tests_postgres_errors(
     return;
 }
 
+/*
+d_tests_postgres_own_results
+  d_postgres_result_is_own.
+  Tests the following:
+  - a transaction already open, a failed one at COMMIT, and a parameter a
+    statement lacks are the layer's own, its message the result's
+  - the same codes from the server are not, and the connection's message is
+    the server's: CREATE DATABASE in a transaction (25001), a schema that
+    does not exist (3F000), a statement in a failed transaction (25P02)
+  - libpq's answer since forgets the layer's own
+  - negative results, memory and NULL are always the layer's own
+*/
+static void
+d_tests_postgres_own_results(
+    void
+)
+{
+    char                         schema[96] = "";
+    struct pg_conn*              db         = d_tests_postgres_begin(
+                                                  "own_results",
+                                                  schema,
+                                                  sizeof(schema));
+    struct d_postgres_statement* statement  = NULL;
+
+    printf("postgres_common: own results\n");
+
+    D_TESTS_POSTGRES_CHECK(d_postgres_result_is_own(NULL, D_DB_UNSUPPORTED));
+    D_TESTS_POSTGRES_CHECK(d_postgres_result_is_own(
+                               NULL,
+                               D_POSTGRES_SQLSTATE_OUT_OF_MEMORY));
+    D_TESTS_POSTGRES_CHECK(!d_postgres_result_is_own(
+                               NULL,
+                               D_POSTGRES_SQLSTATE_UNDEFINED_TABLE));
+
+    // nothing more without a server
+    if (!db)
+    {
+        D_TESTS_POSTGRES_CHECK(db != NULL);
+
+        return;
+    }
+
+    // 25001: the layer's own at BEGIN, the server's at CREATE DATABASE
+    D_TESTS_POSTGRES_OK(db, d_postgres_begin_transaction(
+                                db,
+                                D_POSTGRES_TRANSACTION_DEFAULT));
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_begin_transaction(
+                                db,
+                                D_POSTGRES_TRANSACTION_DEFAULT),
+                            D_POSTGRES_SQLSTATE_ACTIVE_SQL_TRANSACTION);
+    D_TESTS_POSTGRES_CHECK(d_postgres_result_is_own(
+                               db,
+                               D_POSTGRES_SQLSTATE_ACTIVE_SQL_TRANSACTION));
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_exec(db,
+                                            "CREATE DATABASE d_tests_never"),
+                            D_POSTGRES_SQLSTATE_ACTIVE_SQL_TRANSACTION);
+    D_TESTS_POSTGRES_CHECK(!d_postgres_result_is_own(
+                               db,
+                               D_POSTGRES_SQLSTATE_ACTIVE_SQL_TRANSACTION));
+    D_TESTS_POSTGRES_CHECK(strstr(d_postgres_error_message(db),
+                                  "CREATE DATABASE") != NULL);
+
+    // 25P02: the server's in a failed transaction, the layer's at COMMIT
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_exec(db, "SELECT 1"),
+                            D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION);
+    D_TESTS_POSTGRES_CHECK(!d_postgres_result_is_own(
+                               db,
+                               D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION));
+    D_TESTS_POSTGRES_CHECK(strstr(d_postgres_error_message(db),
+                                  "aborted") != NULL);
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_commit(db),
+                            D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION);
+    D_TESTS_POSTGRES_CHECK(d_postgres_result_is_own(
+                               db,
+                               D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION));
+
+    // libpq's answer since forgets it
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "SELECT 1"));
+    D_TESTS_POSTGRES_CHECK(!d_postgres_result_is_own(
+                               db,
+                               D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION));
+
+    // 3F000: the server's, for a schema that does not exist
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_exec(db,
+                                            "CREATE TABLE d_tests_none.t "
+                                            "(a integer)"),
+                            D_POSTGRES_SQLSTATE_INVALID_SCHEMA_NAME);
+    D_TESTS_POSTGRES_CHECK(!d_postgres_result_is_own(
+                               db,
+                               D_POSTGRES_SQLSTATE_INVALID_SCHEMA_NAME));
+    D_TESTS_POSTGRES_CHECK(strstr(d_postgres_error_message(db),
+                                  "d_tests_none") != NULL);
+
+    // 42P02: the layer's own, for a parameter the statement lacks
+    D_TESTS_POSTGRES_OK(db, d_postgres_prepare(db,
+                                               &statement,
+                                               "SELECT $1::integer"));
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_bind_int64(statement, 2u, 1),
+                            D_POSTGRES_SQLSTATE_UNDEFINED_PARAMETER);
+    D_TESTS_POSTGRES_CHECK(d_postgres_result_is_own(
+                               db,
+                               D_POSTGRES_SQLSTATE_UNDEFINED_PARAMETER));
+    D_TESTS_POSTGRES_OK(db, d_postgres_finalize(statement));
+
+    d_tests_postgres_end(db, schema);
+
+    return;
+}
+
 //==============================================================================
 // postgres_connection.h
 //==============================================================================
@@ -1239,6 +1483,75 @@ d_tests_postgres_conninfo_is(
     PQconninfoFree(options);
 
     return same;
+}
+
+/*
+d_tests_postgres_float_digits
+  extra_float_digits on every connection the layer makes.
+  Tests the following:
+  - 3, from the layer's startup option
+  - 3 where options of the caller's replace the layer's without naming it,
+    set on the connection
+  - the caller's own value where its options name one
+*/
+static void
+d_tests_postgres_float_digits(
+    void
+)
+{
+    struct pg_conn* db         = d_tests_postgres_connect(NULL);
+    char            port[16]   = "";
+    const char*     keywords[] = { "host", "port", "user", "password",
+                                   "dbname", "options" };
+    const char*     values[]   = { g_options.host, port, g_options.user,
+                                   g_options.password, g_options.database,
+                                   "-c application_name=d_tests_digits" };
+
+    printf("postgres_connection: extra_float_digits\n");
+
+    // nothing more without a server
+    if (!db)
+    {
+        D_TESTS_POSTGRES_CHECK(db != NULL);
+
+        return;
+    }
+
+    (void)snprintf(port, sizeof(port), "%u", g_options.port);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_text_is(
+                               db,
+                               "SHOW extra_float_digits",
+                               "3"));
+    d_postgres_close(db);
+    db = NULL;
+    D_TESTS_POSTGRES_OK(NULL, d_postgres_connect_with(NULL,
+                                                      keywords,
+                                                      values,
+                                                      6u,
+                                                      &db,
+                                                      NULL));
+    D_TESTS_POSTGRES_CHECK( (db) &&
+                            (d_tests_postgres_text_is(
+                                 db,
+                                 "SHOW extra_float_digits",
+                                 "3")) );
+    d_postgres_close(db);
+    db        = NULL;
+    values[5] = "-c extra_float_digits=0";
+    D_TESTS_POSTGRES_OK(NULL, d_postgres_connect_with(NULL,
+                                                      keywords,
+                                                      values,
+                                                      6u,
+                                                      &db,
+                                                      NULL));
+    D_TESTS_POSTGRES_CHECK( (db) &&
+                            (d_tests_postgres_text_is(
+                                 db,
+                                 "SHOW extra_float_digits",
+                                 "0")) );
+    d_postgres_close(db);
+
+    return;
 }
 
 /*
@@ -2370,8 +2683,8 @@ d_tests_postgres_rows_values
   d_postgres_query_rows and its f form: the values.
   Tests the following:
   - boolean as INTEGER 1 and 0; integers to both ends of int64_t; doubles,
-    NaN and the infinities included, to the last bit where the server
-    writes the shortest exact text (12 on); a real; numeric as TEXT, NaN
+    NaN and the infinities included, to the last bit on every server (the
+    layer's extra_float_digits); a real; numeric as TEXT, NaN
     too; text; bytea with NULs as a BLOB, from hex output and from escape
     output; NULL
   - empty text and empty bytes point at a terminator
@@ -2402,8 +2715,6 @@ d_tests_postgres_rows_values(
 
         return;
     }
-
-    const bool shortest = d_postgres_server_at_least(db, 12u, 0u);
 
     D_TESTS_POSTGRES_OK(db,
                         d_postgres_exec(db,
@@ -2440,9 +2751,7 @@ d_tests_postgres_rows_values(
                                 (one[2].as.integer == INT64_MIN)    &&
                                 (two[2].as.integer == INT64_MAX) );
         D_TESTS_POSTGRES_CHECK( (one[3].type == D_DB_VALUE_REAL) &&
-                                ( (!shortest) ||
-                                  (one[3].as.real ==
-                                   0.30000000000000004) ) );
+                                (one[3].as.real == 0.30000000000000004) );
         D_TESTS_POSTGRES_CHECK( (two[3].type == D_DB_VALUE_REAL) &&
                                 (isinf(two[3].as.real))          &&
                                 (two[3].as.real < 0.0) );
@@ -3617,6 +3926,559 @@ d_tests_postgres_statement_arguments(
     }
 
     d_postgres_close(db);
+
+    return;
+}
+
+/*
+d_tests_postgres_closing_by_name
+  Closing a statement by its name.
+  Tests the following:
+  - a statement PREPARE made, closed; closing it again, or one the session
+    never had, succeeds
+  - in a failed transaction: closed where libpq has PQclosePrepared (17),
+    and 25P02 where it has not
+  - NULL arguments and an empty name
+*/
+static void
+d_tests_postgres_closing_by_name(
+    void
+)
+{
+    char            schema[96] = "";
+    struct pg_conn* db         = d_tests_postgres_begin("closing",
+                                                        schema,
+                                                        sizeof(schema));
+    const char*     held       = "SELECT count(*) FROM "
+                                 "pg_catalog.pg_prepared_statements WHERE "
+                                 "name LIKE 'p_close%'";
+
+    printf("postgres_statement: closing by name\n");
+
+    // nothing more without a server
+    if (!db)
+    {
+        D_TESTS_POSTGRES_CHECK(db != NULL);
+
+        return;
+    }
+
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db,
+                                            "PREPARE p_close_one AS SELECT 1"));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, held) == 1);
+    D_TESTS_POSTGRES_OK(db, d_postgres_close_prepared(db, "p_close_one"));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, held) == 0);
+    D_TESTS_POSTGRES_OK(db, d_postgres_close_prepared(db, "p_close_one"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_close_prepared(db, "p_close_never"));
+
+    // in a failed transaction
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db,
+                                            "PREPARE p_close_two AS SELECT 2"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "BEGIN"));
+    D_TESTS_POSTGRES_CHECK(d_postgres_exec(db, "SELECT 1 / 0") != 0);
+    D_TESTS_POSTGRES_RESULT(
+        db,
+        d_postgres_close_prepared(db, "p_close_two"),
+        (d_postgres_client_supports(D_POSTGRES_CLIENT_CLOSE_PREPARED))
+            ? 0
+            : D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION);
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "ROLLBACK"));
+    D_TESTS_POSTGRES_CHECK(
+        d_tests_postgres_int(db, held) ==
+        ((d_postgres_client_supports(D_POSTGRES_CLIENT_CLOSE_PREPARED)) ? 0
+                                                                        : 1));
+    D_TESTS_POSTGRES_OK(db, d_postgres_close_prepared(db, "p_close_two"));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, held) == 0);
+
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_close_prepared(NULL, "p_close_one"),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_close_prepared(db, NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_close_prepared(db, ""),
+                            D_DB_INVALID_ARGUMENT);
+
+    d_tests_postgres_end(db, schema);
+
+    return;
+}
+
+/*
+d_tests_postgres_cursors
+  Rows a few at a time.
+  Tests the following:
+  - each fetch returns the columns, named and typed as execute_query's are,
+    and the next rows, no more than asked for, each value as execute_query
+    reads it
+  - a short page ends the run; a fetch after is D_DB_INVALID_ARGUMENT, and
+    the connection runs its next statement
+  - while a run is open, everything that would wait on the connection -- a
+    statement, a query with or without values, a formatted one, a
+    notification, a COPY, a prepare, another statement's run, a close by
+    name -- is 08000, the layer's own answer, having read none of the run's
+    rows; a send is libpq's own 08000; values bound meanwhile serve the next
+    run
+  - rows that fill their last page exactly end with an empty page, which
+    still describes the columns; a query finding no rows describes them too
+  - a command runs on opening, holds the connection until its first fetch,
+    which ends the run with no columns
+  - running the statement again part-way through a run ends it and begins
+    another; close_cursor ends one part-way, and again does nothing
+  - another statement finalized part-way through a run is released with
+    08000, its server copy kept; the statement's own finalize ends its run
+  - a row failing part-way through a run is the server's failure, which the
+    connection still describes; the run has ended, and the connection runs
+    its next statement; a failure among the rows close_cursor reads away is
+    reported too
+  - pipeline mode refuses a run; NULL arguments, no rows asked for, and no
+    run open are D_DB_INVALID_ARGUMENT
+*/
+static void
+d_tests_postgres_cursors(
+    void
+)
+{
+    char                         schema[96] = "";
+    struct pg_conn*              db         = d_tests_postgres_begin("cursors",
+                                                                     schema,
+                                                                     sizeof(
+                                                                       schema));
+    struct d_postgres_statement* select     = NULL;
+    struct d_postgres_statement* other      = NULL;
+    struct d_postgres_statement* insert     = NULL;
+    struct d_db_rows             all        = { 0u, 0u, NULL, NULL };
+    struct d_db_rows             rows       = { 0u, 0u, NULL, NULL };
+    struct d_db_rows             marker     = { 7u, 7u, NULL, NULL };
+    int64_t                      changes    = -1;
+    const char* const            values[1]  = { "1" };
+    const char*                  held       = "SELECT count(*) FROM "
+                                              "pg_catalog.pg_prepared_statements";
+    const int                    by_zero    =
+        d_postgres_result_from_sqlstate("22012");
+    const int                    busy       =
+        D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION;
+
+    printf("postgres_statement: rows a few at a time\n");
+
+    // nothing more without a server
+    if (!db)
+    {
+        D_TESTS_POSTGRES_CHECK(db != NULL);
+
+        return;
+    }
+
+    D_TESTS_POSTGRES_OK(db,
+                        d_postgres_exec(db,
+                                        "CREATE TABLE k (id int PRIMARY KEY, "
+                                        "v text, r float8, b bytea, "
+                                        "d numeric(10,2), t timestamp)"));
+    D_TESTS_POSTGRES_OK(db,
+                        d_postgres_exec(db,
+                                        "INSERT INTO k VALUES "
+                                        "(1, 'a', 1.5, '\\x00ff', 1.25, "
+                                        "'2020-01-02 03:04:05'), "
+                                        "(2, NULL, NULL, NULL, NULL, NULL), "
+                                        "(3, repeat('x', 70000), -0.5, "
+                                        "'\\x', 3, '2001-01-01'), "
+                                        "(4, 'it''s', 0, '\\x', -2.50, "
+                                        "'1999-12-31 23:59:59'), "
+                                        "(5, '', 1e300, '\\x61', 0.00, "
+                                        "'2000-02-29 00:00:00')"));
+    D_TESTS_POSTGRES_OK(db,
+                        d_postgres_prepare(db, &select,
+                                           "SELECT id, v, r, b, d, t FROM k "
+                                           "WHERE id >= $1 ORDER BY id"));
+    D_TESTS_POSTGRES_OK(db,
+                        d_postgres_prepare(db, &other,
+                                           "SELECT count(*) FROM k"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_bind_int64(select, 1u, 1));
+
+    // the rows all at once, to hold the pages to
+    D_TESTS_POSTGRES_OK(db, d_postgres_execute_query(select, &all));
+    D_TESTS_POSTGRES_CHECK( (all.column_count == 6u) &&
+                            (all.row_count == 5u)    &&
+                            (all.values[13].size == 70000u) );
+
+    // pages of two: 1 and 2, 3 and 4, then 5 alone, which ends the run
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(select));
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 2u, &rows));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_same_page(&rows, &all, 0u, 2u));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 2u, &rows));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_same_page(&rows, &all, 2u, 2u));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 2u, &rows));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_same_page(&rows, &all, 4u, 1u));
+    d_db_rows_free(&rows);
+    rows = marker;
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_fetch_rows(select, 2u, &rows),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_CHECK( (rows.column_count == 7u) &&
+                            (rows.row_count == 7u) );
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT 7") == 7);
+
+    // part-way through, the connection is the run's
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(select));
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 1u, &rows));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_same_page(&rows, &all, 0u, 1u));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_exec(db, "SELECT 1"), busy);
+    D_TESTS_POSTGRES_CHECK(d_postgres_result_is_own(db, busy));
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_query_rows(db, &rows, "SELECT 1"),
+                            busy);
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_query_rows_params(db, &rows,
+                                                         "SELECT $1::int",
+                                                         values, 1u),
+                            busy);
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_query_rowsf(db, &rows, "SELECT %d", 1),
+                            busy);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_notify(db, "cursors", "x"), busy);
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_copy_in_start(db,
+                                                     "COPY k (id) FROM STDIN"),
+                            busy);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_execute_update(other, &changes),
+                            busy);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_execute_query(other, &rows), busy);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_open_cursor(other), busy);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_fetch_rows(other, 1u, &rows),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_close_cursor(other), 0);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_close_prepared(db, "p_none"),
+                            busy);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_send_query(db, "SELECT 1"), busy);
+    insert = (struct d_postgres_statement*)&g_options;
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_prepare(db, &insert, "SELECT 1"),
+                            busy);
+    D_TESTS_POSTGRES_CHECK(insert == NULL);
+    D_TESTS_POSTGRES_CHECK(changes == -1);
+    D_TESTS_POSTGRES_OK(db, d_postgres_bind_int64(select, 1u, 4));
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 9u, &rows));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_same_page(&rows, &all, 1u, 4u));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_OK(db, d_postgres_execute_update(other, &changes));
+    D_TESTS_POSTGRES_CHECK(changes == 1);
+
+    // the value bound part-way serves the next run: from 4, two rows filling
+    // a page exactly, and then an empty page, which ends the run
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(select));
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 2u, &rows));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_same_page(&rows, &all, 3u, 2u));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_exec(db, "SELECT 1"), busy);
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 2u, &rows));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_same_page(&rows, &all, 5u, 0u));
+    D_TESTS_POSTGRES_CHECK( (rows.columns != NULL) &&
+                            (rows.values == NULL) );
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT 7") == 7);
+
+    // no row found: the columns alone
+    D_TESTS_POSTGRES_OK(db, d_postgres_bind_int64(select, 1u, 9));
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(select));
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 4u, &rows));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_same_page(&rows, &all, 5u, 0u));
+    d_db_rows_free(&rows);
+
+    // a command runs on opening, and holds the connection until its first
+    // fetch
+    D_TESTS_POSTGRES_OK(db,
+                        d_postgres_prepare(db, &insert,
+                                           "INSERT INTO k (id) VALUES ($1)"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_bind_int64(insert, 1u, 6));
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(insert));
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_exec(db, "SELECT 1"), busy);
+    rows = marker;
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(insert, 3u, &rows));
+    D_TESTS_POSTGRES_CHECK( (rows.column_count == 0u) &&
+                            (rows.row_count == 0u)    &&
+                            (rows.columns == NULL) );
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_fetch_rows(insert, 3u, &rows),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT count(*) FROM k")
+                           == 6);
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "DELETE FROM k WHERE id = 6"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_finalize(insert));
+
+    // running the statement again part-way: its run ends, another begins
+    D_TESTS_POSTGRES_OK(db, d_postgres_bind_int64(select, 1u, 1));
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(select));
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 2u, &rows));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_OK(db, d_postgres_execute_query(select, &rows));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_same_page(&rows, &all, 0u, 5u));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_fetch_rows(select, 2u, &rows),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(select));
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 1u, &rows));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(select));
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 2u, &rows));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_same_page(&rows, &all, 0u, 2u));
+    d_db_rows_free(&rows);
+
+    // close_cursor part-way, and again
+    D_TESTS_POSTGRES_OK(db, d_postgres_close_cursor(select));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT 7") == 7);
+    D_TESTS_POSTGRES_OK(db, d_postgres_close_cursor(select));
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_fetch_rows(select, 1u, &rows),
+                            D_DB_INVALID_ARGUMENT);
+
+    // another statement finalized part-way: released, its copy kept
+    const int64_t copies = d_tests_postgres_int(db, held);
+
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(select));
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 1u, &rows));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_finalize(other), busy);
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 9u, &rows));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_same_page(&rows, &all, 1u, 4u));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, held) == copies);
+
+    // a statement prepared since, inside a transaction, comes to no harm
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "BEGIN"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_prepare(db, &other, "SELECT 11"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_execute_query(other, &rows));
+    D_TESTS_POSTGRES_CHECK(rows.row_count == 1u);
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "COMMIT"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_finalize(other));
+
+    // the statement's own finalize ends its run
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(select));
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 1u, &rows));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_OK(db, d_postgres_finalize(select));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT 7") == 7);
+
+    // a row failing part-way: the third divides by zero (no sort, which
+    // would have the server compute every row before sending the first)
+    D_TESTS_POSTGRES_OK(db,
+                        d_postgres_prepare(db, &select,
+                                           "SELECT i, CASE WHEN i < 3 "
+                                           "THEN i ELSE 1 / (i - i) END "
+                                           "FROM generate_series(1, 5) "
+                                           "AS i"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(select));
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 2u, &rows));
+    D_TESTS_POSTGRES_CHECK( (rows.row_count == 2u) &&
+                            (rows.values[3].as.integer == 2) );
+    d_db_rows_free(&rows);
+    rows = marker;
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_fetch_rows(select, 2u, &rows),
+                            by_zero);
+    D_TESTS_POSTGRES_CHECK( (rows.column_count == 7u) &&
+                            (rows.row_count == 7u) );
+    D_TESTS_POSTGRES_CHECK(!d_postgres_result_is_own(db, by_zero));
+    D_TESTS_POSTGRES_CHECK(strstr(d_postgres_error_message(db),
+                                  "division by zero") != NULL);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_fetch_rows(select, 2u, &rows),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT 7") == 7);
+
+    // and closed before it comes: the failure is still the run's
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(select));
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 1u, &rows));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_close_cursor(select), by_zero);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT 7") == 7);
+    D_TESTS_POSTGRES_OK(db, d_postgres_finalize(select));
+
+    // pipeline mode reads its results its own way
+    if (d_postgres_client_supports(D_POSTGRES_CLIENT_PIPELINE))
+    {
+        D_TESTS_POSTGRES_OK(db,
+                            d_postgres_prepare(db, &select, "SELECT 1"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_enter_pipeline(db));
+        D_TESTS_POSTGRES_RESULT(db, d_postgres_open_cursor(select), busy);
+        D_TESTS_POSTGRES_OK(db, d_postgres_exit_pipeline(db));
+        D_TESTS_POSTGRES_OK(db, d_postgres_finalize(select));
+    }
+
+    // arguments
+    D_TESTS_POSTGRES_OK(db, d_postgres_prepare(db, &select, "SELECT 1"));
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_open_cursor(NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_fetch_rows(NULL, 1u, &rows),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_close_cursor(NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(select));
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_fetch_rows(select, 0u, &rows),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_fetch_rows(select, 1u, NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_OK(db, d_postgres_close_cursor(select));
+    D_TESTS_POSTGRES_OK(db, d_postgres_finalize(select));
+
+    d_db_rows_free(&all);
+    d_tests_postgres_end(db, schema);
+
+    return;
+}
+
+/*
+d_tests_postgres_large_objects
+  Large objects, to and from the client's files.
+  Tests the following:
+  - a file of more than two chunks, imported and exported again, byte for
+    byte; an empty file too; outside a transaction each copy commits
+  - inside the caller's transaction the copy is the transaction's: rolled
+    back, the object is gone, and exporting it is 42704, the server's
+  - a file that is not there is D_DB_NOT_FOUND, and a path that names a
+    directory 58030, the layer's own, the session untouched
+  - a failed transaction is 25P02, and a run that holds the connection
+    08000, each the layer's own
+  - NULL arguments are D_DB_INVALID_ARGUMENT
+*/
+static void
+d_tests_postgres_large_objects(
+    void
+)
+{
+    char                         schema[96] = "";
+    struct pg_conn*              db         = d_tests_postgres_begin(
+                                                  "large_objects",
+                                                  schema,
+                                                  sizeof(schema));
+    const char* const            in         = "d_tests_postgres_lo_in.bin";
+    const char* const            out        = "d_tests_postgres_lo_out.bin";
+    const size_t                 size       = 150001u;
+    unsigned char*               bytes      = (unsigned char*)malloc(size);
+    unsigned char*               back       = (unsigned char*)malloc(size);
+    unsigned int                 oid        = 0u;
+    unsigned int                 empty      = 0u;
+    struct d_postgres_statement* select     = NULL;
+    struct d_db_rows             rows       = { 0u, 0u, NULL, NULL };
+    const int                    undefined  =
+        d_postgres_result_from_sqlstate("42704");
+
+    printf("postgres_protocol: large objects\n");
+
+    // nothing more without a server, or memory
+    if ( (!db)    ||
+         (!bytes) ||
+         (!back) )
+    {
+        D_TESTS_POSTGRES_CHECK( (db != NULL) && (bytes != NULL) &&
+                                (back != NULL) );
+        free(bytes);
+        free(back);
+        d_tests_postgres_end(db, schema);
+
+        return;
+    }
+
+    // a file of every byte value, over two chunks and a byte
+    for (size_t i = 0u; i < size; ++i)
+    {
+        bytes[i] = (unsigned char)((i * 7u) & 0xFFu);
+    }
+
+    FILE* file = fopen(in, "wb");
+
+    D_TESTS_POSTGRES_CHECK( (file != NULL) &&
+                            (fwrite(bytes, 1u, size, file) == size) &&
+                            (fclose(file) == 0) );
+
+    // in and out again, outside a transaction
+    D_TESTS_POSTGRES_OK(db, d_postgres_lo_import(db, in, &oid));
+    D_TESTS_POSTGRES_CHECK( (oid != 0u) &&
+                            (PQtransactionStatus(db) == PQTRANS_IDLE) );
+    D_TESTS_POSTGRES_OK(db, d_postgres_lo_export(db, oid, out));
+    file = fopen(out, "rb");
+    D_TESTS_POSTGRES_CHECK( (file != NULL) &&
+                            (fread(back, 1u, size, file) == size) &&
+                            (fgetc(file) == EOF) &&
+                            (memcmp(bytes, back, size) == 0) );
+
+    if (file)
+    {
+        (void)fclose(file);
+    }
+
+    // an empty file
+    file = fopen(in, "wb");
+    D_TESTS_POSTGRES_CHECK( (file != NULL) && (fclose(file) == 0) );
+    D_TESTS_POSTGRES_OK(db, d_postgres_lo_import(db, in, &empty));
+    D_TESTS_POSTGRES_OK(db, d_postgres_lo_export(db, empty, out));
+    file = fopen(out, "rb");
+    D_TESTS_POSTGRES_CHECK( (file != NULL) && (fgetc(file) == EOF) );
+
+    if (file)
+    {
+        (void)fclose(file);
+    }
+
+    // inside the caller's transaction, rolled back with it
+    {
+        unsigned int brief = 0u;
+
+        D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "BEGIN"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_lo_import(db, in, &brief));
+        D_TESTS_POSTGRES_CHECK(PQtransactionStatus(db) == PQTRANS_INTRANS);
+        D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "ROLLBACK"));
+        D_TESTS_POSTGRES_RESULT(db, d_postgres_lo_export(db, brief, out),
+                                undefined);
+        D_TESTS_POSTGRES_CHECK(!d_postgres_result_is_own(db, undefined));
+        D_TESTS_POSTGRES_CHECK(PQtransactionStatus(db) == PQTRANS_IDLE);
+    }
+
+    // files the client cannot have
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_lo_import(db, "d_tests_no_such_file",
+                                                 &oid),
+                            D_DB_NOT_FOUND);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_lo_export(db, oid, "."),
+                            D_POSTGRES_SQLSTATE_IO_ERROR);
+    D_TESTS_POSTGRES_CHECK(
+        d_postgres_result_is_own(db, D_POSTGRES_SQLSTATE_IO_ERROR));
+    D_TESTS_POSTGRES_CHECK(PQtransactionStatus(db) == PQTRANS_IDLE);
+
+    // a failed transaction, and a run holding the connection
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "BEGIN"));
+    D_TESTS_POSTGRES_CHECK(d_postgres_exec(db, "SELECT 1/0") != 0);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_lo_export(db, oid, out),
+                            D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION);
+    D_TESTS_POSTGRES_CHECK(
+        d_postgres_result_is_own(
+            db,
+            D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION));
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "ROLLBACK"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_prepare(db, &select, "SELECT 1"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_open_cursor(select));
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_lo_import(db, in, &oid),
+                            D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    D_TESTS_POSTGRES_OK(db, d_postgres_fetch_rows(select, 2u, &rows));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_OK(db, d_postgres_finalize(select));
+
+    // arguments
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_lo_import(NULL, in, &oid),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_lo_import(db, NULL, &oid),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_lo_import(db, in, NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_lo_export(NULL, oid, out),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_lo_export(db, oid, NULL),
+                            D_DB_INVALID_ARGUMENT);
+
+    (void)d_postgres_exec(db, "SELECT lo_unlink(oid) FROM "
+                              "pg_catalog.pg_largeobject_metadata");
+    (void)remove(in);
+    (void)remove(out);
+    free(bytes);
+    free(back);
+    d_tests_postgres_end(db, schema);
 
     return;
 }
@@ -4848,6 +5710,9 @@ d_tests_postgres_described_keys
   - a composite key, written as a constraint, its columns in the order the
     set gives them, each listed with its place
   - a column outside the key has place 0
+  - key places order the key otherwise than the table; places that repeat,
+    skip, number a column off the key, or leave a key column out are
+    D_DB_INVALID_ARGUMENT, and make nothing
 */
 static void
 d_tests_postgres_described_keys(
@@ -4889,6 +5754,78 @@ d_tests_postgres_described_keys(
     D_TESTS_POSTGRES_CHECK( (region) && (region->primary_key == 2) );
     d_db_column_list_free(&columns);
     D_TESTS_POSTGRES_CHECK(d_postgres_has_index(db, NULL, "c_pkey"));
+
+
+    // a key in the order its places give, not the table's
+    struct d_db_column bad[3] =
+    {
+        d_tests_postgres_ordered[0],
+        d_tests_postgres_ordered[1],
+        d_tests_postgres_ordered[2]
+    };
+
+    D_TESTS_POSTGRES_OK(db,
+                        d_postgres_create_table(db,
+                                                NULL,
+                                                "ordered",
+                                                d_tests_postgres_ordered,
+                                                3u,
+                                                0u));
+    D_TESTS_POSTGRES_OK(db,
+                        d_postgres_list_columns(db,
+                                                NULL,
+                                                "ordered",
+                                                &columns));
+
+    const struct d_db_column_info* const first  =
+        d_tests_postgres_find_column(&columns, "a");
+    const struct d_db_column_info* const second =
+        d_tests_postgres_find_column(&columns, "b");
+
+    D_TESTS_POSTGRES_CHECK( (first) && (first->primary_key == 2) );
+    D_TESTS_POSTGRES_CHECK( (second) && (second->primary_key == 1) );
+    d_db_column_list_free(&columns);
+
+    // places that repeat, skip, number a column off the key, or leave one
+    // key column out
+    bad[1].key_place = 2u;
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_create_table(db,
+                                                    NULL,
+                                                    "unordered",
+                                                    bad,
+                                                    3u,
+                                                    0u),
+                            D_DB_INVALID_ARGUMENT);
+    bad[1].key_place = 3u;
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_create_table(db,
+                                                    NULL,
+                                                    "unordered",
+                                                    bad,
+                                                    3u,
+                                                    0u),
+                            D_DB_INVALID_ARGUMENT);
+    bad[1].key_place = 0u;
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_create_table(db,
+                                                    NULL,
+                                                    "unordered",
+                                                    bad,
+                                                    3u,
+                                                    0u),
+                            D_DB_INVALID_ARGUMENT);
+    bad[1].key_place = 1u;
+    bad[2].key_place = 3u;
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_create_table(db,
+                                                    NULL,
+                                                    "unordered",
+                                                    bad,
+                                                    3u,
+                                                    0u),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_CHECK(!d_postgres_has_table(db, NULL, "unordered"));
 
     d_tests_postgres_end(db, schema);
 
@@ -5182,13 +6119,13 @@ d_tests_postgres_column_additions(
                                               sizeof(schema));
     const struct d_db_column note       =
     {
-        "note", D_DB_TYPE_STRING, D_DB_COLUMN_NOT_NULL, "''", 40u, 0u, NULL
+        "note", D_DB_TYPE_STRING, D_DB_COLUMN_NOT_NULL, "''", 40u, 0u, NULL, 0u
     };
     const struct d_db_column key        =
     {
         "id", D_DB_TYPE_BIG_INTEGER,
         D_DB_COLUMN_PRIMARY_KEY | D_DB_COLUMN_AUTO_INCREMENT, NULL, 0u, 0u,
-        NULL
+        NULL, 0u
     };
 
     printf("postgres_schema: column additions\n");
@@ -5360,7 +6297,7 @@ d_tests_postgres_column_arguments(
     bool                     exists  = true;
     const struct d_db_column column  =
     {
-        "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL
+        "a", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL, 0u
     };
 
     printf("postgres_schema: column arguments\n");
@@ -7370,8 +8307,8 @@ d_tests_postgres_sent_statements
   - several statements sent at once give their results in turn -- rows, a
     count, rows -- then D_DB_NOT_FOUND, again and again
   - while a statement runs the connection is busy and refuses to send
-    more; ready once its results are read; a statement run before then
-    waits for them and discards them
+    more; ready once its results are read; a statement run before then is
+    08000, the layer's own answer, and the results are still there to read
   - a failure ends the results; a COPY is ended
   - NULL arguments
 */
@@ -7458,12 +8395,22 @@ d_tests_postgres_sent_statements(
                             D_DB_NOT_FOUND);
     D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT 3") == 3);
 
-    // a statement run before the results are read waits for them, and they
-    // are gone
+    // a statement run before the results are read is refused, and they are
+    // still there
     D_TESTS_POSTGRES_OK(db, d_postgres_send_query(db, "SELECT 8"));
-    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT 9") == 9);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_exec(db, "SELECT 9"),
+                            D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    D_TESTS_POSTGRES_CHECK(
+        d_postgres_result_is_own(db,
+                                 D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION));
+    D_TESTS_POSTGRES_OK(db, d_postgres_next_result(db, &rows, &changes));
+    D_TESTS_POSTGRES_CHECK(
+        (d_db_value_int64(d_db_rows_value(&rows, 0u, 0u), &number) == 0) &&
+        (number == 8));
+    d_db_rows_free(&rows);
     D_TESTS_POSTGRES_RESULT(db, d_postgres_next_result(db, &rows, &changes),
                             D_DB_NOT_FOUND);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT 9") == 9);
 
     // a failure, and a COPY
     D_TESTS_POSTGRES_OK(db, d_postgres_send_query(
@@ -7500,6 +8447,465 @@ d_tests_postgres_sent_statements(
     return;
 }
 
+/*
+d_tests_postgres_rows_read
+  Reads every result left of the SQL sent, freeing the rows: the results'
+rows one after another, and the largest count any of them gave. Returns how
+many results came, or -1 for a failure.
+*/
+static int
+d_tests_postgres_rows_read(
+    struct pg_conn* _db,
+    size_t*         _rows,
+    size_t*         _last,
+    int64_t*        _count
+)
+{
+    struct d_db_rows rows    = { 0u, 0u, NULL, NULL };
+    int64_t          changes = 0;
+    int              results = 0;
+    int              result  = 0;
+
+    *_rows  = 0u;
+    *_last  = 0u;
+    *_count = 0;
+
+    // each result, until none is left
+    while ((result = d_postgres_next_result(_db, &rows, &changes)) == 0)
+    {
+        *_rows  += rows.row_count;
+        *_last   = rows.row_count;
+        *_count  = (changes > *_count) ? changes : *_count;
+        ++results;
+        d_db_rows_free(&rows);
+    }
+
+    return (result == D_DB_NOT_FOUND) ? results : -1;
+}
+
+/*
+d_tests_postgres_chunked_rows
+  Rows a few at a time.
+  Tests the following:
+  - one row a result, as every libpq has it: each row its own result, then
+    the statement's end, with no rows and the count
+  - more, where libpq has them (17): chunks of up to that many, the last
+    with the count, then the end; and D_DB_UNSUPPORTED where it has not
+  - asked for straight after the send, it holds for every statement sent;
+    asked for between one statement's results and the next's, for the rest
+  - asked for with nothing sent, or once the statement's rows have begun:
+    08000, the rows then coming as they were
+  - fewer than one row; a NULL connection
+*/
+static void
+d_tests_postgres_chunked_rows(
+    void
+)
+{
+    char             schema[96] = "";
+    struct pg_conn*  db         = d_tests_postgres_begin("chunks",
+                                                         schema,
+                                                         sizeof(schema));
+    struct d_db_rows rows       = { 0u, 0u, NULL, NULL };
+    int64_t          count      = 0;
+    size_t           total      = 0u;
+    size_t           last       = 0u;
+
+    printf("postgres_protocol: rows a few at a time\n");
+
+    // nothing more without a server
+    if (!db)
+    {
+        D_TESTS_POSTGRES_CHECK(db != NULL);
+
+        return;
+    }
+
+    // a row a result, and the end
+    D_TESTS_POSTGRES_OK(db,
+                        d_postgres_send_query(
+                            db,
+                            "SELECT generate_series(1, 5) AS n"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_set_chunked_rows(db, 1));
+    D_TESTS_POSTGRES_CHECK(
+        d_tests_postgres_rows_read(db, &total, &last, &count) == 6);
+    D_TESTS_POSTGRES_CHECK( (total == 5u) &&
+                            (last == 0u)  &&
+                            (count == 5) );
+
+    // more than one, where libpq has it
+    D_TESTS_POSTGRES_OK(db,
+                        d_postgres_send_query(
+                            db,
+                            "SELECT generate_series(1, 5) AS n"));
+
+    if (d_postgres_client_supports(D_POSTGRES_CLIENT_CHUNKED_ROWS))
+    {
+        D_TESTS_POSTGRES_OK(db, d_postgres_set_chunked_rows(db, 2));
+        D_TESTS_POSTGRES_CHECK(
+            d_tests_postgres_rows_read(db, &total, &last, &count) == 4);
+        D_TESTS_POSTGRES_CHECK( (total == 5u) &&
+                                (last == 0u)  &&
+                                (count == 5) );
+    }
+    else
+    {
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_set_chunked_rows(db, 2),
+                                D_DB_UNSUPPORTED);
+        D_TESTS_POSTGRES_CHECK(
+            d_tests_postgres_rows_read(db, &total, &last, &count) == 1);
+        D_TESTS_POSTGRES_CHECK(total == 5u);
+    }
+
+    // every statement sent: two rows and the end, then a row and the end
+    D_TESTS_POSTGRES_OK(db,
+                        d_postgres_send_query(
+                            db,
+                            "SELECT 1 AS n UNION ALL SELECT 2; SELECT 3"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_set_chunked_rows(db, 1));
+    D_TESTS_POSTGRES_CHECK(
+        d_tests_postgres_rows_read(db, &total, &last, &count) == 5);
+    D_TESTS_POSTGRES_CHECK( (total == 3u) &&
+                            (last == 0u)  &&
+                            (count == 2) );
+
+    // the statements after the first
+    D_TESTS_POSTGRES_OK(db, d_postgres_send_query(db, "SELECT 1; SELECT 2"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_next_result(db, &rows, NULL));
+    D_TESTS_POSTGRES_CHECK(rows.row_count == 1u);
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_OK(db, d_postgres_set_chunked_rows(db, 1));
+    D_TESTS_POSTGRES_CHECK(
+        d_tests_postgres_rows_read(db, &total, &last, &count) == 2);
+    D_TESTS_POSTGRES_CHECK( (total == 1u) && (last == 0u) );
+
+    // nothing sent, or the rows begun
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_set_chunked_rows(db, 1),
+                            D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    D_TESTS_POSTGRES_OK(db,
+                        d_postgres_send_query(
+                            db,
+                            "SELECT generate_series(1, 3) AS n"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_set_chunked_rows(db, 1));
+    D_TESTS_POSTGRES_OK(db, d_postgres_next_result(db, &rows, NULL));
+    D_TESTS_POSTGRES_CHECK(rows.row_count == 1u);
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_set_chunked_rows(db, 1),
+                            D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    D_TESTS_POSTGRES_CHECK(
+        d_tests_postgres_rows_read(db, &total, &last, &count) == 3);
+    D_TESTS_POSTGRES_CHECK( (total == 2u) && (count == 3) );
+
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_set_chunked_rows(db, 0),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_set_chunked_rows(NULL, 1),
+                            D_DB_INVALID_ARGUMENT);
+
+    d_tests_postgres_end(db, schema);
+
+    return;
+}
+
+/*
+d_tests_postgres_pipelines
+  Pipelines.
+  Tests the following:
+  - where libpq has them (14): entered, and entered again, rows a few at a
+    time asked for just before holding no further; statements queued
+    and synchronized give their results in order -- rows, a count, a
+    failure, which the connection's message still describes, 25P02 for the
+    statement it skipped, the layer's own answer -- then D_DB_NOT_FOUND at
+    the synchronization point, then the next batch's, then D_DB_NOT_FOUND
+    again and again; the failed batch rolled back; the mode aborted until
+    the point, and on after it
+  - a call that waits for its result is 08000 in the mode; two statements
+    in one send are the server's syntax error; leaving with results still to
+    read is 08000, and leaving after them returns the connection as it was
+  - rows a few at a time, asked for statement by statement
+  - a statement queued after the last synchronization point: its result
+    read all the same, waited for, or polled for once asked for
+  - a transaction a statement begins outlasts its synchronization point
+  - synchronizing or asking for results outside the mode is 08000
+  - where libpq has no pipelines: D_DB_UNSUPPORTED, the mode off
+  - NULL arguments
+*/
+static void
+d_tests_postgres_pipelines(
+    void
+)
+{
+    char             schema[96] = "";
+    struct pg_conn*  db         = d_tests_postgres_begin("pipelines",
+                                                         schema,
+                                                         sizeof(schema));
+    struct d_db_rows rows       = { 0u, 0u, NULL, NULL };
+    int64_t          changes    = -1;
+    int64_t          number     = 0;
+    size_t           total      = 0u;
+    size_t           last       = 0u;
+    int64_t          count      = 0;
+    int              consumed   = 0;
+    unsigned long    waits      = 0u;
+
+    printf("postgres_protocol: pipelines\n");
+
+    // nothing more without a server
+    if (!db)
+    {
+        D_TESTS_POSTGRES_CHECK(db != NULL);
+
+        return;
+    }
+
+    D_TESTS_POSTGRES_CHECK(d_postgres_pipeline_status(db) ==
+                           D_POSTGRES_PIPELINE_OFF);
+
+    if (d_postgres_client_supports(D_POSTGRES_CLIENT_PIPELINE))
+    {
+        // rows a row a result just before, which the pipeline does not keep
+        D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "CREATE TABLE t (a int)"));
+        D_TESTS_POSTGRES_OK(db,
+                            d_postgres_send_query(
+                                db,
+                                "SELECT generate_series(1, 2) AS n"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_set_chunked_rows(db, 1));
+        D_TESTS_POSTGRES_CHECK(
+            d_tests_postgres_rows_read(db, &total, &last, &count) == 3);
+        D_TESTS_POSTGRES_OK(db, d_postgres_enter_pipeline(db));
+        D_TESTS_POSTGRES_OK(db, d_postgres_enter_pipeline(db));
+        D_TESTS_POSTGRES_CHECK(d_postgres_pipeline_status(db) ==
+                               D_POSTGRES_PIPELINE_ON);
+
+        // two batches
+        D_TESTS_POSTGRES_OK(db, d_postgres_send_query(db, "SELECT 10 AS a"));
+        D_TESTS_POSTGRES_OK(db,
+                            d_postgres_send_query(db,
+                                                  "INSERT INTO t VALUES (1)"));
+        D_TESTS_POSTGRES_OK(db,
+                            d_postgres_send_query(db,
+                                                  "SELECT * FROM no_table"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_send_query(db, "SELECT 2"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_pipeline_sync(db));
+        D_TESTS_POSTGRES_OK(db, d_postgres_send_query(db, "SELECT 3"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_pipeline_sync(db));
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_exec(db, "SELECT 9"),
+                                D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+
+        // the first batch: rows, a count, a failure, one skipped, the point
+        D_TESTS_POSTGRES_OK(db, d_postgres_next_result(db, &rows, &changes));
+        D_TESTS_POSTGRES_CHECK(
+            (d_db_value_int64(d_db_rows_value(&rows, 0u, 0u), &number) == 0) &&
+            (number == 10) &&
+            (strcmp(rows.columns[0].name, "a") == 0));
+        d_db_rows_free(&rows);
+        D_TESTS_POSTGRES_OK(db, d_postgres_next_result(db, &rows, &changes));
+        D_TESTS_POSTGRES_CHECK( (rows.column_count == 0u) && (changes == 1) );
+        d_db_rows_free(&rows);
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_next_result(db, &rows, &changes),
+                                D_POSTGRES_SQLSTATE_UNDEFINED_TABLE);
+        D_TESTS_POSTGRES_CHECK(strstr(d_postgres_error_message(db),
+                                      "no_table") != NULL);
+        D_TESTS_POSTGRES_CHECK(d_postgres_pipeline_status(db) ==
+                               D_POSTGRES_PIPELINE_ABORTED);
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_next_result(db, &rows, &changes),
+                                D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION);
+        D_TESTS_POSTGRES_CHECK(
+            d_postgres_result_is_own(
+                db,
+                D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION));
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_next_result(db, &rows, &changes),
+                                D_DB_NOT_FOUND);
+        D_TESTS_POSTGRES_CHECK(d_postgres_pipeline_status(db) ==
+                               D_POSTGRES_PIPELINE_ON);
+
+        // the second, and nothing after it
+        D_TESTS_POSTGRES_OK(db, d_postgres_next_result(db, &rows, &changes));
+        D_TESTS_POSTGRES_CHECK(
+            (d_db_value_int64(d_db_rows_value(&rows, 0u, 0u), &number) == 0) &&
+            (number == 3));
+        d_db_rows_free(&rows);
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_next_result(db, &rows, &changes),
+                                D_DB_NOT_FOUND);
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_next_result(db, &rows, &changes),
+                                D_DB_NOT_FOUND);
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_next_result(db, &rows, &changes),
+                                D_DB_NOT_FOUND);
+
+        // two statements at once; leaving too early
+        D_TESTS_POSTGRES_OK(db,
+                            d_postgres_send_query(db, "SELECT 1; SELECT 2"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_pipeline_sync(db));
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_exit_pipeline(db),
+                                D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_next_result(db, &rows, &changes),
+                                D_POSTGRES_SQLSTATE_SYNTAX_ERROR);
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_next_result(db, &rows, &changes),
+                                D_DB_NOT_FOUND);
+
+        // rows a few at a time, for the statement asked for alone: the
+        // first a row a result, the second all at once, the third a row a
+        // result again
+        D_TESTS_POSTGRES_OK(db,
+                            d_postgres_send_query(
+                                db,
+                                "SELECT generate_series(1, 2) AS n"));
+        D_TESTS_POSTGRES_OK(db,
+                            d_postgres_send_query(
+                                db,
+                                "SELECT generate_series(1, 2) AS n"));
+        D_TESTS_POSTGRES_OK(db,
+                            d_postgres_send_query(
+                                db,
+                                "SELECT generate_series(1, 2) AS n"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_pipeline_sync(db));
+        D_TESTS_POSTGRES_OK(db, d_postgres_set_chunked_rows(db, 1));
+        D_TESTS_POSTGRES_OK(db, d_postgres_next_result(db, &rows, &changes));
+        D_TESTS_POSTGRES_CHECK(rows.row_count == 1u);
+        d_db_rows_free(&rows);
+        D_TESTS_POSTGRES_OK(db, d_postgres_next_result(db, &rows, &changes));
+        D_TESTS_POSTGRES_CHECK(rows.row_count == 1u);
+        d_db_rows_free(&rows);
+        D_TESTS_POSTGRES_OK(db, d_postgres_next_result(db, &rows, &changes));
+        D_TESTS_POSTGRES_CHECK( (rows.row_count == 0u) &&
+                                (rows.column_count == 1u) &&
+                                (changes == 2) );
+        d_db_rows_free(&rows);
+        D_TESTS_POSTGRES_OK(db, d_postgres_next_result(db, &rows, &changes));
+        D_TESTS_POSTGRES_CHECK( (rows.row_count == 2u) && (changes == 2) );
+        d_db_rows_free(&rows);
+        D_TESTS_POSTGRES_OK(db, d_postgres_set_chunked_rows(db, 1));
+        D_TESTS_POSTGRES_CHECK(
+            d_tests_postgres_rows_read(db, &total, &last, &count) == 3);
+        D_TESTS_POSTGRES_CHECK( (total == 2u) &&
+                                (last == 0u)  &&
+                                (count == 2) );
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_set_chunked_rows(db, 1),
+                                D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+
+        // a statement after the last synchronization point, waited for
+        D_TESTS_POSTGRES_OK(db, d_postgres_send_query(db, "SELECT 42"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_next_result(db, &rows, &changes));
+        D_TESTS_POSTGRES_CHECK(
+            (d_db_value_int64(d_db_rows_value(&rows, 0u, 0u), &number) == 0) &&
+            (number == 42));
+        d_db_rows_free(&rows);
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_next_result(db, &rows, &changes),
+                                D_DB_NOT_FOUND);
+
+        // and polled for, once asked for
+        D_TESTS_POSTGRES_OK(db, d_postgres_send_query(db, "SELECT 43"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_pipeline_flush(db));
+
+        while ( (d_postgres_is_busy(db)) &&
+                (consumed == 0)          &&
+                (waits < 100000000u) )
+        {
+            consumed = d_postgres_consume_input(db);
+            ++waits;
+        }
+
+        D_TESTS_POSTGRES_CHECK(consumed == 0);
+        D_TESTS_POSTGRES_CHECK(!d_postgres_is_busy(db));
+        D_TESTS_POSTGRES_OK(db, d_postgres_next_result(db, &rows, &changes));
+        D_TESTS_POSTGRES_CHECK(
+            (d_db_value_int64(d_db_rows_value(&rows, 0u, 0u), &number) == 0) &&
+            (number == 43));
+        d_db_rows_free(&rows);
+        D_TESTS_POSTGRES_OK(db, d_postgres_pipeline_sync(db));
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_next_result(db, &rows, &changes),
+                                D_DB_NOT_FOUND);
+
+        // a transaction across synchronization points: each point's
+        // statement, then the point
+        D_TESTS_POSTGRES_OK(db, d_postgres_send_query(db, "BEGIN"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_pipeline_sync(db));
+        D_TESTS_POSTGRES_OK(db,
+                            d_postgres_send_query(db,
+                                                  "INSERT INTO t VALUES (2)"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_pipeline_sync(db));
+        D_TESTS_POSTGRES_OK(db, d_postgres_send_query(db, "COMMIT"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_pipeline_sync(db));
+        D_TESTS_POSTGRES_CHECK(
+            d_tests_postgres_rows_read(db, &total, &last, &count) == 1);
+        D_TESTS_POSTGRES_CHECK(
+            d_tests_postgres_rows_read(db, &total, &last, &count) == 1);
+        D_TESTS_POSTGRES_CHECK(count == 1);
+        D_TESTS_POSTGRES_CHECK(
+            d_tests_postgres_rows_read(db, &total, &last, &count) == 1);
+
+        D_TESTS_POSTGRES_OK(db, d_postgres_exit_pipeline(db));
+        D_TESTS_POSTGRES_OK(db, d_postgres_exit_pipeline(db));
+        D_TESTS_POSTGRES_CHECK(d_postgres_pipeline_status(db) ==
+                               D_POSTGRES_PIPELINE_OFF);
+        D_TESTS_POSTGRES_CHECK(
+            d_tests_postgres_int(db, "SELECT count(*) FROM t WHERE a = 1") ==
+            0);
+        D_TESTS_POSTGRES_CHECK(
+            d_tests_postgres_int(db, "SELECT count(*) FROM t WHERE a = 2") ==
+            1);
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_pipeline_sync(db),
+                                D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_pipeline_flush(db),
+                                D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    }
+    else
+    {
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_enter_pipeline(db),
+                                D_DB_UNSUPPORTED);
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_exit_pipeline(db),
+                                D_DB_UNSUPPORTED);
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_pipeline_sync(db),
+                                D_DB_UNSUPPORTED);
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_pipeline_flush(db),
+                                D_DB_UNSUPPORTED);
+        D_TESTS_POSTGRES_CHECK(d_postgres_pipeline_status(db) ==
+                               D_POSTGRES_PIPELINE_OFF);
+    }
+
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_enter_pipeline(NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_exit_pipeline(NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_pipeline_sync(NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_pipeline_flush(NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_CHECK(d_postgres_pipeline_status(NULL) ==
+                           D_POSTGRES_PIPELINE_OFF);
+
+    d_tests_postgres_end(db, schema);
+
+    return;
+}
+
 //==============================================================================
 // RUN
 //==============================================================================
@@ -7517,7 +8923,9 @@ static void (* const d_tests_postgres_all[])(void) =
     d_tests_postgres_feature_statements,
     d_tests_postgres_reported_parameters,
     d_tests_postgres_errors,
+    d_tests_postgres_own_results,
     d_tests_postgres_connecting,
+    d_tests_postgres_float_digits,
     d_tests_postgres_connect_failures,
     d_tests_postgres_connect_defaults,
     d_tests_postgres_connect_strings,
@@ -7542,6 +8950,9 @@ static void (* const d_tests_postgres_all[])(void) =
     d_tests_postgres_binding,
     d_tests_postgres_running,
     d_tests_postgres_statement_arguments,
+    d_tests_postgres_closing_by_name,
+    d_tests_postgres_cursors,
+    d_tests_postgres_large_objects,
     d_tests_postgres_databases,
     d_tests_postgres_database_transactions,
     d_tests_postgres_drop_force,
@@ -7599,7 +9010,9 @@ static void (* const d_tests_postgres_all[])(void) =
     d_tests_postgres_upkeep_arguments,
     d_tests_postgres_copy_in,
     d_tests_postgres_notifications,
-    d_tests_postgres_sent_statements
+    d_tests_postgres_sent_statements,
+    d_tests_postgres_chunked_rows,
+    d_tests_postgres_pipelines
 };
 
 /*

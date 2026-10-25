@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/env/net/ssh/env_ssh.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -47,9 +47,8 @@ TABLE OF CONTENTS
          3.  D_ENV_SSH_HAS_LIBSSH_VERSION_H
          4.  D_ENV_SSH_HAS_WOLFSSH
     2.  Versions
-         1.  D_CFG_ENV_SSH_PROBE_VERSION
-         2.  D_ENV_SSH_LIBSSH2_VERSION
-         3.  D_ENV_SSH_LIBSSH_VERSION
+         1.  D_ENV_SSH_LIBSSH2_VERSION
+         2.  D_ENV_SSH_LIBSSH_VERSION
 2.  LIBRARY FEATURES
     ----------------
     1.  libssh2
@@ -102,7 +101,8 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../env.h"     // D_ENV_OS_ID, D_ENV_IS_OS_*, D_ENV_OS_FLAG_*
-#include "../../../config/cfg_common.h"  // D_CFG_IS_BOOL, for the probe knob
+#include "../../../config/cfg_common.h"  // D_CFG_IS_ON
+#include "../../../config/core/env/net/ssh/cfg_env_ssh.h"  // D_CFG_ENV_SSH_*
 #include "../env_net.h"   // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP
 
 
@@ -168,22 +168,10 @@ TABLE OF CONTENTS
 // 1.2    Versions
 //------------------------------------------------------------------------------
 // 1.2.1
-// D_CFG_ENV_SSH_PROBE_VERSION
-//   knob: 1 (the default) to read library versions by including <libssh2.h>
-// and <libssh/libssh_version.h>; 0 to keep both out of every translation unit
-// that includes this header, leaving each version at 0 (unknown). On Windows,
-// <libssh2.h> brings <winsock2.h> with it.
-#ifndef D_CFG_ENV_SSH_PROBE_VERSION
-    #define D_CFG_ENV_SSH_PROBE_VERSION 1
-#endif  // D_CFG_ENV_SSH_PROBE_VERSION
-#if !D_CFG_IS_BOOL(D_CFG_ENV_SSH_PROBE_VERSION)
-    #error "D_CFG_ENV_SSH_PROBE_VERSION must be 0 or 1"
-#endif
-
-// 1.2.2
 // D_ENV_SSH_LIBSSH2_VERSION
 //   value: libssh2's LIBSSH2_VERSION_NUM, 0xMMmmpp (0x010b00 is 1.11.0), or 0
-// when libssh2 is absent or its version was not probed.
+// when libssh2 is absent or its version was not probed (cfg_env_ssh.h's
+// D_CFG_ENV_SSH_PROBE_VERSION).
 #ifndef D_ENV_SSH_LIBSSH2_VERSION
     #if ( (D_CFG_IS_ON(D_CFG_ENV_SSH_PROBE_VERSION)) &&                        \
           (D_ENV_SSH_HAS_LIBSSH2) )
@@ -198,7 +186,7 @@ TABLE OF CONTENTS
     #endif
 #endif  // D_ENV_SSH_LIBSSH2_VERSION
 
-// 1.2.3
+// 1.2.2
 // D_ENV_SSH_LIBSSH_VERSION
 //   value: libssh's LIBSSH_VERSION_INT, 0xMMmmpp (0x000a06 is 0.10.6), or 0
 // when libssh is absent, predates <libssh/libssh_version.h>, or its version

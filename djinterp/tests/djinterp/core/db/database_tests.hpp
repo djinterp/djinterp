@@ -25,8 +25,8 @@
 *   TESTING STRATEGY FOR THE CRTP BASES
 *   ===================================
 *   result_set, statement, and connection are CRTP bases whose public
-* methods forward to a derived "_helper". A helper that names its impl
-* method identically hides the base method, so tests always invoke the
+* methods forward to the derived class, a "helper" here. A helper that names
+* its member identically hides the base method, so tests always invoke the
 * forwarding path THROUGH A BASE REFERENCE, e.g.
 *
 *     mock_result_set m(&probe);
@@ -40,17 +40,22 @@
 *
 *   SFINAE-GATED METHODS
 *   ====================
-*   Several base methods are enabled only when the helper provides the
-* corresponding member (absolute, by-name binds, savepoints, isolation
-* accessors, begin_transaction(isolation_level)). Two facts drive the
-* fixtures below:
-*     - a helper that OVERLOADS the impl method by both index and name
-*       makes `decltype(&helper::method)` ambiguous, which (softly)
-*       DISABLES the by-name gate; hence statement uses two helpers
-*       (one by-index, one by-name).
-*     - a single `begin_transaction(isolation_level = default_level)`
-*       serves both the no-arg and the isolation base paths with the
-*       isolation gate enabled.
+*   Several base methods are enabled only where the helper can do what they
+* need (chunk 4.2's contract, database.hpp 4.1.1):
+*     - result_set's absolute and statement's bind_value and by-name binds,
+*       where the helper declares the member itself, overloaded or not; a
+*       helper that declares no member of the name leaves it off.
+*     - connection's savepoints, isolation accessors, begin_transaction(
+*       isolation_level) and set_auto_commit, where the helper has the hook
+*       database_connection implements them over, named after the operation
+*       with the suffix `_impl`. mock_conn has both: the operation, which
+*       the base forwards to, and the hook, which its gate asks for.
+*   Every other connection method forwards to the helper's member of the
+* same name -- in_transaction, get_state and get_auto_commit among them,
+* which the database answers rather than the base -- so a helper declares
+* each one a test calls: a forwarder whose member the helper lacks would call
+* itself. transaction<> likewise asks its connection in_transaction(), after
+* a commit or a rollback that failed.
 *   Detection traits (defined here) assert each gate is on/off as
 * intended.
 *
@@ -58,15 +63,20 @@
 * path:      /tests/djinterp/core/db/database_tests.hpp
 * link(s):   TBA
 * author(s): djinterp test-suite                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_TESTS_
 #define DJINTERP_DATABASE_TESTS_ 1
 
+#include "../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// below C++17, core/db's floor, the suite compiles to nothing, and the runner
+// says so
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
 // std
 #include <chrono>
-#include <cstdint>
 #include <cstdio>
 #include <functional>
 #include <map>
@@ -79,6 +89,8 @@
 #include <vector>
 // djinterp
 #include "../../../../inc/djinterp/core/db/database.hpp"
+// re_std
+#include "../../../../inc/re_std/cstdint/cstdint.hpp"  // re_std::int64_t
 
 NS_DJINTERP
 namespace testing
@@ -161,23 +173,23 @@ namespace testing
     // result_set sentinels
     inline constexpr std::size_t  k_rs_column_count = 7u;
     inline constexpr field_type   k_rs_column_type  = field_type::json;
-    inline constexpr std::int64_t k_rs_row_count    = 123;
-    inline constexpr std::int64_t k_rs_current_row  = 45;
-    inline constexpr std::int32_t k_rs_int_by_index = 3200;
-    inline constexpr std::int64_t k_rs_long         = 640000;
+    inline constexpr re_std::int64_t k_rs_row_count    = 123;
+    inline constexpr re_std::int64_t k_rs_current_row  = 45;
+    inline constexpr re_std::int32_t k_rs_int_by_index = 3200;
+    inline constexpr re_std::int64_t k_rs_long         = 640000;
     inline constexpr double       k_rs_double       = 2.5;
 
     // statement sentinels
     inline constexpr int          k_stmt_query_val   = 5550;
-    inline constexpr std::int64_t k_stmt_update_val  = 7770;
+    inline constexpr re_std::int64_t k_stmt_update_val  = 7770;
     inline constexpr std::size_t  k_stmt_param_count = 9u;
 
     // connection sentinels
     inline constexpr int          k_conn_query_val   = 1010;
-    inline constexpr std::int64_t k_conn_update_val  = 2020;
+    inline constexpr re_std::int64_t k_conn_update_val  = 2020;
     inline constexpr int          k_conn_prepare_val = 3030;
-    inline constexpr std::int64_t k_conn_insert_id   = 424242;
-    inline constexpr std::int64_t k_conn_affected    = 7;
+    inline constexpr re_std::int64_t k_conn_insert_id   = 424242;
+    inline constexpr re_std::int64_t k_conn_affected    = 7;
     inline constexpr int          k_conn_error_code  = -55;
 
 
@@ -191,7 +203,7 @@ namespace testing
     {
         std::size_t  last_index            = 0;
         std::string  last_name;
-        std::int64_t last_row              = 0;
+        re_std::int64_t last_row              = 0;
         bool         closed                = false;
         int          next_calls            = 0;
         int          previous_calls        = 0;
@@ -217,7 +229,7 @@ namespace testing
         bool previous()                 { ++m_probe->previous_calls; return false; }
         bool first()                    { ++m_probe->first_calls;    return true;  }
         bool last()                     { ++m_probe->last_calls;     return false; }
-        bool absolute(std::int64_t _r)  { ++m_probe->absolute_calls; m_probe->last_row = _r; return true; }
+        bool absolute(re_std::int64_t _r)  { ++m_probe->absolute_calls; m_probe->last_row = _r; return true; }
 
         // metadata
         std::size_t column_count() const { return k_rs_column_count; }
@@ -240,14 +252,14 @@ namespace testing
             return _n.size();
         }
 
-        std::int64_t row_count()   const { return k_rs_row_count;   }
-        std::int64_t current_row() const { return k_rs_current_row; }
+        re_std::int64_t row_count()   const { return k_rs_row_count;   }
+        re_std::int64_t current_row() const { return k_rs_current_row; }
 
         // data access by index
         value get_value(std::size_t _i) const
         {
             m_probe->last_index = _i;
-            return value{ static_cast<std::int64_t>(_i) };
+            return value{ static_cast<re_std::int64_t>(_i) };
         }
 
         bool is_null(std::size_t _i) const
@@ -262,16 +274,16 @@ namespace testing
             return std::optional<bool>{ true };
         }
 
-        std::optional<std::int32_t> get_int(std::size_t _i) const
+        std::optional<re_std::int32_t> get_int(std::size_t _i) const
         {
             m_probe->last_index = _i;
-            return std::optional<std::int32_t>{ k_rs_int_by_index };
+            return std::optional<re_std::int32_t>{ k_rs_int_by_index };
         }
 
-        std::optional<std::int64_t> get_long(std::size_t _i) const
+        std::optional<re_std::int64_t> get_long(std::size_t _i) const
         {
             m_probe->last_index = _i;
-            return std::optional<std::int64_t>{ k_rs_long };
+            return std::optional<re_std::int64_t>{ k_rs_long };
         }
 
         std::optional<double> get_double(std::size_t _i) const
@@ -286,12 +298,12 @@ namespace testing
             return std::optional<std::string>{ "by_index" };
         }
 
-        std::optional<std::vector<std::uint8_t>>
+        std::optional<std::vector<re_std::uint8_t>>
         get_binary(std::size_t _i) const
         {
             m_probe->last_index = _i;
-            return std::optional<std::vector<std::uint8_t>>{
-                std::vector<std::uint8_t>{ 1, 2, 3 } };
+            return std::optional<std::vector<re_std::uint8_t>>{
+                std::vector<re_std::uint8_t>{ 1, 2, 3 } };
         }
 
         // data access by name (distinct sentinels derived from the name)
@@ -313,18 +325,18 @@ namespace testing
             return std::optional<bool>{ false };
         }
 
-        std::optional<std::int32_t> get_int(const std::string& _n) const
+        std::optional<re_std::int32_t> get_int(const std::string& _n) const
         {
             m_probe->last_name = _n;
-            return std::optional<std::int32_t>{
-                static_cast<std::int32_t>(_n.size()) };
+            return std::optional<re_std::int32_t>{
+                static_cast<re_std::int32_t>(_n.size()) };
         }
 
-        std::optional<std::int64_t> get_long(const std::string& _n) const
+        std::optional<re_std::int64_t> get_long(const std::string& _n) const
         {
             m_probe->last_name = _n;
-            return std::optional<std::int64_t>{
-                static_cast<std::int64_t>(_n.size()) };
+            return std::optional<re_std::int64_t>{
+                static_cast<re_std::int64_t>(_n.size()) };
         }
 
         std::optional<double> get_double(const std::string& _n) const
@@ -340,12 +352,12 @@ namespace testing
             return std::optional<std::string>{ "name:" + _n };
         }
 
-        std::optional<std::vector<std::uint8_t>>
+        std::optional<std::vector<re_std::uint8_t>>
         get_binary(const std::string& _n) const
         {
             m_probe->last_name = _n;
-            return std::optional<std::vector<std::uint8_t>>{
-                std::vector<std::uint8_t>{ 9, 8 } };
+            return std::optional<std::vector<re_std::uint8_t>>{
+                std::vector<re_std::uint8_t>{ 9, 8 } };
         }
 
         // convenience
@@ -379,14 +391,14 @@ namespace testing
     };
 
     // rs_has_absolute
-    //   trait: true if `.absolute(std::int64_t)` is callable on _Type.
+    //   trait: true if `.absolute(re_std::int64_t)` is callable on _Type.
     template<typename _Type, typename = void>
     struct rs_has_absolute : std::false_type
     {};
 
     template<typename _Type>
     struct rs_has_absolute<_Type, std::void_t<decltype(
-        std::declval<_Type&>().absolute(std::declval<std::int64_t>()))>>
+        std::declval<_Type&>().absolute(std::declval<re_std::int64_t>()))>>
         : std::true_type
     {};
 
@@ -403,11 +415,11 @@ namespace testing
         std::size_t               last_index           = 0;
         std::string               last_name;
         bool                      v_bool               = false;
-        std::int32_t              v_int                = 0;
-        std::int64_t              v_long               = 0;
+        re_std::int32_t              v_int                = 0;
+        re_std::int64_t              v_long               = 0;
         double                    v_double             = 0.0;
         std::string               v_string;
-        std::vector<std::uint8_t> v_binary;
+        std::vector<re_std::uint8_t> v_binary;
         int                       execute_query_calls  = 0;
         int                       execute_update_calls = 0;
         int                       execute_calls        = 0;
@@ -439,14 +451,14 @@ namespace testing
             m_probe->v_bool      = _v;
         }
 
-        void bind_int(std::size_t _i, std::int32_t _v)
+        void bind_int(std::size_t _i, re_std::int32_t _v)
         {
             m_probe->last_method = "int";
             m_probe->last_index  = _i;
             m_probe->v_int       = _v;
         }
 
-        void bind_long(std::size_t _i, std::int64_t _v)
+        void bind_long(std::size_t _i, re_std::int64_t _v)
         {
             m_probe->last_method = "long";
             m_probe->last_index  = _i;
@@ -467,7 +479,7 @@ namespace testing
             m_probe->v_string    = _v;
         }
 
-        void bind_binary(std::size_t _i, const std::vector<std::uint8_t>& _v)
+        void bind_binary(std::size_t _i, const std::vector<re_std::uint8_t>& _v)
         {
             m_probe->last_method = "binary";
             m_probe->last_index  = _i;
@@ -480,7 +492,7 @@ namespace testing
             return k_stmt_query_val;
         }
 
-        std::int64_t execute_update()
+        re_std::int64_t execute_update()
         {
             ++m_probe->execute_update_calls;
             return k_stmt_update_val;
@@ -525,14 +537,14 @@ namespace testing
             m_probe->v_bool      = _v;
         }
 
-        void bind_int(const std::string& _n, std::int32_t _v)
+        void bind_int(const std::string& _n, re_std::int32_t _v)
         {
             m_probe->last_method = "int";
             m_probe->last_name   = _n;
             m_probe->v_int       = _v;
         }
 
-        void bind_long(const std::string& _n, std::int64_t _v)
+        void bind_long(const std::string& _n, re_std::int64_t _v)
         {
             m_probe->last_method = "long";
             m_probe->last_name   = _n;
@@ -554,7 +566,7 @@ namespace testing
         }
 
         void bind_binary(const std::string&               _n,
-                         const std::vector<std::uint8_t>& _v)
+                         const std::vector<re_std::uint8_t>& _v)
         {
             m_probe->last_method = "binary";
             m_probe->last_name   = _n;
@@ -610,16 +622,26 @@ namespace testing
             : m_probe(_probe)
         {}
 
-        void begin_transaction() { ++m_probe->begin_calls; }
+        void begin_transaction()
+        {
+            ++m_probe->begin_calls;
+            m_in_transaction = true;
+        }
 
         void begin_transaction(isolation_level _i)
         {
             ++m_probe->begin_iso_calls;
             m_probe->last_iso = _i;
+            m_in_transaction  = true;
         }
 
-        void commit() { ++m_probe->commit_calls; }
+        void commit()
+        {
+            ++m_probe->commit_calls;
+            m_in_transaction = false;
+        }
 
+        // a rollback that throws leaves the transaction open
         void rollback()
         {
             ++m_probe->rollback_calls;
@@ -628,7 +650,12 @@ namespace testing
             {
                 throw transaction_exception("mock rollback failed");
             }
+
+            m_in_transaction = false;
         }
+
+        // asked by transaction<> after a commit or a rollback that failed
+        bool in_transaction() const noexcept { return m_in_transaction; }
 
         void create_savepoint(const std::string& _n)
         {
@@ -650,6 +677,7 @@ namespace testing
 
     private:
         txn_probe* m_probe;
+        bool       m_in_transaction = false;
     };
 
     // mock_txn_conn_nosp
@@ -666,6 +694,10 @@ namespace testing
         void begin_transaction(isolation_level)  { ++m_probe->begin_iso_calls; }
         void commit()                            { ++m_probe->commit_calls; }
         void rollback()                          { ++m_probe->rollback_calls; }
+
+        // asked by transaction<> after a commit or a rollback that failed,
+        // which this stand-in never has
+        bool in_transaction() const noexcept     { return false; }
 
     private:
         txn_probe* m_probe;
@@ -751,7 +783,7 @@ namespace testing
             return k_conn_query_val;
         }
 
-        std::int64_t execute_update(const std::string& _q)
+        re_std::int64_t execute_update(const std::string& _q)
         {
             m_probe->last_query = _q;
             return k_conn_update_val;
@@ -769,7 +801,8 @@ namespace testing
             return k_conn_prepare_val;
         }
 
-        // transactions (default arg serves no-arg + isolation base paths)
+        // transactions (default arg serves no-arg + isolation base paths);
+        // the base asks the helper whether one is open
         void begin_transaction(isolation_level _i = isolation_level::default_level)
         {
             if (_i == isolation_level::default_level)
@@ -781,10 +814,14 @@ namespace testing
                 ++m_probe->begin_iso_calls;
                 m_probe->last_set_iso = _i;
             }
+
+            m_in_transaction = true;
         }
 
-        void commit()   { ++m_probe->commit_calls;   }
-        void rollback() { ++m_probe->rollback_calls; }
+        void commit()   { ++m_probe->commit_calls;   m_in_transaction = false; }
+        void rollback() { ++m_probe->rollback_calls; m_in_transaction = false; }
+
+        bool in_transaction() const noexcept { return m_in_transaction; }
 
         isolation_level get_isolation_level() const
         {
@@ -817,26 +854,72 @@ namespace testing
             m_probe->last_savepoint = _n;
         }
 
-        // metadata
+        // metadata, and the state, which no mock connection leaves
+        connection_state get_state() const noexcept
+        {
+            return connection_state::disconnected;
+        }
+
         database_type get_database_type()   const { return database_type::sqlite; }
         std::string   get_database_name()   const { return "mockdb";              }
         std::string   get_server_version()  const { return "9.9.9";               }
-        std::int64_t  get_last_insert_id()  const { return k_conn_insert_id;      }
-        std::int64_t  get_affected_rows()   const { return k_conn_affected;       }
+        re_std::int64_t  get_last_insert_id()  const { return k_conn_insert_id;      }
+        re_std::int64_t  get_affected_rows()   const { return k_conn_affected;       }
 
-        // configuration
+        // configuration; the base asks the helper for auto-commit
         void set_auto_commit(bool _e)
         {
             ++m_probe->set_autocommit_calls;
             m_probe->last_autocommit = _e;
         }
 
+        bool get_auto_commit() const { return m_probe->last_autocommit; }
+
         // error handling
         std::string get_last_error()      const { return "no error";      }
         int         get_last_error_code() const { return k_conn_error_code; }
 
+        // the hooks the base's gated operations ask for, which
+        // database_connection implements its operations over: each does
+        // what the operation of its name does here
+        void begin_transaction_impl(isolation_level _i)
+        {
+            begin_transaction(_i);
+        }
+
+        isolation_level get_isolation_level_impl() const
+        {
+            return get_isolation_level();
+        }
+
+        void set_isolation_level_impl(isolation_level _l)
+        {
+            set_isolation_level(_l);
+        }
+
+        void create_savepoint_impl(const std::string& _n)
+        {
+            create_savepoint(_n);
+        }
+
+        void rollback_to_savepoint_impl(const std::string& _n)
+        {
+            rollback_to_savepoint(_n);
+        }
+
+        void release_savepoint_impl(const std::string& _n)
+        {
+            release_savepoint(_n);
+        }
+
+        void set_auto_commit_impl(bool _e)
+        {
+            set_auto_commit(_e);
+        }
+
     private:
         conn_probe* m_probe;
+        bool        m_in_transaction = false;
     };
 
     // mock_conn_minimal
@@ -846,7 +929,13 @@ namespace testing
     class mock_conn_minimal : public connection<mock_conn_minimal>
     {
     public:
-        void begin_transaction() {}
+        void begin_transaction() { m_in_transaction = true; }
+
+        // the base asks the helper whether a transaction is open
+        bool in_transaction() const noexcept { return m_in_transaction; }
+
+    private:
+        bool m_in_transaction = false;
     };
 
     // conn_has_begin_iso
@@ -1113,5 +1202,7 @@ namespace testing
 
 }   // namespace testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 #endif  // DJINTERP_DATABASE_TESTS_

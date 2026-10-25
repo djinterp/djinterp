@@ -14,7 +14,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_process_config.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -36,14 +36,23 @@
 // 1.  FLAG-LIKE RESULTS
 //==============================================================================
 
-/*
-d_arg_internal_process_flag_choice
-  The text CLI11's _add_flag_like_result hands an option for an item with
-one input or none, read by the format as a flag: for an option refusing
-flag overrides, given what reads as 1, the item name's own value; else the
-value the name gives the input -- but a `{}` stays as it is for an option
-that takes several values.
-*/
+/**
+ * @brief Chooses the text CLI11's _add_flag_like_result hands an option for an
+ *        item with one input or none.
+ *
+ * @param[in]     _option  the option.
+ * @param[in]     _name    the item's name.
+ * @param[in]     _read    the item, read by the format as a flag.
+ * @param[in,out] _out     the buffer that gains the text.
+ * @return D_ARG_OK; D_ARG_ERROR_ARGUMENT_MISMATCH, recorded, for an override
+ *         the option refuses; or the buffer's status.
+ *
+ * The text CLI11's _add_flag_like_result hands an option for an item with
+ * one input or none, read by the format as a flag: for an option refusing
+ * flag overrides, given what reads as 1, the item name's own value; else the
+ * value the name gives the input -- but a `{}` stays as it is for an option
+ * that takes several values.
+ */
 D_STATIC int
 d_arg_internal_process_flag_choice(
     const struct d_arg_option* _option,
@@ -84,12 +93,19 @@ d_arg_internal_process_flag_choice(
                                    _out);
 }
 
-/*
-d_arg_internal_process_flag_one
-  CLI11's _add_flag_like_result for an item with one input or none: the
-item read as a flag through the command's format, the text chosen for it
-added as the option's value, which then owns it.
-*/
+/**
+ * @brief Gives an option its value from an item with one input or none, as
+ *        CLI11's _add_flag_like_result.
+ *
+ * @param[in]     _command  the command, whose format reads the item.
+ * @param[in,out] _option   the option, which owns the value.
+ * @param[in]     _item     the item.
+ * @return D_ARG_OK, or the failure, recorded.
+ *
+ * CLI11's _add_flag_like_result for an item with one input or none: the
+ * item read as a flag through the command's format, the text chosen for it
+ * added as the option's value, which then owns it.
+ */
 D_STATIC int
 d_arg_internal_process_flag_one(
     const struct d_arg_command*     _command,
@@ -134,12 +150,19 @@ d_arg_internal_process_flag_one(
     return status;
 }
 
-/*
-d_arg_internal_process_flag_listed
-  Whether an input is one an option refusing flag overrides takes from a
-list: one of its flag names' values, or, without any, one of the four
-words CLI11 allows.
-*/
+/**
+ * @brief Tells whether an option refusing flag overrides takes an input from a
+ *        list.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _input   the input.
+ * @return `true` for one of its flag values or, without any, one of the four
+ *         words CLI11 allows; `false` otherwise.
+ *
+ * Whether an input is one an option refusing flag overrides takes from a
+ * list: one of its flag names' values, or, without any, one of the four
+ * words CLI11 allows.
+ */
 D_STATIC bool
 d_arg_internal_process_flag_listed(
     const struct d_arg_option* _option,
@@ -172,12 +195,21 @@ d_arg_internal_process_flag_listed(
     return false;
 }
 
-/*
-d_arg_internal_process_flag_refusal
-  CLI11's errors for an item with more inputs than a flag-like option
-takes, naming the item: an AtMost mismatch for an option taking several,
-or a TooManyInputsFlag conversion error for one that allows overrides.
-*/
+/**
+ * @brief Records CLI11's error for an item with more inputs than a flag-like
+ *        option takes.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _item    the item, which the message names.
+ * @param[in] _count   how many inputs it has.
+ * @return D_ARG_ERROR_ARGUMENT_MISMATCH or D_ARG_ERROR_CONVERSION, or
+ *         D_ARG_ERROR_OUT_OF_MEMORY when the item's name could not be written;
+ *         each recorded.
+ *
+ * CLI11's errors for an item with more inputs than a flag-like option
+ * takes, naming the item: an AtMost mismatch for an option taking several,
+ * or a TooManyInputsFlag conversion error for one that allows overrides.
+ */
 D_STATIC int
 d_arg_internal_process_flag_refusal(
     const struct d_arg_option*      _option,
@@ -224,16 +256,26 @@ d_arg_internal_process_flag_refusal(
     return status;
 }
 
-/*
-d_arg_internal_process_flag_several
-  CLI11's _add_flag_like_result for an item with several inputs: within
-what the option takes -- or under a policy that takes or joins them all --
-they are left for the caller; beyond it they are refused, unless the
-option refuses flag overrides, when each is added that is one of its
-values, and any other is CLI11's InvalidError -- in its words, which its
-one-argument constructor, meant for a name, ends with a sentence about
-positionals that do not come into it.
-*/
+/**
+ * @brief Takes an item with several inputs for a flag-like option, as CLI11's
+ *        _add_flag_like_result.
+ *
+ * @param[in,out] _option   the option.
+ * @param[in]     _item     the item.
+ * @param[in]     _inputs   the inputs to use: the item's, or a filtered view of
+ *                          them.
+ * @param[out]    _handled  receives whether the option took the inputs; `false`
+ *                          leaves them for the caller.
+ * @return D_ARG_OK, or the error CLI11 throws, recorded.
+ *
+ * CLI11's _add_flag_like_result for an item with several inputs: within
+ * what the option takes -- or under a policy that takes or joins them all --
+ * they are left for the caller; beyond it they are refused, unless the
+ * option refuses flag overrides, when each is added that is one of its
+ * values, and any other is CLI11's InvalidError -- in its words, which its
+ * one-argument constructor, meant for a name, ends with a sentence about
+ * positionals that do not come into it.
+ */
 D_STATIC int
 d_arg_internal_process_flag_several(
     struct d_arg_option*            _option,
@@ -292,14 +334,14 @@ d_arg_internal_process_flag_several(
 }
 
 /*
-d_arg_internal_add_flag_like_result
+d_arg_internal_flag_like_result
   CLI11's _add_flag_like_result: an item with one input or none is a
 flag's -- counted by the item's own inputs, whatever was filtered out of
 `_inputs` -- and one with several is checked against what the option
 takes.
 */
 int
-d_arg_internal_add_flag_like_result(
+d_arg_internal_flag_like_result(
     const struct d_arg_command*     _command,
     struct d_arg_option*            _option,
     const struct d_arg_config_item* _item,
@@ -329,12 +371,20 @@ d_arg_internal_add_flag_like_result(
 // 2.  CONFIGURATION ITEMS
 //==============================================================================
 
-/*
-d_arg_internal_process_lookup
-  CLI11's get_option_no_throw of `_prefix` and an item's name: the option
-answering to `--name`, `-n` or `name`, in the command, its option groups
-and, with fallthrough, its parent.
-*/
+/**
+ * @brief Finds the option a prefix and an item's name name, as CLI11's
+ *        get_option_no_throw.
+ *
+ * @param[in]  _command  the command.
+ * @param[in]  _prefix   "--", "-", or "".
+ * @param[in]  _name     the item's name.
+ * @param[out] _option   receives the option; NULL when none answers.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * CLI11's get_option_no_throw of `_prefix` and an item's name: the option
+ * answering to `--name`, `-n` or `name`, in the command, its option groups
+ * and, with fallthrough, its parent.
+ */
 D_STATIC int
 d_arg_internal_process_lookup(
     const struct d_arg_command* _command,
@@ -366,14 +416,20 @@ d_arg_internal_process_lookup(
     return status;
 }
 
-/*
-d_arg_internal_process_configurable
-  The first option CLI11's get_options(filter) lists that is configurable
-and answers to the name as a positional name, a long name or a short one:
-the command's own, then -- in turn -- those of its nameless subcommands
-and of those whose group starts with `+`, then, for a named command that
-falls through, its fallthrough parent's.
-*/
+/**
+ * @brief Finds the first configurable option that answers to a name in any
+ *        form, as CLI11's get_options(filter) lists them.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _name     the name.
+ * @return the option; NULL when none answers.
+ *
+ * The first option CLI11's get_options(filter) lists that is configurable
+ * and answers to the name as a positional name, a long name or a short one:
+ * the command's own, then -- in turn -- those of its nameless subcommands
+ * and of those whose group starts with `+`, then, for a named command that
+ * falls through, its fallthrough parent's.
+ */
 D_STATIC struct d_arg_option*
 d_arg_internal_process_configurable(
     const struct d_arg_command* _command,
@@ -426,12 +482,19 @@ d_arg_internal_process_configurable(
            : NULL;
 }
 
-/*
-d_arg_internal_process_short_first
-  CLI11's second look for an item with a one-character name: `-n`, when
-`--n` found nothing, or found one that is not configurable and a
-configurable `-n` exists.
-*/
+/**
+ * @brief Looks again for the option of an item with a one-character name, as
+ *        CLI11 does.
+ *
+ * @param[in]     _command  the command.
+ * @param[in]     _item     the item.
+ * @param[in,out] _option   the option found so far, replaced by a better one.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * CLI11's second look for an item with a one-character name: `-n`, when
+ * `--n` found nothing, or found one that is not configurable and a
+ * configurable `-n` exists.
+ */
 D_STATIC int
 d_arg_internal_process_short_first(
     const struct d_arg_command*     _command,
@@ -471,13 +534,20 @@ d_arg_internal_process_short_first(
     return status;
 }
 
-/*
-d_arg_internal_process_item_option
-  CLI11's search in _parse_single_config for the option an item names:
-`--name`, then the short and bare names as d_arg_internal_process_
-short_first looks for them; and, when that finds nothing configurable, the
-first configurable option answering to the name in any form.
-*/
+/**
+ * @brief Finds the option an item names, as CLI11's search in
+ *        _parse_single_config.
+ *
+ * @param[in]  _command  the command.
+ * @param[in]  _item     the item.
+ * @param[out] _option   receives the option; NULL when none answers.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * CLI11's search in _parse_single_config for the option an item names:
+ * `--name`, then the short and bare names as d_arg_internal_process_short_first
+ * looks for them; and, when that finds nothing configurable, the first
+ * configurable option answering to the name in any form.
+ */
 D_STATIC int
 d_arg_internal_process_item_option(
     const struct d_arg_command*     _command,
@@ -517,11 +587,17 @@ d_arg_internal_process_item_option(
     return status;
 }
 
-/*
-d_arg_internal_process_keep_copy
-  A copy of text the parser's pool keeps until the next parse, kept among
-a command's unused arguments as a positional.
-*/
+/**
+ * @brief Keeps a copy of text among a command's unused arguments, as a
+ *        positional.
+ *
+ * @param[in,out] _command  the command, whose parser's pool keeps the copy.
+ * @param[in]     _text     the text.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * A copy of text the parser's pool keeps until the next parse, kept among
+ * a command's unused arguments as a positional.
+ */
 D_STATIC int
 d_arg_internal_process_keep_copy(
     struct d_arg_command* _command,
@@ -544,12 +620,17 @@ d_arg_internal_process_keep_copy(
                                        status);
 }
 
-/*
-d_arg_internal_process_capture_item
-  An item no option takes, kept among the command's unused arguments when
-configuration extras are captured: its full name, then each input, as
-positionals.
-*/
+/**
+ * @brief Keeps an item no option takes among a command's unused arguments.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _item     the item.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * An item no option takes, kept among the command's unused arguments when
+ * configuration extras are captured: its full name, then each input, as
+ * positionals.
+ */
 D_STATIC int
 d_arg_internal_process_capture_item(
     struct d_arg_command*           _command,
@@ -579,12 +660,19 @@ d_arg_internal_process_capture_item(
     return status;
 }
 
-/*
-d_arg_internal_process_item_error
-  CLI11's ConfigError for an item, naming it: its Extras, "INI was not
-able to parse <name>", or its NotConfigurable, "<name>: This option is not
-allowed in a configuration file".
-*/
+/**
+ * @brief Records CLI11's ConfigError for an item.
+ *
+ * @param[in] _command       the command.
+ * @param[in] _item          the item, which the message names.
+ * @param[in] _configurable  whether the error is Extras, not NotConfigurable.
+ * @return D_ARG_ERROR_CONFIG, or D_ARG_ERROR_OUT_OF_MEMORY when the item's name
+ *         could not be written; either recorded.
+ *
+ * CLI11's ConfigError for an item, naming it: its Extras, "INI was not
+ * able to parse <name>", or its NotConfigurable, "<name>: This option is not
+ * allowed in a configuration file".
+ */
 D_STATIC int
 d_arg_internal_process_item_error(
     const struct d_arg_command*     _command,
@@ -624,14 +712,21 @@ d_arg_internal_process_item_error(
     return status;
 }
 
-/*
-d_arg_internal_process_section
-  CLI11's section marks in configuration, for a configurable command: `++`
-opens its section -- a use counted, its pre-parse step with 2 left, listed
-among its parent's parsed subcommands -- and `--` closes it, running its
-completion callbacks, without the help flags, when it has a parse-complete
-callback.
-*/
+/**
+ * @brief Takes a section mark in configuration, as CLI11 does for a
+ *        configurable command.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _open     whether the mark opens the section (`++`), not
+ *                          closes it (`--`).
+ * @return D_ARG_OK, or the error a step raised, recorded.
+ *
+ * CLI11's section marks in configuration, for a configurable command: `++`
+ * opens its section -- a use counted, its pre-parse step with 2 left, listed
+ * among its parent's parsed subcommands -- and `--` closes it, running its
+ * completion callbacks, without the help flags, when it has a parse-complete
+ * callback.
+ */
 D_STATIC int
 d_arg_internal_process_section(
     struct d_arg_command* _command,
@@ -670,11 +765,16 @@ d_arg_internal_process_section(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_process_filtered
-  A multiline item's inputs without its `%%` separators, viewed in `_out`,
-for an option that does not inject separators of its own.
-*/
+/**
+ * @brief Views a multiline item's inputs without its `%%` separators.
+ *
+ * @param[in]     _item  the item.
+ * @param[in,out] _out   the list that gains the inputs.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * A multiline item's inputs without its `%%` separators, viewed in `_out`,
+ * for an option that does not inject separators of its own.
+ */
 D_STATIC int
 d_arg_internal_process_filtered(
     const struct d_arg_config_item* _item,
@@ -700,12 +800,20 @@ d_arg_internal_process_filtered(
     return status;
 }
 
-/*
-d_arg_internal_process_item_inputs
-  The inputs an item gives an option that has no value yet: taken as a
-flag's by an option that expects no values; else the option, PARSING, given
-each as CLI11's add_result(vector) gives them, and its callback run.
-*/
+/**
+ * @brief Gives the inputs of an item to an option that has no value yet.
+ *
+ * @param[in]     _command  the command, whose format reads a flag's input.
+ * @param[in,out] _option   the option.
+ * @param[in]     _item     the item.
+ * @param[in]     _inputs   the inputs to use: the item's, or a filtered view of
+ *                          them.
+ * @return D_ARG_OK, or the failure, recorded.
+ *
+ * The inputs an item gives an option that has no value yet: taken as a
+ * flag's by an option that expects no values; else the option, PARSING, given
+ * each as CLI11's add_result(vector) gives them, and its callback run.
+ */
 D_STATIC int
 d_arg_internal_process_item_inputs(
     const struct d_arg_command*     _command,
@@ -720,11 +828,11 @@ d_arg_internal_process_item_inputs(
     // an option expecting no values takes them as a flag's
     if (_option->expected_min == 0)
     {
-        status = d_arg_internal_add_flag_like_result(_command,
-                                                     _option,
-                                                     _item,
-                                                     _inputs,
-                                                     &handled);
+        status = d_arg_internal_flag_like_result(_command,
+                                                 _option,
+                                                 _item,
+                                                 _inputs,
+                                                 &handled);
     }
 
     // a flag's result, or its failure, ends the step
@@ -751,12 +859,19 @@ d_arg_internal_process_item_inputs(
            : status;
 }
 
-/*
-d_arg_internal_process_item_values
-  CLI11's step for an option an item names that has no value yet: the
-item's inputs, a multiline item's without its separators unless the option
-injects its own.
-*/
+/**
+ * @brief Takes an item for an option that has no value yet, as CLI11's step for
+ *        one.
+ *
+ * @param[in]     _command  the command.
+ * @param[in,out] _option   the option.
+ * @param[in]     _item     the item.
+ * @return D_ARG_OK, or the failure, recorded.
+ *
+ * CLI11's step for an option an item names that has no value yet: the
+ * item's inputs, a multiline item's without its separators unless the option
+ * injects its own.
+ */
 D_STATIC int
 d_arg_internal_process_item_values(
     const struct d_arg_command*     _command,
@@ -793,14 +908,22 @@ d_arg_internal_process_item_values(
     return status;
 }
 
-/*
-d_arg_internal_process_item_to
-  The end of CLI11's _parse_single_config: the option an item names takes
-it -- kept unused when none does and configuration extras are captured;
-refused when the option is not configurable, unless every unknown is
-ignored; and taken only by an option the command line left without a
-value. `_handled` receives CLI11's result.
-*/
+/**
+ * @brief Hands an item to the option it names, as the end of CLI11's
+ *        _parse_single_config.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _item     the item.
+ * @param[out]    _handled  receives CLI11's result: whether a configurable
+ *                          option answered to the item.
+ * @return D_ARG_OK, or the failure, recorded.
+ *
+ * The end of CLI11's _parse_single_config: the option an item names takes
+ * it -- kept unused when none does and configuration extras are captured;
+ * refused when the option is not configurable, unless every unknown is
+ * ignored; and taken only by an option the command line left without a
+ * value. `_handled` receives CLI11's result.
+ */
 D_STATIC int
 d_arg_internal_process_item_to(
     struct d_arg_command*           _command,
@@ -850,13 +973,20 @@ d_arg_internal_process_item_to(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_process_item
-  CLI11's _parse_single_config: an item in a section is handed down to the
-subcommand its next section names -- not handled when none does; the
-section marks open and close a configurable command's section; any other
-item goes to the option it names.
-*/
+/**
+ * @brief Parses one configuration item, as CLI11's _parse_single_config.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _item     the item.
+ * @param[in]     _level    how many of the item's sections lead to the command.
+ * @param[out]    _handled  receives CLI11's result: whether the item was taken.
+ * @return D_ARG_OK, or the failure, recorded.
+ *
+ * CLI11's _parse_single_config: an item in a section is handed down to the
+ * subcommand its next section names -- not handled when none does; the
+ * section marks open and close a configurable command's section; any other
+ * item goes to the option it names.
+ */
 D_STATIC int
 d_arg_internal_process_item(
     struct d_arg_command*           _command,
@@ -951,10 +1081,15 @@ d_arg_internal_parse_config(
 // 3.  CONFIGURATION FILES
 //==============================================================================
 
-/*
-d_arg_internal_process_file_missing
-  CLI11's FileError::Missing: "<path> was not readable (missing?)".
-*/
+/**
+ * @brief Records CLI11's FileError::Missing for a path.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _path     the path.
+ * @return D_ARG_ERROR_FILE, recorded.
+ *
+ * CLI11's FileError::Missing: "<path> was not readable (missing?)".
+ */
 D_STATIC int
 d_arg_internal_process_file_missing(
     const struct d_arg_command* _command,
@@ -971,13 +1106,22 @@ d_arg_internal_process_file_missing(
 
 #if (D_INTERNAL_ARG_PARSER_CONFIG_FILES == 1)
 
-/*
-d_arg_internal_process_config_file
-  CLI11's _process_config_file(file, throw_error): a file that is there is
-read through the command's format and its items parsed, `_used` then set;
-one that is not, or cannot be opened, is an error when it must be read and
-is skipped otherwise; any other failure of the reading stands.
-*/
+/**
+ * @brief Reads one configuration file, as CLI11's _process_config_file(file,
+ *        throw_error).
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _path     the file's path, NUL-terminated.
+ * @param[in]     _must     whether the file must be read.
+ * @param[out]    _used     set to `true` when the file was read; untouched
+ *                          otherwise.
+ * @return D_ARG_OK, or the failure, recorded.
+ *
+ * CLI11's _process_config_file(file, throw_error): a file that is there is
+ * read through the command's format and its items parsed, `_used` then set;
+ * one that is not, or cannot be opened, is an error when it must be read and
+ * is skipped otherwise; any other failure of the reading stands.
+ */
 D_STATIC int
 d_arg_internal_process_config_file(
     struct d_arg_command* _command,
@@ -1033,12 +1177,21 @@ d_arg_internal_process_config_file(
 
 #else
 
-/*
-d_arg_internal_process_config_file
-  Without configuration files built in, a file that is there is refused
-with D_ARG_ERROR_CONFIG; one that is not is missing, or skipped, as CLI11
-has it.
-*/
+/**
+ * @brief Reads one configuration file, as CLI11's _process_config_file(file,
+ *        throw_error).
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _path     the file's path, NUL-terminated.
+ * @param[in]     _must     whether the file must be read.
+ * @param[out]    _used     set to `true` when the file was read; untouched
+ *                          otherwise.
+ * @return D_ARG_OK, or the failure, recorded.
+ *
+ * Without configuration files built in, a file that is there is refused
+ * with D_ARG_ERROR_CONFIG; one that is not is missing, or skipped, as CLI11
+ * has it.
+ */
 D_STATIC int
 d_arg_internal_process_config_file(
     struct d_arg_command* _command,
@@ -1070,13 +1223,19 @@ d_arg_internal_process_config_file(
 
 #if (D_INTERNAL_ARG_PARSER_ENVIRONMENT == 1)
 
-/*
-d_arg_internal_process_config_env
-  CLI11's fallback for a configuration option not given: its environment
-variable's value, when the option has one and it is set, added as given --
-without the validation an ordinary option's value from the environment
-goes through.
-*/
+/**
+ * @brief Takes a configuration option's value from its environment variable, as
+ *        CLI11's fallback for one not given.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in,out] _config   the configuration option.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * CLI11's fallback for a configuration option not given: its environment
+ * variable's value, when the option has one and it is set, added as given --
+ * without the validation an ordinary option's value from the environment
+ * goes through.
+ */
 D_STATIC int
 d_arg_internal_process_config_env(
     struct d_arg_command* _command,
@@ -1109,10 +1268,16 @@ d_arg_internal_process_config_env(
 
 #else
 
-/*
-d_arg_internal_process_config_env
-  Without the environment built in, nothing to read.
-*/
+/**
+ * @brief Takes a configuration option's value from its environment variable, as
+ *        CLI11's fallback for one not given.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in,out] _config   the configuration option.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * Without the environment built in, nothing to read.
+ */
 D_STATIC int
 d_arg_internal_process_config_env(
     struct d_arg_command* _command,
@@ -1127,12 +1292,18 @@ d_arg_internal_process_config_env(
 
 #endif  // D_INTERNAL_ARG_PARSER_ENVIRONMENT
 
-/*
-d_arg_internal_process_config_count
-  How many files CLI11's as<std::vector<std::string>>() finds in the
-configuration option once called back: its values, reduced or as given --
-none for a lone `{}`, and only the `{}` of `{}` and a separator.
-*/
+/**
+ * @brief Counts the files the configuration option names once called back, as
+ *        CLI11 finds them.
+ *
+ * @param[in]  _option  the configuration option.
+ * @param[out] _files   receives its values.
+ * @return how many files it names.
+ *
+ * How many files CLI11's as<std::vector<std::string>>() finds in the
+ * configuration option once called back: its values, reduced or as given --
+ * none for a lone `{}`, and only the `{}` of `{}` and a separator.
+ */
 D_STATIC size_t
 d_arg_internal_process_config_count(
     const struct d_arg_option* _option,
@@ -1160,12 +1331,17 @@ d_arg_internal_process_config_count(
            : count;
 }
 
-/*
-d_arg_internal_process_config_unused
-  CLI11's end for a configuration option whose files were none read: its
-values dropped, so its count reads 0, and its callback run again as if it
-were not forced.
-*/
+/**
+ * @brief Leaves a configuration option whose files were none read as if unused,
+ *        as CLI11 does.
+ *
+ * @param[in,out] _config  the configuration option.
+ * @return D_ARG_OK, or the failure of its callback, recorded.
+ *
+ * CLI11's end for a configuration option whose files were none read: its
+ * values dropped, so its count reads 0, and its callback run again as if it
+ * were not forced.
+ */
 D_STATIC int
 d_arg_internal_process_config_unused(
     struct d_arg_option* _config
@@ -1183,12 +1359,20 @@ d_arg_internal_process_config_unused(
     return status;
 }
 
-/*
-d_arg_internal_process_config_read
-  The files the configuration option names, each read in turn -- each must
-be read when the option is required or was given; none named is an error
-when one is required, and none read leaves the option as if unused.
-*/
+/**
+ * @brief Reads each file the configuration option names.
+ *
+ * @param[in,out] _command   the command.
+ * @param[in,out] _config    the configuration option.
+ * @param[in]     _required  whether a file is required.
+ * @param[in]     _given     whether the option was given.
+ * @return D_ARG_OK; D_ARG_ERROR_FILE, recorded, when a file is required and
+ *         none was given; or the failure of a file, recorded.
+ *
+ * The files the configuration option names, each read in turn -- each must
+ * be read when the option is required or was given; none named is an error
+ * when one is required, and none read leaves the option as if unused.
+ */
 D_STATIC int
 d_arg_internal_process_config_read(
     struct d_arg_command* _command,

@@ -31,7 +31,7 @@
 * path:      /inc/djinterp/c/filesys/file_dir.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.19
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -43,6 +43,7 @@ TABLE OF CONTENTS
     2.  Removal
     3.  Traversal
     4.  Working directory and resolution
+    5.  Directory-relative operations
 2.  DEFAULT WIDTH
     -------------
     1.  Unsuffixed names
@@ -265,6 +266,64 @@ char*                d_path_resolve(const char* _path,
                                     char*       _resolved,
                                     size_t      _size);
 
+
+// 1.5    Directory-relative operations
+//------------------------------------------------------------------------------
+// Each names an entry by its name in a directory already open, rather than by
+// a path built afresh: whatever is renamed or swapped for a link meanwhile,
+// the entry is looked up in the directory that was read. POSIX does it with
+// openat and unlinkat; Windows, which has neither, holds each directory open
+// against renaming and examines what it opens through the hold.
+
+// D_DIR_REMOVE_DIRECTORY
+//   constant: d_dir_remove_at's flag for an empty directory; without it the
+// entry must be no directory -- a file, or a link of either kind.
+#define D_DIR_REMOVE_DIRECTORY 0x1
+
+/**
+ * @brief Opens an entry of an open directory as a directory, never following
+ *        a link to one.
+ *
+ * @param[in] _parent  an open handle.
+ * @param[in] _name    the entry's name: one component, neither "." nor "..".
+ * @return the handle, closed with d_dir_close, or `NULL` with errno set:
+ *         ELOOP for a link (a junction too), ENOTDIR for anything else that is
+ *         no directory, EINVAL for a name that is a path, and ENOSYS on the
+ *         ISO C backend.
+ * @post The parent may be closed first; the handle stands on its own.
+ */
+struct d_dir_t*      d_dir_open_at(struct d_dir_t* _parent,
+                                   const char*     _name);
+/**
+ * @brief Removes an entry of an open directory: an empty directory with
+ *        D_DIR_REMOVE_DIRECTORY, anything else -- a link to a directory
+ *        included, which goes as itself -- without it.
+ *
+ * @param[in] _dir    an open handle.
+ * @param[in] _name   the entry's name: one component, neither "." nor "..".
+ * @param[in] _flags  D_DIR_REMOVE_DIRECTORY, or 0.
+ * @return 0, or -1 with errno set as unlinkat sets it, EINVAL for a name that
+ *         is a path, and ENOSYS on the ISO C backend.
+ */
+int                  d_dir_remove_at(struct d_dir_t* _dir,
+                                     const char*     _name,
+                                     int             _flags);
+/**
+ * @brief Removes a path and everything beneath it, following no link: a link
+ *        is removed as itself, wherever in the tree it is.
+ *
+ * @note Proof against a process that swaps a directory in the tree for a
+ *       link while this runs -- the race std::filesystem's own remove_all had
+ *       (CVE-2022-21658): every entry is opened and removed relative to the
+ *       directory it was read from. One handle is open for each level of
+ *       depth, so a tree deeper than the process may open fails with EMFILE.
+ *
+ * @param[in] _path  the path to remove.
+ * @return 0, also when nothing is there; -1 with errno set at the first
+ *         failure, which stops the removal with what it removed already gone.
+ *         ENOSYS on the ISO C backend.
+ */
+int                  d_dir_remove_all(const char* _path);
 
 //==============================================================================
 // 2.  DEFAULT WIDTH

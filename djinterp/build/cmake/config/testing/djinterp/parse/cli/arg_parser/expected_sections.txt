@@ -19,17 +19,17 @@
 # path:      /build/cmake/config/testing/djinterp/parse/cli/arg_parser/expected_sections.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-#                                                            revised: 2026.10.22
+#                                                            revised: 2026.10.21
 
 # the C suites: common 21, types 21, validators 26, extra checks 11, sets
 # and mappings 13, numbers with units 10, the file system 8, options 18,
 # commands 30, help 20, the parse 11, its processing 13, configuration
-# files 66, arguments from text 27, the parser 13, suggestions 5,
+# files 66, arguments from text 27, the parser 12, suggestions 5,
 # completion 19, smoke 19
-c99 351
-c11 351
-c17 351
-c23 351
+c99 350
+c11 350
+c17 350
+c23 350
 
 # the allocation sweep, where the linker wraps malloc: options, flags,
 # commands, validators, text
@@ -38,15 +38,15 @@ c99-sweep 5
 # the C++ suites -- at C++98; at C++11 and C++14; from C++17 -- common 9,
 # 10, 11; types 11, 14, 16; validators 16, 21, 21; options 12, 13, 13;
 # commands 23, 24, 24; help 8; configuration files 9; arguments from text 8;
-# the parser 16, 18, 18; completion 3; the C boundary 6; CLI11's examples
+# the parser 15, 17, 17; completion 3; the C boundary 6; CLI11's examples
 # none, 31, 31
-c++98 121
-c++11 165
-c++14 165
-c++17 168
-c++20 168
-c++23 168
+c++98 120
+c++11 164
+c++14 164
+c++17 167
+c++20 167
+c++23 167
 
 # without exceptions the C boundary keeps its results' section alone: 1 of 6
-c++98-noexc 116
-c++23-noexc 163
+c++98-noexc 115
+c++23-noexc 162

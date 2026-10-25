@@ -12,7 +12,7 @@
 * path:      /src/djinterp/c/filesys/file_pipe.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_pipe.h"  // corresponding header
 // std
@@ -90,25 +90,22 @@ d_internal_pipe_wpopen(
         return NULL;
     }
 
-    const int units = MultiByteToWideChar(CP_UTF8,
-                                          MB_ERR_INVALID_CHARS,
-                                          _command,
-                                          -1,
-                                          NULL,
-                                          0);
+    size_t units = 0;
 
-    // a command that is not UTF-8 has no UTF-16 form
-    if (units <= 0)
+    // a command that is not WTF-8 has no UTF-16 form: measured first, the
+    // way every path is converted (d_internal_file_to_native_text)
+    if (d_internal_file_wtf8_to_utf16(_command,
+                                      D_INTERNAL_FILE_TERMINATED,
+                                      NULL,
+                                      0,
+                                      &units) != 0)
     {
-        D_INTERNAL_FILE_SET_ERR( (GetLastError() ==
-                                  ERROR_NO_UNICODE_TRANSLATION) ? EILSEQ
-                                                                : EINVAL );
-
+        D_INTERNAL_FILE_SET_ERR(EILSEQ);
         return NULL;
     }
 
     wchar_t* const command =
-        (wchar_t*)d_internal_file_alloc((size_t)units * sizeof(*command));
+        (wchar_t*)d_internal_file_alloc((units + 1) * sizeof(*command));
 
     // d_internal_file_alloc has reported the failure
     if (!command)
@@ -116,12 +113,11 @@ d_internal_pipe_wpopen(
         return NULL;
     }
 
-    (void)MultiByteToWideChar(CP_UTF8,
-                              MB_ERR_INVALID_CHARS,
-                              _command,
-                              -1,
-                              command,
-                              units);
+    (void)d_internal_file_wtf8_to_utf16(_command,
+                                        D_INTERNAL_FILE_TERMINATED,
+                                        command,
+                                        units + 1,
+                                        NULL);
 
     FILE* const stream = _wpopen(command,
                                  mode);

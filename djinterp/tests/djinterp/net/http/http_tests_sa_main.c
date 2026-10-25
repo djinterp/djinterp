@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/net/http/http_tests_sa_main.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "./http_tests_sa.h"  // the suite
 // std
@@ -34,6 +34,7 @@ d_tests_sa_http_run_all(
         { "field syntax",   d_tests_sa_http_syntax },
         { "common names",   d_tests_sa_http_names },
         { "error names",    d_tests_sa_http_errors },
+        { "errors to net",  d_tests_sa_http_errors_to_net },
         { "http/1.1 heads", d_tests_sa_http1_heads },
         { "head parts",     d_tests_sa_http1_parts },
         { "byte at a time", d_tests_sa_http1_incremental },
@@ -67,7 +68,7 @@ main(void)
 {
     struct d_test_counter counter = { .assertions_passed = 0u };
 
-    d_test_counter_reset(&counter);
+    d_tests_net_counter_reset(&counter);
     printf("djinterp [net] http standalone tests\n");
 
     const bool passed = d_tests_sa_http_run_all(&counter);

@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/core/db/mysql/mysql_common_table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.20
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -36,7 +36,7 @@ TABLE OF CONTENTS
 #define DJINTERP_DB_MYSQL_MYSQL_COMMON_TABLE_HPP 1
 
 // djinterp
-#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: the floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 

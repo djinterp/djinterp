@@ -30,7 +30,7 @@
 * path:      /tests/djinterp/c/db/mariadb/t_mariadb_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // std
 #include <cstdio>   // std::printf
@@ -369,8 +369,10 @@ d_tests_mariadb_face_conversions(
     static const struct d_db_column people[] =
     {
         { "id",   D_DB_TYPE_BIG_INTEGER,
-          D_DB_COLUMN_PRIMARY_KEY | D_DB_COLUMN_AUTO_INCREMENT, 0, 0u, 0u, 0 },
-        { "name", D_DB_TYPE_STRING, D_DB_COLUMN_NOT_NULL, "'?'", 40u, 0u, 0 }
+          D_DB_COLUMN_PRIMARY_KEY | D_DB_COLUMN_AUTO_INCREMENT,
+          0, 0u, 0u, 0, 0u },
+        { "name", D_DB_TYPE_STRING, D_DB_COLUMN_NOT_NULL,
+          "'?'", 40u, 0u, 0, 0u }
     };
     face::name_list          names;
     std::vector<std::string> copied;
@@ -529,7 +531,8 @@ d_tests_mariadb_face_cpp20(
 {
     static const struct d_db_column columns[] =
     {
-        { "id", D_DB_TYPE_BIG_INTEGER, D_DB_COLUMN_PRIMARY_KEY, 0, 0u, 0u, 0 }
+        { "id", D_DB_TYPE_BIG_INTEGER, D_DB_COLUMN_PRIMARY_KEY,
+          0, 0u, 0u, 0, 0u }
     };
     re_std::int64_t count = -1;
 
@@ -840,9 +843,70 @@ d_tests_mariadb_face_statements(
 }
 
 /*
+d_tests_mariadb_face_cursors
+  Rows a few at a time through the statement face: pages no longer than asked
+for, and a short one ending the run; the connection the run's until then, and a
+fetch after the end refused; a run closed part-way; from C++23 a page returned.
+*/
+void
+d_tests_mariadb_face_cursors(
+    face::mariadb& _db
+)
+{
+    face::mariadb_statement select;
+    face::rows              page;
+
+    std::printf("rows a few at a time\n");
+
+    D_TESTS_MARIADB_FACE_CHECK(
+        _db.prepare(select,
+                    "SELECT 1 UNION ALL SELECT 2 "
+                    "UNION ALL SELECT 3") == 0);
+    D_TESTS_MARIADB_FACE_CHECK(select.open_cursor() == 0);
+    D_TESTS_MARIADB_FACE_CHECK(select.fetch_rows(2u, page) == 0);
+    D_TESTS_MARIADB_FACE_CHECK( (page.row_count() == 2u) &&
+                                (page.column_count() == 1u) );
+    D_TESTS_MARIADB_FACE_CHECK(_db.exec("SELECT 1") == 2014);
+    D_TESTS_MARIADB_FACE_CHECK(select.fetch_rows(2u, page) == 0);
+    D_TESTS_MARIADB_FACE_CHECK( (page.row_count() == 1u) &&
+                                (page.value(0u, 0u)->as.integer == 3) );
+    D_TESTS_MARIADB_FACE_CHECK(select.fetch_rows(2u, page) ==
+                               D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_FACE_CHECK(_db.exec("SELECT 1") == 0);
+
+    // closed part-way, and again
+    D_TESTS_MARIADB_FACE_CHECK(select.open_cursor() == 0);
+    D_TESTS_MARIADB_FACE_CHECK(select.fetch_rows(1u, page) == 0);
+    D_TESTS_MARIADB_FACE_CHECK(select.close_cursor() == 0);
+    D_TESTS_MARIADB_FACE_CHECK(_db.exec("SELECT 1") == 0);
+    D_TESTS_MARIADB_FACE_CHECK(select.close_cursor() == 0);
+
+#if D_INTERNAL_DB_FACE_EXPECTED
+    // a page returned: three rows fill the first exactly, and the next is
+    // empty, its columns still described
+    D_TESTS_MARIADB_FACE_CHECK(select.open_cursor() == 0);
+    {
+        const auto full = select.fetch_rows(3u);
+        const auto rest = select.fetch_rows(3u);
+
+        D_TESTS_MARIADB_FACE_CHECK( (full.has_value()) &&
+                                    (full->row_count() == 3u) );
+        D_TESTS_MARIADB_FACE_CHECK( (rest.has_value())           &&
+                                    (rest->row_count() == 0u)    &&
+                                    (rest->column_count() == 1u) );
+    }
+#endif  // D_INTERNAL_DB_FACE_EXPECTED
+
+    D_TESTS_MARIADB_FACE_CHECK(select.finalize() == 0);
+
+    return;
+}
+
+/*
 d_tests_mariadb_face_modules
   A member or two of each module beyond the ones above: servers and
-errors, connections, databases, schema, settings and maintenance.
+errors, connections, databases, schema, settings -- the session's changes,
+as a list and as strings, among them -- and maintenance.
 */
 void
 d_tests_mariadb_face_modules(
@@ -880,6 +944,32 @@ d_tests_mariadb_face_modules(
     D_TESTS_MARIADB_FACE_CHECK(
         (_db.check_table(0, "notes", ok) == 0) && (ok));
     D_TESTS_MARIADB_FACE_CHECK(_db.analyze_table(0, "notes") == 0);
+
+    // the session's changes, where the server and the client track them
+    if (_db.supports(D_MARIADB_FEATURE_SESSION_TRACKING))
+    {
+        face::name_list          entries;
+        std::vector<std::string> strings(1u, "kept?");
+
+        D_TESTS_MARIADB_FACE_CHECK(
+            _db.exec("SET SESSION time_zone = '+01:00'") == 0);
+        D_TESTS_MARIADB_FACE_CHECK(
+            (_db.session_track(D_MARIADB_TRACK_SYSTEM_VARIABLES,
+                               entries) == 0) &&
+            (entries.size() == 2u) &&
+            (d_tests_mariadb_face_same(entries[1u], "+01:00")));
+        D_TESTS_MARIADB_FACE_CHECK(
+            (_db.session_track(D_MARIADB_TRACK_SCHEMA, strings) == 0) &&
+            (strings.empty()));
+    }
+    else
+    {
+        std::vector<std::string> strings(1u, "kept?");
+
+        D_TESTS_MARIADB_FACE_CHECK(
+            _db.session_track(D_MARIADB_TRACK_SCHEMA, strings) ==
+            D_DB_UNSUPPORTED);
+    }
 
     return;
 }
@@ -1064,6 +1154,7 @@ d_tests_mariadb_face_session(
     d_tests_mariadb_face_cpp23(db, schema);
 #endif  // D_INTERNAL_DB_FACE_EXPECTED
     d_tests_mariadb_face_statements(db);
+    d_tests_mariadb_face_cursors(db);
     d_tests_mariadb_face_modules(db, schema);
     d_tests_mariadb_face_guards(db);
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -1108,6 +1199,10 @@ d_tests_mariadb_face_stubs(
     D_TESTS_MARIADB_FACE_CHECK(db.prepare(statement, "SELECT 1") ==
                                D_DB_UNSUPPORTED);
     D_TESTS_MARIADB_FACE_CHECK(!statement.is_prepared());
+    D_TESTS_MARIADB_FACE_CHECK(statement.open_cursor() == D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_FACE_CHECK(statement.fetch_rows(1u, found) ==
+                               D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_FACE_CHECK(statement.close_cursor() == D_DB_UNSUPPORTED);
     D_TESTS_MARIADB_FACE_CHECK(db.query_rows(found, "SELECT 1") ==
                                D_DB_UNSUPPORTED);
     D_TESTS_MARIADB_FACE_CHECK(found.empty());

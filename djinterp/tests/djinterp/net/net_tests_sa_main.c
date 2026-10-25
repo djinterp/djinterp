@@ -25,7 +25,7 @@ main(void)
 {
     struct d_test_counter counter = { .assertions_passed = 0u };
 
-    d_test_counter_reset(&counter);
+    d_tests_net_counter_reset(&counter);
     printf("djinterp [net] foundation standalone tests\n");
 
     const bool passed = d_tests_sa_net_run_all(&counter);

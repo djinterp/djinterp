@@ -13,7 +13,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_validator_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_validator_tests.h"  // corresponding header
 // std
@@ -644,10 +644,15 @@ struct d_tests_arg_validator_context
     struct d_tests_arg_validator_counts* counts;
 };
 
-/*
-d_tests_arg_validator_int_range
-  CLI11's Range over `int`, as the composites use it.
-*/
+/**
+ * @brief Makes CLI11's Range over `int`, as the composites use it.
+ *
+ * @param[in] _low   the least value.
+ * @param[in] _high  the greatest value.
+ * @return the check.
+ *
+ * CLI11's Range over `int`, as the composites use it.
+ */
 static struct d_arg_validator
 d_tests_arg_validator_int_range(
     int _low,
@@ -659,11 +664,18 @@ d_tests_arg_validator_int_range(
                                  &_high);
 }
 
-/*
-d_tests_arg_validator_upper
-  A custom validation: the value in upper case, or a refusal of the empty
-value.
-*/
+/**
+ * @brief Raises a value's letters to upper case.
+ *
+ * @param[in]     _validator   the validator; unused.
+ * @param[in,out] _validation  the validation, whose value is replaced or
+ *                             refused.
+ * @return D_ARG_OK, with the value replaced or refused; otherwise the status of
+ *         a replacement or refusal that could not be recorded.
+ *
+ * A custom validation: the value in upper case, or a refusal of the empty
+ * value.
+ */
 static int
 d_tests_arg_validator_upper(
     const struct d_arg_validator* _validator,
@@ -700,11 +712,16 @@ d_tests_arg_validator_upper(
                                                           length));
 }
 
-/*
-d_tests_arg_validator_stop
-  A custom validation that cannot reach a verdict: it stops with an error,
-as a CLI11 validator that throws.
-*/
+/**
+ * @brief Stops a validation with an error.
+ *
+ * @param[in]     _validator   the validator; unused.
+ * @param[in,out] _validation  the validation, which records a reason.
+ * @return D_ARG_ERROR_FILE.
+ *
+ * A custom validation that cannot reach a verdict: it stops with an error,
+ * as a CLI11 validator that throws.
+ */
 static int
 d_tests_arg_validator_stop(
     const struct d_arg_validator* _validator,
@@ -718,11 +735,17 @@ d_tests_arg_validator_stop(
     return D_ARG_ERROR_FILE;
 }
 
-/*
-d_tests_arg_validator_tally
-  A custom validation that passes every value, counting the values in the
-`int` its context points at.
-*/
+/**
+ * @brief Passes every value, counting it.
+ *
+ * @param[in] _validator   the validator, whose data points at the `int` that
+ *                         counts.
+ * @param[in] _validation  the validation; unused.
+ * @return D_ARG_OK.
+ *
+ * A custom validation that passes every value, counting the values in the
+ * `int` its context points at.
+ */
 static int
 d_tests_arg_validator_tally(
     const struct d_arg_validator* _validator,
@@ -736,10 +759,15 @@ d_tests_arg_validator_tally(
     return D_ARG_OK;
 }
 
-/*
-d_tests_arg_validator_copy_context
-  Copies an owned context, counting the copy.
-*/
+/**
+ * @brief Copies an owned context, counting the copy.
+ *
+ * @param[in] _context  the d_tests_arg_validator_context to copy.
+ * @return the copy, which d_tests_arg_validator_release_context frees; NULL
+ *         when it could not be allocated.
+ *
+ * Copies an owned context, counting the copy.
+ */
 static void*
 d_tests_arg_validator_copy_context(
     const void* _context
@@ -759,10 +787,13 @@ d_tests_arg_validator_copy_context(
     return copy;
 }
 
-/*
-d_tests_arg_validator_release_context
-  Frees an owned context, counting the release.
-*/
+/**
+ * @brief Frees an owned context, counting the release.
+ *
+ * @param[in] _context  the d_tests_arg_validator_context, freed.
+ *
+ * Frees an owned context, counting the release.
+ */
 static void
 d_tests_arg_validator_release_context(
     void* _context
@@ -776,11 +807,18 @@ d_tests_arg_validator_release_context(
     return;
 }
 
-/*
-d_tests_arg_validator_list
-  A d_arg_choices_fn of the caller's: the letters of the validator's
-description, each a choice.
-*/
+/**
+ * @brief Lists the letters of a validator's description as its choices.
+ *
+ * @param[in] _validator  the validator.
+ * @param[in] _each       receives each choice.
+ * @param[in] _context    `_each`'s context.
+ * @return D_ARG_OK, or the first status other than D_ARG_OK that `_each`
+ *         returned.
+ *
+ * A d_arg_choices_fn of the caller's: the letters of the validator's
+ * description, each a choice.
+ */
 static int
 d_tests_arg_validator_list(
     const struct d_arg_validator* _validator,
@@ -803,10 +841,15 @@ d_tests_arg_validator_list(
     return status;
 }
 
-/*
-d_tests_arg_validator_collect
-  A d_arg_choice_fn that appends each choice and a `|` to a buffer.
-*/
+/**
+ * @brief Appends a choice and a `|` to a buffer.
+ *
+ * @param[in] _choice   the choice.
+ * @param[in] _context  the d_arg_buffer.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * A d_arg_choice_fn that appends each choice and a `|` to a buffer.
+ */
 static int
 d_tests_arg_validator_collect(
     struct d_pack_text _choice,
@@ -822,10 +865,15 @@ d_tests_arg_validator_collect(
                                     '|');
 }
 
-/*
-d_tests_arg_validator_stop_at_b
-  A d_arg_choice_fn that stops the listing at `b`.
-*/
+/**
+ * @brief Stops a listing at `b`.
+ *
+ * @param[in] _choice   the choice.
+ * @param[in] _context  unused.
+ * @return D_ARG_ERROR_HORRIBLE for `b`; D_ARG_OK otherwise.
+ *
+ * A d_arg_choice_fn that stops the listing at `b`.
+ */
 static int
 d_tests_arg_validator_stop_at_b(
     struct d_pack_text _choice,
@@ -840,10 +888,15 @@ d_tests_arg_validator_stop_at_b(
            : D_ARG_OK;
 }
 
-/*
-d_tests_arg_validator_lister
-  A validator that lists the letters of its description as its choices.
-*/
+/**
+ * @brief Makes a validator that lists the letters of its description as its
+ *        choices.
+ *
+ * @param[in] _letters  the description: the letters.
+ * @return the validator.
+ *
+ * A validator that lists the letters of its description as its choices.
+ */
 static struct d_arg_validator
 d_tests_arg_validator_lister(
     const char* _letters
@@ -859,11 +912,17 @@ d_tests_arg_validator_lister(
     return validator;
 }
 
-/*
-d_tests_arg_validator_listed
-  Whether a validator lists the choices expected, as `a|b|...|`; consumes
-the validator.
-*/
+/**
+ * @brief Tells whether a validator lists the choices expected, and releases it.
+ *
+ * @param[in] _validator  the validator, consumed.
+ * @param[in] _expected   the choices expected, as `a|b|...|`.
+ * @return `true` when the listing ran to its end and gave the choices expected;
+ *         `false` otherwise.
+ *
+ * Whether a validator lists the choices expected, as `a|b|...|`; consumes
+ * the validator.
+ */
 static bool
 d_tests_arg_validator_listed(
     struct d_arg_validator _validator,
@@ -886,10 +945,15 @@ d_tests_arg_validator_listed(
              (same) );
 }
 
-/*
-d_tests_arg_validator_kinded
-  A validator of the caller's that completes as the kind given.
-*/
+/**
+ * @brief Makes a validator of the caller's that completes as the kind given.
+ *
+ * @param[in] _kind  the kind: 0, D_ARG_VALIDATOR_PATH,
+ *                   D_ARG_VALIDATOR_DIRECTORY, or D_ARG_VALIDATOR_NUMBER.
+ * @return the validator.
+ *
+ * A validator of the caller's that completes as the kind given.
+ */
 static struct d_arg_validator
 d_tests_arg_validator_kinded(
     uint32_t _kind
@@ -1038,10 +1102,11 @@ d_tests_arg_validator_copy(void)
                                    "bounded");
 
     struct d_arg_validator copy  = d_arg_validator_copy(&source);
-    const bool             named = ( (copy.status == D_ARG_OK)          &&
-                                     (copy.name != NULL)                &&
-                                     (copy.name != source.name)         &&
-                                     (strcmp(copy.name, "bounded") == 0) );
+    const bool             named = ( (copy.status == D_ARG_OK)  &&
+                                     (copy.name != NULL)        &&
+                                     (copy.name != source.name) &&
+                                     (strcmp(copy.name,
+                                             "bounded") == 0) );
 
     d_arg_validator_release(&source);
 

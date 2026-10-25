@@ -27,6 +27,10 @@
 *   - base()
 *   - the standard six relational operators
 *
+* levels: C++98 and up. Below C++11, operator- takes two reverse iterators
+* over one iterator type, as std's did in C++98: the mixed form needs
+* decltype to name its result.
+*
 * constexpr availability:
 *   - non-mutating ops (default ctor, value ctor, base, etc.) are
 *     `constexpr` on every tier from C++11+.
@@ -41,19 +45,14 @@
 * path:      /inc/re_std/iterator/reverse_iterator.hpp
 * link(s):   TBA
 * author(s): re_std contributors                             created: 2026.05.08
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef RE_STD_ITERATOR_REVERSE_ITERATOR_HPP
 #define RE_STD_ITERATOR_REVERSE_ITERATOR_HPP 1
 
-// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
-// (README rule 5; re_std omits rather than degrades). The owner's ruling:
-// compile at every level first; port to C++98 only where something needs it.
-#include "../config.hpp"  // RE_STD_* configuration
-#if RE_STD_LANG_IS_CPP11_OR_HIGHER
-
 // re_std
+#include "../config.hpp"  // RE_STD_* configuration
 #include "re_std/iterator/iterator_traits.hpp"
 
 
@@ -241,6 +240,12 @@ operator+(typename reverse_iterator<Iter>::difference_type _n,
     return reverse_iterator<Iter>(_r.base() - _n);
 }
 
+// operator-
+//   function: the distance between two reverse iterators. From C++11 their
+// iterator types may differ, as std's may, and the result is whatever
+// subtracting the bases gives; C++98 cannot name that type, so there both
+// have one iterator type, as std's had in C++98.
+#if RE_STD_LANG_IS_CPP11_OR_HIGHER
 template<typename A, typename B>
 RE_STD_CONSTEXPR auto operator-(const reverse_iterator<A>& _x,
                            const reverse_iterator<B>& _y)
@@ -248,6 +253,15 @@ RE_STD_CONSTEXPR auto operator-(const reverse_iterator<A>& _x,
 {
     return _y.base() - _x.base();
 }
+#else
+template<typename Iter>
+typename reverse_iterator<Iter>::difference_type
+operator-(const reverse_iterator<Iter>& _x,
+          const reverse_iterator<Iter>& _y)
+{
+    return _y.base() - _x.base();
+}
+#endif  // RE_STD_LANG_IS_CPP11_OR_HIGHER
 
 
 // ---- make_reverse_iterator ----
@@ -261,8 +275,6 @@ RE_STD_CONSTEXPR reverse_iterator<Iter> make_reverse_iterator(Iter _it)
 
 
 }  // re_std
-
-#endif  // floor, for now
 
 
 #endif  // RE_STD_ITERATOR_REVERSE_ITERATOR_HPP

@@ -15,7 +15,8 @@
 * MAJOR*10000 + MINOR*100 + PATCH, as in MARIADB_VERSION_ID.
 *   D_ENV_MARIADB_HAS_* are capability flags, D_ENV_MARIADB_VERSION_* the
 * version and its parts, and D_ENV_MARIADB_IS_* the release series. Sections 2
-* onward exist only when MariaDB is detected. Settings live in
+* onward read MariaDB when it is detected; without it, each of their macros is
+* defined as 0. Settings live in
 * cfg_env_mariadb.h; D_CFG_ENV_MARIADB_CUSTOM, or any pre-defined
 * D_ENV_MARIADB_DETECTED_*, switches to manual detection.
 *   MariaDB forked from MySQL 5.5. Its series: 5.5, the initial fork; 10.0,
@@ -24,13 +25,15 @@
 * and invisible columns; 10.4, instant ALTER and ed25519 authentication; 10.5,
 * the S3 engine, integrated ColumnStore and INET6; 10.6, an LTS release with
 * sys_schema; 10.7 to 10.11, incremental; 11.0, the first post-10.x series,
-* with breaking changes; and 11.1 to 11.4, current development and LTS.
+* with breaking changes; 11.1 to 11.8, among them the LTS releases 11.4 and
+* 11.8, and 11.6, whose server defaults to utf8mb4; and 12.x, whose 12.3 is
+* an LTS release. 10.6's support ended on 2026.07.06.
 *
 *
 * path:      /inc/djinterp/env/db/mariadb/env_mariadb.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -251,6 +254,10 @@ TABLE OF CONTENTS
 #define D_ENV_MARIADB_VERSION_11_2_0    110200
 #define D_ENV_MARIADB_VERSION_11_3_0    110300
 #define D_ENV_MARIADB_VERSION_11_4_0    110400
+#define D_ENV_MARIADB_VERSION_11_6_0    110600
+#define D_ENV_MARIADB_VERSION_11_8_0    110800
+#define D_ENV_MARIADB_VERSION_12_0_0    120000
+#define D_ENV_MARIADB_VERSION_12_3_0    120300
 
 // 1.2    Detected version
 //------------------------------------------------------------------------------
@@ -262,7 +269,7 @@ TABLE OF CONTENTS
 // (D_ENV_MARIADB_HEADER_INCLUDED, from env_mysql_common.h) and reads
 // MARIADB_VERSION_ID. Manual mode (D_CFG_ENV_MARIADB_CUSTOM) reads
 // D_ENV_MARIADB_DETECTED_VERSION, or one of D_ENV_MARIADB_DETECTED_5_5 to
-// _11_4.
+// _12_3.
 #if D_CFG_IS_OFF(D_CFG_ENV_MARIADB_CUSTOM)
 
     // automatic detection requires the MariaDB header to be in scope;
@@ -304,6 +311,22 @@ TABLE OF CONTENTS
         #define D_ENV_MARIADB_VERSION_PATCH                                    \
             D_ENV_MYSQL_COMMON_DECODE_PATCH(D_ENV_MARIADB_DETECTED_VERSION)
         #define D_ENV_MARIADB_VERSION_STRING   "manual"
+
+    #elif defined(D_ENV_MARIADB_DETECTED_12_3)
+        #define D_ENV_MARIADB_DETECTED         1
+        #define D_ENV_MARIADB_VERSION_ID       D_ENV_MARIADB_VERSION_12_3_0
+        #define D_ENV_MARIADB_VERSION_MAJOR    12
+        #define D_ENV_MARIADB_VERSION_MINOR    3
+        #define D_ENV_MARIADB_VERSION_PATCH    0
+        #define D_ENV_MARIADB_VERSION_STRING   "12.3.0"
+
+    #elif defined(D_ENV_MARIADB_DETECTED_11_8)
+        #define D_ENV_MARIADB_DETECTED         1
+        #define D_ENV_MARIADB_VERSION_ID       D_ENV_MARIADB_VERSION_11_8_0
+        #define D_ENV_MARIADB_VERSION_MAJOR    11
+        #define D_ENV_MARIADB_VERSION_MINOR    8
+        #define D_ENV_MARIADB_VERSION_PATCH    0
+        #define D_ENV_MARIADB_VERSION_STRING   "11.8.0"
 
     #elif defined(D_ENV_MARIADB_DETECTED_11_4)
         #define D_ENV_MARIADB_DETECTED         1
@@ -400,7 +423,8 @@ TABLE OF CONTENTS
 #endif  // D_CFG_ENV_MARIADB_CUSTOM
 
 
-// sections 2 to 17 exist only when D_ENV_MARIADB_DETECTED is 1; see 1.2.1
+// sections 2 to 17 read MariaDB when D_ENV_MARIADB_DETECTED is 1 (see
+// 1.2.1), and define each of their macros as 0 when it is not
 #if D_ENV_MARIADB_DETECTED
 
 
@@ -446,7 +470,8 @@ TABLE OF CONTENTS
     // 2.2.1
     // D_ENV_MARIADB_IS_<SERIES>
     //   macro: 1 if the detected version is in that release series: 5.5, 10.0
-    // to 10.6, 10.11 or 11.4. D_ENV_MARIADB_IS_11_PLUS covers 11.0 and later.
+    // to 10.6, 10.11, 11.4, 11.8 or 12.3. D_ENV_MARIADB_IS_11_PLUS covers 11.0
+    // and later, and D_ENV_MARIADB_IS_12_PLUS 12.0 and later.
     #define D_ENV_MARIADB_IS_5_5                                               \
         D_ENV_MARIADB_VERSION_IN_RANGE(5, 5, 0, 10, 0, 0)
     #define D_ENV_MARIADB_IS_10_0                                              \
@@ -469,18 +494,26 @@ TABLE OF CONTENTS
         D_ENV_MARIADB_VERSION_AT_LEAST(11, 0, 0)
     #define D_ENV_MARIADB_IS_11_4                                              \
         D_ENV_MARIADB_VERSION_IN_RANGE(11, 4, 0, 11, 5, 0)
+    #define D_ENV_MARIADB_IS_11_8                                              \
+        D_ENV_MARIADB_VERSION_IN_RANGE(11, 8, 0, 11, 9, 0)
+    #define D_ENV_MARIADB_IS_12_PLUS                                           \
+        D_ENV_MARIADB_VERSION_AT_LEAST(12, 0, 0)
+    #define D_ENV_MARIADB_IS_12_3                                              \
+        D_ENV_MARIADB_VERSION_IN_RANGE(12, 3, 0, 12, 4, 0)
 
 // 2.3    Release model
 //------------------------------------------------------------------------------
     // 2.3.1
     // D_ENV_MARIADB_IS_LTS
     //   macro: evaluates to 1 if this is a Long-Term Support release.
-    // MariaDB LTS releases: 10.6 (until 2026), 10.11 (until 2028),
-    // 11.4 (until 2029).
+    // MariaDB LTS releases: 10.6 (ended 2026.07.06), 10.11 (until 2028),
+    // 11.4 (until 2029), 11.8 (until 2028) and 12.3 (until 2029).
     #define D_ENV_MARIADB_IS_LTS                                               \
         ( (D_ENV_MARIADB_IS_10_6)  ||                                          \
           (D_ENV_MARIADB_IS_10_11) ||                                          \
-          (D_ENV_MARIADB_IS_11_4) )
+          (D_ENV_MARIADB_IS_11_4)  ||                                          \
+          (D_ENV_MARIADB_IS_11_8)  ||                                          \
+          (D_ENV_MARIADB_IS_12_3) )
 
 
 //==============================================================================
@@ -885,10 +918,11 @@ TABLE OF CONTENTS
 
     // 8.1.16
     // D_ENV_MARIADB_HAS_LATERAL_DERIVED
-    //   feature: LATERAL derived tables.
-    // Introduced in MariaDB 10.11 (partial), 11.0+ (full).
-    #define D_ENV_MARIADB_HAS_LATERAL_DERIVED                                  \
-        D_ENV_MARIADB_VERSION_AT_LEAST(11, 0, 0)
+    //   feature: LATERAL derived tables, which no MariaDB release has: the
+    // keyword is MDEV-19078's, still open (2026.10.21). MariaDB's "lateral
+    // derived" optimization (10.3) rewrites a grouped derived table, without
+    // the syntax.
+    #define D_ENV_MARIADB_HAS_LATERAL_DERIVED 0
 
 
 //==============================================================================
@@ -1091,10 +1125,11 @@ TABLE OF CONTENTS
 
     // 12.1.2
     // D_ENV_MARIADB_DEFAULT_CHARSET_IS_UTF8MB4
-    //   status: not yet the default in MariaDB. MariaDB still defaults
-    // to latin1 as of 11.4 (server-level), though many distributions
-    // override this.
-    #define D_ENV_MARIADB_DEFAULT_CHARSET_IS_UTF8MB4 0
+    //   status: 1 from 11.6, whose server defaults to utf8mb4 (with
+    // utf8mb4_uca1400_ai_ci); before it the default is latin1, which many
+    // distributions override in their configuration.
+    #define D_ENV_MARIADB_DEFAULT_CHARSET_IS_UTF8MB4                           \
+        D_ENV_MARIADB_VERSION_AT_LEAST(11, 6, 0)
 
     // 12.1.3
     // D_ENV_MARIADB_HAS_UTF8MB4_UNICODE_520
@@ -1359,6 +1394,158 @@ TABLE OF CONTENTS
         D_ENV_MARIADB_VERSION_AT_LEAST(11, 0, 0)
 
 
+#else
+    // decision 92 of the register: without MariaDB, every macro sections
+    // 2 to 17 define is defined, as 0, the comparisons for any version among
+    // them, so that #if and code may read each whatever the build; a flag
+    // a build may pre-define keeps its value
+    #define D_ENV_MARIADB_VERSION_AT_LEAST(major, minor, patch) 0
+    #define D_ENV_MARIADB_VERSION_BELOW(major, minor, patch) 0
+    #define D_ENV_MARIADB_VERSION_EXACT(major, minor, patch) 0
+    #define D_ENV_MARIADB_VERSION_IN_RANGE(min_maj,                            \
+                                           min_min,                            \
+                                           min_pat,                            \
+                                           max_maj,                            \
+                                           max_min,                            \
+                                           max_pat) 0
+    #define D_ENV_MARIADB_IS_5_5 0
+    #define D_ENV_MARIADB_IS_10_0 0
+    #define D_ENV_MARIADB_IS_10_1 0
+    #define D_ENV_MARIADB_IS_10_2 0
+    #define D_ENV_MARIADB_IS_10_3 0
+    #define D_ENV_MARIADB_IS_10_4 0
+    #define D_ENV_MARIADB_IS_10_5 0
+    #define D_ENV_MARIADB_IS_10_6 0
+    #define D_ENV_MARIADB_IS_10_11 0
+    #define D_ENV_MARIADB_IS_11_PLUS 0
+    #define D_ENV_MARIADB_IS_11_4 0
+    #define D_ENV_MARIADB_IS_11_8 0
+    #define D_ENV_MARIADB_IS_12_PLUS 0
+    #define D_ENV_MARIADB_IS_12_3 0
+    #define D_ENV_MARIADB_IS_LTS 0
+    #define D_ENV_MARIADB_HAS_CLIENT_LIB 0
+    #ifndef D_ENV_MARIADB_HAS_CONNECTOR_C
+        #define D_ENV_MARIADB_HAS_CONNECTOR_C 0
+    #endif  // D_ENV_MARIADB_HAS_CONNECTOR_C
+    #ifndef D_ENV_MARIADB_HAS_EMBEDDED
+        #define D_ENV_MARIADB_HAS_EMBEDDED 0
+    #endif  // D_ENV_MARIADB_HAS_EMBEDDED
+    #ifndef D_ENV_MARIADB_HAS_ASYNC_API
+        #define D_ENV_MARIADB_HAS_ASYNC_API 0
+    #endif  // D_ENV_MARIADB_HAS_ASYNC_API
+    #define D_ENV_MARIADB_HAS_RESET_CONNECTION 0
+    #define D_ENV_MARIADB_HAS_SESSION_TRACK 0
+    #define D_ENV_MARIADB_HAS_GET_OPTION 0
+    #define D_ENV_MARIADB_HAS_STMT_NEXT_RESULT 0
+    #ifndef D_ENV_MARIADB_HAS_SSL
+        #define D_ENV_MARIADB_HAS_SSL 0
+    #endif  // D_ENV_MARIADB_HAS_SSL
+    #define D_ENV_MARIADB_HAS_TLS_VERSION_OPTION 0
+    #define D_ENV_MARIADB_HAS_REQUIRE_SECURE_TRANSPORT 0
+    #define D_ENV_MARIADB_HAS_AUTH_NATIVE 0
+    #define D_ENV_MARIADB_HAS_PLUGGABLE_AUTH 0
+    #define D_ENV_MARIADB_HAS_AUTH_ED25519 0
+    #define D_ENV_MARIADB_DEFAULT_AUTH_IS_ED25519 0
+    #define D_ENV_MARIADB_HAS_AUTH_PAM 0
+    #define D_ENV_MARIADB_HAS_AUTH_PAM_V2 0
+    #define D_ENV_MARIADB_HAS_AUTH_GSSAPI 0
+    #ifndef D_ENV_MARIADB_HAS_UNIX_SOCKET_AUTH
+        #define D_ENV_MARIADB_HAS_UNIX_SOCKET_AUTH 0
+    #endif  // D_ENV_MARIADB_HAS_UNIX_SOCKET_AUTH
+    #define D_ENV_MARIADB_UNIX_SOCKET_AUTH_IS_DEFAULT 0
+    #define D_ENV_MARIADB_HAS_AUTH_HASHICORP 0
+    #define D_ENV_MARIADB_HAS_INNODB 0
+    #define D_ENV_MARIADB_HAS_MYISAM 0
+    #define D_ENV_MARIADB_HAS_MEMORY_ENGINE 0
+    #define D_ENV_MARIADB_HAS_ARCHIVE_ENGINE 0
+    #define D_ENV_MARIADB_HAS_CSV_ENGINE 0
+    #define D_ENV_MARIADB_HAS_BLACKHOLE_ENGINE 0
+    #define D_ENV_MARIADB_HAS_ARIA 0
+    #ifndef D_ENV_MARIADB_HAS_COLUMNSTORE
+        #define D_ENV_MARIADB_HAS_COLUMNSTORE 0
+    #endif  // D_ENV_MARIADB_HAS_COLUMNSTORE
+    #define D_ENV_MARIADB_HAS_SPIDER 0
+    #define D_ENV_MARIADB_HAS_S3_ENGINE 0
+    #define D_ENV_MARIADB_HAS_CONNECT_ENGINE 0
+    #define D_ENV_MARIADB_HAS_MROONGA 0
+    #define D_ENV_MARIADB_HAS_SEQUENCE_ENGINE 0
+    #define D_ENV_MARIADB_HAS_FEDERATEDX 0
+    #define D_ENV_MARIADB_HAS_ROCKSDB 0
+    #define D_ENV_MARIADB_HAS_SEQUENCES 0
+    #define D_ENV_MARIADB_HAS_SYSTEM_VERSIONED_TABLES 0
+    #define D_ENV_MARIADB_HAS_APPLICATION_TIME_PERIODS 0
+    #define D_ENV_MARIADB_HAS_RETURNING 0
+    #define D_ENV_MARIADB_HAS_INTERSECT 0
+    #define D_ENV_MARIADB_HAS_WINDOW_FUNCTIONS 0
+    #define D_ENV_MARIADB_HAS_CTE 0
+    #define D_ENV_MARIADB_HAS_CHECK_CONSTRAINTS 0
+    #define D_ENV_MARIADB_HAS_DEFAULT_EXPRESSION 0
+    #define D_ENV_MARIADB_HAS_INVISIBLE_COLUMNS 0
+    #define D_ENV_MARIADB_HAS_GENERATED_COLUMNS 0
+    #define D_ENV_MARIADB_HAS_ORACLE_MODE 0
+    #define D_ENV_MARIADB_HAS_ADD_PERIOD_FOR 0
+    #define D_ENV_MARIADB_HAS_SKIP_LOCKED 0
+    #define D_ENV_MARIADB_HAS_NATURAL_SORT 0
+    #define D_ENV_MARIADB_HAS_LATERAL_DERIVED 0
+    #define D_ENV_MARIADB_HAS_JSON_TYPE 0
+    #define D_ENV_MARIADB_JSON_IS_ALIAS 0
+    #define D_ENV_MARIADB_HAS_JSON_TABLE 0
+    #define D_ENV_MARIADB_HAS_JSON_ARRAYAGG 0
+    #define D_ENV_MARIADB_HAS_GEOMETRY_TYPES 0
+    #define D_ENV_MARIADB_HAS_INET6_TYPE 0
+    #define D_ENV_MARIADB_HAS_UUID_TYPE 0
+    #define D_ENV_MARIADB_HAS_DESCENDING_INDEX 0
+    #define D_ENV_MARIADB_HAS_INNODB_FULLTEXT 0
+    #define D_ENV_MARIADB_HAS_INNODB_ONLINE_DDL 0
+    #define D_ENV_MARIADB_HAS_INNODB_INSTANT_DDL 0
+    #define D_ENV_MARIADB_HAS_INNODB_TABLESPACE_ENCRYPTION 0
+    #define D_ENV_MARIADB_HAS_INNODB_PAGE_COMPRESSION 0
+    #define D_ENV_MARIADB_HAS_INNODB_SPATIAL_INDEX 0
+    #define D_ENV_MARIADB_HAS_INNODB_UNDO_TRUNCATION 0
+    #define D_ENV_MARIADB_HAS_GTID 0
+    #define D_ENV_MARIADB_HAS_GALERA 0
+    #define D_ENV_MARIADB_HAS_GALERA_4 0
+    #define D_ENV_MARIADB_HAS_SEMI_SYNC_REPL 0
+    #define D_ENV_MARIADB_HAS_MULTI_SOURCE_REPL 0
+    #define D_ENV_MARIADB_HAS_PARALLEL_REPL 0
+    #define D_ENV_MARIADB_HAS_DELAYED_REPL 0
+    #define D_ENV_MARIADB_HAS_MARIADB_BACKUP 0
+    #define D_ENV_MARIADB_HAS_FLASHBACK 0
+    #define D_ENV_MARIADB_HAS_UTF8MB4 0
+    #define D_ENV_MARIADB_DEFAULT_CHARSET_IS_UTF8MB4 0
+    #define D_ENV_MARIADB_HAS_UTF8MB4_UNICODE_520 0
+    #define D_ENV_MARIADB_HAS_UCA_14 0
+    #define D_ENV_MARIADB_UTF8_IS_UTF8MB3 0
+    #define D_ENV_MARIADB_HAS_OPTIMIZER_HINTS 0
+    #define D_ENV_MARIADB_HAS_HISTOGRAM_STATS 0
+    #define D_ENV_MARIADB_HAS_CONDITION_PUSHDOWN 0
+    #define D_ENV_MARIADB_HAS_EXPLAIN_ANALYZE 0
+    #define D_ENV_MARIADB_HAS_EXPLAIN_FORMAT_JSON 0
+    #define D_ENV_MARIADB_HAS_PERFORMANCE_SCHEMA 0
+    #define D_ENV_MARIADB_HAS_SYS_SCHEMA 0
+    #define D_ENV_MARIADB_HAS_QUERY_RESPONSE_TIME 0
+    #define D_ENV_MARIADB_HAS_THREADPOOL 0
+    #define D_ENV_MARIADB_HAS_ROLES 0
+    #define D_ENV_MARIADB_HAS_ACCOUNT_LOCKING 0
+    #define D_ENV_MARIADB_HAS_PASSWORD_EXPIRY 0
+    #define D_ENV_MARIADB_HAS_DATA_AT_REST_ENCRYPTION 0
+    #define D_ENV_MARIADB_HAS_KEY_MANAGEMENT_PLUGINS 0
+    #define D_ENV_MARIADB_HAS_AUDIT_PLUGIN 0
+    #define D_ENV_MARIADB_HAS_ATOMIC_DDL 0
+    #define D_ENV_MARIADB_HAS_UNIX_SOCKET_CONN 0
+    #define D_ENV_MARIADB_HAS_NAMED_PIPE 0
+    #define D_ENV_MARIADB_HAS_SHARED_MEMORY 0
+    #define D_ENV_MARIADB_HAS_MODERN_SQL 0
+    #define D_ENV_MARIADB_HAS_MODERN_AUTH 0
+    #define D_ENV_MARIADB_HAS_MODERN_DDL 0
+    #define D_ENV_MARIADB_HAS_HA_SUITE 0
+    #define D_ENV_MARIADB_HAS_MODERN_SECURITY 0
+    #define D_ENV_MARIADB_IS_FULLY_MODERN 0
+    #define D_ENV_MARIADB_REMOVED_EMBEDDED_SERVER 0
+    #define D_ENV_MARIADB_REMOVED_TOKUDB 0
+    #define D_ENV_MARIADB_REMOVED_CASSANDRA_ENGINE 0
+    #define D_ENV_MARIADB_DEPRECATED_QUERY_CACHE 0
+    #define D_ENV_MARIADB_REMOVED_QUERY_CACHE 0
 #endif  // D_ENV_MARIADB_DETECTED
 
 

@@ -15,6 +15,10 @@
 * set, the layer leaves that parameter to it, and PGOPTIONS follows the
 * layer's own startup option, so that its -c settings, client_min_messages
 * among them, come last and win.
+*   No knob: the startup option sets extra_float_digits to 3 as well, so that
+* a double a server before 12 writes reads back exactly; where options of
+* the caller's replace the layer's and do not name it, the layer sets it on
+* the connection before handing it back.
 *
 *   targets:  c/db/postgres/postgres_connection.h, postgres_connection.c ->
 *             D_INTERNAL_POSTGRES_CONNECT_TIMEOUT, _CLIENT_ENCODING,
@@ -25,7 +29,7 @@
 * path:      /inc/djinterp/config/c/db/postgres/cfg_postgres_connection.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*

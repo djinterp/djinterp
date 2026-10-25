@@ -1118,24 +1118,24 @@ public:
     // _impl methods (defined in db2.cpp)
     // -----------------------------------------------------------------
 
-    void         connect_helper();
-    void         disconnect_helper();
-    bool         is_connected_helper() const;
-    bool         ping_helper() const;
+    void         connect_impl();
+    void         disconnect_impl();
+    bool         is_connected_impl() const;
+    bool         ping_impl() const;
 
-    auto         execute_query_helper(const std::string& _query)
+    auto         execute_query_impl(const std::string& _query)
                      -> std::unique_ptr<
                          result_set<struct db2_result_set_impl>>;
-    re_std::int64_t execute_update_helper(const std::string& _query);
-    bool         execute_helper(const std::string& _query);
+    re_std::int64_t execute_update_impl(const std::string& _query);
+    bool         execute_impl(const std::string& _query);
 
     auto         prepare_impl(const std::string& _query)
                      -> std::unique_ptr<
                          statement<struct db2_statement_impl>>;
 
-    std::string  get_server_version_helper() const;
-    std::string  get_last_error_helper() const;
-    int          get_last_error_code_helper() const;
+    std::string  get_server_version_impl() const;
+    std::string  get_last_error_impl() const;
+    int          get_last_error_code_impl() const;
     re_std::int64_t get_last_insert_id_impl() const;
     re_std::int64_t get_affected_rows_impl() const;
 

@@ -3,7 +3,8 @@
 *
 * What the tools ask of a file system that ISO C cannot answer.
 *   Three questions: what a path names, what a directory holds, and what the
-* full name of a path is. ISO C has a file and no directory, so each has a
+* full name of a path is; and one thing to do: make a directory, and the
+* directories above it. ISO C has a file and no directory, so each has a
 * POSIX answer and a Windows one, and this is the one unit of the tools that
 * holds both: every other unit is ISO C and asks here.
 *   A path is bytes, in the encoding the system's narrow interface takes, with
@@ -13,7 +14,7 @@
 * path:      /inc/djinterp/tools/dawk/dfs.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.10
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -92,6 +93,20 @@ bool           d_fs_names(const char* _directory,
  */
 void           d_fs_names_free(char** _names,
                                size_t _count);
+/**
+ * @brief Makes a directory, and every directory it is in that is missing.
+ *
+ * @note A directory already there is left as it is. `/` and `\` both
+ *       separate on Windows; on POSIX only `/` does.
+ *
+ * @param[in] _path  the directory.
+ * @return `true` when the directory is there afterwards; `false` when it
+ *         could not be made, or `_path` is `NULL` or empty.
+ */
+bool           d_fs_make_directory(const char* _path);
+// d_fs_make_parent makes the directory a file's path names, as
+// d_fs_make_directory does: everything before its last separator.
+bool           d_fs_make_parent(const char* _path);
 
 // 1.3    Paths
 //------------------------------------------------------------------------------

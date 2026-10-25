@@ -39,18 +39,46 @@ set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/core/filesys")
 # .cpp in THIS config directory, so neither is matched here.
 file(GLOB _sections CONFIGURE_DEPENDS "${_tests_dir}/file_tests_*.cpp")
 
+# What the C++ layer stands on, which djinterp_c_runtime does not carry: the C
+# layer, and the text and memory support its path type uses.
+file(GLOB _c_layer CONFIGURE_DEPENDS "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/*.c")
+set(_support
+    "${DJINTERP_SRC_ROOT}/djinterp/c/dstring.c"
+    "${DJINTERP_SRC_ROOT}/djinterp/c/memory/dmemory.c"
+    "${DJINTERP_SRC_ROOT}/djinterp/c/string_fn.c")
+
 # Guard against an older hand-rolled entry point being swept in beside the
 # runner: two main()s collide at link.
-list(FILTER _sections EXCLUDE REGEX "_main\\.cpp$")
+# file_tests_sa.cpp is one of the standalone programs below, with a main()
+# of its own
+list(FILTER _sections EXCLUDE REGEX "_(main|sa)\\.cpp$")
 
 djinterp_add_test_executable(file_tests
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/file_tests_runner.cpp"
         ${_sections}
+        ${_c_layer}
+        ${_support}
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/core/filesys"
         "${_tests_dir}")
 
 # Group target over this leaf and any future ones under core/fs. The name is
 # globally unique, as aggregates must be.
+# The standalone programs: one per header, and file_tests_sa.cpp over all of
+# them. Each carries its own main() and assertions.
+file(GLOB _programs CONFIGURE_DEPENDS "${_tests_dir}/file_*tests_sa.cpp")
+
+foreach(_program ${_programs})
+    get_filename_component(_stem "${_program}" NAME_WE)
+
+    djinterp_add_test_executable(core_${_stem}
+        SOURCES
+            "${_program}"
+            ${_c_layer}
+            ${_support}
+        INCLUDES
+            "${DJINTERP_INC_ROOT}/djinterp/core/filesys")
+endforeach()
+
 djinterp_add_test_subtree(all_djinterp_core_filesys)

@@ -28,12 +28,13 @@
 * path:      /tests/djinterp/c/db/sqlite/t_sqlite.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // std
 #include <limits.h>  // INT_MAX
 #include <math.h>    // NAN
 #include <stdio.h>   // FILE, fopen, fputs, printf, remove, snprintf
+#include <stdlib.h>  // getenv
 #include <string.h>  // memcmp, memset, strchr, strcmp, strlen, strstr
 #if !defined(_WIN32)
     #include <unistd.h>  // symlink
@@ -150,22 +151,22 @@ d_tests_sqlite_every_type[] =
 {
     { "c_id",   D_DB_TYPE_BIG_INTEGER,
       D_DB_COLUMN_PRIMARY_KEY | D_DB_COLUMN_AUTO_INCREMENT,
-      NULL, 0u, 0u, NULL },
-    { "c_none", D_DB_TYPE_NONE,           0u, NULL, 0u, 0u, NULL },
+      NULL, 0u, 0u, NULL, 0u },
+    { "c_none", D_DB_TYPE_NONE,           0u, NULL, 0u, 0u, NULL, 0u },
     { "c_bool", D_DB_TYPE_BOOLEAN,        D_DB_COLUMN_NOT_NULL,
-      "0", 0u, 0u, NULL },
+      "0", 0u, 0u, NULL, 0u },
     { "c_int",  D_DB_TYPE_INTEGER,        D_DB_COLUMN_UNIQUE,
-      NULL, 0u, 0u, NULL },
-    { "c_real", D_DB_TYPE_FLOATING_POINT, 0u, "1.5", 0u, 0u, NULL },
-    { "c_dec",  D_DB_TYPE_DECIMAL,        0u, NULL, 10u, 2u, NULL },
-    { "c_str",  D_DB_TYPE_STRING,         0u, "'it''s'", 64u, 0u, NULL },
-    { "c_bin",  D_DB_TYPE_BINARY,         0u, NULL, 0u, 0u, NULL },
-    { "c_date", D_DB_TYPE_DATE,           0u, NULL, 0u, 0u, NULL },
+      NULL, 0u, 0u, NULL, 0u },
+    { "c_real", D_DB_TYPE_FLOATING_POINT, 0u, "1.5", 0u, 0u, NULL, 0u },
+    { "c_dec",  D_DB_TYPE_DECIMAL,        0u, NULL, 10u, 2u, NULL, 0u },
+    { "c_str",  D_DB_TYPE_STRING,         0u, "'it''s'", 64u, 0u, NULL, 0u },
+    { "c_bin",  D_DB_TYPE_BINARY,         0u, NULL, 0u, 0u, NULL, 0u },
+    { "c_date", D_DB_TYPE_DATE,           0u, NULL, 0u, 0u, NULL, 0u },
     { "c_ts",   D_DB_TYPE_TIMESTAMP,      0u,
-      "CURRENT_TIMESTAMP", 0u, 0u, NULL },
-    { "c_json", D_DB_TYPE_JSON,           0u, NULL, 0u, 0u, NULL },
+      "CURRENT_TIMESTAMP", 0u, 0u, NULL, 0u },
+    { "c_json", D_DB_TYPE_JSON,           0u, NULL, 0u, 0u, NULL, 0u },
     { "c_own",  D_DB_TYPE_NONE,           0u, NULL, 0u, 0u,
-      "VARCHAR(20)" }
+      "VARCHAR(20)", 0u }
 };
 
 // d_tests_sqlite_composite
@@ -173,9 +174,20 @@ d_tests_sqlite_every_type[] =
 static const struct d_db_column
 d_tests_sqlite_composite[] =
 {
-    { "a", D_DB_TYPE_STRING,  D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL },
-    { "b", D_DB_TYPE_INTEGER, D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL },
-    { "c", D_DB_TYPE_JSON,    0u,                      NULL, 0u, 0u, NULL }
+    { "a", D_DB_TYPE_STRING,  D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL, 0u },
+    { "b", D_DB_TYPE_INTEGER, D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL, 0u },
+    { "c", D_DB_TYPE_JSON,    0u,                      NULL, 0u, 0u, NULL, 0u }
+};
+
+// d_tests_sqlite_ordered
+//   table: a composite key whose places order it b, a: otherwise than the
+// table.
+static const struct d_db_column
+d_tests_sqlite_ordered[] =
+{
+    { "a", D_DB_TYPE_INTEGER, D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL, 2u },
+    { "b", D_DB_TYPE_INTEGER, D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL, 1u },
+    { "c", D_DB_TYPE_INTEGER, 0u,                      NULL, 0u, 0u, NULL, 0u }
 };
 
 /*
@@ -339,6 +351,87 @@ d_tests_sqlite_find_column(
 }
 
 /*
+d_tests_sqlite_same_page
+  Whether a page of rows read a few at a time holds the columns of the rows
+read all at once, and `_count` of their rows from `_first`, value for value.
+*/
+static bool
+d_tests_sqlite_same_page(
+    const struct d_db_rows* _page,
+    const struct d_db_rows* _all,
+    size_t                  _first,
+    size_t                  _count
+)
+{
+    // the same columns, and as many rows as expected
+    if ( (_page->column_count != _all->column_count) ||
+         (_page->row_count != _count)                ||
+         ((_first + _count) > _all->row_count) )
+    {
+        return false;
+    }
+
+    for (size_t c = 0u; c < _all->column_count; ++c)
+    {
+        // a column named or typed otherwise
+        if ( (strcmp(_page->columns[c].name, _all->columns[c].name) != 0) ||
+             (_page->columns[c].type != _all->columns[c].type)            ||
+             (strcmp(_page->columns[c].type_name,
+                     _all->columns[c].type_name) != 0) )
+        {
+            return false;
+        }
+    }
+
+    // the same values, row by row
+    for (size_t i = 0u; i < (_count * _all->column_count); ++i)
+    {
+        const struct d_db_value* const got  = &_page->values[i];
+        const struct d_db_value* const want =
+            &_all->values[(_first * _all->column_count) + i];
+        bool                           same = ( (got->type == want->type) &&
+                                                (got->size == want->size) );
+
+        // the value itself, as its type holds it
+        if (same)
+        {
+            switch (got->type)
+            {
+                case D_DB_VALUE_INTEGER:
+                    same = (got->as.integer == want->as.integer);
+
+                    break;
+
+                case D_DB_VALUE_REAL:
+                    same = (memcmp(&got->as.real,
+                                   &want->as.real,
+                                   sizeof(double)) == 0);
+
+                    break;
+
+                case D_DB_VALUE_TEXT:
+                case D_DB_VALUE_BLOB:
+                    same = (memcmp(got->as.blob, want->as.blob, got->size) ==
+                            0);
+
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        // the first difference ends the comparison
+        if (!same)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/*
 d_tests_sqlite_probe
   Whether SQL needing a feature runs, in a fresh in-memory database opened
 natively, so that nothing the layer does is involved.
@@ -497,7 +590,8 @@ d_tests_sqlite_db_common(
                           (D_DB_MISMATCH != D_DB_NOT_FOUND)        &&
                           (D_DB_MISMATCH != D_DB_INVALID_ARGUMENT) );
     D_TESTS_SQLITE_CHECK(d_db_status_message(D_DB_MISMATCH) != NULL);
-    D_TESTS_SQLITE_CHECK(d_db_status_message(D_DB_MISMATCH - 1) == NULL);
+    D_TESTS_SQLITE_CHECK(d_db_status_message(D_DB_WAIT) != NULL);
+    D_TESTS_SQLITE_CHECK(d_db_status_message(D_DB_WAIT - 1) == NULL);
     D_TESTS_SQLITE_CHECK(
         (D_DB_IF_NOT_EXISTS | D_DB_IF_EXISTS | D_DB_UNIQUE) <
         D_DB_VENDOR_FLAGS);
@@ -1015,6 +1109,8 @@ d_tests_sqlite_features
   - every SQL-testable feature: d_sqlite_supports agrees with SQL that needs
     it, in a database the layer never touched
   - the version-only features agree with their releases
+  - WAL as the build says (OMIT_WAL); encryption, which no build here has;
+    the threading level, sqlite3_threadsafe's
   - a value outside the enumeration is no feature
 */
 static void
@@ -1053,6 +1149,11 @@ d_tests_sqlite_features(
                          d_tests_sqlite_at_least(3, 18, 0));
     D_TESTS_SQLITE_CHECK(d_sqlite_supports(D_SQLITE_FEATURE_VACUUM_INTO) ==
                          d_tests_sqlite_at_least(3, 27, 0));
+    D_TESTS_SQLITE_CHECK(d_sqlite_supports(D_SQLITE_FEATURE_WAL) ==
+                         (sqlite3_compileoption_used("OMIT_WAL") == 0));
+    D_TESTS_SQLITE_CHECK(!d_sqlite_supports(D_SQLITE_FEATURE_ENCRYPTION));
+    D_TESTS_SQLITE_CHECK(d_sqlite_library_threadsafe() ==
+                         sqlite3_threadsafe());
     D_TESTS_SQLITE_CHECK(!d_sqlite_supports((enum d_sqlite_feature)999));
     D_TESTS_SQLITE_CHECK(!d_sqlite_supports((enum d_sqlite_feature)-1));
 
@@ -1454,6 +1555,162 @@ d_tests_sqlite_rows_changed(
         SQLITE_OK);
     D_TESTS_SQLITE_CHECK(d_sqlite_changes(db) == 3);
     D_TESTS_SQLITE_CHECK(d_sqlite_total_changes(db) == 6);
+    D_TESTS_SQLITE_CHECK(d_sqlite_close(db) == SQLITE_OK);
+
+    return;
+}
+
+/*
+d_tests_sqlite_extensions
+  Extensions loaded from shared libraries.
+  Tests the following:
+  - supports says what the library has, the build being one that calls it
+  - a library that is not there: SQLITE_ERROR, and SQLite's words for it
+  - with the test extension (DJINTERP_TEST_SQLITE_EXTENSION, which
+    ci/check_db_sqlite.sh builds): loaded by its default entry point, its
+    function there; by a named one, its second function too; an entry point
+    it does not have, refused with words; from 3.13.0, SQL's load_extension
+    still off after a load, and on once enable_load_extension turns it on,
+    and the C API loading again once it is turned off; before 3.13.0, the
+    C API refused until loading is on
+  - misuse: a NULL connection or path
+*/
+static void
+d_tests_sqlite_extensions(
+    void
+)
+{
+    const char* const extension = getenv("DJINTERP_TEST_SQLITE_EXTENSION");
+    const bool        separate  = d_tests_sqlite_at_least(3, 13, 0);
+    char*             message   = NULL;
+    sqlite3*          db        = NULL;
+
+    printf("sqlite_connection: extensions (%s)\n",
+           ( (extension) && (extension[0] != '\0') ) ? extension
+                                                     : "none built");
+
+    D_TESTS_SQLITE_CHECK(d_sqlite_supports(D_SQLITE_FEATURE_LOAD_EXTENSION) ==
+                         (sqlite3_compileoption_used("OMIT_LOAD_EXTENSION") ==
+                          0));
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_load_extension(NULL, "x", NULL, &message) == SQLITE_MISUSE);
+    D_TESTS_SQLITE_CHECK(message == NULL);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_load_extension(db, NULL, NULL, &message) == SQLITE_MISUSE);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_enable_load_extension(NULL, true) == SQLITE_MISUSE);
+
+    // a library that is not there, where loading is possible at all
+    if (d_sqlite_supports(D_SQLITE_FEATURE_LOAD_EXTENSION))
+    {
+        // before 3.13.0 the C API needs loading on
+        if (!separate)
+        {
+            D_TESTS_SQLITE_CHECK(d_sqlite_load_extension(db,
+                                                         "t_sqlite_nothing",
+                                                         NULL,
+                                                         &message) ==
+                                 SQLITE_ERROR);
+            d_db_free(message);
+            D_TESTS_SQLITE_CHECK(
+                d_sqlite_enable_load_extension(db, true) == SQLITE_OK);
+        }
+
+        D_TESTS_SQLITE_CHECK(d_sqlite_load_extension(db,
+                                                     "t_sqlite_no/such_lib",
+                                                     NULL,
+                                                     &message) ==
+                             SQLITE_ERROR);
+        D_TESTS_SQLITE_CHECK( (message != NULL) &&
+                              (message[0] != '\0') );
+        d_db_free(message);
+        message = NULL;
+    }
+    else
+    {
+        D_TESTS_SQLITE_CHECK(
+            d_sqlite_load_extension(db, "x", NULL, &message) ==
+            D_DB_UNSUPPORTED);
+        D_TESTS_SQLITE_CHECK(
+            d_sqlite_enable_load_extension(db, true) == D_DB_UNSUPPORTED);
+    }
+
+    D_TESTS_SQLITE_CHECK(d_sqlite_close(db) == SQLITE_OK);
+
+    // the test extension, where it was built and loading is possible
+    if ( (!extension)                                         ||
+         (extension[0] == '\0')                               ||
+         (!d_sqlite_supports(D_SQLITE_FEATURE_LOAD_EXTENSION)) )
+    {
+        return;
+    }
+
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
+
+    // before 3.13.0 the C API needs loading on, which lets SQL load too
+    if (!separate)
+    {
+        D_TESTS_SQLITE_CHECK(
+            d_sqlite_enable_load_extension(db, true) == SQLITE_OK);
+    }
+
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_load_extension(db, extension, NULL, &message) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(message == NULL);
+    D_TESTS_SQLITE_CHECK(
+        d_tests_sqlite_int(db, "SELECT d_tests_answer()") == 42);
+    D_TESTS_SQLITE_CHECK(
+        d_tests_sqlite_int(db, "SELECT d_tests_named()") == -999);
+    D_TESTS_SQLITE_CHECK(d_sqlite_load_extension(db,
+                                                 extension,
+                                                 "d_tests_no_such_init",
+                                                 &message) == SQLITE_ERROR);
+    D_TESTS_SQLITE_CHECK( (message != NULL) &&
+                          (message[0] != '\0') );
+    d_db_free(message);
+    message = NULL;
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_load_extension(db,
+                                extension,
+                                "d_tests_sqlite_extension_init",
+                                NULL) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_tests_sqlite_int(db, "SELECT d_tests_named()") == 7);
+
+    // SQL's switch, apart from the C API's, from 3.13.0
+    if (separate)
+    {
+        sqlite3* other = NULL;
+        char     sql[1200] = "";
+
+        (void)snprintf(sql,
+                       sizeof(sql),
+                       "SELECT load_extension('%s')",
+                       extension);
+        D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&other) == SQLITE_OK);
+        D_TESTS_SQLITE_CHECK(
+            sqlite3_exec(other, sql, NULL, NULL, NULL) == SQLITE_ERROR);
+        D_TESTS_SQLITE_CHECK(
+            d_sqlite_enable_load_extension(other, true) == SQLITE_OK);
+        D_TESTS_SQLITE_CHECK(
+            sqlite3_exec(other, sql, NULL, NULL, NULL) == SQLITE_OK);
+        D_TESTS_SQLITE_CHECK(
+            d_tests_sqlite_int(other, "SELECT d_tests_answer()") == 42);
+        D_TESTS_SQLITE_CHECK(
+            d_sqlite_enable_load_extension(other, false) == SQLITE_OK);
+        D_TESTS_SQLITE_CHECK(
+            sqlite3_exec(other, sql, NULL, NULL, NULL) == SQLITE_ERROR);
+        D_TESTS_SQLITE_CHECK(
+            d_sqlite_load_extension(other,
+                                    extension,
+                                    "d_tests_sqlite_extension_init",
+                                    NULL) == SQLITE_OK);
+        D_TESTS_SQLITE_CHECK(
+            d_tests_sqlite_int(other, "SELECT d_tests_named()") == 7);
+        D_TESTS_SQLITE_CHECK(d_sqlite_close(other) == SQLITE_OK);
+    }
+
     D_TESTS_SQLITE_CHECK(d_sqlite_close(db) == SQLITE_OK);
 
     return;
@@ -2739,12 +2996,218 @@ d_tests_sqlite_running(
 }
 
 /*
+d_tests_sqlite_cursors
+  Rows a few at a time.
+  Tests the following:
+  - each fetch returns the columns, named and typed as execute_query's are,
+    and the next rows, no more than asked for, each value as execute_query
+    reads it
+  - a short page ends the run, the statement reset: the next fetch begins
+    another, from the first row
+  - rows that fill their last page exactly end with an empty page, which
+    still describes the columns; a query finding no rows describes them too
+  - part-way through a run its values cannot change: binding one or clearing
+    them is SQLITE_MISUSE, and the run goes on; between runs they rebind
+  - between fetches the connection runs other statements, reading and
+    writing, and the run goes on where it stopped
+  - a statement without rows runs on the first fetch, not on opening; a
+    further fetch runs it again
+  - execute_query part-way through a run ends it and begins another;
+    close_cursor ends one part-way, and the next fetch starts over
+  - a step failing part-way through a run is SQLite's code, described on the
+    connection, writes no rows, and ends the run; a good run follows
+*/
+static void
+d_tests_sqlite_cursors(
+    void
+)
+{
+    sqlite3*             db     = NULL;
+    struct sqlite3_stmt* select = NULL;
+    struct sqlite3_stmt* insert = NULL;
+    struct d_db_rows     all    = { 0u, 0u, NULL, NULL };
+    struct d_db_rows     rows   = { 0u, 0u, NULL, NULL };
+    struct d_db_rows     marker = { 7u, 7u, NULL, NULL };
+
+    printf("sqlite_statement: rows a few at a time\n");
+
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_exec(db,
+                      "CREATE TABLE k(id INTEGER PRIMARY KEY, v TEXT, r REAL, "
+                      "b BLOB);"
+                      "CREATE TABLE log(n);"
+                      "INSERT INTO k VALUES (1, 'a', 1.5, x'00ff');"
+                      "INSERT INTO k VALUES (2, NULL, NULL, NULL);"
+                      "INSERT INTO k VALUES (3, 'c', -2.25, x'');"
+                      "INSERT INTO k VALUES (4, 'it''s', 0.0, x'61');"
+                      "INSERT INTO k VALUES (5, '', 3.0, NULL)") ==
+        SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_prepare(db,
+                         &select,
+                         "SELECT id, v, r, b FROM k WHERE id >= ? "
+                         "ORDER BY id") == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_bind_int64(select, 1u, 1) == SQLITE_OK);
+
+    // the rows all at once, to hold the pages to
+    D_TESTS_SQLITE_CHECK(d_sqlite_execute_query(select, &all) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK( (all.column_count == 4u) &&
+                          (all.row_count == 5u) );
+
+    // pages of two: 1 and 2, 3 and 4, then 5 alone, which ends the run
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_cursor(select) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 2u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_same_page(&rows, &all, 0u, 2u));
+    d_db_rows_free(&rows);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 2u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_same_page(&rows, &all, 2u, 2u));
+    d_db_rows_free(&rows);
+    D_TESTS_SQLITE_CHECK(sqlite3_stmt_busy(select));
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 2u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_same_page(&rows, &all, 4u, 1u));
+    d_db_rows_free(&rows);
+    D_TESTS_SQLITE_CHECK(!sqlite3_stmt_busy(select));
+
+    // ended, so the next fetch starts over
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 3u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_same_page(&rows, &all, 0u, 3u));
+    d_db_rows_free(&rows);
+
+    // part-way through, the values stay; the run goes on
+    D_TESTS_SQLITE_CHECK(d_sqlite_bind_int64(select, 1u, 4) ==
+                         SQLITE_MISUSE);
+    D_TESTS_SQLITE_CHECK(d_sqlite_clear_bindings(select) == SQLITE_MISUSE);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 1u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_same_page(&rows, &all, 3u, 1u));
+    d_db_rows_free(&rows);
+
+    // other statements between fetches, reading and writing
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_int(db, "SELECT count(*) FROM k") ==
+                         5);
+    D_TESTS_SQLITE_CHECK(d_sqlite_exec(db, "INSERT INTO log VALUES (0)") ==
+                         SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 5u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_same_page(&rows, &all, 4u, 1u));
+    d_db_rows_free(&rows);
+
+    // rebound between runs: from 2, four rows filling two pages exactly, and
+    // then an empty page, which ends the run
+    D_TESTS_SQLITE_CHECK(d_sqlite_bind_int64(select, 1u, 2) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_cursor(select) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 2u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_same_page(&rows, &all, 1u, 2u));
+    d_db_rows_free(&rows);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 2u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_same_page(&rows, &all, 3u, 2u));
+    d_db_rows_free(&rows);
+    D_TESTS_SQLITE_CHECK(sqlite3_stmt_busy(select));
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 2u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_same_page(&rows, &all, 5u, 0u));
+    D_TESTS_SQLITE_CHECK( (rows.columns != NULL) &&
+                          (rows.values == NULL) );
+    d_db_rows_free(&rows);
+    D_TESTS_SQLITE_CHECK(!sqlite3_stmt_busy(select));
+
+    // no row found: the columns alone
+    D_TESTS_SQLITE_CHECK(d_sqlite_bind_int64(select, 1u, 9) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_cursor(select) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 4u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_same_page(&rows, &all, 5u, 0u));
+    d_db_rows_free(&rows);
+
+    // a statement without rows runs on the first fetch, and again on another
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_prepare(db, &insert, "INSERT INTO log VALUES (?)") ==
+        SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_bind_int64(insert, 1u, 1) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_cursor(insert) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_int(db, "SELECT count(*) FROM log") ==
+                         1);
+    rows = marker;
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(insert, 3u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK( (rows.column_count == 0u) &&
+                          (rows.row_count == 0u)    &&
+                          (rows.columns == NULL) );
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_int(db, "SELECT count(*) FROM log") ==
+                         2);
+    D_TESTS_SQLITE_CHECK(!sqlite3_stmt_busy(insert));
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(insert, 3u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_int(db, "SELECT count(*) FROM log") ==
+                         3);
+    D_TESTS_SQLITE_CHECK(d_sqlite_finalize(insert) == SQLITE_OK);
+
+    // execute_query part-way through ends the run and begins its own
+    D_TESTS_SQLITE_CHECK(d_sqlite_bind_int64(select, 1u, 1) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_cursor(select) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 2u, &rows) == SQLITE_OK);
+    d_db_rows_free(&rows);
+    D_TESTS_SQLITE_CHECK(d_sqlite_execute_query(select, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_same_page(&rows, &all, 0u, 5u));
+    d_db_rows_free(&rows);
+    D_TESTS_SQLITE_CHECK(!sqlite3_stmt_busy(select));
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 2u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_same_page(&rows, &all, 0u, 2u));
+    d_db_rows_free(&rows);
+
+    // close_cursor part-way, twice: the next fetch starts over
+    D_TESTS_SQLITE_CHECK(d_sqlite_close_cursor(select) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(!sqlite3_stmt_busy(select));
+    D_TESTS_SQLITE_CHECK(d_sqlite_close_cursor(select) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 1u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_same_page(&rows, &all, 0u, 1u));
+    d_db_rows_free(&rows);
+    D_TESTS_SQLITE_CHECK(d_sqlite_close_cursor(select) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_finalize(select) == SQLITE_OK);
+
+    // a step failing part-way, at the second row: abs() of the lowest
+    // integer overflows
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_prepare(db,
+                         &select,
+                         "SELECT abs(? - id) FROM k ORDER BY id") ==
+        SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_bind_int64(select, 1u, -9223372036854775807 + 1) ==
+        SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_cursor(select) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 1u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK( (rows.row_count == 1u) &&
+                          (rows.values[0].as.integer ==
+                           9223372036854775807) );
+    d_db_rows_free(&rows);
+    rows = marker;
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 3u, &rows) ==
+                         SQLITE_ERROR);
+    D_TESTS_SQLITE_CHECK( (rows.column_count == 7u) &&
+                          (rows.row_count == 7u) );
+    D_TESTS_SQLITE_CHECK(
+        (d_sqlite_error_message(db)) &&
+        (strstr(d_sqlite_error_message(db), "overflow") != NULL));
+    D_TESTS_SQLITE_CHECK(!sqlite3_stmt_busy(select));
+    D_TESTS_SQLITE_CHECK(d_sqlite_bind_int64(select, 1u, 0) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_cursor(select) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(select, 9u, &rows) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK( (rows.row_count == 5u) &&
+                          (rows.values[4].as.integer == 5) );
+    d_db_rows_free(&rows);
+
+    D_TESTS_SQLITE_CHECK(d_sqlite_finalize(select) == SQLITE_OK);
+    d_db_rows_free(&all);
+    D_TESTS_SQLITE_CHECK(d_sqlite_close(db) == SQLITE_OK);
+
+    return;
+}
+
+/*
 d_tests_sqlite_statement_locks
   No lock outlives a run.
   Tests the following:
   - a statement left part-way through its rows by SQLite's own step holds
     a lock that keeps a second connection from writing (the control)
   - after execute_query and execute_update, the second connection writes
+  - a run read a few rows at a time holds the lock part-way, as SQLite's own
+    step does, until a short page or close_cursor ends it
 */
 static void
 d_tests_sqlite_statement_locks(
@@ -2788,6 +3251,36 @@ d_tests_sqlite_statement_locks(
                          SQLITE_OK);
     D_TESTS_SQLITE_CHECK(d_sqlite_exec(writer, "COMMIT") == SQLITE_OK);
 
+    // a run a few rows at a time: held part-way, released by a short page
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_cursor(statement) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_exec(writer, "BEGIN EXCLUSIVE") ==
+                         SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_exec(writer, "COMMIT") == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(statement, 1u, &rows) ==
+                         SQLITE_OK);
+    d_db_rows_free(&rows);
+    D_TESTS_SQLITE_CHECK(d_sqlite_exec(writer, "BEGIN EXCLUSIVE") ==
+                         SQLITE_BUSY);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(statement, 5u, &rows) ==
+                         SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(rows.row_count == 2u);
+    d_db_rows_free(&rows);
+    D_TESTS_SQLITE_CHECK(d_sqlite_exec(writer, "BEGIN EXCLUSIVE") ==
+                         SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_exec(writer, "COMMIT") == SQLITE_OK);
+
+    // ... and by close_cursor
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_cursor(statement) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(statement, 2u, &rows) ==
+                         SQLITE_OK);
+    d_db_rows_free(&rows);
+    D_TESTS_SQLITE_CHECK(d_sqlite_exec(writer, "BEGIN EXCLUSIVE") ==
+                         SQLITE_BUSY);
+    D_TESTS_SQLITE_CHECK(d_sqlite_close_cursor(statement) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_exec(writer, "BEGIN EXCLUSIVE") ==
+                         SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_exec(writer, "COMMIT") == SQLITE_OK);
+
     D_TESTS_SQLITE_CHECK(d_sqlite_finalize(statement) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(d_sqlite_close(writer) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(d_sqlite_close(db) == SQLITE_OK);
@@ -2804,6 +3297,8 @@ d_tests_sqlite_statement_arguments
     the statement left NULL where there is one to leave
   - every bind, clear and run refuses a NULL statement with SQLITE_MISUSE,
     as execute_query refuses NULL rows; the describers answer 0 or NULL
+  - the cursor calls refuse a NULL statement, and fetch_rows NULL rows or
+    none asked for, with SQLITE_MISUSE, the rows untouched
 */
 static void
 d_tests_sqlite_statement_arguments(
@@ -2813,6 +3308,7 @@ d_tests_sqlite_statement_arguments(
     sqlite3*             db        = NULL;
     struct sqlite3_stmt* statement = NULL;
     struct d_db_rows     rows      = { 0u, 0u, NULL, NULL };
+    struct d_db_rows     marker    = { 7u, 7u, NULL, NULL };
     size_t               index     = 0u;
     int64_t              changes   = 0;
 
@@ -2854,9 +3350,20 @@ d_tests_sqlite_statement_arguments(
                          SQLITE_MISUSE);
     D_TESTS_SQLITE_CHECK(d_sqlite_execute_query(NULL, &rows) ==
                          SQLITE_MISUSE);
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_cursor(NULL) == SQLITE_MISUSE);
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(NULL, 1u, &rows) ==
+                         SQLITE_MISUSE);
+    D_TESTS_SQLITE_CHECK(d_sqlite_close_cursor(NULL) == SQLITE_MISUSE);
 
     D_TESTS_SQLITE_CHECK(
         d_sqlite_prepare(db, &statement, "SELECT :a") == SQLITE_OK);
+    rows = marker;
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(statement, 0u, &rows) ==
+                         SQLITE_MISUSE);
+    D_TESTS_SQLITE_CHECK( (rows.column_count == 7u) &&
+                          (rows.row_count == 7u) );
+    D_TESTS_SQLITE_CHECK(d_sqlite_fetch_rows(statement, 1u, NULL) ==
+                         SQLITE_MISUSE);
     D_TESTS_SQLITE_CHECK(d_sqlite_parameter_index(statement, NULL, &index) ==
                          SQLITE_MISUSE);
     D_TESTS_SQLITE_CHECK(d_sqlite_parameter_index(statement, ":a", NULL) ==
@@ -3002,6 +3509,174 @@ d_tests_sqlite_database_files(
         SQLITE_NOTADB);
     D_TESTS_SQLITE_CHECK(!d_sqlite_is_database_file(":memory:"));
 
+    d_tests_sqlite_remove_all(path);
+
+    return;
+}
+
+/*
+d_tests_sqlite_serialization
+  Databases as bytes.
+  Tests the following:
+  - supports says what the library has: from 3.36.0 unless built without
+    it, from 3.23.0 where built with it
+  - serialize: a database's bytes, a whole number of pages, the file's
+    header first; "temp", whatever it holds; an attached file; no such
+    database, D_DB_NOT_FOUND
+  - deserialize: the bytes as "main" of another connection, its rows there,
+    and writes that grow it; read-only, which refuses writes; into an
+    attached database; an empty database; bytes that are no database,
+    SQLITE_NOTADB when read; "temp", SQLITE_ERROR
+  - where the library cannot, both D_DB_UNSUPPORTED
+  - misuse: a NULL connection or out-parameter, NULL bytes of a size
+*/
+static void
+d_tests_sqlite_serialization(
+    void
+)
+{
+    const bool supported =
+        ( (d_tests_sqlite_at_least(3, 36, 0)) &&
+          (sqlite3_compileoption_used("OMIT_DESERIALIZE") == 0) ) ||
+        ( (d_tests_sqlite_at_least(3, 23, 0)) &&
+          (sqlite3_compileoption_used("ENABLE_DESERIALIZE") != 0) );
+    char     path[1024] = "";
+    sqlite3* db         = NULL;
+    sqlite3* other      = NULL;
+    void*    bytes      = NULL;
+    size_t   size       = 0u;
+
+    printf("sqlite_database: databases as bytes\n");
+
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_supports(D_SQLITE_FEATURE_SERIALIZE) == supported);
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&db) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_serialize(NULL, NULL, &bytes, &size) == SQLITE_MISUSE);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_serialize(db, NULL, NULL, &size) == SQLITE_MISUSE);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_serialize(db, NULL, &bytes, NULL) == SQLITE_MISUSE);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_deserialize(NULL, NULL, NULL, 0u, false) == SQLITE_MISUSE);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_deserialize(db, NULL, NULL, 8u, false) == SQLITE_MISUSE);
+
+    // a library without it
+    if (!supported)
+    {
+        D_TESTS_SQLITE_CHECK(d_sqlite_serialize(db, NULL, &bytes, &size) ==
+                             D_DB_UNSUPPORTED);
+        D_TESTS_SQLITE_CHECK(d_sqlite_deserialize(db, NULL, "x", 1u, false) ==
+                             D_DB_UNSUPPORTED);
+        D_TESTS_SQLITE_CHECK(d_sqlite_close(db) == SQLITE_OK);
+
+        return;
+    }
+
+    D_TESTS_SQLITE_CHECK(
+        sqlite3_exec(db,
+                     "CREATE TABLE t (a INTEGER PRIMARY KEY, b TEXT); "
+                     "INSERT INTO t VALUES (1, 'one'), (2, 'two');",
+                     NULL,
+                     NULL,
+                     NULL) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_serialize(db, NULL, &bytes, &size) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK( (bytes != NULL) &&
+                          (size >= 512u) &&
+                          ((size % (size_t)d_tests_sqlite_int(
+                                      db, "PRAGMA page_size")) == 0u) &&
+                          (memcmp(bytes, "SQLite format 3", 16u) == 0) );
+
+    // the bytes as another connection's main, which grows as it is written
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&other) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_deserialize(other, NULL, bytes, size, false) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_tests_sqlite_int(other, "SELECT a FROM t WHERE b = 'two'") == 2);
+    D_TESTS_SQLITE_CHECK(
+        sqlite3_exec(other,
+                     "WITH RECURSIVE n(i) AS (SELECT 3 UNION ALL SELECT i + 1 "
+                     "FROM n WHERE i < 2000) INSERT INTO t SELECT i, "
+                     "printf('%0200d', i) FROM n",
+                     NULL,
+                     NULL,
+                     NULL) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_tests_sqlite_int(other, "SELECT count(*) FROM t") == 2000);
+
+    // read-only, into an attached database
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_attach_database(other, ":memory:", "aux") == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_deserialize(other, "aux", bytes, size, true) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_tests_sqlite_int(other, "SELECT count(*) FROM aux.t") == 2);
+    D_TESTS_SQLITE_CHECK(
+        sqlite3_exec(other,
+                     "INSERT INTO aux.t VALUES (9, 'nine')",
+                     NULL,
+                     NULL,
+                     NULL) == SQLITE_READONLY);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_deserialize(other, "temp", bytes, size, false) ==
+        SQLITE_ERROR);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_deserialize(other, "nope", bytes, size, false) ==
+        SQLITE_ERROR);
+    d_db_free(bytes);
+    bytes = NULL;
+
+    // an empty database; bytes that are none
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_deserialize(other, "aux", NULL, 0u, false) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_tests_sqlite_int(other,
+                           "SELECT count(*) FROM aux.sqlite_master") == 0);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_deserialize(other,
+                             "aux",
+                             "plain text, no database here at all",
+                             35u,
+                             false) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        sqlite3_exec(other,
+                     "SELECT count(*) FROM aux.sqlite_master",
+                     NULL,
+                     NULL,
+                     NULL) == SQLITE_NOTADB);
+    D_TESTS_SQLITE_CHECK(d_sqlite_close(other) == SQLITE_OK);
+
+    // temp, a file attached, and none such
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_serialize(db, "temp", &bytes, &size) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK( (size == 0u) ||
+                          (memcmp(bytes, "SQLite format 3", 16u) == 0) );
+    d_db_free(bytes);
+    bytes = NULL;
+    d_tests_sqlite_path(path, sizeof(path), "t_sqlite_serialized.db");
+    d_tests_sqlite_remove_all(path);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_attach_database(db, path, "disk") == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        sqlite3_exec(db,
+                     "CREATE TABLE disk.d (x); INSERT INTO disk.d VALUES (5)",
+                     NULL,
+                     NULL,
+                     NULL) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_serialize(db, "disk", &bytes, &size) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_sqlite_open_memory(&other) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_deserialize(other, NULL, bytes, size, false) == SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(d_tests_sqlite_int(other, "SELECT x FROM d") == 5);
+    D_TESTS_SQLITE_CHECK(d_sqlite_close(other) == SQLITE_OK);
+    d_db_free(bytes);
+    bytes = NULL;
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_serialize(db, "nope", &bytes, &size) == D_DB_NOT_FOUND);
+    D_TESTS_SQLITE_CHECK(d_sqlite_close(db) == SQLITE_OK);
     d_tests_sqlite_remove_all(path);
 
     return;
@@ -3414,6 +4089,9 @@ d_tests_sqlite_described_keys
   A composite key, and creating a described table twice.
   Tests the following:
   - two key columns become a table constraint, numbered in order
+  - key places order the key otherwise than the table; places that repeat,
+    skip, number a column off the key, or leave a key column out are
+    SQLITE_MISUSE, and make nothing
   - D_DB_IF_NOT_EXISTS makes the second create a success
 */
 static void
@@ -3443,6 +4121,80 @@ d_tests_sqlite_described_keys(
         d_sqlite_create_table(db, "aux", "pairs", d_tests_sqlite_composite, 3u,
                               D_DB_IF_NOT_EXISTS) == SQLITE_OK);
     D_TESTS_SQLITE_CHECK(!d_sqlite_has_table(db, NULL, "pairs"));
+
+    // a key in the order its places give, not the table's
+    struct d_db_column bad[3] =
+    {
+        d_tests_sqlite_ordered[0],
+        d_tests_sqlite_ordered[1],
+        d_tests_sqlite_ordered[2]
+    };
+
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_create_table(db,
+                                      "aux",
+                                      "ordered",
+                                      d_tests_sqlite_ordered,
+                                      3u,
+                                      0u) ==
+        SQLITE_OK);
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_list_columns(db,
+                                      "aux",
+                                      "ordered",
+                                      &columns) ==
+        SQLITE_OK);
+
+    const struct d_db_column_info* const first  =
+        d_tests_sqlite_find_column(&columns, "a");
+    const struct d_db_column_info* const second =
+        d_tests_sqlite_find_column(&columns, "b");
+
+    D_TESTS_SQLITE_CHECK( (first) && (first->primary_key == 2) );
+    D_TESTS_SQLITE_CHECK( (second) && (second->primary_key == 1) );
+    d_db_column_list_free(&columns);
+
+    // places that repeat, skip, number a column off the key, or leave one
+    // key column out
+    bad[1].key_place = 2u;
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_create_table(db,
+                                      "aux",
+                                      "unordered",
+                                      bad,
+                                      3u,
+                                      0u) ==
+        SQLITE_MISUSE);
+    bad[1].key_place = 3u;
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_create_table(db,
+                                      "aux",
+                                      "unordered",
+                                      bad,
+                                      3u,
+                                      0u) ==
+        SQLITE_MISUSE);
+    bad[1].key_place = 0u;
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_create_table(db,
+                                      "aux",
+                                      "unordered",
+                                      bad,
+                                      3u,
+                                      0u) ==
+        SQLITE_MISUSE);
+    bad[1].key_place = 1u;
+    bad[2].key_place = 3u;
+    D_TESTS_SQLITE_CHECK(
+        d_sqlite_create_table(db,
+                                      "aux",
+                                      "unordered",
+                                      bad,
+                                      3u,
+                                      0u) ==
+        SQLITE_MISUSE);
+    D_TESTS_SQLITE_CHECK(!d_sqlite_has_table(db, "aux", "unordered"));
+
     D_TESTS_SQLITE_CHECK(d_sqlite_close(db) == SQLITE_OK);
 
     return;
@@ -3465,19 +4217,19 @@ d_tests_sqlite_described_refusals(
     static const struct d_db_column bad_increment[] =
     {
         { "a", D_DB_TYPE_INTEGER, D_DB_COLUMN_AUTO_INCREMENT, NULL, 0u, 0u,
-          NULL }
+          NULL, 0u }
     };
     static const struct d_db_column bad_type[] =
     {
-        { "a", (enum d_db_type)99, 0u, NULL, 0u, 0u, NULL }
+        { "a", (enum d_db_type)99, 0u, NULL, 0u, 0u, NULL, 0u }
     };
     static const struct d_db_column bad_flag[] =
     {
-        { "a", D_DB_TYPE_INTEGER, 0x8000u, NULL, 0u, 0u, NULL }
+        { "a", D_DB_TYPE_INTEGER, 0x8000u, NULL, 0u, 0u, NULL, 0u }
     };
     static const struct d_db_column no_name[] =
     {
-        { "", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL }
+        { "", D_DB_TYPE_INTEGER, 0u, NULL, 0u, 0u, NULL, 0u }
     };
     struct d_db_column half[2] =
     {
@@ -3590,10 +4342,10 @@ d_tests_sqlite_column_existence(
 )
 {
     static const struct d_db_column note = {
-        "note", D_DB_TYPE_STRING, 0u, "''", 0u, 0u, NULL
+        "note", D_DB_TYPE_STRING, 0u, "''", 0u, 0u, NULL, 0u
     };
     static const struct d_db_column key = {
-        "k2", D_DB_TYPE_INTEGER, D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL
+        "k2", D_DB_TYPE_INTEGER, D_DB_COLUMN_PRIMARY_KEY, NULL, 0u, 0u, NULL, 0u
     };
 
     printf("sqlite_schema: columns, existence and adding\n");
@@ -3654,7 +4406,7 @@ d_tests_sqlite_column_kinds(
 )
 {
     static const struct d_db_column price = {
-        "price", D_DB_TYPE_DECIMAL, 0u, NULL, 0u, 0u, NULL
+        "price", D_DB_TYPE_DECIMAL, 0u, NULL, 0u, 0u, NULL, 0u
     };
 
     printf("sqlite_schema: columns, kinds\n");
@@ -4604,6 +5356,7 @@ d_tests_sqlite_all[] =
     d_tests_sqlite_apply_defaults,
     d_tests_sqlite_location,
     d_tests_sqlite_rows_changed,
+    d_tests_sqlite_extensions,
     d_tests_sqlite_connection_arguments,
     d_tests_sqlite_statements,
     d_tests_sqlite_dialects,
@@ -4618,10 +5371,12 @@ d_tests_sqlite_all[] =
     d_tests_sqlite_preparing,
     d_tests_sqlite_binding,
     d_tests_sqlite_running,
+    d_tests_sqlite_cursors,
     d_tests_sqlite_statement_locks,
     d_tests_sqlite_statement_arguments,
     d_tests_sqlite_attached,
     d_tests_sqlite_database_files,
+    d_tests_sqlite_serialization,
     d_tests_sqlite_database_arguments,
     d_tests_sqlite_table_existence,
     d_tests_sqlite_table_changes,

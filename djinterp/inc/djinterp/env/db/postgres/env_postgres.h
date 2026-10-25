@@ -17,17 +17,22 @@
 * 90624), and MAJOR*10000 + RELEASE since 10 (16.2 is 160002), where the old
 * minor number no longer exists and the middle field is always 0.
 *   D_ENV_PG_HAS_* are capability flags, D_ENV_PG_VERSION_* the version and its
-* parts, and D_ENV_PG_IS_* the releases. Sections 4 onward exist only when
-* PostgreSQL is detected. Settings live in cfg_env_postgres.h:
-* D_CFG_ENV_USING_POSTGRESQL includes the client headers, and
-* D_CFG_ENV_PG_CUSTOM switches to manual detection. This header also includes
-* env_db.h, for the base database detection.
+* parts, and D_ENV_PG_IS_* the releases. Sections 4 onward read PostgreSQL
+* when it is detected; without it, each of their macros is defined as 0.
+* Settings live in cfg_env_postgres.h: D_CFG_ENV_USING_POSTGRESQL includes the
+* client headers, and D_CFG_ENV_PG_CUSTOM switches to manual detection. This
+* header also includes env_db.h, for the base database detection.
+*   The version comes from PG_VERSION_NUM, which pg_config.h defines and
+* libpq-fe.h does not. With libpq's header alone, as most clients include it,
+* the feature macros libpq-fe.h declares from 14 give a lower bound instead
+* (D_ENV_PG_VERSION_IS_LOWER_BOUND); before 14, such a build is undetected
+* unless it names its version (D_ENV_PG_DETECTED_VERSION).
 *
 *
 * path:      /inc/djinterp/env/db/postgres/env_postgres.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -255,7 +260,8 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../../config/core/env/db/postgres/cfg_env_postgres.h"  // config
-#include "../env_db.h"  // base database detection (D_ENV_DB_*)
+#include "../../env_os.h"  // D_ENV_OS_ID, D_ENV_IS_OS_POSIX_LIKE
+#include "../env_db.h"     // base database detection (D_ENV_DB_*)
 
 
 //==============================================================================
@@ -400,7 +406,7 @@ TABLE OF CONTENTS
 // 3.1.1
 // D_ENV_PG_VERSION_<RELEASE>
 //   constant: encoded IDs of the releases that gate features below: 8.3 to 9.6,
-// in the three-part numbering used before PostgreSQL 10, then 10 to 17.
+// in the three-part numbering used before PostgreSQL 10, then 10 to 19.
 #define D_ENV_PG_VERSION_8_3           80300
 #define D_ENV_PG_VERSION_8_4           80400
 #define D_ENV_PG_VERSION_9_0           90000
@@ -418,6 +424,8 @@ TABLE OF CONTENTS
 #define D_ENV_PG_VERSION_15            150000
 #define D_ENV_PG_VERSION_16            160000
 #define D_ENV_PG_VERSION_17            170000
+#define D_ENV_PG_VERSION_18            180000
+#define D_ENV_PG_VERSION_19            190000
 
 // 3.2    Detected version
 //------------------------------------------------------------------------------
@@ -426,9 +434,14 @@ TABLE OF CONTENTS
 //   detection: D_ENV_PG_DETECTED is 1 when a PostgreSQL version is known, and
 // D_ENV_PG_VERSION_ID, _MAJOR, _RELEASE and _STRING then describe it, with
 // D_ENV_PG_IS_LEGACY_VERSIONING 1 before PostgreSQL 10. Automatic mode needs
-// the libpq header in scope and reads PG_VERSION_NUM; manual mode
+// the libpq header in scope and reads PG_VERSION_NUM, where pg_config.h is in
+// scope too; with libpq's header alone it takes the lower bound the header's
+// LIBPQ_HAS_* feature macros give: 19 for LIBPQ_HAS_GET_THREAD_LOCK, 18 for
+// _FULL_PROTOCOL_VERSION, 17 for _ASYNC_CANCEL, 15 for
+// _SSL_LIBRARY_DETECTION and 14 for _PIPELINING; 16 declared none of its own.
+// D_ENV_PG_VERSION_IS_LOWER_BOUND is then 1, and 0 otherwise. Manual mode
 // (D_CFG_ENV_PG_CUSTOM) reads D_ENV_PG_DETECTED_VERSION, or one of
-// D_ENV_PG_DETECTED_9_4 to _17.
+// D_ENV_PG_DETECTED_9_4 to _19.
 #if D_CFG_IS_OFF(D_CFG_ENV_PG_CUSTOM)
 
     // automatic detection requires the libpq header to be in scope; if
@@ -460,6 +473,31 @@ TABLE OF CONTENTS
         #else
             #define D_ENV_PG_VERSION_STRING    "unknown"
         #endif  // PG_VERSION
+    #elif ( (D_ENV_POSTGRESQL_HEADER_INCLUDED) &&                              \
+            (defined(LIBPQ_HAS_PIPELINING)) )
+        // libpq's header alone: the release its feature macros reach
+        #define D_ENV_PG_DETECTED              1
+        #define D_ENV_PG_VERSION_IS_LOWER_BOUND 1
+        #if defined(LIBPQ_HAS_GET_THREAD_LOCK)
+            #define D_ENV_PG_VERSION_ID        D_ENV_PG_VERSION_19
+            #define D_ENV_PG_VERSION_STRING    "19 or later"
+        #elif defined(LIBPQ_HAS_FULL_PROTOCOL_VERSION)
+            #define D_ENV_PG_VERSION_ID        D_ENV_PG_VERSION_18
+            #define D_ENV_PG_VERSION_STRING    "18 or later"
+        #elif defined(LIBPQ_HAS_ASYNC_CANCEL)
+            #define D_ENV_PG_VERSION_ID        D_ENV_PG_VERSION_17
+            #define D_ENV_PG_VERSION_STRING    "17 or later"
+        #elif defined(LIBPQ_HAS_SSL_LIBRARY_DETECTION)
+            #define D_ENV_PG_VERSION_ID        D_ENV_PG_VERSION_15
+            #define D_ENV_PG_VERSION_STRING    "15 or later"
+        #else
+            #define D_ENV_PG_VERSION_ID        D_ENV_PG_VERSION_14
+            #define D_ENV_PG_VERSION_STRING    "14 or later"
+        #endif
+        #define D_ENV_PG_VERSION_MAJOR                                         \
+            D_ENV_PG_DECODE_MAJOR(D_ENV_PG_VERSION_ID)
+        #define D_ENV_PG_VERSION_RELEASE       0
+        #define D_ENV_PG_IS_LEGACY_VERSIONING  0
     #else
         #define D_ENV_PG_DETECTED              0
     #endif
@@ -476,6 +514,22 @@ TABLE OF CONTENTS
         #define D_ENV_PG_IS_LEGACY_VERSIONING                                  \
             (D_ENV_PG_DETECTED_VERSION < D_ENV_PG_VERSION_10)
         #define D_ENV_PG_VERSION_STRING        "manual"
+
+    #elif defined(D_ENV_PG_DETECTED_19)
+        #define D_ENV_PG_DETECTED              1
+        #define D_ENV_PG_VERSION_ID            D_ENV_PG_VERSION_19
+        #define D_ENV_PG_VERSION_MAJOR         19
+        #define D_ENV_PG_VERSION_RELEASE       0
+        #define D_ENV_PG_IS_LEGACY_VERSIONING  0
+        #define D_ENV_PG_VERSION_STRING        "19.0"
+
+    #elif defined(D_ENV_PG_DETECTED_18)
+        #define D_ENV_PG_DETECTED              1
+        #define D_ENV_PG_VERSION_ID            D_ENV_PG_VERSION_18
+        #define D_ENV_PG_VERSION_MAJOR         18
+        #define D_ENV_PG_VERSION_RELEASE       0
+        #define D_ENV_PG_IS_LEGACY_VERSIONING  0
+        #define D_ENV_PG_VERSION_STRING        "18.0"
 
     #elif defined(D_ENV_PG_DETECTED_17)
         #define D_ENV_PG_DETECTED              1
@@ -574,8 +628,14 @@ TABLE OF CONTENTS
 
 #endif  // D_CFG_ENV_PG_CUSTOM
 
+// D_ENV_PG_VERSION_IS_LOWER_BOUND is 0 for an exact version, and for none
+#ifndef D_ENV_PG_VERSION_IS_LOWER_BOUND
+    #define D_ENV_PG_VERSION_IS_LOWER_BOUND 0
+#endif  // D_ENV_PG_VERSION_IS_LOWER_BOUND
 
-// sections 4 to 20 exist only when D_ENV_PG_DETECTED is 1; see 3.2.1
+
+// sections 4 to 20 read PostgreSQL when D_ENV_PG_DETECTED is 1 (see 3.2.1),
+// and define each of their macros as 0 when it is not
 #if D_ENV_PG_DETECTED
 
 
@@ -620,7 +680,7 @@ TABLE OF CONTENTS
     // 4.2.1
     // D_ENV_PG_IS_<RELEASE>
     //   macro: 1 if the detected version is in that release: 9.4 to 9.6, then
-    // 10 to 17. D_ENV_PG_IS_17 also covers every later release.
+    // 10 to 19. D_ENV_PG_IS_19 also covers every later release.
     #define D_ENV_PG_IS_9_4                                                    \
         D_ENV_PG_VERSION_IN_RANGE_NUM(D_ENV_PG_VERSION_9_4,                    \
                                        D_ENV_PG_VERSION_9_5)
@@ -652,7 +712,13 @@ TABLE OF CONTENTS
         D_ENV_PG_VERSION_IN_RANGE_NUM(D_ENV_PG_VERSION_16,                     \
                                        D_ENV_PG_VERSION_17)
     #define D_ENV_PG_IS_17                                                     \
-        D_ENV_PG_VERSION_AT_LEAST_NUM(D_ENV_PG_VERSION_17)
+        D_ENV_PG_VERSION_IN_RANGE_NUM(D_ENV_PG_VERSION_17,                     \
+                                       D_ENV_PG_VERSION_18)
+    #define D_ENV_PG_IS_18                                                     \
+        D_ENV_PG_VERSION_IN_RANGE_NUM(D_ENV_PG_VERSION_18,                     \
+                                       D_ENV_PG_VERSION_19)
+    #define D_ENV_PG_IS_19                                                     \
+        D_ENV_PG_VERSION_AT_LEAST_NUM(D_ENV_PG_VERSION_19)
 
 
 //==============================================================================
@@ -665,8 +731,9 @@ TABLE OF CONTENTS
     // 5.1.1
     // D_ENV_PG_HAS_LIBPQ
     //   feature: detect if libpq (PostgreSQL C client library) headers
-    // are available. Detected via PG_VERSION_NUM (defined in
-    // pg_config.h or postgres_fe.h, included transitively by libpq-fe.h).
+    // are available: 1 once a version is detected, from pg_config.h's
+    // PG_VERSION_NUM or, with libpq-fe.h alone, its LIBPQ_HAS_* macros
+    // (3.2.1); libpq-fe.h does not include pg_config.h.
     #define D_ENV_PG_HAS_LIBPQ D_ENV_PG_DETECTED
 
     // 5.1.2
@@ -1796,6 +1863,197 @@ TABLE OF CONTENTS
           (D_ENV_PG_HAS_MODERN_AUTH) )
 
 
+#else
+    // decision 92 of the register: without PostgreSQL, every macro sections
+    // 4 to 20 define is defined, as 0, the comparisons for any version among
+    // them, so that #if and code may read each whatever the build; a flag
+    // a build may pre-define keeps its value
+    #define D_ENV_PG_VERSION_AT_LEAST_NUM(ver_num) 0
+    #define D_ENV_PG_VERSION_BELOW_NUM(ver_num) 0
+    #define D_ENV_PG_VERSION_IN_RANGE_NUM(min_ver, max_ver) 0
+    #define D_ENV_PG_AT_LEAST(major) 0
+    #define D_ENV_PG_IS_9_4 0
+    #define D_ENV_PG_IS_9_5 0
+    #define D_ENV_PG_IS_9_6 0
+    #define D_ENV_PG_IS_10 0
+    #define D_ENV_PG_IS_11 0
+    #define D_ENV_PG_IS_12 0
+    #define D_ENV_PG_IS_13 0
+    #define D_ENV_PG_IS_14 0
+    #define D_ENV_PG_IS_15 0
+    #define D_ENV_PG_IS_16 0
+    #define D_ENV_PG_IS_17 0
+    #define D_ENV_PG_IS_18 0
+    #define D_ENV_PG_IS_19 0
+    #define D_ENV_PG_HAS_LIBPQ 0
+    #define D_ENV_PG_HAS_LIBPQ_PIPELINE 0
+    #define D_ENV_PG_HAS_LIBPQ_TRACE 0
+    #define D_ENV_PG_HAS_LIBPQ_NONBLOCKING 0
+    #define D_ENV_PG_HAS_LIBPQ_SSLATTRIBUTE 0
+    #define D_ENV_PG_HAS_LIBPQ_RESULT_MEMORY 0
+    #define D_ENV_PG_HAS_LIBPQ_CANCEL_CONN 0
+    #define D_ENV_PG_HAS_LIBPQ_CHUNKED_RESULT 0
+    #define D_ENV_PG_HAS_LIBPQ_CLOSE_PREPARED 0
+    #define D_ENV_PG_HAS_LIBPQ_SEND_QUERY_PARAMS 0
+    #define D_ENV_PG_HAS_LIBPQ_PREPARE 0
+    #define D_ENV_PG_HAS_LIBPQ_NOTICE_RECEIVER 0
+    #define D_ENV_PG_HAS_LIBPQ_COPY_BOTH 0
+    #ifndef D_ENV_PG_HAS_SSL
+        #define D_ENV_PG_HAS_SSL 0
+    #endif  // D_ENV_PG_HAS_SSL
+    #define D_ENV_PG_HAS_SCRAM_SHA_256 0
+    #define D_ENV_PG_DEFAULT_AUTH_IS_SCRAM 0
+    #define D_ENV_PG_HAS_AUTH_PEER 0
+    #define D_ENV_PG_HAS_AUTH_CERT 0
+    #ifndef D_ENV_PG_HAS_AUTH_GSS
+        #define D_ENV_PG_HAS_AUTH_GSS 0
+    #endif  // D_ENV_PG_HAS_AUTH_GSS
+    #define D_ENV_PG_HAS_GSS_ENC 0
+    #ifndef D_ENV_PG_HAS_AUTH_LDAP
+        #define D_ENV_PG_HAS_AUTH_LDAP 0
+    #endif  // D_ENV_PG_HAS_AUTH_LDAP
+    #define D_ENV_PG_HAS_AUTH_RADIUS 0
+    #ifndef D_ENV_PG_HAS_AUTH_PAM
+        #define D_ENV_PG_HAS_AUTH_PAM 0
+    #endif  // D_ENV_PG_HAS_AUTH_PAM
+    #define D_ENV_PG_HAS_CHANNEL_BINDING 0
+    #define D_ENV_PG_HAS_CLIENTCERT_OPTION 0
+    #define D_ENV_PG_HAS_JSON 0
+    #define D_ENV_PG_HAS_JSONB 0
+    #define D_ENV_PG_HAS_JSONPATH 0
+    #define D_ENV_PG_HAS_JSON_TABLE 0
+    #define D_ENV_PG_HAS_SQLJSON_CONSTRUCTORS 0
+    #define D_ENV_PG_HAS_JSONB_SUBSCRIPT 0
+    #define D_ENV_PG_HAS_RANGE_TYPES 0
+    #define D_ENV_PG_HAS_MULTIRANGE 0
+    #define D_ENV_PG_HAS_ARRAY_TYPES 0
+    #define D_ENV_PG_HAS_DOMAIN_TYPES 0
+    #define D_ENV_PG_HAS_COMPOSITE_TYPES 0
+    #define D_ENV_PG_HAS_ENUM_TYPE 0
+    #define D_ENV_PG_HAS_UUID_TYPE 0
+    #define D_ENV_PG_HAS_IDENTITY_COLUMNS 0
+    #define D_ENV_PG_HAS_GENERATED_COLUMNS 0
+    #define D_ENV_PG_HAS_GENERATED_VIRTUAL 0
+    #define D_ENV_PG_HAS_INDEX_BTREE 0
+    #define D_ENV_PG_HAS_INDEX_HASH 0
+    #define D_ENV_PG_HAS_INDEX_HASH_WAL 0
+    #define D_ENV_PG_HAS_INDEX_GIST 0
+    #define D_ENV_PG_HAS_INDEX_SPGIST 0
+    #define D_ENV_PG_HAS_INDEX_GIN 0
+    #define D_ENV_PG_HAS_INDEX_BRIN 0
+    #define D_ENV_PG_HAS_COVERING_INDEX 0
+    #define D_ENV_PG_HAS_PARTIAL_INDEX 0
+    #define D_ENV_PG_HAS_EXPRESSION_INDEX 0
+    #define D_ENV_PG_HAS_CONCURRENT_INDEX 0
+    #define D_ENV_PG_HAS_REINDEX_CONCURRENTLY 0
+    #define D_ENV_PG_HAS_CTE 0
+    #define D_ENV_PG_HAS_CTE_MATERIALIZED 0
+    #define D_ENV_PG_HAS_CTE_SEARCH_CYCLE 0
+    #define D_ENV_PG_HAS_WINDOW_FUNCTIONS 0
+    #define D_ENV_PG_HAS_LATERAL 0
+    #define D_ENV_PG_HAS_UPSERT 0
+    #define D_ENV_PG_HAS_MERGE 0
+    #define D_ENV_PG_HAS_GROUPING_SETS 0
+    #define D_ENV_PG_HAS_MATERIALIZED_VIEWS 0
+    #define D_ENV_PG_HAS_MATVIEW_CONCURRENT_REFRESH 0
+    #define D_ENV_PG_HAS_TABLE_INHERITANCE 0
+    #define D_ENV_PG_HAS_ROW_LEVEL_SECURITY 0
+    #define D_ENV_PG_HAS_STORED_PROCEDURES 0
+    #define D_ENV_PG_HAS_RETURNING 0
+    #define D_ENV_PG_HAS_TABLESAMPLE 0
+    #define D_ENV_PG_HAS_COPY_FREEZE 0
+    #define D_ENV_PG_HAS_FULL_TEXT_SEARCH 0
+    #define D_ENV_PG_HAS_GENERATED_AS_IDENTITY 0
+    #define D_ENV_PG_HAS_DECLARATIVE_PARTITIONING 0
+    #define D_ENV_PG_HAS_HASH_PARTITIONING 0
+    #define D_ENV_PG_HAS_DEFAULT_PARTITION 0
+    #define D_ENV_PG_HAS_PARTITION_PRUNING 0
+    #define D_ENV_PG_HAS_PARTITION_FOREIGN_KEY 0
+    #define D_ENV_PG_HAS_DETACH_PARTITION_CONCURRENTLY 0
+    #define D_ENV_PG_HAS_STREAMING_REPL 0
+    #define D_ENV_PG_HAS_REPLICATION_SLOTS 0
+    #define D_ENV_PG_HAS_LOGICAL_REPL 0
+    #define D_ENV_PG_HAS_LOGICAL_REPL_COLUMNS 0
+    #define D_ENV_PG_HAS_LOGICAL_REPL_ROW_FILTER 0
+    #define D_ENV_PG_HAS_LOGICAL_REPL_SEQUENCES 0
+    #define D_ENV_PG_HAS_SYNCHRONOUS_COMMIT_QUORUM 0
+    #define D_ENV_PG_HAS_PG_BASEBACKUP_INCREMENTAL 0
+    #define D_ENV_PG_HAS_FAILOVER_SLOTS 0
+    #define D_ENV_PG_HAS_PARALLEL_QUERY 0
+    #define D_ENV_PG_HAS_PARALLEL_INDEX 0
+    #define D_ENV_PG_HAS_PARALLEL_INDEX_BUILD 0
+    #define D_ENV_PG_HAS_PARALLEL_HASH_JOIN 0
+    #define D_ENV_PG_HAS_PARALLEL_APPEND 0
+    #define D_ENV_PG_HAS_PARALLEL_VACUUM 0
+    #define D_ENV_PG_HAS_CREATE_EXTENSION 0
+    #define D_ENV_PG_HAS_FDW 0
+    #define D_ENV_PG_HAS_FDW_JOIN_PUSH 0
+    #define D_ENV_PG_HAS_FDW_AGG_PUSH 0
+    #define D_ENV_PG_HAS_PLPGSQL 0
+    #define D_ENV_PG_HAS_EVENT_TRIGGERS 0
+    #ifndef D_ENV_PG_HAS_HSTORE
+        #define D_ENV_PG_HAS_HSTORE 0
+    #endif  // D_ENV_PG_HAS_HSTORE
+    #ifndef D_ENV_PG_HAS_LTREE
+        #define D_ENV_PG_HAS_LTREE 0
+    #endif  // D_ENV_PG_HAS_LTREE
+    #ifndef D_ENV_PG_HAS_CITEXT
+        #define D_ENV_PG_HAS_CITEXT 0
+    #endif  // D_ENV_PG_HAS_CITEXT
+    #ifndef D_ENV_PG_HAS_PG_TRGM
+        #define D_ENV_PG_HAS_PG_TRGM 0
+    #endif  // D_ENV_PG_HAS_PG_TRGM
+    #ifndef D_ENV_PG_HAS_UUID_OSSP
+        #define D_ENV_PG_HAS_UUID_OSSP 0
+    #endif  // D_ENV_PG_HAS_UUID_OSSP
+    #ifndef D_ENV_PG_HAS_PG_STAT_STATEMENTS
+        #define D_ENV_PG_HAS_PG_STAT_STATEMENTS 0
+    #endif  // D_ENV_PG_HAS_PG_STAT_STATEMENTS
+    #ifndef D_ENV_PG_HAS_POSTGIS
+        #define D_ENV_PG_HAS_POSTGIS 0
+    #endif  // D_ENV_PG_HAS_POSTGIS
+    #ifndef D_ENV_PG_HAS_PGVECTOR
+        #define D_ENV_PG_HAS_PGVECTOR 0
+    #endif  // D_ENV_PG_HAS_PGVECTOR
+    #ifndef D_ENV_PG_HAS_CITUS
+        #define D_ENV_PG_HAS_CITUS 0
+    #endif  // D_ENV_PG_HAS_CITUS
+    #ifndef D_ENV_PG_HAS_TIMESCALEDB
+        #define D_ENV_PG_HAS_TIMESCALEDB 0
+    #endif  // D_ENV_PG_HAS_TIMESCALEDB
+    #define D_ENV_PG_HAS_VACUUM_FULL_CONCURRENT 0
+    #define D_ENV_PG_HAS_AUTOVACUUM 0
+    #define D_ENV_PG_HAS_TOAST 0
+    #define D_ENV_PG_HAS_HEAP_TABLE_AM 0
+    #define D_ENV_PG_HAS_WAL_COMPRESSION 0
+    #define D_ENV_PG_HAS_WAL_COMPRESSION_LZ4 0
+    #define D_ENV_PG_HAS_WAL_SUMMARIZER 0
+    #define D_ENV_PG_HAS_JIT 0
+    #define D_ENV_PG_HAS_EXTENDED_STATISTICS 0
+    #define D_ENV_PG_HAS_EXTENDED_STATISTICS_EXPRESSIONS 0
+    #define D_ENV_PG_HAS_MEMOIZE 0
+    #define D_ENV_PG_HAS_INCREMENTAL_SORT 0
+    #define D_ENV_PG_HAS_ASYNC_APPEND 0
+    #define D_ENV_PG_HAS_EXPLAIN_WAL 0
+    #define D_ENV_PG_HAS_ROLES 0
+    #define D_ENV_PG_HAS_DEFAULT_ROLES 0
+    #define D_ENV_PG_HAS_PREDEFINED_ROLES_EXPANDED 0
+    #define D_ENV_PG_HAS_PG_STAT_PROGRESS 0
+    #define D_ENV_PG_HAS_PG_STAT_WAL 0
+    #define D_ENV_PG_HAS_SECURITY_INVOKER_VIEWS 0
+    #ifndef D_ENV_PG_HAS_UNIX_SOCKET
+        #define D_ENV_PG_HAS_UNIX_SOCKET 0
+    #endif  // D_ENV_PG_HAS_UNIX_SOCKET
+    #define D_ENV_PG_HAS_LARGE_OBJECT 0
+    #define D_ENV_PG_HAS_LISTEN_NOTIFY 0
+    #define D_ENV_PG_HAS_ADVISORY_LOCKS 0
+    #define D_ENV_PG_HAS_MODERN_SQL 0
+    #define D_ENV_PG_HAS_MODERN_JSON 0
+    #define D_ENV_PG_HAS_MODERN_PARTITIONING 0
+    #define D_ENV_PG_HAS_MODERN_REPLICATION 0
+    #define D_ENV_PG_HAS_MODERN_OPTIMIZER 0
+    #define D_ENV_PG_HAS_MODERN_AUTH 0
+    #define D_ENV_PG_IS_FULLY_MODERN 0
 #endif  // D_ENV_PG_DETECTED
 
 

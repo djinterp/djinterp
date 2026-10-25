@@ -3,7 +3,7 @@
 *
 * Build configuration for the libcurl binding, net/curl/curl.h.
 *   One knob: whether the binding is built over libcurl or compiled to stubs
-* that report D_CURL_STATUS_UNSUPPORTED. It defaults to what env_curl.h
+* that report D_CURL_ERROR_UNSUPPORTED. It defaults to what env_curl.h
 * detected, and to off where the version cannot be read, since the binding
 * needs libcurl 7.21.6, the first with CURLOPT_ACCEPT_ENCODING.
 *
@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/config/net/curl/cfg_curl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -45,7 +45,7 @@ TABLE OF CONTENTS
 // 1.  BINDING
 //==============================================================================
 // Whether net/curl/curl.h runs over libcurl. Without it every transfer
-// reports D_CURL_STATUS_UNSUPPORTED, so code using the binding compiles and
+// reports D_CURL_ERROR_UNSUPPORTED, so code using the binding compiles and
 // links everywhere and decides at run time.
 
 

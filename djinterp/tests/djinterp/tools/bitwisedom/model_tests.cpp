@@ -5,8 +5,7 @@
 * generator, files and history, and the C environment and importer -- and
 * the order a sheet's rows are shown in, what each cell of the grid shows,
 * where the grid's probe and usage rows are, and what the preprocessor
-* cannot read in a definition file; then the edits the window and the
-* command line share, the settings by path, and the self-test.
+* cannot read in a definition file.
 *   A suite is a table of sections, as djinterp's are: each section a
 * function that checks one thing and says which check failed, the runner a
 * loop over the table that prints each verdict and the totals. The count is
@@ -16,7 +15,7 @@
 * path:      /tests/djinterp/tools/bitwisedom/model_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 // std
 #include <cmath>    // std::fabs
@@ -28,7 +27,6 @@
 #include <djinterp/tools/bitwisedom/cenv.hpp>      // c_env, run_directives
 #include <djinterp/tools/bitwisedom/cimport.hpp>   // import_code, merge_rows
 #include <djinterp/tools/bitwisedom/codegen.hpp>   // generate
-#include <djinterp/tools/bitwisedom/edit.hpp>      // try_insert, try_change
 #include <djinterp/tools/bitwisedom/examples.hpp>  // make_example
 #include <djinterp/tools/bitwisedom/exchange.hpp>  // read_json_sheet, write_export
 #include <djinterp/tools/bitwisedom/expr.hpp>      // parse_expression, evaluate
@@ -38,8 +36,6 @@
 #include <djinterp/tools/bitwisedom/persist.hpp>   // save_sheet, load_sheet
 #include <djinterp/tools/bitwisedom/rename.hpp>    // rename_row
 #include <djinterp/tools/bitwisedom/resolve.hpp>   // resolve
-#include <djinterp/tools/bitwisedom/selftest.hpp>  // self_test
-#include <djinterp/tools/bitwisedom/settings.hpp>  // sheet_settings
 
 
 namespace
@@ -2781,251 +2777,6 @@ definition_notes()
     return;
 }
 
-/*
-edits_tried
-  A row tried before it is added: named for its kind and made unique, a bit
-at the lowest its group leaves free, and refused -- the sheet unchanged --
-where the window refuses it: nowhere to put it, a macro name that is no C
-identifier, or another symbol's. Its issues go with it, not refused.
-*/
-void
-edits_tried()
-{
-    sheet s = make_document("t", 8);
-
-    expect(fresh_name(s, row_kind::symbol, def_kind::bit) == "FLAG_2",
-           "a new bit is FLAG, made unique");
-    expect(fresh_name(s, row_kind::group, def_kind::bit) == "Group",
-           "a new group is Group");
-    expect(unique_name(s, "X") == "X", "a name no row has is kept");
-
-    const int range = range_choices(s).at(0);
-
-    expect(place_bit(s, range) == 1, "the lowest bit the range leaves free");
-    expect(container_choices(s).size() == 2u,
-           "the sheet's own rows, and the range");
-
-    trial added = try_insert(s, range, -1, symbol("NEXT", def_kind::bit));
-
-    expect( (added.refused.empty()) && (added.added != 0) &&
-            (find_row(added.result, added.added) != nullptr) &&
-            (added.named.by_full.count("NEXT") == 1u),
-           "a row added to the copy, which resolves with it");
-    expect(find_row(s, added.added) == nullptr, "the sheet as it was");
-
-    row bad = symbol("9LIVES", def_kind::bit);
-
-    expect(try_insert(s, 0, -1, bad).refused ==
-               "'9LIVES' is not a C identifier",
-           "a macro name that is no C identifier");
-    expect(try_insert(added.result, 0, -1, symbol("NEXT", def_kind::bit))
-               .refused == "NEXT is already another symbol's name",
-           "another symbol's macro name");
-    expect(try_insert(s, 999, -1, symbol("Y", def_kind::bit)).refused ==
-               "there is no group or range to add it to",
-           "nowhere to put it");
-
-    row twice = symbol("TWICE", def_kind::bit);
-
-    twice.bit = 0;
-
-    const trial overlap = try_insert(s, range, -1, twice);
-
-    expect( (overlap.refused.empty()) && (!overlap.issues.empty()),
-           "an overlap said, not refused");
-
-    return;
-}
-
-/*
-edits_changed
-  A row's fields replaced in a copy: its id, its place and its rows kept,
-its name judged as an added row's; a change of kind, or a range that holds
-rows made a bit, refused.
-*/
-void
-edits_changed()
-{
-    sheet            s     = make_example("uart_cr");
-    const resolution named = resolve(s);
-    const int        en    = named.by_full.at("UART_CR_EN");
-    const int        parity = named.by_full.at("UART_CR_PARITY");
-    row              moved = *find_row(s, en);
-
-    moved.bit  = 20;
-    moved.note = "moved";
-
-    const trial changed = try_change(s, en, moved);
-    const row*  now     = find_row(changed.result, en);
-
-    expect( (changed.refused.empty()) && (changed.added == en) &&
-            (now != nullptr) && (now->bit == 20) && (now->note == "moved"),
-           "the row's fields replaced, its id kept");
-    expect(value_of(changed.named, "UART_CR_EN") == (1u << 20),
-           "and the copy resolved with them");
-    expect(find_row(s, en)->bit != 20, "the sheet as it was");
-
-    row renamed = *find_row(s, en);
-
-    renamed.name = "TXEN";
-    expect(try_change(s, en, renamed).refused ==
-               "UART_CR_TXEN is already another symbol's name",
-           "a name another symbol has");
-
-    row grouped = *find_row(s, en);
-
-    grouped.kind = row_kind::group;
-    expect(contains(try_change(s, en, grouped).refused, "stays one"),
-           "a symbol stays a symbol");
-
-    row flattened = *find_row(s, parity);
-    const bool holds = (!flattened.children.empty());
-
-    flattened.def = def_kind::bit;
-    expect( (!holds) ||
-            contains(try_change(s, parity, flattened).refused, "holds rows"),
-           "a range that holds rows stays a range");
-    expect(try_change(s, 99999, moved).refused ==
-               "there is no such row to change",
-           "a row the sheet does not have");
-
-    return;
-}
-
-/*
-edits_rows
-  The row edits the window's Edit menu makes: duplicate, remove, a step up
-or down, and a sort made the sheet's own order.
-*/
-void
-edits_rows()
-{
-    sheet s = make_document("t", 8);
-
-    for (const char* const name : { "ZETA", "ALPHA", "MID" })
-    {
-        row made = symbol(name, def_kind::bit);
-
-        made.bit = static_cast<int>(name[0] % 8);
-        (void)insert_row(s, 0, -1, made);
-    }
-
-    const resolution       before = resolve(s);
-    const int              alpha  = before.by_full.at("ALPHA");
-    const std::vector<int> copies = duplicate_rows(s, { alpha, 424242 });
-    const resolution       after  = resolve(s);
-
-    expect( (copies.size() == 1u) &&
-            (after.by_full.count("ALPHA_COPY") == 1u),
-           "a copy named with _COPY after, an id no row has passed over");
-    expect(duplicate_rows(s, { alpha }).size() == 1u &&
-               resolve(s).by_full.count("ALPHA_COPY_2") == 1u,
-           "and made unique");
-    expect(remove_rows(s, { copies.at(0), alpha }) == 2,
-           "two removed");
-    expect(resolve(s).by_full.count("ALPHA") == 0u, "gone");
-
-    const int zeta = resolve(s).by_full.at("ZETA");
-
-    expect(move_by(s, zeta, -1), "a step up");
-    expect(!move_by(s, zeta, -1), "not past the first");
-    expect(!move_by(s, 424242, 1), "not a row the sheet does not have");
-
-    expect(sort_rows(s, sort_key::name, false) > 0, "sorted by name");
-
-    std::vector<std::string> names;
-
-    for (const row& each : s.root.children)
-    {
-        names.push_back(each.name);
-    }
-
-    expect(names == std::vector<std::string>({ "ALPHA_COPY_2", "MID",
-                                               "root", "ZETA" }),
-           "in the order a name sorts them, case folded");
-    expect(s.grid.sort_by == sort_key::sheet,
-           "the sheet's own order, now the sorted one");
-    expect(sort_rows(s, sort_key::name, false) == 0,
-           "nothing to sort a second time");
-    expect(sort_rows(s, sort_key::sheet, false) == 0,
-           "the sheet's own order is no sort");
-
-    return;
-}
-
-/*
-settings_by_path
-  Every setting by its path: its value as text, written back the same; a
-choice's words, a flag's, an integer's bounds refused outside them; and
-the preferences told from the sheet's own.
-*/
-void
-settings_by_path()
-{
-    const sheet original = make_example("uart_cr");
-    std::string error;
-    int         same     = 0;
-
-    for (const sheet_setting& each : sheet_settings())
-    {
-        sheet             copy = original;
-        const std::string text = setting_text(each, original);
-
-        same += ( set_setting(copy, each, text, error) &&
-                  (setting_text(each, copy) == text) ) ? 1 : 0;
-    }
-
-    expect(same == static_cast<int>(sheet_settings().size()),
-           "every setting written back as its text says it");
-
-    const sheet_setting* level = find_sheet_setting("gen.level");
-    const sheet_setting* lines = find_sheet_setting("grid.lines");
-    const sheet_setting* every = find_sheet_setting("grid.major_every");
-    sheet                s     = original;
-
-    expect( (level != nullptr) && (lines != nullptr) && (every != nullptr) &&
-            (find_sheet_setting("no.such") == nullptr),
-           "settings found by path, and only those");
-    expect( set_setting(s, *level, "cpp17", error) &&
-            (s.gen.level == standard::cpp17),
-           "a choice by its word");
-    expect( (!set_setting(s, *level, "c13", error)) &&
-            (s.gen.level == standard::cpp17),
-           "a word it does not take, the sheet as it was");
-    expect( set_setting(s, *lines, "off", error) && (!s.grid.lines) &&
-            set_setting(s, *lines, "YES", error) && (s.grid.lines),
-           "a flag in its words, any case");
-    expect( (!set_setting(s, *every, "99", error)) &&
-            (setting_values(*every) == "an integer from 2 to 32"),
-           "an integer outside its bounds, refused with them");
-    expect( is_preference("grid.lines") && (!is_preference("sheet.title")),
-           "how a sheet is drawn, a preference; its title, its own");
-
-    return;
-}
-
-/*
-self_test_written
-  A header's self-test: it includes the header by the name given, says who
-wrote it, and checks every macro.
-*/
-void
-self_test_written()
-{
-    const sheet       s    = make_example("rgb565");
-    const resolution  done = resolve(s);
-    const std::string text = self_test(s, done, "pixel.h");
-
-    expect(contains(text, "#include \"pixel.h\""),
-           "the header, by the name given");
-    expect(contains(text, "written by bitwisedom"), "who wrote it");
-    expect( contains(text, "(RGB565_MAGENTA) == 0xF81FUL") &&
-            contains(text, "RGB565_R_SET(0, 0x1FUL) == 0xF800UL"),
-           "a value, and a field's macros");
-
-    return;
-}
-
 // section
 //   struct: one entry of the table.
 struct section
@@ -3070,12 +2821,7 @@ const section SECTIONS[] = {
     { "colours: themes and schemes",  colours_and_schemes },
     { "sheet: sorted, and shown",     sorted_and_shown },
     { "sheet: special rows",          special_rows },
-    { "files: definition files read", definition_notes },
-    { "edit: rows tried",             edits_tried },
-    { "edit: rows changed",           edits_changed },
-    { "edit: rows copied, moved",     edits_rows },
-    { "settings: by path",            settings_by_path },
-    { "self-test: written",           self_test_written }
+    { "files: definition files read", definition_notes }
 };
 
 }  // anonymous namespace

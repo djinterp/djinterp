@@ -88,9 +88,9 @@ d_tests_sqlite_cpp_database(
     static const struct d_db_column columns[] =
     {
         { "id",   D_DB_TYPE_BIG_INTEGER, D_DB_COLUMN_PRIMARY_KEY, 0, 0u, 0u,
-          0 },
+          0, 0u },
         { "name", D_DB_TYPE_STRING,      D_DB_COLUMN_NOT_NULL,    "'?'", 0u, 0u,
-          0 }
+          0, 0u }
     };
     struct sqlite3*         db      = 0;
     struct d_db_name_list   names   = { 0u, 0 };

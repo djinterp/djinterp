@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/core/db/postgres/postgres_table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.23
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -32,7 +32,7 @@ TABLE OF CONTENTS
 #define DJINTERP_DB_POSTGRES_POSTGRES_TABLE_HPP 1
 
 // djinterp
-#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+#include "../../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: the floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
@@ -134,9 +134,15 @@ public:
     using typename base_type::schema_type;
     using self_type = postgres_table<Config>;
 
-    using type_support    = pg_type_support;
-    using feature_support = pg_feature_support;
-    using version_info    = pg_version_info;
+    using client_capabilities = pg_client_capabilities;
+    using version_info        = pg_version_info;
+
+    // type_support, feature_support -- client_capabilities, by their former
+    // names (2026.10.21), for one release
+    using type_support [[deprecated("client_capabilities")]] =
+        pg_client_capabilities;
+    using feature_support [[deprecated("client_capabilities")]] =
+        pg_client_capabilities;
 
     // construction -- as database_table's
     postgres_table()

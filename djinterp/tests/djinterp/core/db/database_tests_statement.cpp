@@ -5,8 +5,12 @@
 * path:      /tests/djinterp/core/db/database_tests_statement.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.10.23
 *******************************************************************************/
+#include "../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
 // djinterp
 // tests for db/database.hpp section VI (statement CRTP base)
 #include "database_tests.hpp"
@@ -57,7 +61,7 @@ namespace testing
         D_DB_CHECK(probe.last_index == 5);
         D_DB_CHECK(probe.v_string == "hello");
 
-        st.bind_binary(6, std::vector<std::uint8_t>{ 0xAB, 0xCD });
+        st.bind_binary(6, std::vector<re_std::uint8_t>{ 0xAB, 0xCD });
         D_DB_CHECK(probe.last_method == "binary");
         D_DB_CHECK(probe.last_index == 6);
         D_DB_CHECK(probe.v_binary.size() == 2);
@@ -111,7 +115,7 @@ namespace testing
         D_DB_CHECK(probe.v_string == "world");
 
         st.bind_binary(std::string("n6"),
-                       std::vector<std::uint8_t>{ 1, 2, 3, 4 });
+                       std::vector<re_std::uint8_t>{ 1, 2, 3, 4 });
         D_DB_CHECK(probe.last_method == "binary");
         D_DB_CHECK(probe.last_name == "n6");
         D_DB_CHECK(probe.v_binary.size() == 4);
@@ -230,3 +234,5 @@ namespace testing
 
 }   // namespace testing
 NS_END  // djinterp
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

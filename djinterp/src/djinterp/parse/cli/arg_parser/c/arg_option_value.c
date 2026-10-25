@@ -12,7 +12,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_option_value.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_option.h"  // corresponding header
 // std
@@ -33,13 +33,21 @@
 // 1.  ADDING
 //==============================================================================
 
-/*
-d_arg_internal_option_push_value
-  One value onto a list: kept as the span it is when it is stable and ends
-at the NUL of the string it lies in, else copied into the option's `owned`.
-Room in the list is made first, so a copy is never left without the value
-that refers to it.
-*/
+/**
+ * @brief Puts one value onto a list, kept as the span it is or copied.
+ *
+ * @param[in,out] _option  the option, whose `owned` keeps a copy.
+ * @param[in,out] _list    the list.
+ * @param[in]     _value   the value.
+ * @param[in]     _stable  whether the value outlives the option's values.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the list holding what it
+ *         held.
+ *
+ * One value onto a list: kept as the span it is when it is stable and ends
+ * at the NUL of the string it lies in, else copied into the option's `owned`.
+ * Room in the list is made first, so a copy is never left without the value
+ * that refers to it.
+ */
 D_STATIC int
 d_arg_internal_option_push_value(
     struct d_arg_option*    _option,
@@ -80,12 +88,20 @@ d_arg_internal_option_push_value(
     return status;
 }
 
-/*
-d_arg_internal_option_push_built
-  A value built in a buffer, onto a list: the buffer's storage becomes one of
-the option's copies, so nothing is copied again, and an empty value, which
-has no storage, is the empty literal. The buffer is left empty or failed.
-*/
+/**
+ * @brief Puts a value built in a buffer onto a list, the buffer's storage given
+ *        to the option.
+ *
+ * @param[in,out] _option  the option, whose `owned` takes the storage.
+ * @param[in,out] _list    the list.
+ * @param[in,out] _built   the buffer, left empty or failed.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the list holding what it
+ *         held.
+ *
+ * A value built in a buffer, onto a list: the buffer's storage becomes one of
+ * the option's copies, so nothing is copied again, and an empty value, which
+ * has no storage, is the empty literal. The buffer is left empty or failed.
+ */
 D_STATIC int
 d_arg_internal_option_push_built(
     struct d_arg_option*    _option,
@@ -131,11 +147,17 @@ d_arg_internal_option_push_built(
     return status;
 }
 
-/*
-d_arg_internal_option_is_escape
-  CLI11's escape for a value that would read as a bracketed list: `[[` and
-`]]` around text in which every character comes twice.
-*/
+/**
+ * @brief Tells whether a value is CLI11's escape for one that would read as a
+ *        bracketed list.
+ *
+ * @param[in] _value  the value.
+ * @return `true` for `[[` and `]]` around text in which every character comes
+ *         twice; `false` otherwise.
+ *
+ * CLI11's escape for a value that would read as a bracketed list: `[[` and
+ * `]]` around text in which every character comes twice.
+ */
 D_STATIC bool
 d_arg_internal_option_is_escape(
     struct d_pack_text _value
@@ -166,11 +188,18 @@ d_arg_internal_option_is_escape(
     return true;
 }
 
-/*
-d_arg_internal_option_add_escaped
-  An escape as the one value it stands for: the text with each doubled
-character once, in single brackets.
-*/
+/**
+ * @brief Adds the one value an escape stands for.
+ *
+ * @param[in,out] _option  the option, whose `owned` keeps the value.
+ * @param[in,out] _list    the list.
+ * @param[in]     _value   the escape.
+ * @param[in,out] _added   the count of values added, incremented.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * An escape as the one value it stands for: the text with each doubled
+ * character once, in single brackets.
+ */
 D_STATIC int
 d_arg_internal_option_add_escaped(
     struct d_arg_option*    _option,
@@ -209,11 +238,18 @@ d_arg_internal_option_add_escaped(
     return status;
 }
 
-/*
-d_arg_internal_option_is_list
-  CLI11's test for a bracketed list: a value in brackets, for an option that
-takes extra arguments, several values, or items of several values.
-*/
+/**
+ * @brief Tells whether a value is a bracketed list, as CLI11 tests for one.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _value   the value.
+ * @return `true` for a value in brackets, for an option that takes extra
+ *         arguments, several values, or items of several values; `false`
+ *         otherwise.
+ *
+ * CLI11's test for a bracketed list: a value in brackets, for an option that
+ * takes extra arguments, several values, or items of several values.
+ */
 D_STATIC bool
 d_arg_internal_option_is_list(
     const struct d_arg_option* _option,
@@ -222,18 +258,26 @@ d_arg_internal_option_is_list(
 {
     return ( ( (d_arg_option_has_flag(_option,
                                       D_ARG_OPTION_ALLOW_EXTRA_ARGS)) ||
-               (_option->expected_max > 1)                           ||
-               (_option->type_size_min > 1) )                        &&
-             (_value.length > 0u)                                    &&
-             (_value.data[0] == '[')                                 &&
+               (_option->expected_max > 1)                            ||
+               (_option->type_size_min > 1) )                         &&
+             (_value.length > 0u)                                     &&
+             (_value.data[0] == '[')                                  &&
              (_value.data[_value.length - 1u] == ']') );
 }
 
-/*
-d_arg_internal_option_add_split
-  CLI11's split at the option's delimiter: each nonempty piece is a value,
-copied, since a piece is not terminated where it ends.
-*/
+/**
+ * @brief Adds the pieces of a value between the option's delimiters.
+ *
+ * @param[in,out] _option  the option, whose `owned` keeps the pieces.
+ * @param[in,out] _list    the list.
+ * @param[in]     _value   the value.
+ * @param[in,out] _added   the count of values added, increased.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the pieces added before
+ *         the failure kept.
+ *
+ * CLI11's split at the option's delimiter: each nonempty piece is a value,
+ * copied, since a piece is not terminated where it ends.
+ */
 D_STATIC int
 d_arg_internal_option_add_split(
     struct d_arg_option*    _option,
@@ -279,11 +323,20 @@ d_arg_internal_option_add_split(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_option_add_one
-  A value that is not a bracketed list: the value itself when the option has
-no delimiter or the value holds none, else its pieces.
-*/
+/**
+ * @brief Adds a value that is not a bracketed list: itself, or its pieces.
+ *
+ * @param[in,out] _option  the option, whose `owned` keeps a copy.
+ * @param[in,out] _list    the list.
+ * @param[in]     _value   the value.
+ * @param[in]     _stable  whether the value outlives the option's values.
+ * @param[in,out] _added   the count of values added, increased.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the values added before
+ *         the failure kept.
+ *
+ * A value that is not a bracketed list: the value itself when the option has
+ * no delimiter or the value holds none, else its pieces.
+ */
 D_STATIC int
 d_arg_internal_option_add_one(
     struct d_arg_option*    _option,
@@ -320,13 +373,22 @@ d_arg_internal_option_add_one(
     return status;
 }
 
-/*
-d_arg_internal_option_add_value
-  CLI11's _add_result: an escape is one value; a bracketed list is split as
-d_arg_internal_split_up splits it at commas, and each nonempty piece is
-added as a value of its own -- itself a list, perhaps -- from a copy, since
-the pieces are freed here; anything else is one value, or its pieces.
-*/
+/**
+ * @brief Adds a value as CLI11's _add_result does.
+ *
+ * @param[in,out] _option  the option, whose `owned` keeps a copy.
+ * @param[in,out] _list    the list.
+ * @param[in]     _value   the value.
+ * @param[in]     _stable  whether the value outlives the option's values.
+ * @param[in,out] _added   the count of values added, increased.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the values added before
+ *         the failure kept.
+ *
+ * CLI11's _add_result: an escape is one value; a bracketed list is split as
+ * d_arg_internal_split_up splits it at commas, and each nonempty piece is
+ * added as a value of its own -- itself a list, perhaps -- from a copy, since
+ * the pieces are freed here; anything else is one value, or its pieces.
+ */
 D_STATIC int
 d_arg_internal_option_add_value(
     struct d_arg_option*    _option,
@@ -581,13 +643,20 @@ d_arg_option_clear(
 // 2.  JUDGING
 //==============================================================================
 
-/*
-d_arg_internal_option_run_all
-  The validators that apply to `_index`, in order, each on what the one
-before made of the value, until one rejects it or stops; a validation error
-is the rejection CLI11 catches, its message the verdict -- with none, a
-pass.
-*/
+/**
+ * @brief Runs the validators that apply to a position over a value.
+ *
+ * @param[in]     _option      the option.
+ * @param[in]     _index       the position.
+ * @param[in,out] _validation  the validation.
+ * @return D_ARG_OK once a verdict is reached; otherwise the error a validator
+ *         stopped with.
+ *
+ * The validators that apply to `_index`, in order, each on what the one
+ * before made of the value, until one rejects it or stops; a validation error
+ * is the rejection CLI11 catches, its message the verdict -- with none, a
+ * pass.
+ */
 D_STATIC int
 d_arg_internal_option_run_all(
     const struct d_arg_option* _option,
@@ -701,13 +770,19 @@ struct d_arg_internal_option_pass
     struct d_arg_buffer     result;
 };
 
-/*
-d_arg_internal_option_first_index
-  Where CLI11's _validate_results starts counting: 0, or -- when the policy
-keeps the last of more values than the option takes -- minus the number of
-values the policy will drop, so the values it keeps count from 0. The limit
-is the item count for a multi-value type, the expected count otherwise.
-*/
+/**
+ * @brief Gives the position CLI11's _validate_results starts counting from.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _count   how many values there are.
+ * @return 0; or, when the policy keeps the last of more values than the option
+ *         takes, minus the number of values it will drop.
+ *
+ * Where CLI11's _validate_results starts counting: 0, or -- when the policy
+ * keeps the last of more values than the option takes -- minus the number of
+ * values the policy will drop, so the values it keeps count from 0. The limit
+ * is the item count for a multi-value type, the expected count otherwise.
+ */
 D_STATIC int
 d_arg_internal_option_first_index(
     const struct d_arg_option* _option,
@@ -728,11 +803,19 @@ d_arg_internal_option_first_index(
            : 0;
 }
 
-/*
-d_arg_internal_option_restarts
-  CLI11's restart of the count at a separator, between items of a variable
-size, while counting from the start.
-*/
+/**
+ * @brief Tells whether the count restarts at a value, as CLI11 restarts it at a
+ *        separator.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _value   the value.
+ * @param[in] _index   the count.
+ * @return `true` at a separator between items of a variable size, counting from
+ *         the start; `false` otherwise.
+ *
+ * CLI11's restart of the count at a separator, between items of a variable
+ * size, while counting from the start.
+ */
 D_STATIC bool
 d_arg_internal_option_restarts(
     const struct d_arg_option* _option,
@@ -746,11 +829,17 @@ d_arg_internal_option_restarts(
              (d_arg_internal_is_separator(_value)) );
 }
 
-/*
-d_arg_internal_option_position
-  The index a validator sees: the position within an item for a multi-value
-type, counted from the start; otherwise the count itself.
-*/
+/**
+ * @brief Gives the index a validator sees.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _index   the count.
+ * @return the position within an item for a multi-value type, counted from the
+ *         start; `_index` otherwise.
+ *
+ * The index a validator sees: the position within an item for a multi-value
+ * type, counted from the start; otherwise the count itself.
+ */
 D_STATIC int
 d_arg_internal_option_position(
     const struct d_arg_option* _option,
@@ -763,11 +852,17 @@ d_arg_internal_option_position(
            : _index;
 }
 
-/*
-d_arg_internal_option_fail_named
-  Records a failure in CLI11's "<name>: <detail>" form, the name as
-d_arg_option_name writes it: nothing for a hidden option.
-*/
+/**
+ * @brief Records a failure in CLI11's "<name>: <detail>" form.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _status  the failure.
+ * @param[in] _detail  the words after the name.
+ * @return `_status`, recorded.
+ *
+ * Records a failure in CLI11's "<name>: <detail>" form, the name as
+ * d_arg_option_name writes it: nothing for a hidden option.
+ */
 D_STATIC int
 d_arg_internal_option_fail_named(
     const struct d_arg_option* _option,
@@ -793,11 +888,16 @@ d_arg_internal_option_fail_named(
     return status;
 }
 
-/*
-d_arg_internal_option_rewrite
-  Puts what the validators made of a value in its place, as CLI11's
-_validate_results writes into the list; an unchanged value keeps its span.
-*/
+/**
+ * @brief Puts what the validators made of a value in its place.
+ *
+ * @param[in,out] _pass  the pass: the option, its list, and the result.
+ * @param[in]     _at    the value's place in the list.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * Puts what the validators made of a value in its place, as CLI11's
+ * _validate_results writes into the list; an unchanged value keeps its span.
+ */
 D_STATIC int
 d_arg_internal_option_rewrite(
     struct d_arg_internal_option_pass* _pass,
@@ -833,12 +933,21 @@ d_arg_internal_option_rewrite(
                                  NULL);
 }
 
-/*
-d_arg_internal_option_validate_one
-  One value's judgement: an error a validator stopped with is recorded as
-raised, a rejection as CLI11's ValidationError, and a value that passes is
-replaced by what the validators made of it.
-*/
+/**
+ * @brief Judges one value of a list.
+ *
+ * @param[in,out] _pass      the pass: the option, its list, and the scratch
+ *                           buffers.
+ * @param[in]     _at        the value's place in the list.
+ * @param[in]     _position  the index its validators see.
+ * @return D_ARG_OK; D_ARG_ERROR_VALIDATION, recorded as CLI11's
+ *         ValidationError; or the error a validator stopped with or a copy
+ *         failed with, recorded as raised.
+ *
+ * One value's judgement: an error a validator stopped with is recorded as
+ * raised, a rejection as CLI11's ValidationError, and a value that passes is
+ * replaced by what the validators made of it.
+ */
 D_STATIC int
 d_arg_internal_option_validate_one(
     struct d_arg_internal_option_pass* _pass,
@@ -936,10 +1045,13 @@ d_arg_internal_option_validate(
 // 3.  REDUCING
 //==============================================================================
 
-/*
-d_arg_internal_option_reverse
-  Turns a list of spans around in place.
-*/
+/**
+ * @brief Turns a list of spans around in place.
+ *
+ * @param[in,out] _list  the list.
+ *
+ * Turns a list of spans around in place.
+ */
 D_STATIC void
 d_arg_internal_option_reverse(
     struct d_arg_text_list* _list
@@ -962,12 +1074,20 @@ d_arg_internal_option_reverse(
     return;
 }
 
-/*
-d_arg_internal_option_trim_to
-  CLI11's TakeLast, Reverse and TakeFirst: of more values than the option
-takes -- at least one -- the last or the first ones; Reverse also takes the
-last ones, all of them, when it keeps several, and turns them around.
-*/
+/**
+ * @brief Keeps the first or the last values, as CLI11's TakeFirst, TakeLast and
+ *        Reverse.
+ *
+ * @param[in]     _option    the option.
+ * @param[in,out] _out       receives the values kept; nothing when they all
+ *                           stand as they are.
+ * @param[in]     _original  the values.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's TakeLast, Reverse and TakeFirst: of more values than the option
+ * takes -- at least one -- the last or the first ones; Reverse also takes the
+ * last ones, all of them, when it keeps several, and turns them around.
+ */
 D_STATIC int
 d_arg_internal_option_trim_to(
     const struct d_arg_option*    _option,
@@ -1014,12 +1134,18 @@ d_arg_internal_option_trim_to(
     return status;
 }
 
-/*
-d_arg_internal_option_join
-  CLI11's join: the values with the delimiter between them, then -- CLI11's
-own rule -- a delimiter that ends the text dropped, as when the last value
-is empty or ends with one.
-*/
+/**
+ * @brief Appends values joined as CLI11's join joins them.
+ *
+ * @param[in]     _values     the values.
+ * @param[in]     _delimiter  the delimiter.
+ * @param[in,out] _out        the buffer that gains them, its failure kept in
+ *                            it.
+ *
+ * CLI11's join: the values with the delimiter between them, then -- CLI11's
+ * own rule -- a delimiter that ends the text dropped, as when the last value
+ * is empty or ends with one.
+ */
 D_STATIC void
 d_arg_internal_option_join(
     const struct d_arg_text_list* _values,
@@ -1053,11 +1179,18 @@ d_arg_internal_option_join(
     return;
 }
 
-/*
-d_arg_internal_option_join_into
-  CLI11's Join: several values become one, joined by the delimiter, or by
-`\n` without one; a single value stands as it is.
-*/
+/**
+ * @brief Joins several values into one, as CLI11's Join.
+ *
+ * @param[in,out] _option    the option, whose `owned` keeps the joined value.
+ * @param[in,out] _out       receives the joined value; nothing for a single
+ *                           value.
+ * @param[in]     _original  the values.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's Join: several values become one, joined by the delimiter, or by
+ * `\\n` without one; a single value stands as it is.
+ */
 D_STATIC int
 d_arg_internal_option_join_into(
     struct d_arg_option*          _option,
@@ -1088,10 +1221,17 @@ d_arg_internal_option_join_into(
     return status;
 }
 
-/*
-d_arg_internal_option_sum_into
-  CLI11's Sum: the values become their sum, as d_arg_sum_values writes it.
-*/
+/**
+ * @brief Sums values into one, as CLI11's Sum.
+ *
+ * @param[in,out] _option    the option, whose `owned` keeps the sum.
+ * @param[in,out] _out       receives the sum.
+ * @param[in]     _original  the values.
+ * @return D_ARG_OK; the status d_arg_sum_values stops with; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's Sum: the values become their sum, as d_arg_sum_values writes it.
+ */
 D_STATIC int
 d_arg_internal_option_sum_into(
     struct d_arg_option*          _option,
@@ -1118,11 +1258,18 @@ d_arg_internal_option_sum_into(
     return status;
 }
 
-/*
-d_arg_internal_option_mismatch
-  CLI11's ArgumentMismatch::AtLeast and AtMost: "<name>: At least <n>
-required but received <count>", and "At most" likewise.
-*/
+/**
+ * @brief Records CLI11's ArgumentMismatch::AtLeast or AtMost.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _bound   "At least" or "At most".
+ * @param[in] _number  the bound.
+ * @param[in] _count   how many values were received.
+ * @return D_ARG_ERROR_ARGUMENT_MISMATCH, recorded.
+ *
+ * CLI11's ArgumentMismatch::AtLeast and AtMost: "<name>: At least <n>
+ * required but received <count>", and "At most" likewise.
+ */
 D_STATIC int
 d_arg_internal_option_mismatch(
     const struct d_arg_option* _option,
@@ -1149,12 +1296,20 @@ d_arg_internal_option_mismatch(
     return status;
 }
 
-/*
-d_arg_internal_option_check_count
-  CLI11's Throw: too few values or too many is a mismatch, each bound at
-least 1 -- but for `{}` followed by `%%`, an empty container, which passes
-as the one value it stands for, as CLI11 lets it.
-*/
+/**
+ * @brief Checks the count of values, as CLI11's Throw.
+ *
+ * @param[in]     _option    the option.
+ * @param[in,out] _out       receives an empty container's two values, which
+ *                           pass as the one value they stand for.
+ * @param[in]     _original  the values.
+ * @return D_ARG_OK; D_ARG_ERROR_ARGUMENT_MISMATCH, recorded, for too few or too
+ *         many; or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's Throw: too few values or too many is a mismatch, each bound at
+ * least 1 -- but for `{}` followed by `%%`, an empty container, which passes
+ * as the one value it stands for, as CLI11 lets it.
+ */
 D_STATIC int
 d_arg_internal_option_check_count(
     const struct d_arg_option*    _option,
@@ -1200,12 +1355,20 @@ d_arg_internal_option_check_count(
                                             count);
 }
 
-/*
-d_arg_internal_option_mark_empty
-  CLI11's indicator of an empty container, for an option that needs
-values: when the policy kept nothing of a lone `{}`, or kept a lone `{}`,
-`%%` follows it, so that the conversion reads an empty container.
-*/
+/**
+ * @brief Completes CLI11's indicator of an empty container, for an option that
+ *        needs values.
+ *
+ * @param[in]     _option    the option.
+ * @param[in,out] _out       the values the policy kept, which gain `%%` after a
+ *                           lone `{}`.
+ * @param[in]     _original  the values.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's indicator of an empty container, for an option that needs
+ * values: when the policy kept nothing of a lone `{}`, or kept a lone `{}`,
+ * `%%` follows it, so that the conversion reads an empty container.
+ */
 D_STATIC int
 d_arg_internal_option_mark_empty(
     const struct d_arg_option*    _option,

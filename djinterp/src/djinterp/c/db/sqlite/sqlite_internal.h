@@ -21,7 +21,7 @@
 * path:      /src/djinterp/c/db/sqlite/sqlite_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 
 /*
@@ -34,6 +34,8 @@ TABLE OF CONTENTS
          1.  D_INTERNAL_SQLITE_CHANGES
          2.  D_INTERNAL_SQLITE_TOTAL_CHANGES
          3.  D_INTERNAL_SQLITE_BIND64
+         4.  D_INTERNAL_SQLITE_SERIALIZE
+         5.  D_INTERNAL_SQLITE_LOAD_EXTENSION
 2.  NAMES
     -----
     1.  Schemas and names
@@ -54,7 +56,7 @@ TABLE OF CONTENTS
 #include "../../../../../inc/djinterp/c/djinterp.h"  // framework root
 #include "../../../../../inc/djinterp/c/db/sqlite/sqlite_common.h"  // layer
 #include "../../../../../inc/djinterp/env/db/sqlite/env_sqlite.h"  // sqlite3.h
-#include "../db_internal.h"  // d_internal_db_names
+#include "../db_internal.h"  // d_internal_db_names, d_internal_db_rows
 // re_std
 #include "../../../../../inc/re_std/cstdint/dstdint.h"  // int64_t
 
@@ -108,6 +110,35 @@ TABLE OF CONTENTS
     #define D_INTERNAL_SQLITE_BIND64 1
 #else
     #define D_INTERNAL_SQLITE_BIND64 0
+#endif
+
+// 1.2.4
+// D_INTERNAL_SQLITE_SERIALIZE
+//   macro: 1 where the header declares sqlite3_serialize and
+// sqlite3_deserialize -- from 3.36.0 unless the build defines
+// SQLITE_OMIT_DESERIALIZE, and from 3.23.0 where it defines
+// SQLITE_ENABLE_DESERIALIZE -- and 0 where the layer answers
+// D_DB_UNSUPPORTED for them.
+#if ( ( (D_ENV_SQLITE_VERSION_AT_LEAST(3, 36, 0)) &&                           \
+        (!defined(SQLITE_OMIT_DESERIALIZE)) ) ||                               \
+      ( (D_ENV_SQLITE_VERSION_AT_LEAST(3, 23, 0)) &&                           \
+        (defined(SQLITE_ENABLE_DESERIALIZE)) ) )
+    #define D_INTERNAL_SQLITE_SERIALIZE 1
+#else
+    #define D_INTERNAL_SQLITE_SERIALIZE 0
+#endif
+
+// 1.2.5
+// D_INTERNAL_SQLITE_LOAD_EXTENSION
+//   macro: 1 where the layer calls SQLite's extension loading -- the build
+// asks for it (D_CFG_SQLITE_LOAD_EXTENSION, cfg_sqlite_common.h) and does
+// not leave it out (SQLITE_OMIT_LOAD_EXTENSION) -- and 0 where the layer
+// answers D_DB_UNSUPPORTED for it.
+#if ( (D_CFG_IS_ON(D_CFG_SQLITE_LOAD_EXTENSION)) &&                            \
+      (!defined(SQLITE_OMIT_LOAD_EXTENSION)) )
+    #define D_INTERNAL_SQLITE_LOAD_EXTENSION 1
+#else
+    #define D_INTERNAL_SQLITE_LOAD_EXTENSION 0
 #endif
 
 
@@ -275,6 +306,15 @@ int  d_internal_sqlite_collect_names(sqlite3_stmt*          _statement,
 
 // 3.4    Rows
 //------------------------------------------------------------------------------
+// building rows -- _describe_columns describes a statement's columns into rows
+// under construction, from the statement alone, which needs no step;
+// _keep_row copies the row a step has just produced, every value as SQLite
+// gives it. Each returns SQLITE_OK, or SQLITE_NOMEM, the builder then left
+// for its owner to release
+int  d_internal_sqlite_describe_columns(sqlite3_stmt*              _statement,
+                                        struct d_internal_db_rows* _builder);
+int  d_internal_sqlite_keep_row(sqlite3_stmt*              _statement,
+                                struct d_internal_db_rows* _builder);
 /**
  * @brief Runs a prepared statement from its beginning to its end, collecting
  *        its rows, and resets it.

@@ -11,11 +11,10 @@
 * section, compiled against CLI11 by tools/cppref/cppref.py). Then what the
 * face has that CLI11 has not, in sections of the module's own: the errors
 * as views, the parser's output, statuses ended that are not the last
-* parse's, response files, suggestions, `--name=` as an empty value and the
-* completion flag, the departures of its parse forms -- and the
-* zero-overhead checks: the parser adds no member to its C struct, every
-* handle is one pointer, every value type is its C struct, from C++11 each
-* trivially copyable.
+* parse's, response files, suggestions and the completion flag, the
+* departures of its parse forms -- and the zero-overhead checks: the parser
+* adds no member to its C struct, every handle is one pointer, every value
+* type is its C struct, from C++11 each trivially copyable.
 *   The suite is a table of sections, defined in arg_parser_tests.cpp beside
 * the sections themselves; a section exists from the language level, and
 * under the configuration, that its subject exists at, so the table's length
@@ -25,7 +24,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/arg_parser_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.19
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.10.19
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_CLI_ARG_PARSER_ARG_PARSER_TESTS_HPP
@@ -67,7 +66,6 @@ bool d_tests_arg_cpp_parser_response_files();
 #if (D_INTERNAL_ARG_PARSER_SUGGESTIONS == 1)
 bool d_tests_arg_cpp_parser_suggestions();
 #endif
-bool d_tests_arg_cpp_parser_empty_values();
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
 bool d_tests_arg_cpp_parser_completion_flag();
 #endif

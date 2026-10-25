@@ -13,7 +13,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_smoke_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_smoke_tests.h"  // corresponding header
 // std
@@ -63,10 +63,17 @@ struct d_tests_arg_smoke_hooks
     struct d_tests_arg_smoke_tag last;
 };
 
-/*
-d_tests_arg_smoke_on_values
-  An option's callback: notes its label and the first value it was given.
-*/
+/**
+ * @brief Notes an option's label and the first value it was given.
+ *
+ * @param[in] _option   the option; unused.
+ * @param[in] _results  the values it was given.
+ * @param[in] _count    how many.
+ * @param[in] _context  the d_tests_arg_smoke_tag naming the label and the run.
+ * @return D_ARG_OK.
+ *
+ * An option's callback: notes its label and the first value it was given.
+ */
 static int
 d_tests_arg_smoke_on_values(
     struct d_arg_option*      _option,
@@ -92,10 +99,16 @@ d_tests_arg_smoke_on_values(
     return D_ARG_OK;
 }
 
-/*
-d_tests_arg_smoke_on_flag
-  A flag's callback: notes its label.
-*/
+/**
+ * @brief Notes a flag's label.
+ *
+ * @param[in] _option   the flag; unused.
+ * @param[in] _count    how many times it was given; unused.
+ * @param[in] _context  the d_tests_arg_smoke_tag naming the label and the run.
+ * @return D_ARG_OK.
+ *
+ * A flag's callback: notes its label.
+ */
 static int
 d_tests_arg_smoke_on_flag(
     struct d_arg_option* _option,
@@ -115,10 +128,15 @@ d_tests_arg_smoke_on_flag(
     return D_ARG_OK;
 }
 
-/*
-d_tests_arg_smoke_on_command
-  A command's callback: notes its label.
-*/
+/**
+ * @brief Notes a command's label.
+ *
+ * @param[in] _command  the command; unused.
+ * @param[in] _context  the d_tests_arg_smoke_tag naming the label and the run.
+ * @return D_ARG_OK.
+ *
+ * A command's callback: notes its label.
+ */
 static int
 d_tests_arg_smoke_on_command(
     struct d_arg_command* _command,
@@ -136,11 +154,18 @@ d_tests_arg_smoke_on_command(
     return D_ARG_OK;
 }
 
-/*
-d_tests_arg_smoke_entry
-  A main of the kind D_ARG_PARSE is written for: what the macro returns when
-the parse ends the program, and 42 when the program goes on.
-*/
+/**
+ * @brief Parses arguments as a main written with D_ARG_PARSE does.
+ *
+ * @param[in,out] _parser  the parser.
+ * @param[in]     _argc    how many arguments there are.
+ * @param[in]     _argv    the arguments.
+ * @return the exit code D_ARG_PARSE returns when the parse ends the program; 42
+ *         when the program goes on.
+ *
+ * A main of the kind D_ARG_PARSE is written for: what the macro returns when
+ * the parse ends the program, and 42 when the program goes on.
+ */
 static int
 d_tests_arg_smoke_entry(
     struct d_arg_parser* _parser,
@@ -155,11 +180,21 @@ d_tests_arg_smoke_entry(
     return 42;
 }
 
-/*
-d_tests_arg_smoke_ended
-  Ends a parse as d_arg_parser_exit does, and compares the code and what
-was written to each output with what was expected.
-*/
+/**
+ * @brief Ends a parse and checks the exit code and both outputs.
+ *
+ * @param[in,out] _run     the run, whose parser ends the parse and whose
+ *                         buffers hold what it wrote.
+ * @param[in]     _status  the parse's status.
+ * @param[in]     _code    the exit code expected.
+ * @param[in]     _out     what the output must hold.
+ * @param[in]     _err     what the error output must hold.
+ * @return `true` when the code and both outputs are as expected; `false`
+ *         otherwise.
+ *
+ * Ends a parse as d_arg_parser_exit does, and compares the code and what
+ * was written to each output with what was expected.
+ */
 static bool
 d_tests_arg_smoke_ended(
     struct d_tests_arg_run* _run,
@@ -183,11 +218,16 @@ d_tests_arg_smoke_ended(
              (err) );
 }
 
-/*
-d_tests_arg_smoke_bind
-  Binds each of the variables to an option or a flag of its own, through
-the built-in type descriptors.
-*/
+/**
+ * @brief Binds each variable to an option or a flag of its own.
+ *
+ * @param[in,out] _app     the command that gains the options and flags.
+ * @param[in]     _values  the variables, which the options keep and the parse
+ *                         writes.
+ *
+ * Binds each of the variables to an option or a flag of its own, through
+ * the built-in type descriptors.
+ */
 static void
 d_tests_arg_smoke_bind(
     struct d_arg_command*            _app,
@@ -225,12 +265,18 @@ d_tests_arg_smoke_bind(
     return;
 }
 
-/*
-d_tests_arg_smoke_hook
-  Registers a callback of each kind -- an option's, a flag's, a
-subcommand's, and the root's parse-complete and final callbacks -- each with
-its own context.
-*/
+/**
+ * @brief Registers a callback of each kind, each with its own context.
+ *
+ * @param[in,out] _run    the run, which watches the subcommand added.
+ * @param[in,out] _app    the root command, which gains the options, the
+ *                        subcommand, and its own callbacks.
+ * @param[in]     _hooks  the tags each callback is given as its context.
+ *
+ * Registers a callback of each kind -- an option's, a flag's, a
+ * subcommand's, and the root's parse-complete and final callbacks -- each with
+ * its own context.
+ */
 static void
 d_tests_arg_smoke_hook(
     struct d_tests_arg_run*         _run,
@@ -274,11 +320,18 @@ d_tests_arg_smoke_hook(
     return;
 }
 
-/*
-d_tests_arg_smoke_refuses
-  Adds an option under a name already taken, and compares the definition
-error it records with CLI11's OptionAlreadyAdded message.
-*/
+/**
+ * @brief Checks that a name already taken is refused as CLI11 refuses it.
+ *
+ * @param[in,out] _run  the run whose parser records the definition error.
+ * @param[in,out] _app  the command that already has `--alpha`.
+ * @return `true` when the option was refused with
+ *         D_ARG_ERROR_OPTION_ALREADY_ADDED and CLI11's message; `false`
+ *         otherwise.
+ *
+ * Adds an option under a name already taken, and compares the definition
+ * error it records with CLI11's OptionAlreadyAdded message.
+ */
 static bool
 d_tests_arg_smoke_refuses(
     struct d_tests_arg_run* _run,

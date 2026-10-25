@@ -1,7 +1,8 @@
 #*******************************************************************************
 # djinterp [parsegen]                                             CMakeLists.txt
 #
-# Test leaf for djinterp/parsegen/vparse.
+# Test leaf for djinterp/parsegen/vparse: parsegen_vparse_tests, a name of
+# its own beside parse/vparse's vparse_tests, the older module's.
 #   Recipe R2: the module has production sources under
 # src/djinterp/parsegen/vparse consumed only by this test exe, so they are
 # compiled straight into it. The helper adds inc/ and defines D_TESTING=1,
@@ -26,7 +27,7 @@
 # path:      /build/cmake/config/testing/djinterp/parsegen/vparse/CMakeLists.txt
 # link(s):   TBA
 # author(s): TBA                                                    created: TBA
-#                                                            revised: 2026.10.04
+#                                                            revised: 2026.10.23
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -75,7 +76,7 @@ file(GLOB _prod CONFIGURE_DEPENDS "${_src_dir}/*.cpp")
 # with the framework's helper
 #------------------------------------------------------------------------------
 if(COMMAND djinterp_add_test_executable)
-    djinterp_add_test_executable(vparse_tests
+    djinterp_add_test_executable(parsegen_vparse_tests
         SOURCES
             "${CMAKE_CURRENT_SOURCE_DIR}/vparse_tests_runner.cpp"
             ${_sources}
@@ -84,8 +85,9 @@ if(COMMAND djinterp_add_test_executable)
     # re_std's knob beside the D_TESTING the helper defines, so that neither
     # depends on include order. It belongs in the helper, with D_TESTING;
     # until it is there, a second definition of it here does no harm
-    if(TARGET vparse_tests)
-        target_compile_definitions(vparse_tests PRIVATE RE_STD_CFG_TESTING=1)
+    if(TARGET parsegen_vparse_tests)
+        target_compile_definitions(parsegen_vparse_tests
+                                   PRIVATE RE_STD_CFG_TESTING=1)
     endif()
 
     return()
@@ -124,7 +126,7 @@ foreach(_level IN LISTS DJINTERP_VPARSE_CXX_LEVELS)
         continue()
     endif()
 
-    set(_target vparse_tests_cxx${_level})
+    set(_target parsegen_vparse_tests_cxx${_level})
 
     add_executable(${_target}
         "${CMAKE_CURRENT_LIST_DIR}/vparse_tests_runner.cpp"

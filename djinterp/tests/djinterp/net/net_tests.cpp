@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/net/net_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 #include "./net_tests.hpp"  // corresponding header
 // std
@@ -31,6 +31,27 @@ namespace net = ::djinterp::net;
 
 NS_INTERNAL
 
+    // bytes_of
+    //   function: a vector's first byte, or null when it has none; C++98's
+    // std::vector has no data().
+    inline net::byte*
+    bytes_of(
+        std::vector<net::byte>& _bytes
+    )
+    {
+        return (_bytes.empty()) ? D_NULLPTR
+                                : &_bytes[0];
+    }
+
+    inline const net::byte*
+    bytes_of(
+        const std::vector<net::byte>& _bytes
+    )
+    {
+        return (_bytes.empty()) ? D_NULLPTR
+                                : &_bytes[0];
+    }
+
     // pattern
     //   function: `_size` bytes of d_tests_net_pattern's sequence.
     static std::vector<net::byte>
@@ -41,7 +62,7 @@ NS_INTERNAL
     {
         std::vector<net::byte> data(_size);
 
-        ::d_tests_net_pattern(data.data(),
+        ::d_tests_net_pattern(bytes_of(data),
                               data.size(),
                               _seed);
 
@@ -62,10 +83,10 @@ NS_INTERNAL
         ::d_tests_net_mock_init(&mock,
                                 false);
         ::d_tests_net_mock_output(&mock,
-                                  wire.data(),
+                                  bytes_of(wire),
                                   wire.size());
         (void)::d_net_write_frame(&mock.base,
-                                  _payload.data(),
+                                  bytes_of(_payload),
                                   _payload.size(),
                                   D_NET_FRAME_MAX);
         (void)::d_net_write_frame(&mock.base,
@@ -113,7 +134,7 @@ NS_INTERNAL
         read(
             void*       _buffer,
             std::size_t _size
-        ) override
+        ) D_OVERRIDE
         {
             const std::size_t take = m_cut(_size,
                                            input.size() - m_at);
@@ -129,7 +150,7 @@ NS_INTERNAL
             if (take > 0u)
             {
                 std::memcpy(_buffer,
-                            input.data() + m_at,
+                            bytes_of(input) + m_at,
                             take);
             }
 
@@ -143,7 +164,7 @@ NS_INTERNAL
         write(
             const void* _data,
             std::size_t _size
-        ) override
+        ) D_OVERRIDE
         {
             const net::byte* const in   = static_cast<const net::byte*>(_data);
             const std::size_t      take = m_cut(_size,
@@ -165,23 +186,23 @@ NS_INTERNAL
         }
 
         bool
-        is_open() const override
+        is_open() const D_OVERRIDE
         {
             return m_open;
         }
 
         void
-        close() override
+        close() D_OVERRIDE
         {
             m_open = false;
 
             return;
         }
 
-        net::io_error
+        net::io_error::value
         shutdown(
-            net::shutdown_mode _mode
-        ) override
+            net::shutdown_mode::value _mode
+        ) D_OVERRIDE
         {
             (void)_mode;
             shutdowns += 1u;
@@ -190,7 +211,7 @@ NS_INTERNAL
         }
 
         net::endpoint
-        remote_endpoint() const override
+        remote_endpoint() const D_OVERRIDE
         {
             return net::endpoint("198.51.100.7",
                                  443u);
@@ -223,13 +244,16 @@ NS_INTERNAL
 
 NS_END  // internal
 
-// the trait, and from C++20 the concept, checked where they are resolved
+// the trait from C++11, and the concept from C++20, checked where they are
+// resolved
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 static_assert(net::is_byte_stream<net::connection>::value,
               "the abstract connection is a byte stream");
 static_assert(net::is_byte_stream<internal::memory_connection>::value,
               "a concrete backend is a byte stream");
 static_assert(!net::is_byte_stream<std::string>::value,
               "a string is not a byte stream");
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 static_assert(net::byte_stream<net::c_connection>,
               "the concept agrees with the trait");
@@ -251,31 +275,32 @@ tests_net_vocabulary()
     bool                  same   = true;
     bool                  result = true;
 
-    // every enumerator is its C counterpart, and describes itself the same
-    for (int i = 0; i <= static_cast<int>(D_NET_ERROR_UNKNOWN); ++i)
+    // every enumerator is its C counterpart, and describes itself the same;
+    // PROTOCOL is the last
+    for (int i = 0; i <= static_cast<int>(D_NET_ERROR_PROTOCOL); ++i)
     {
-        const d_net_error   c_error   = static_cast<d_net_error>(i);
-        const net::io_error cpp_error = net::from_c(c_error);
+        const d_net_error          c_error   = static_cast<d_net_error>(i);
+        const net::io_error::value cpp_error = net::from_c(c_error);
 
-        same = ( (same) &&
+        same = ( (same)                             &&
                  (static_cast<int>(cpp_error) == i) &&
-                 (net::to_c(cpp_error) == c_error) &&
+                 (net::to_c(cpp_error) == c_error)  &&
                  (std::strcmp(net::to_string(cpp_error),
                               ::d_net_error_string(c_error)) == 0) );
     }
 
-    const bool results = ( (c_torn.count == 3u) &&
-                           (c_torn.error == D_NET_ERROR_CONNECTION_RESET) &&
-                           (back.count == 3u) &&
+    const bool results = ( (c_torn.count == 3u)                            &&
+                           (c_torn.error == D_NET_ERROR_CONNECTION_RESET)  &&
+                           (back.count == 3u)                              &&
                            (back.error == net::io_error::connection_reset) &&
-                           (!back.ok()) &&
+                           (!back.ok())                                    &&
                            (net::io_result().eof()) );
     const bool modes = ( (net::to_c(net::shutdown_mode::write) ==
-                          D_NET_SHUTDOWN_WRITE) &&
+                          D_NET_SHUTDOWN_WRITE)     &&
                          (net::from_c(D_NET_SHUTDOWN_BOTH) ==
                           net::shutdown_mode::both) &&
                          (net::to_c(net::protocol::unix_socket) ==
-                          D_NET_PROTOCOL_UNIX) &&
+                          D_NET_PROTOCOL_UNIX)      &&
                          (net::from_c(D_NET_PROTOCOL_UDP) ==
                           net::protocol::udp) );
 
@@ -312,38 +337,38 @@ tests_net_endpoints()
 
     const bool zoned = ( (net::endpoint::parse("[fe80::1%e0]:443",
                                                parsed)) &&
-                         (parsed.host == "fe80::1%e0") &&
-                         (parsed.port == 443u) &&
+                         (parsed.host == "fe80::1%e0")  &&
+                         (parsed.port == 443u)          &&
                          (parsed.to_string() == "[fe80::1%e0]:443") );
     const bool plain = ( (net::endpoint::parse("example.com:80",
                                                parsed,
-                                               net::protocol::udp)) &&
+                                               net::protocol::udp))    &&
                          (parsed == net::endpoint("example.com",
                                                   80u,
                                                   net::protocol::udp)) &&
                          (parsed.to_string() == "example.com:80") );
     const bool refused = ( (!net::endpoint::parse("::1:80",
-                                                  parsed)) &&
+                                                  parsed))   &&
                            (!net::endpoint::parse(
                                 "h:1",
                                 parsed,
                                 net::protocol::unix_socket)) &&
                            (!net::endpoint::parse("h:0",
-                                                  parsed)) &&
+                                                  parsed))   &&
                            (parsed.host == "example.com") );
-    const bool paths = ( (local.is_unix()) &&
-                         (local.port == 0u) &&
+    const bool paths = ( (local.is_unix())                    &&
+                         (local.port == 0u)                   &&
                          (local.to_string() == "/run/d.sock") &&
                          (local != parsed) );
     const bool bridged = ( (net::to_c(parsed,
                                       record) == net::io_error::none) &&
                            (std::strcmp(record.host,
-                                        "example.com") == 0) &&
-                           (net::from_c(record) == parsed) &&
+                                        "example.com") == 0)          &&
+                           (net::from_c(record) == parsed)            &&
                            (net::to_c(net::endpoint(longest,
                                                     1u),
                                       record) ==
-                            net::io_error::address_invalid) &&
+                            net::io_error::address_invalid)           &&
                            (net::from_c(record) == parsed) );
 
     result = internal::check( ( (zoned) &&
@@ -405,13 +430,13 @@ tests_net_bridge_from_c()
                                              std::string("world")) ==
                               net::io_error::none) &&
                              (mock.output_length == 5u) );
-        const bool state = ( (wrapped.is_open()) &&
+        const bool state = ( (wrapped.is_open())                         &&
                              (wrapped.shutdown(net::shutdown_mode::read) ==
-                              net::io_error::none) &&
+                              net::io_error::none)                       &&
                              (mock.last_shutdown == D_NET_SHUTDOWN_READ) &&
                              (wrapped.remote_endpoint() ==
                               net::endpoint("192.0.2.1",
-                                            80u)) &&
+                                            80u))                        &&
                              (wrapped.local_endpoint() == net::endpoint()) );
 
         result = internal::check( ( (read) &&
@@ -454,26 +479,26 @@ tests_net_bridge_to_c()
     const bool read = ( (::d_net_read_exactly(adapter.get(),
                                               got,
                                               sizeof(got),
-                                              &done) == D_NET_ERROR_NONE) &&
-                        (done == 4u) &&
+                                              &done) == D_NET_OK)  &&
+                        (done == 4u)                               &&
                         (std::memcmp(got,
-                                     target.input.data(),
-                                     4u) == 0) &&
+                                     internal::bytes_of(target.input),
+                                     4u) == 0)                     &&
                         (::d_net_write_all(adapter.get(),
                                            "xyz",
                                            3u,
-                                           nullptr) == D_NET_ERROR_NONE) &&
+                                           D_NULLPTR) == D_NET_OK) &&
                         (target.output.size() == 3u) );
     const bool known = ( (::d_net_connection_remote_endpoint(adapter.get(),
                                                              &address)) &&
                          (std::strcmp(address.host,
-                                      "198.51.100.7") == 0) &&
-                         (address.port == 443u) &&
+                                      "198.51.100.7") == 0)             &&
+                         (address.port == 443u)                         &&
                          (!::d_net_connection_local_endpoint(adapter.get(),
                                                              &address)) );
     const bool shut = ( (::d_net_connection_shutdown(adapter.get(),
                                                      D_NET_SHUTDOWN_WRITE) ==
-                         D_NET_ERROR_NONE) &&
+                         D_NET_OK) &&
                         (target.shutdowns == 1u) );
 
     ::d_net_connection_destroy(adapter.get());
@@ -516,7 +541,7 @@ tests_net_wire()
 
     // the C++ writer writes the frames the C writer wrote
     const bool written = ( (net::write_frame(wire,
-                                             payload.data(),
+                                             internal::bytes_of(payload),
                                              payload.size()) ==
                             net::io_error::none) &&
                            (net::write_frame(wire,
@@ -530,19 +555,19 @@ tests_net_wire()
     ::d_tests_net_mock_init(&mock,
                             false);
     ::d_tests_net_mock_input(&mock,
-                             c_wire.data(),
+                             internal::bytes_of(c_wire),
                              c_wire.size());
 
     net::c_connection reader(&mock.base);
 
     const bool c_read = ( (::d_net_read_frame(adapter.get(),
-                                              back.data(),
+                                              internal::bytes_of(back),
                                               back.size(),
-                                              &length) == D_NET_ERROR_NONE) &&
+                                              &length) == D_NET_OK) &&
                           (back == payload) );
     const bool cpp_read = ( (net::read_frame(reader,
                                              back) == net::io_error::none) &&
-                            (back == payload) &&
+                            (back == payload)                              &&
                             (net::read_frame(reader,
                                              text) == net::io_error::none) &&
                             (text == "hi") );
@@ -610,7 +635,7 @@ tests_net_streams()
                                         0u) ==
                           net::io_error::invalid_argument) &&
                          (net::read_exactly(source,
-                                            nullptr,
+                                            D_NULLPTR,
                                             1u) ==
                           net::io_error::invalid_argument) );
 
@@ -657,9 +682,11 @@ tests_net_run_all()
     };
     bool all = true;
 
-    for (const entry& test : CASES)
+    // run every case, reporting each
+    for (std::size_t i = 0u; i < sizeof(CASES) / sizeof(CASES[0]); ++i)
     {
-        const bool passed = test.run();
+        const entry& test   = CASES[i];
+        const bool   passed = test.run();
 
         all = ( (all) &&
                 (passed) );
@@ -668,9 +695,10 @@ tests_net_run_all()
                     test.name);
     }
 
-    std::printf("%zu/%zu checks\n",
-                internal::counts().checks - internal::counts().failures,
-                internal::counts().checks);
+    std::printf("%lu/%lu checks\n",
+                static_cast<unsigned long>(internal::counts().checks -
+                                           internal::counts().failures),
+                static_cast<unsigned long>(internal::counts().checks));
 
     return all;
 }

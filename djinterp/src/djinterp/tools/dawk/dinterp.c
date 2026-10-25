@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                  dinterp.c
+* djinterp [tools]                                                     dinterp.c
 *
 *   Definitions for the non-inline declarations in dinterp.h.
 *     Two flags carry the lazy field discipline. `fields_valid` says the record
@@ -15,17 +15,21 @@
 * path:      /src/djinterp/tools/dawk/dinterp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dinterp.h"  // corresponding header
+#include "../../../../inc/djinterp/tools/dawk/dhost.h"    // d_awk_host_function
 #include "../../../../inc/djinterp/tools/dawk/dsource.h"  // d_awk_source
 // std
+#include <limits.h>   // INT_MAX
 #include <math.h>     // sin, cos, atan2, exp, log, sqrt, floor, fmod
-#include <stdio.h>    // FILE, fopen, fgetc, printf, snprintf
-#include <stdint.h>   // uintptr_t, UINTPTR_MAX
+#include <stdarg.h>   // va_list, va_start, va_copy, va_end
+#include <stdio.h>    // FILE, fopen, fgetc, printf, snprintf, vsnprintf
+#include <stdint.h>   // uintptr_t, UINTPTR_MAX, SIZE_MAX
 #include <stdlib.h>   // malloc, free, rand, srand
 #include <string.h>   // memcpy, memcmp, strcmp, strlen
 // djinterp
+#include "../../../../inc/djinterp/tools/dawk/dlex.h"    // d_awk_unescape
 #include "../../../../inc/djinterp/tools/dawk/dregex.h"  // d_regex_search
 #include "../../../../inc/djinterp/tools/dawk/dvalue.h"  // d_awk_value
 
@@ -100,6 +104,16 @@ struct d_internal_stream
 // 1.4    Interpreter
 //------------------------------------------------------------------------------
 // 1.4.1
+// d_internal_host
+//   struct: one host function an extension added.  The descriptor is the
+//   extension's and outlives the interpreter; only the table is ours.
+struct d_internal_host
+{
+    const struct d_awk_host_function* function;
+    void*                             user;
+};
+
+// 1.4.2
 // d_awk_interp
 //   struct: program, globals, record state and the temporary free list.
 struct d_awk_interp
@@ -118,6 +132,8 @@ struct d_awk_interp
     bool                  record_valid;
     char*                 split_fs;
     size_t                split_fs_capacity;
+    char*                 rebuild_ofs;
+    size_t                rebuild_ofs_capacity;
     struct d_awk_value**  fields;
     size_t                field_count;
     size_t                field_capacity;
@@ -135,6 +151,11 @@ struct d_awk_interp
 
     // host record source; NULL keeps POSIX RS splitting
     struct d_awk_source*  source;
+
+    // host functions, each with the user pointer its extension gave
+    struct d_internal_host* hosts;
+    size_t                  host_count;
+    size_t                  host_capacity;
 
     // call limits: a count, and the stack actually consumed
     size_t                call_depth_limit;
@@ -165,6 +186,22 @@ struct d_awk_interp
     char                  error[256];
 };
 
+// 1.5    Places
+//------------------------------------------------------------------------------
+// 1.5.1
+// d_internal_place
+//   struct: an lvalue resolved once.  A compound assignment, an increment, and
+//   sub and gsub read their target and then write it; reading and writing
+//   through one resolution evaluates a subscript or a field number once, as
+//   `x[++n] += 1` needs.  `cell` is the variable or the element; it is NULL
+//   for NF and for a field, which `field` then numbers, 0 being the record.
+struct d_internal_place
+{
+    struct d_awk_value* cell;
+    bool                is_nf;
+    size_t              field;
+};
+
 
 static bool d_internal_eval(struct d_awk_interp* _in,
                             struct d_awk_node*   _node,
@@ -183,6 +220,8 @@ static FILE* d_internal_stream_open(struct d_awk_interp*        _in,
                                     const char*                 _name,
                                     enum d_internal_stream_kind _kind);
 static int   d_internal_stream_close(struct d_awk_interp* _in,
+                                     const char*          _name);
+static int   d_internal_stream_flush(struct d_awk_interp* _in,
                                      const char*          _name);
 
 
@@ -211,6 +250,29 @@ d_internal_fail(
     _in->flow = D_INTERNAL_FLOW_ERROR;
 
     return false;
+}
+
+
+/*
+d_internal_fail_about
+  Records a runtime diagnostic that names what it is about -- the file that
+would not open, the function that does not exist -- since a message that
+names neither leaves the reader to guess which of several it was.
+*/
+static bool
+d_internal_fail_about(
+    struct d_awk_interp* _in,
+    const char*          _message,
+    const char*          _subject
+)
+{
+    // room for what follows the "dawk: " d_internal_fail puts first; a
+    // subject too long for it is cut short, as every diagnostic here is
+    char message[sizeof(_in->error) - sizeof("dawk: ") + 1u];
+
+    (void)snprintf(message, sizeof(message), "%s: %s", _message, _subject);
+
+    return d_internal_fail(_in, message);
 }
 
 
@@ -561,10 +623,22 @@ d_internal_set_record(
     const char* const separator = d_internal_special(_in, "FS", " ");
     const size_t      span      = strlen(separator);
 
-    // grow the snapshot when the separator and its terminator do not fit
-    if (_in->split_fs_capacity < (span + 1u))
+    // In paragraph mode a newline separates fields whatever FS is, as POSIX
+    // says of RS="": FS=":" divides "a:b\nc" into three.  The default FS
+    // already divides at newlines and an empty one at every byte, so only a
+    // single other byte and a pattern are widened, into a pattern that also
+    // matches a newline: "[c]|\n", or "\c|\n" for the two bytes a bracket
+    // expression cannot hold alone, and "(FS)|\n".
+    const bool widen = ( (d_internal_special(_in, "RS", "\n")[0] == '\0') &&
+                         (span > 0u)                                      &&
+                         ( (span > 1u) ||
+                           (separator[0] != ' ') ) );
+
+    // grow the snapshot when the separator, widened, and its terminator do
+    // not fit
+    if (_in->split_fs_capacity < (span + 6u))
     {
-        char* grown = realloc(_in->split_fs, span + 1u);
+        char* grown = realloc(_in->split_fs, span + 6u);
 
         // a snapshot that cannot be held falls back to the live FS
         if (!grown)
@@ -573,10 +647,27 @@ d_internal_set_record(
         }
 
         _in->split_fs          = grown;
-        _in->split_fs_capacity = span + 1u;
+        _in->split_fs_capacity = span + 6u;
     }
 
-    memcpy(_in->split_fs, separator, span + 1u);
+    // the separator is kept as it is outside paragraph mode
+    if (!widen)
+    {
+        memcpy(_in->split_fs, separator, span + 1u);
+    }
+    else if (span > 1u)
+    {
+        (void)snprintf(_in->split_fs, span + 6u, "(%s)|\n", separator);
+    }
+    else if ( (separator[0] == '\\') ||
+              (separator[0] == '^') )
+    {
+        (void)snprintf(_in->split_fs, span + 6u, "\\%c|\n", separator[0]);
+    }
+    else
+    {
+        (void)snprintf(_in->split_fs, span + 6u, "[%c]|\n", separator[0]);
+    }
 
     return true;
 }
@@ -780,10 +871,12 @@ d_internal_split_into(
     enum d_regex_status status = D_REGEX_OK;
     struct d_regex*     regex  = d_regex_compile(_separator, &status);
 
-    // a separator that will not compile is a runtime error
+    // a separator that will not compile is a runtime error, naming it
     if (!regex)
     {
-        return d_internal_fail(_in, d_regex_status_text(status));
+        return d_internal_fail_about(_in,
+                                     d_regex_status_text(status),
+                                     _separator);
     }
 
     size_t start = 0;
@@ -914,7 +1007,10 @@ d_internal_ensure_record(
         return true;
     }
 
-    const char* const ofs    = d_internal_special(_in, "OFS", " ");
+    // the OFS of the last field assignment, not whatever OFS holds now
+    const char* const ofs    = (_in->rebuild_ofs)
+                             ? _in->rebuild_ofs
+                             : d_internal_special(_in, "OFS", " ");
     const size_t      span   = strlen(ofs);
     size_t            needed = 0;
 
@@ -988,6 +1084,52 @@ d_internal_field_count(
 
 
 /*
+d_internal_invalidate_record
+  Marks $0 as no longer agreeing with the fields, keeping the OFS in force
+now for the rebuild.
+NOTE:
+  POSIX has $0 recomputed when a field is assigned, with the OFS of that
+moment; the rebuild is lazy, so the separator is captured here, as FS is when
+a record arrives:  OFS = ":"; $3 = "x"; OFS = "-"; print  ->  a:b:x.  Each
+assignment captures it again, since each one conceptually rebuilds the whole
+record.
+*/
+static void
+d_internal_invalidate_record(
+    struct d_awk_interp* _in
+)
+{
+    const char* const ofs  = d_internal_special(_in, "OFS", " ");
+    const size_t      span = strlen(ofs);
+
+    _in->record_valid = false;
+
+    // grow the snapshot when the separator and its terminator do not fit
+    if (_in->rebuild_ofs_capacity < (span + 1u))
+    {
+        char* const grown = realloc(_in->rebuild_ofs, span + 1u);
+
+        // a snapshot that cannot be held leaves the rebuild the live OFS
+        if (!grown)
+        {
+            free(_in->rebuild_ofs);
+            _in->rebuild_ofs          = NULL;
+            _in->rebuild_ofs_capacity = 0;
+
+            return;
+        }
+
+        _in->rebuild_ofs          = grown;
+        _in->rebuild_ofs_capacity = span + 1u;
+    }
+
+    memcpy(_in->rebuild_ofs, ofs, span + 1u);
+
+    return;
+}
+
+
+/*
 d_internal_set_field
   Assigns one field, extending the record with empty fields if needed.
 NOTE:
@@ -1045,7 +1187,7 @@ d_internal_set_field(
         return d_internal_fail(_in, "out of memory");
     }
 
-    _in->record_valid = false;
+    d_internal_invalidate_record(_in);
 
     return true;
 }
@@ -1108,12 +1250,17 @@ d_internal_regex_of(
     enum d_regex_status status = D_REGEX_OK;
     struct d_regex*     regex  = d_regex_compile(text, &status);
 
-    d_internal_release(_in, scratch);
-
-    // a dynamic pattern that will not compile is a runtime error
+    // a dynamic pattern that will not compile is a runtime error, naming it
     if (!regex)
     {
-        (void)d_internal_fail(_in, d_regex_status_text(status));
+        (void)d_internal_fail_about(_in, d_regex_status_text(status), text);
+    }
+
+    d_internal_release(_in, scratch);
+
+    // abandon the match when the pattern did not compile
+    if (!regex)
+    {
         return NULL;
     }
 
@@ -1180,10 +1327,16 @@ d_internal_subscript(
     size_t*              _out_length
 )
 {
-    const char* parts[16];
-    size_t      lengths[16];
+    const char*         parts[16];
+    size_t              lengths[16];
     struct d_awk_value* cells[16];
-    size_t      count = (_node->count < 16u) ? _node->count : 16u;
+    const size_t        count = _node->count;
+
+    // a subscript of more parts than are held here is refused, not cut short
+    if (count > 16u)
+    {
+        return d_internal_fail(_in, "a subscript has more than 16 parts");
+    }
 
     for (size_t at = 0; at < count; ++at)
     {
@@ -1245,6 +1398,323 @@ d_internal_subscript(
 
 
 /*
+d_internal_field_number
+  Evaluates the number of a field reference.
+NOTE:
+  A number that is negative, not a number at all, or too large for a size_t
+  names no field, and converting one to size_t would be undefined behaviour,
+  so all three are refused here, before the conversion.
+
+Parameter(s):
+  _in:     the interpreter.
+  _index:  the expression after the `$`.
+  _out_at: receives the field number; 0 is the whole record.
+Return:
+  A boolean value corresponding to either:
+  - true, if the number names a field, or
+  - false, otherwise, with the error raised.
+*/
+static bool
+d_internal_field_number(
+    struct d_awk_interp* _in,
+    struct d_awk_node*   _index,
+    size_t*              _out_at
+)
+{
+    struct d_awk_value* const index = d_internal_acquire(_in);
+
+    // abandon the reference when the number could not be evaluated
+    if ( (!index) ||
+         (!d_internal_eval(_in, _index, index)) )
+    {
+        d_internal_release(_in, index);
+
+        return false;
+    }
+
+    const double number = d_awk_value_number(index);
+
+    d_internal_release(_in, index);
+
+    // a negative field number has no meaning, and NaN compares false here
+    if (!(number >= 0.0))
+    {
+        return d_internal_fail(_in, "attempt to access a field < 0");
+    }
+
+    // a field number past what an index can hold names no field
+    if (number >= (double)SIZE_MAX)
+    {
+        return d_internal_fail(_in, "field number out of range");
+    }
+
+    *_out_at = (size_t)number;
+
+    return true;
+}
+
+
+/*
+d_internal_field_value
+  Reads a field by number.
+NOTE:
+  A field past NF reads as the uninitialised value and is NOT created; only an
+  assignment brings it into being.
+
+Parameter(s):
+  _in:  the interpreter.
+  _at:  the field number; 0 is the whole record.
+  _out: receives the field's value.
+Return:
+  A boolean value corresponding to either:
+  - true, if the field was read, or
+  - false, otherwise.
+*/
+static bool
+d_internal_field_value(
+    struct d_awk_interp* _in,
+    size_t               _at,
+    struct d_awk_value*  _out
+)
+{
+    // the whole record is rebuilt on demand rather than eagerly
+    if (_at == 0)
+    {
+        // abandon the read when the record could not be rebuilt
+        if (!d_internal_ensure_record(_in))
+        {
+            return false;
+        }
+
+        return d_awk_value_set_input(_out, _in->record, _in->record_length)
+             ? true
+             : d_internal_fail(_in, "out of memory");
+    }
+
+    // abandon the read when the record could not be divided
+    if (!d_internal_ensure_fields(_in))
+    {
+        return false;
+    }
+
+    // a field past the end reads as empty and is not created
+    if (_at > _in->field_count)
+    {
+        d_awk_value_set_uninit(_out);
+
+        return true;
+    }
+
+    return d_awk_value_copy(_out, _in->fields[_at - 1u])
+         ? true
+         : d_internal_fail(_in, "out of memory");
+}
+
+
+/*
+d_internal_set_nf
+  Assigns NF, which is computed rather than stored: shrinking it discards
+fields, growing it appends empty ones, and either way $0 is rebuilt from what
+is left.
+*/
+static bool
+d_internal_set_nf(
+    struct d_awk_interp* _in,
+    struct d_awk_value*  _value
+)
+{
+    // abandon the assignment when the record could not be divided
+    if (!d_internal_ensure_fields(_in))
+    {
+        return false;
+    }
+
+    const double wanted = d_awk_value_number(_value);
+
+    // a negative count, or NaN, is no count of fields; gawk and one-true-awk
+    // refuse it too, where POSIX leaves it undefined
+    if (!(wanted >= 0.0))
+    {
+        return d_internal_fail(_in, "NF set to a negative value");
+    }
+
+    // a count past what an index can hold is no count of fields either
+    if (wanted >= (double)SIZE_MAX)
+    {
+        return d_internal_fail(_in, "NF out of range");
+    }
+
+    const size_t count = (size_t)wanted;
+
+    // shrinking discards fields
+    while (_in->field_count > count)
+    {
+        _in->field_count--;
+    }
+
+    // growing appends empty ones
+    while (_in->field_count < count)
+    {
+        // abandon the assignment when a field could not be held
+        if (!d_internal_push_field(_in, "", 0))
+        {
+            return false;
+        }
+    }
+
+    d_internal_invalidate_record(_in);
+
+    return true;
+}
+
+
+/*
+d_internal_place_of
+  Resolves an assignment target to a place, evaluating its subscript or its
+field number exactly once.
+NOTE:
+  An element's cell belongs to its array, so a place is good only until the
+  program next runs: whoever resolves one reads and writes it before any
+  further evaluation, which could delete the element and free the cell.
+
+Parameter(s):
+  _in:        the interpreter.
+  _target:    the variable, field or subscript.
+  _out_place: receives the place.
+Return:
+  A boolean value corresponding to either:
+  - true, if the target was resolved, or
+  - false, otherwise, with the error raised.
+*/
+static bool
+d_internal_place_of(
+    struct d_awk_interp*     _in,
+    struct d_awk_node*       _target,
+    struct d_internal_place* _out_place
+)
+{
+    _out_place->cell  = NULL;
+    _out_place->is_nf = false;
+    _out_place->field = 0;
+
+    // a field is numbered once, here
+    if (_target->kind == D_AWK_N_FIELD)
+    {
+        return d_internal_field_number(_in, _target->a, &_out_place->field);
+    }
+
+    // NF has no cell; it is read and written through the record
+    if ( (_target->kind == D_AWK_N_VAR) &&
+         (strcmp(_target->text, "NF") == 0) )
+    {
+        _out_place->is_nf = true;
+
+        return true;
+    }
+
+    // a plain name resolves to its cell, which the container owns
+    if (_target->kind == D_AWK_N_VAR)
+    {
+        _out_place->cell = d_internal_cell(_in, _target->text);
+
+        return (_out_place->cell)
+             ? true
+             : d_internal_fail(_in, "out of memory");
+    }
+
+    // nothing but a variable, a field or an element can be assigned; the
+    // parser holds a program to that, and this holds a host's tree to it
+    if (_target->kind != D_AWK_N_INDEX)
+    {
+        return d_internal_fail(_in, "assignment to something that is not a "
+                                    "variable, field or array element");
+    }
+
+    char*  key    = NULL;
+    size_t length = 0;
+
+    // abandon the resolution when the subscript could not be built
+    if (!d_internal_subscript(_in, _target, &key, &length))
+    {
+        return false;
+    }
+
+    struct d_awk_array* const array = d_internal_array(_in, _target->a->text);
+
+    // referencing a subscript creates the element, as awk specifies
+    _out_place->cell = (array) ? d_awk_array_lookup(array, key, length)
+                               : NULL;
+
+    free(key);
+
+    return (_out_place->cell)
+         ? true
+         : d_internal_fail(_in, "out of memory");
+}
+
+
+/*
+d_internal_place_read
+  Reads the value at a place.
+*/
+static bool
+d_internal_place_read(
+    struct d_awk_interp*           _in,
+    const struct d_internal_place* _place,
+    struct d_awk_value*            _out
+)
+{
+    // NF counts the fields, dividing the record if it must
+    if (_place->is_nf)
+    {
+        d_awk_value_set_number(_out, (double)d_internal_field_count(_in));
+
+        return true;
+    }
+
+    // a variable or an element is copied out of its cell
+    if (_place->cell)
+    {
+        return d_awk_value_copy(_out, _place->cell)
+             ? true
+             : d_internal_fail(_in, "out of memory");
+    }
+
+    return d_internal_field_value(_in, _place->field, _out);
+}
+
+
+/*
+d_internal_place_write
+  Stores a value at a place.  The container owns the cell, so assignment
+copies into it; a field and NF assign through the record machinery.
+*/
+static bool
+d_internal_place_write(
+    struct d_awk_interp*           _in,
+    const struct d_internal_place* _place,
+    struct d_awk_value*            _value
+)
+{
+    // writing NF resizes the record
+    if (_place->is_nf)
+    {
+        return d_internal_set_nf(_in, _value);
+    }
+
+    // a variable or an element takes a copy
+    if (_place->cell)
+    {
+        return d_awk_value_copy(_place->cell, _value)
+             ? true
+             : d_internal_fail(_in, "out of memory");
+    }
+
+    return d_internal_set_field(_in, _place->field, _value);
+}
+
+
+/*
 d_internal_assign_to
   Stores a value into whatever a target node denotes.
 
@@ -1264,112 +1734,289 @@ d_internal_assign_to(
     struct d_awk_value*  _value
 )
 {
-    // a plain name assigns to its cell, which the container owns
-    if (_target->kind == D_AWK_N_VAR)
-    {
-        // NF is computed rather than stored, and writing it resizes
-        if (strcmp(_target->text, "NF") == 0)
-        {
-            // abandon the assignment when the record could not be divided
-            if (!d_internal_ensure_fields(_in))
-            {
-                return false;
-            }
+    struct d_internal_place place;
 
-            const double wanted = d_awk_value_number(_value);
-            const size_t count  = (wanted < 0.0) ? 0u : (size_t)wanted;
-
-            // shrinking discards fields; growing appends empty ones
-            while (_in->field_count > count)
-            {
-                _in->field_count--;
-            }
-
-            while (_in->field_count < count)
-            {
-                // abandon the assignment when a field could not be held
-                if (!d_internal_push_field(_in, "", 0))
-                {
-                    return false;
-                }
-            }
-
-            _in->record_valid = false;
-
-            return true;
-        }
-
-        struct d_awk_value* const cell = d_internal_cell(_in, _target->text);
-
-        // abandon the assignment when the cell could not be resolved
-        if (!cell)
-        {
-            return d_internal_fail(_in, "out of memory");
-        }
-
-        // the container owns the cell, so assignment copies into it
-        return d_awk_value_copy(cell, _value)
-             ? true
-             : d_internal_fail(_in, "out of memory");
-    }
-
-    // a field assigns through the record machinery
-    if (_target->kind == D_AWK_N_FIELD)
-    {
-        struct d_awk_value* const index = d_internal_acquire(_in);
-
-        // abandon the assignment when the index could not be evaluated
-        if ((!index) || (!d_internal_eval(_in, _target->a, index)))
-        {
-            d_internal_release(_in, index);
-            return false;
-        }
-
-        const double number = d_awk_value_number(index);
-
-        d_internal_release(_in, index);
-
-        // a negative field number has no meaning
-        if (number < 0.0)
-        {
-            return d_internal_fail(_in, "attempt to access field -1");
-        }
-
-        return d_internal_set_field(_in, (size_t)number, _value);
-    }
-
-    char*  key    = NULL;
-    size_t length = 0;
-
-    // abandon the assignment when the subscript could not be built
-    if (!d_internal_subscript(_in, _target, &key, &length))
+    // abandon the assignment when the target could not be resolved
+    if (!d_internal_place_of(_in, _target, &place))
     {
         return false;
     }
 
-    struct d_awk_array* const array = d_internal_array(_in,
-                                                       _target->a->text);
-    struct d_awk_value* const cell  = array
-                                    ? d_awk_array_lookup(array, key, length)
-                                    : NULL;
-
-    free(key);
-
-    // abandon the assignment when the element could not be created
-    if (!cell)
-    {
-        return d_internal_fail(_in, "out of memory");
-    }
-
-    return d_awk_value_copy(cell, _value)
-         ? true
-         : d_internal_fail(_in, "out of memory");
+    return d_internal_place_write(_in, &place, _value);
 }
 
 
 //==============================================================================
 // 5.  FORMATTED OUTPUT
 //==============================================================================
+
+
+/*
+d_internal_grow
+  Ensures a growing text buffer can hold a number of bytes, doubling it so a
+run of appends costs amortised constant time.
+
+Parameter(s):
+  _in:       the interpreter, for the error.
+  _buffer:   the buffer; may be NULL, and is replaced when it moves.
+  _capacity: its capacity, updated with it.
+  _needed:   the bytes it must hold, a terminator included.
+Return:
+  A boolean value corresponding to either:
+  - true, if the buffer holds `_needed` bytes, or
+  - false, otherwise, with the error raised.
+*/
+static bool
+d_internal_grow(
+    struct d_awk_interp* _in,
+    char**               _buffer,
+    size_t*              _capacity,
+    size_t               _needed
+)
+{
+    // a buffer already large enough is left where it is
+    if (_needed <= *_capacity)
+    {
+        return true;
+    }
+
+    size_t wanted = (*_capacity == 0) ? 128u : *_capacity;
+
+    // double until the request fits, stopping before the size wraps
+    while ( (wanted < _needed) &&
+            (wanted <= (SIZE_MAX / 2u)) )
+    {
+        wanted *= 2u;
+    }
+
+    // a request past the largest doubling is taken exactly
+    if (wanted < _needed)
+    {
+        wanted = _needed;
+    }
+
+    char* const grown = realloc(*_buffer, wanted);
+
+    // report the failure rather than truncating the text
+    if (!grown)
+    {
+        return d_internal_fail(_in, "out of memory");
+    }
+
+    *_buffer   = grown;
+    *_capacity = wanted;
+
+    return true;
+}
+
+
+/*
+d_internal_append_formatted
+  Appends one snprintf conversion to a growing text, whatever its length.
+NOTE:
+  The conversion is tried in the room left; one that did not fit is measured
+  by that same call, the buffer grown to hold it, and the call made again.  A
+  fixed scratch buffer here clamped every conversion to 511 bytes, so
+  `printf "%s", $0` silently cut a long line short.
+
+Parameter(s):
+  _in:       the interpreter, for the error.
+  _buffer:   the text; may be NULL, and is replaced when it moves.
+  _used:     the bytes it holds, advanced past the conversion.
+  _capacity: its capacity, updated with it.
+  _spec:     the one conversion, as snprintf reads it.
+  ...:       the conversion's argument.
+Return:
+  A boolean value corresponding to either:
+  - true, if the conversion was appended, or
+  - false, otherwise, with the error raised.
+*/
+static bool
+d_internal_append_formatted(
+    struct d_awk_interp* _in,
+    char**               _buffer,
+    size_t*              _used,
+    size_t*              _capacity,
+    const char*          _spec,
+    ...
+)
+{
+    va_list arguments;
+    va_list again;
+
+    va_start(arguments, _spec);
+    va_copy(again, arguments);
+
+    const size_t room  = *_capacity - *_used;
+    const int    wrote = vsnprintf((room > 0u) ? &(*_buffer)[*_used] : NULL,
+                                   room,
+                                   _spec,
+                                   arguments);
+
+    va_end(arguments);
+
+    // a conversion the C library cannot render is an error, not empty text
+    if (wrote < 0)
+    {
+        va_end(again);
+
+        return d_internal_fail(_in, "printf: a conversion could not be "
+                                    "rendered");
+    }
+
+    // a conversion that did not fit is rendered again into room for it
+    if ((size_t)wrote >= room)
+    {
+        // abandon the conversion when the text could not grow
+        if (!d_internal_grow(_in,
+                             _buffer,
+                             _capacity,
+                             *_used + (size_t)wrote + 1u))
+        {
+            va_end(again);
+
+            return false;
+        }
+
+        (void)vsnprintf(&(*_buffer)[*_used],
+                        *_capacity - *_used,
+                        _spec,
+                        again);
+    }
+
+    va_end(again);
+    *_used += (size_t)wrote;
+
+    return true;
+}
+
+
+/*
+d_internal_format_integer
+  Renders %d, %i, %o, %u, %x or %X.
+NOTE:
+  A value outside what a long long, or for the unsigned conversions an
+  unsigned long long, can hold would be undefined behaviour to convert, so it
+  is rendered as its integral value with %.0f instead, keeping the flags and
+  the width: gawk's answer, and every digit is the value's.  NaN and the
+  infinities come out as the C library spells them.
+
+Parameter(s):
+  _in:          the interpreter.
+  _buffer:      the text, as d_internal_append_formatted takes it.
+  _used:        its length.
+  _capacity:    its capacity.
+  _spec:        the conversion so far, `%` through the precision, with room
+                for four more bytes and a terminator.
+  _spec_length: the length of `_spec`.
+  _conversion:  the conversion letter.
+  _number:      the value.
+Return:
+  A boolean value corresponding to either:
+  - true, if the conversion was appended, or
+  - false, otherwise.
+*/
+static bool
+d_internal_format_integer(
+    struct d_awk_interp* _in,
+    char**               _buffer,
+    size_t*              _used,
+    size_t*              _capacity,
+    char*                _spec,
+    size_t               _spec_length,
+    char                 _conversion,
+    double               _number
+)
+{
+    const bool is_signed = ( (_conversion == 'd') ||
+                             (_conversion == 'i') );
+
+    // the range a conversion to long long, or unsigned long long, survives;
+    // both bounds are powers of two, so the doubles hold them exactly
+    const bool fits = is_signed
+                    ? ( (_number >= -9223372036854775808.0) &&
+                        (_number <   9223372036854775808.0) )
+                    : ( (_number >  -9223372036854775808.0) &&
+                        (_number <  18446744073709551616.0) );
+
+    // a value past the range is rendered as an integral double
+    if (!fits)
+    {
+        char* const dot = memchr(_spec, '.', _spec_length);
+
+        // a precision means digits after a point, which %.0f has none of
+        const size_t kept = (dot) ? (size_t)(dot - _spec) : _spec_length;
+
+        memcpy(&_spec[kept], ".0f", 4u);
+
+        return d_internal_append_formatted(_in,
+                                           _buffer,
+                                           _used,
+                                           _capacity,
+                                           _spec,
+                                           _number);
+    }
+
+    _spec[_spec_length++] = 'l';
+    _spec[_spec_length++] = 'l';
+    _spec[_spec_length++] = (_conversion == 'i') ? 'd' : _conversion;
+    _spec[_spec_length]   = '\0';
+
+    // a signed conversion takes the value as it is
+    if (is_signed)
+    {
+        return d_internal_append_formatted(_in,
+                                           _buffer,
+                                           _used,
+                                           _capacity,
+                                           _spec,
+                                           (long long)_number);
+    }
+
+    // an unsigned one takes a negative value modulo 2^64, as C does
+    const unsigned long long bits = (_number < 0.0)
+                                  ? (unsigned long long)(long long)_number
+                                  : (unsigned long long)_number;
+
+    return d_internal_append_formatted(_in,
+                                       _buffer,
+                                       _used,
+                                       _capacity,
+                                       _spec,
+                                       bits);
+}
+
+
+/*
+d_internal_star
+  Converts a `*` argument to the int its width or precision takes.  A value an
+int cannot hold, NaN included, is clamped rather than converted, which would
+be undefined.
+*/
+static int
+d_internal_star(
+    double _number
+)
+{
+    // NaN asks for no width at all
+    if (_number != _number)
+    {
+        return 0;
+    }
+
+    // a width past an int's range is held to its ends
+    if (_number >= (double)INT_MAX)
+    {
+        return INT_MAX;
+    }
+
+    if (_number <= (double)-INT_MAX)
+    {
+        return -INT_MAX;
+    }
+
+    return (int)_number;
+}
 
 
 /*
@@ -1380,6 +2027,8 @@ NOTE:
   snprintf, which keeps the platform's own rounding and padding rather than
   reimplementing them.  `*` takes its width or precision from the next
   argument, as in C.
+  Arguments past the last conversion are still evaluated, in order, for what
+  they do: `sprintf("%d", 99, ++j)` increments j in every awk.
 
 Parameter(s):
   _in:         the interpreter.
@@ -1425,232 +2074,223 @@ d_internal_format(
 
     for (size_t at = 0; (at < fmt_length) && (ok); ++at)
     {
-        char   piece[512];
-        size_t piece_length = 0;
-
-        // anything outside a conversion is copied through unchanged
-        if (format[at] != '%')
+        // anything outside a conversion is copied through unchanged, and %%
+        // is one percent sign
+        if ( (format[at] != '%') ||
+             ( ((at + 1u) < fmt_length) &&
+               (format[at + 1u] == '%') ) )
         {
-            piece[0]     = format[at];
-            piece_length = 1;
-        }
-        else if (((at + 1u) < fmt_length) && (format[at + 1u] == '%'))
-        {
-            piece[0]     = '%';
-            piece_length = 1;
-            at++;
-        }
-        else
-        {
-            char   spec[64];
-            size_t spec_length = 0;
-            int    stars[2]    = { 0, 0 };
-            size_t star_count  = 0;
+            ok = d_internal_grow(_in, &out, &capacity, used + 2u);
 
-            spec[spec_length++] = '%';
-            at++;
-
-            // flags, width and precision, with `*` taking an argument each
-            while ( (at < fmt_length)                       &&
-                    (spec_length < (sizeof(spec) - 8u))     &&
-                    (strchr("-+ #0123456789.*", format[at]) != NULL) )
+            if (ok)
             {
-                // a star consumes an argument as its numeric value
-                if (format[at] == '*')
-                {
-                    struct d_awk_value* const cell = d_internal_acquire(_in);
-
-                    // abandon the rendering when the width failed
-                    if ( (!cell)                                  ||
-                         (argument >= _node->count)               ||
-                         (!d_internal_eval(_in,
-                                           _node->list[argument++],
-                                           cell)) )
-                    {
-                        d_internal_release(_in, cell);
-                        ok = d_internal_fail(_in,
-                                             "printf: missing width argument");
-                        break;
-                    }
-
-                    // record the value and emit it into the specification
-                    if (star_count < 2u)
-                    {
-                        stars[star_count++] = (int)d_awk_value_number(cell);
-                    }
-
-                    spec_length += (size_t)snprintf(&spec[spec_length],
-                                                    sizeof(spec) - spec_length,
-                                                    "%d",
-                                                    stars[star_count - 1u]);
-                    d_internal_release(_in, cell);
-                }
-                else
-                {
-                    spec[spec_length++] = format[at];
-                }
-
-                at++;
+                out[used++] = format[at];
             }
 
-            // abandon the rendering when a width argument was missing
-            if (!ok)
+            // the second percent sign of %% is consumed with the first
+            at += (format[at] == '%') ? 1u : 0u;
+
+            continue;
+        }
+
+        char   spec[64];
+        size_t spec_length = 0;
+
+        spec[spec_length++] = '%';
+        at++;
+
+        // flags, width and precision, with `*` taking an argument each; the
+        // bound leaves room for one star's digits, the conversion and the
+        // terminator
+        while ( (at < fmt_length)                       &&
+                (spec_length < (sizeof(spec) - 16u))    &&
+                (strchr("-+ #0123456789.*", format[at]) != NULL) )
+        {
+            // a star consumes an argument as its numeric value
+            if (format[at] == '*')
             {
+                struct d_awk_value* const cell = d_internal_acquire(_in);
+
+                // abandon the rendering when the width failed
+                if ( (!cell)                                  ||
+                     (argument >= _node->count)               ||
+                     (!d_internal_eval(_in,
+                                       _node->list[argument++],
+                                       cell)) )
+                {
+                    d_internal_release(_in, cell);
+                    ok = d_internal_fail(_in,
+                                         "printf: missing width argument");
+                    break;
+                }
+
+                spec_length += (size_t)snprintf(
+                                   &spec[spec_length],
+                                   sizeof(spec) - spec_length,
+                                   "%d",
+                                   d_internal_star(d_awk_value_number(cell)));
+                d_internal_release(_in, cell);
+            }
+            else
+            {
+                spec[spec_length++] = format[at];
+            }
+
+            at++;
+        }
+
+        // abandon the rendering when a width argument was missing
+        if (!ok)
+        {
+            break;
+        }
+
+        // a format that ends inside a conversion is an error
+        if (at >= fmt_length)
+        {
+            ok = d_internal_fail(_in, "printf: truncated conversion");
+            break;
+        }
+
+        const char conversion = format[at];
+
+        struct d_awk_value* const cell = d_internal_acquire(_in);
+
+        // abandon the rendering when no cell could be held for the argument
+        if (!cell)
+        {
+            ok = d_internal_fail(_in, "out of memory");
+            break;
+        }
+
+        // every conversion but %% consumes one argument; a missing one reads
+        // as the uninitialised value
+        if (argument < _node->count)
+        {
+            // abandon the rendering when the argument failed
+            if (!d_internal_eval(_in, _node->list[argument++], cell))
+            {
+                d_internal_release(_in, cell);
+                ok = false;
+                break;
+            }
+        }
+
+        switch (conversion)
+        {
+            case 'd':
+            case 'i':
+            case 'o':
+            case 'x':
+            case 'X':
+            case 'u':
+            {
+                ok = d_internal_format_integer(_in,
+                                               &out,
+                                               &used,
+                                               &capacity,
+                                               spec,
+                                               spec_length,
+                                               conversion,
+                                               d_awk_value_number(cell));
                 break;
             }
 
-            // a format that ends inside a conversion is an error
-            if (at >= fmt_length)
+            case 'e':
+            case 'E':
+            case 'f':
+            case 'F':
+            case 'g':
+            case 'G':
             {
-                ok = d_internal_fail(_in, "printf: truncated conversion");
+                spec[spec_length++] = conversion;
+                spec[spec_length]   = '\0';
+                ok = d_internal_append_formatted(_in,
+                                                 &out,
+                                                 &used,
+                                                 &capacity,
+                                                 spec,
+                                                 d_awk_value_number(cell));
                 break;
             }
 
-            const char conversion = format[at];
-
-            struct d_awk_value* const cell = d_internal_acquire(_in);
-            bool                      have = false;
-
-            // every conversion but %% consumes one argument
-            if (argument < _node->count)
+            case 'c':
             {
-                have = d_internal_eval(_in, _node->list[argument++], cell);
+                size_t            length = 0;
+                const char* const text   = d_awk_value_text(cell,
+                                                            NULL,
+                                                            &length);
+                const enum d_awk_value_tag tag = d_awk_value_tag_of(cell);
+                const bool numeric = ( (tag == D_AWK_VAL_NUMBER) ||
+                                       (tag == D_AWK_VAL_STRNUM) );
 
-                // abandon the rendering when the argument failed
-                if (!have)
+                // the empty string has no first character, and renders as
+                // nothing, padded, rather than as a NUL byte
+                if ( (!numeric) &&
+                     (length == 0) )
                 {
-                    d_internal_release(_in, cell);
-                    ok = false;
-                    break;
-                }
-            }
-
-            switch (conversion)
-            {
-                case 'd':
-                case 'i':
-                {
-                    spec[spec_length++] = 'l';
-                    spec[spec_length++] = 'l';
-                    spec[spec_length++] = 'd';
-                    spec[spec_length]   = '\0';
-                    piece_length = (size_t)snprintf(
-                        piece,
-                        sizeof(piece),
-                        spec,
-                        (long long)d_awk_value_number(cell));
-                    break;
-                }
-
-                case 'o':
-                case 'x':
-                case 'X':
-                case 'u':
-                {
-                    spec[spec_length++] = 'l';
-                    spec[spec_length++] = 'l';
-                    spec[spec_length++] = (conversion == 'u') ? 'u'
-                                                              : conversion;
-                    spec[spec_length]   = '\0';
-                    piece_length = (size_t)snprintf(
-                        piece,
-                        sizeof(piece),
-                        spec,
-                        (long long)d_awk_value_number(cell));
-                    break;
-                }
-
-                case 'e':
-                case 'E':
-                case 'f':
-                case 'F':
-                case 'g':
-                case 'G':
-                {
-                    spec[spec_length++] = conversion;
-                    spec[spec_length]   = '\0';
-                    piece_length = (size_t)snprintf(piece,
-                                                    sizeof(piece),
-                                                    spec,
-                                                    d_awk_value_number(cell));
-                    break;
-                }
-
-                case 'c':
-                {
-                    size_t            length = 0;
-                    const char* const text   = d_awk_value_text(cell,
-                                                                NULL,
-                                                                &length);
-
-                    // a numeric argument gives a code, a string its first byte
-                    const int byte =
-                        (d_awk_value_tag_of(cell) == D_AWK_VAL_NUMBER)
-                      ? (int)d_awk_value_number(cell)
-                      : ((length > 0) ? (int)(unsigned char)text[0] : 0);
-
-                    spec[spec_length++] = 'c';
-                    spec[spec_length]   = '\0';
-                    piece_length = (size_t)snprintf(piece,
-                                                    sizeof(piece),
-                                                    spec,
-                                                    byte);
-                    break;
-                }
-
-                default:
-                {
-                    size_t            length = 0;
-                    const char* const text   = d_awk_value_text(
-                        cell,
-                        d_internal_special(_in, "CONVFMT", "%.6g"),
-                        &length);
-
-                    (void)length;
                     spec[spec_length++] = 's';
                     spec[spec_length]   = '\0';
-                    piece_length = (size_t)snprintf(piece,
-                                                    sizeof(piece),
-                                                    spec,
-                                                    text);
+                    ok = d_internal_append_formatted(_in,
+                                                     &out,
+                                                     &used,
+                                                     &capacity,
+                                                     spec,
+                                                     "");
                     break;
                 }
-            }
 
-            d_internal_release(_in, cell);
+                // a number gives a code, and so does a numeric string, as
+                // `printf "%c", $1` on "65" is "A" in every awk; any other
+                // string gives its first byte
+                const int byte = numeric
+                               ? (int)(unsigned char)d_internal_star(
+                                     d_awk_value_number(cell))
+                               : (int)(unsigned char)text[0];
 
-            // a conversion wider than the scratch buffer is clamped
-            if (piece_length >= sizeof(piece))
-            {
-                piece_length = sizeof(piece) - 1u;
-            }
-        }
-
-        // grow the output when the piece does not fit
-        if ((used + piece_length + 1u) > capacity)
-        {
-            size_t wanted = (capacity == 0) ? 128u : (capacity * 2u);
-
-            while (wanted < (used + piece_length + 1u))
-            {
-                wanted *= 2u;
-            }
-
-            char* grown = realloc(out, wanted);
-
-            // abandon the rendering when the output could not grow
-            if (!grown)
-            {
-                ok = d_internal_fail(_in, "out of memory");
+                spec[spec_length++] = 'c';
+                spec[spec_length]   = '\0';
+                ok = d_internal_append_formatted(_in,
+                                                 &out,
+                                                 &used,
+                                                 &capacity,
+                                                 spec,
+                                                 byte);
                 break;
             }
 
-            out      = grown;
-            capacity = wanted;
+            default:
+            {
+                const char* const text = d_awk_value_text(
+                    cell,
+                    d_internal_special(_in, "CONVFMT", "%.6g"),
+                    NULL);
+
+                spec[spec_length++] = 's';
+                spec[spec_length]   = '\0';
+                ok = d_internal_append_formatted(_in,
+                                                 &out,
+                                                 &used,
+                                                 &capacity,
+                                                 spec,
+                                                 text);
+                break;
+            }
         }
 
-        memcpy(&out[used], piece, piece_length);
-        used += piece_length;
+        d_internal_release(_in, cell);
+    }
+
+    // arguments no conversion consumed are evaluated for their effects
+    while ( (ok) &&
+            (argument < _node->count) )
+    {
+        struct d_awk_value* const cell = d_internal_acquire(_in);
+
+        ok = (cell) &&
+             d_internal_eval(_in, _node->list[argument++], cell);
+
+        d_internal_release(_in, cell);
     }
 
     d_internal_release(_in, fmt_cell);
@@ -1675,6 +2315,16 @@ d_internal_format(
 /*
 d_internal_substitute
   Implements sub and gsub.
+NOTE:
+  The replacement is measured once, before the scan: its literal bytes and
+  its unescaped `&`s, each of which expands to a whole match.  Sizing each
+  match's output from the replacement's length alone overran the buffer as
+  soon as a match was longer than two bytes.
+  An empty match where the previous match ended is not a match: replacing each
+  match of `b*` in "abc" with "-" gives "-a-c-", as in every awk, and not
+  "-a--c-".
+  The target is resolved to a place after the pattern and the replacement are
+  evaluated, read, and written back, so a subscript in it is evaluated once.
 
 Parameter(s):
   _in:    the interpreter.
@@ -1711,34 +2361,27 @@ d_internal_substitute(
         return false;
     }
 
-    struct d_awk_node* const target = (_node->count > 2u)
-                                    ? _node->list[2]
-                                    : NULL;
-
     struct d_awk_value* const repl_cell = d_internal_acquire(_in);
     struct d_awk_value* const subject   = d_internal_acquire(_in);
     bool                      ok        = ((repl_cell) && (subject));
 
-    // the subject defaults to the whole record
     if (ok)
     {
         ok = d_internal_eval(_in, _node->list[1], repl_cell);
     }
 
+    // the subject defaults to the whole record, which is field 0
+    struct d_internal_place place = { NULL, false, 0 };
+
+    if ( (ok) &&
+         (_node->count > 2u) )
+    {
+        ok = d_internal_place_of(_in, _node->list[2], &place);
+    }
+
     if (ok)
     {
-        // abandon the substitution when the record could not be rebuilt
-        if (target)
-        {
-            ok = d_internal_eval(_in, target, subject);
-        }
-        else
-        {
-            ok = d_internal_ensure_record(_in) &&
-                 d_awk_value_set_input(subject,
-                                       _in->record,
-                                       _in->record_length);
-        }
+        ok = d_internal_place_read(_in, &place, subject);
     }
 
     size_t            repl_length = 0;
@@ -1757,11 +2400,37 @@ d_internal_substitute(
                                         &text_length)
                                   : "";
 
-    char*  out      = NULL;
-    size_t used     = 0;
-    size_t capacity = 0;
-    size_t from     = 0;
-    long   made     = 0;
+    size_t literals = 0;
+    size_t matches  = 0;
+
+    // measure the replacement: what it copies, and how often it copies a match
+    for (size_t at = 0; at < repl_length; ++at)
+    {
+        // an escaped `&` or backslash is one literal byte
+        if ( (replacement[at] == '\\')                    &&
+             ((at + 1u) < repl_length)                     &&
+             ( (replacement[at + 1u] == '&') ||
+               (replacement[at + 1u] == '\\') ) )
+        {
+            ++at;
+            literals++;
+        }
+        else if (replacement[at] == '&')
+        {
+            matches++;
+        }
+        else
+        {
+            literals++;
+        }
+    }
+
+    char*  out         = NULL;
+    size_t used        = 0;
+    size_t capacity    = 0;
+    size_t from        = 0;
+    long   made        = 0;
+    bool   after_match = false;
 
     // each match is replaced, with `&` standing for the matched text
     while (ok)
@@ -1774,40 +2443,53 @@ d_internal_substitute(
             break;
         }
 
-        const size_t extra = (match.start - from) + (repl_length * 2u) + 2u;
+        // the text before the match, the replacement, and the byte an empty
+        // match carries across
+        const size_t piece = (match.start - from)       +
+                             literals                   +
+                             (matches * match.length)   +
+                             1u;
 
-        // grow the output when the piece does not fit
-        if ((used + extra + 1u) > capacity)
+        // abandon the substitution when the output could not grow
+        if (!d_internal_grow(_in, &out, &capacity, used + piece + 1u))
         {
-            size_t wanted = (capacity == 0) ? 128u : (capacity * 2u);
-
-            while (wanted < (used + extra + 1u))
-            {
-                wanted *= 2u;
-            }
-
-            char* grown = realloc(out, wanted);
-
-            // abandon the substitution when the output could not grow
-            if (!grown)
-            {
-                ok = d_internal_fail(_in, "out of memory");
-                break;
-            }
-
-            out      = grown;
-            capacity = wanted;
+            ok = false;
+            break;
         }
 
         memcpy(&out[used], &text[from], match.start - from);
         used += match.start - from;
 
+        // an empty match where the last one ended is no match at all
+        if ( (match.length == 0)     &&
+             (match.start == from)   &&
+             (after_match) )
+        {
+            // the byte there is carried across, and the scan moves past it
+            if (match.start < text_length)
+            {
+                out[used++] = text[match.start];
+            }
+
+            from        = match.start + 1u;
+            after_match = false;
+
+            // a scan past the end is complete
+            if (from > text_length)
+            {
+                break;
+            }
+
+            continue;
+        }
+
         // the replacement expands `&` and honours a backslash before it
         for (size_t at = 0; at < repl_length; ++at)
         {
-            if ((replacement[at] == '\\') && ((at + 1u) < repl_length) &&
-                ((replacement[at + 1u] == '&') ||
-                 (replacement[at + 1u] == '\\')))
+            if ( (replacement[at] == '\\')                    &&
+                 ((at + 1u) < repl_length)                     &&
+                 ( (replacement[at + 1u] == '&') ||
+                   (replacement[at + 1u] == '\\') ) )
             {
                 out[used++] = replacement[++at];
             }
@@ -1833,11 +2515,13 @@ d_internal_substitute(
                 out[used++] = text[match.start];
             }
 
-            from = match.start + 1u;
+            from        = match.start + 1u;
+            after_match = false;
         }
         else
         {
-            from = match.start + match.length;
+            from        = match.start + match.length;
+            after_match = true;
         }
 
         // one substitution is all sub performs
@@ -1854,26 +2538,12 @@ d_internal_substitute(
     }
 
     // the tail after the last match is copied through
-    if ((ok) && (made > 0))
+    if ( (ok) &&
+         (made > 0) )
     {
         const size_t tail = (from <= text_length) ? (text_length - from) : 0u;
 
-        // grow the output when the tail does not fit
-        if ((used + tail + 1u) > capacity)
-        {
-            char* grown = realloc(out, used + tail + 1u);
-
-            // abandon the substitution when the output could not grow
-            if (!grown)
-            {
-                ok = d_internal_fail(_in, "out of memory");
-            }
-            else
-            {
-                out      = grown;
-                capacity = used + tail + 1u;
-            }
-        }
+        ok = d_internal_grow(_in, &out, &capacity, used + tail + 1u);
 
         if (ok)
         {
@@ -1885,12 +2555,10 @@ d_internal_substitute(
             ok = (result) &&
                  d_awk_value_set_string(result, out, used);
 
-            // the result is written back to whatever the subject denoted
+            // the result is written back to the place the subject came from
             if (ok)
             {
-                ok = target
-                   ? d_internal_assign_to(_in, target, result)
-                   : d_internal_set_field(_in, 0, result);
+                ok = d_internal_place_write(_in, &place, result);
             }
 
             d_internal_release(_in, result);
@@ -2015,8 +2683,10 @@ d_internal_builtin(
             ok = d_internal_eval(_in, _node->list[0], text_cell);
         }
 
+        // the separator's text is borrowed from FS, the pattern or the
+        // argument's cell, each of which outlives the split
         const char* separator = d_internal_special(_in, "FS", " ");
-        char        sep_copy[256];
+        char        grouped[4];
 
         // a third argument overrides FS for this call only
         if ((ok) && (_node->count > 2u))
@@ -2024,21 +2694,26 @@ d_internal_builtin(
             // a literal pattern is used as its own text
             if (_node->list[2]->kind == D_AWK_N_REGEX)
             {
-                snprintf(sep_copy,
-                         sizeof(sep_copy),
-                         "%s",
-                         _node->list[2]->text);
+                separator = _node->list[2]->text;
+
+                // a one-byte pattern is grouped, since a one-byte separator
+                // is otherwise taken literally and " " as the default: the
+                // pattern / / splits at every space, and /./ at every byte
+                if ( (separator[0] != '\0') &&
+                     (separator[1] == '\0') )
+                {
+                    grouped[0] = '(';
+                    grouped[1] = separator[0];
+                    grouped[2] = ')';
+                    grouped[3] = '\0';
+                    separator  = grouped;
+                }
             }
             else
             {
-                ok = d_internal_eval(_in, _node->list[2], sep_cell);
-                snprintf(sep_copy,
-                         sizeof(sep_copy),
-                         "%s",
-                         d_awk_value_text(sep_cell, NULL, NULL));
+                ok        = d_internal_eval(_in, _node->list[2], sep_cell);
+                separator = d_awk_value_text(sep_cell, NULL, NULL);
             }
-
-            separator = sep_copy;
         }
 
         struct d_internal_split_target target = { NULL, 0 };
@@ -2382,6 +3057,14 @@ d_internal_builtin(
                 _in,
                 d_awk_value_text(args[0], NULL, NULL)));
     }
+    else if (strcmp(name, "fflush") == 0)
+    {
+        d_awk_value_set_number(
+            _out,
+            (double)d_internal_stream_flush(
+                _in,
+                (count > 0) ? d_awk_value_text(args[0], NULL, NULL) : NULL));
+    }
     else if (strcmp(name, "system") == 0)
     {
         // every buffer is flushed first, so the child's output interleaves
@@ -2412,6 +3095,123 @@ d_internal_builtin(
 //==============================================================================
 // 7.  USER FUNCTIONS
 //==============================================================================
+
+
+/*
+d_internal_call_host
+  Calls the host function a name denotes, when an extension added one; a call
+to a name nothing defines is a runtime error, naming it.
+NOTE:
+  The arguments are evaluated in order, as a user function's are, and handed
+  over by value.  The count is checked here, so an implementation indexes its
+  arguments without checking it.
+
+Parameter(s):
+  _in:   the interpreter.
+  _node: the call node.
+  _out:  receives the result.
+Return:
+  A boolean value corresponding to either:
+  - true, if the call completed, or
+  - false, otherwise, with the error raised.
+*/
+static bool
+d_internal_call_host(
+    struct d_awk_interp* _in,
+    struct d_awk_node*   _node,
+    struct d_awk_value*  _out
+)
+{
+    const struct d_awk_host_function* function = NULL;
+    void*                             user     = NULL;
+
+    for (size_t at = 0; at < _in->host_count; ++at)
+    {
+        // the first function of the name is the one called
+        if (strcmp(_in->hosts[at].function->name, _node->text) == 0)
+        {
+            function = _in->hosts[at].function;
+            user     = _in->hosts[at].user;
+            break;
+        }
+    }
+
+    // a name no extension defines either is a call to nothing
+    if (!function)
+    {
+        return d_internal_fail_about(_in,
+                                     "call to an undefined function",
+                                     _node->text);
+    }
+
+    // a call outside the function's arity is refused by name
+    if ( (_node->count < function->least) ||
+         (_node->count > function->most) )
+    {
+        char message[96];
+
+        (void)snprintf(message,
+                       sizeof(message),
+                       "%s called with %s arguments",
+                       function->name,
+                       (_node->count < function->least) ? "too few"
+                                                        : "too many");
+
+        return d_internal_fail(_in, message);
+    }
+
+    struct d_awk_value* args[16];
+    bool                ok    = (_node->count <= 16u);
+    size_t              taken = 0;
+
+    // more arguments than are held here is a host function no one can write
+    if (!ok)
+    {
+        return d_internal_fail_about(_in,
+                                     "more than 16 arguments to",
+                                     function->name);
+    }
+
+    // each argument is evaluated, in order, into a cell of its own
+    for (; (ok) && (taken < _node->count); ++taken)
+    {
+        args[taken] = d_internal_acquire(_in);
+        ok          = (args[taken]) &&
+                      d_internal_eval(_in, _node->list[taken], args[taken]);
+    }
+
+    char problem[200];
+
+    problem[0] = '\0';
+    d_awk_value_set_uninit(_out);
+
+    // the function runs only on arguments that all evaluated
+    if (ok)
+    {
+        ok = function->call(user,
+                            args,
+                            _node->count,
+                            _out,
+                            problem,
+                            sizeof(problem));
+
+        // a failure the function did not explain is still named
+        if (!ok)
+        {
+            (void)d_internal_fail_about(_in,
+                                        function->name,
+                                        (problem[0] != '\0') ? problem
+                                                              : "failed");
+        }
+    }
+
+    for (size_t at = 0; at < taken; ++at)
+    {
+        d_internal_release(_in, args[at]);
+    }
+
+    return ok;
+}
 
 
 /*
@@ -2450,10 +3250,10 @@ d_internal_call(
         }
     }
 
-    // a call to an undefined function is a runtime error
+    // a name the program does not define may be a host function's
     if (!target)
     {
-        return d_internal_fail(_in, "call to an undefined function");
+        return d_internal_call_host(_in, _node, _out);
     }
 
     // a runaway recursion is reported rather than exhausting the stack
@@ -2593,6 +3393,14 @@ d_internal_call(
 
         ok = d_internal_exec(_in, target->body);
 
+        // an exit within the call abandons the expression that made it, and
+        // the statement that holds it, as far as the rule: nothing after it
+        // runs, and an `exit f()` keeps the status the call's exit set
+        if (_in->flow == D_INTERNAL_FLOW_EXIT)
+        {
+            ok = false;
+        }
+
         // a return unwinds only as far as this call
         if (_in->flow == D_INTERNAL_FLOW_RETURN)
         {
@@ -2707,59 +3515,15 @@ d_internal_eval(
 
         case D_AWK_N_FIELD:
         {
-            struct d_awk_value* const index = d_internal_acquire(_in);
+            size_t at = 0;
 
-            // abandon the read when the index could not be evaluated
-            if ((!index) || (!d_internal_eval(_in, _node->a, index)))
-            {
-                d_internal_release(_in, index);
-                return false;
-            }
-
-            const double number = d_awk_value_number(index);
-
-            d_internal_release(_in, index);
-
-            // a negative field number has no meaning
-            if (number < 0.0)
-            {
-                return d_internal_fail(_in, "attempt to access a field < 0");
-            }
-
-            const size_t at = (size_t)number;
-
-            // the whole record is rebuilt on demand rather than eagerly
-            if (at == 0)
-            {
-                // abandon the read when the record could not be rebuilt
-                if (!d_internal_ensure_record(_in))
-                {
-                    return false;
-                }
-
-                return d_awk_value_set_input(_out,
-                                             _in->record,
-                                             _in->record_length)
-                     ? true
-                     : d_internal_fail(_in, "out of memory");
-            }
-
-            // abandon the read when the record could not be divided
-            if (!d_internal_ensure_fields(_in))
+            // abandon the read when the number names no field
+            if (!d_internal_field_number(_in, _node->a, &at))
             {
                 return false;
             }
 
-            // a field past the end reads as empty and is NOT created
-            if (at > _in->field_count)
-            {
-                d_awk_value_set_uninit(_out);
-                return true;
-            }
-
-            return d_awk_value_copy(_out, _in->fields[at - 1u])
-                 ? true
-                 : d_internal_fail(_in, "out of memory");
+            return d_internal_field_value(_in, at, _out);
         }
 
         case D_AWK_N_INDEX:
@@ -2823,9 +3587,14 @@ d_internal_eval(
         case D_AWK_N_ASSIGN:
         {
             struct d_awk_value* const value = d_internal_acquire(_in);
+            struct d_internal_place   place;
 
-            // abandon the assignment when the value could not be evaluated
-            if ((!value) || (!d_internal_eval(_in, _node->b, value)))
+            // abandon the assignment when the value could not be evaluated or
+            // the target resolved; the target is resolved once, after the
+            // value, and nothing runs between its read and its write
+            if ( (!value)                                  ||
+                 (!d_internal_eval(_in, _node->b, value))  ||
+                 (!d_internal_place_of(_in, _node->a, &place)) )
             {
                 d_internal_release(_in, value);
                 return false;
@@ -2837,7 +3606,7 @@ d_internal_eval(
                 struct d_awk_value* const old = d_internal_acquire(_in);
 
                 // abandon the assignment when the target could not be read
-                if ((!old) || (!d_internal_eval(_in, _node->a, old)))
+                if ((!old) || (!d_internal_place_read(_in, &place, old)))
                 {
                     d_internal_release(_in, value);
                     d_internal_release(_in, old);
@@ -2889,7 +3658,7 @@ d_internal_eval(
                 d_internal_release(_in, old);
             }
 
-            const bool ok = d_internal_assign_to(_in, _node->a, value) &&
+            const bool ok = d_internal_place_write(_in, &place, value) &&
                             d_awk_value_copy(_out, value);
 
             d_internal_release(_in, value);
@@ -3050,9 +3819,13 @@ d_internal_eval(
         case D_AWK_N_POSTINCR:
         {
             struct d_awk_value* const cell = d_internal_acquire(_in);
+            struct d_internal_place   place;
 
-            // abandon the evaluation when the target could not be read
-            if ((!cell) || (!d_internal_eval(_in, _node->a, cell)))
+            // abandon the evaluation when the target could not be resolved
+            // or read; it is resolved once, so `a[i++]++` moves i once
+            if ( (!cell)                                         ||
+                 (!d_internal_place_of(_in, _node->a, &place))   ||
+                 (!d_internal_place_read(_in, &place, cell)) )
             {
                 d_internal_release(_in, cell);
                 return false;
@@ -3065,7 +3838,7 @@ d_internal_eval(
 
             d_awk_value_set_number(cell, after);
 
-            const bool ok = d_internal_assign_to(_in, _node->a, cell);
+            const bool ok = d_internal_place_write(_in, &place, cell);
 
             // a prefix form yields the new value, a postfix one the old
             d_awk_value_set_number(_out,
@@ -3428,6 +4201,64 @@ d_internal_stream_close(
     }
 
     return found ? status : -1;
+}
+
+
+/*
+d_internal_stream_flush
+  Flushes the output open under a name, or, for no name, standard output,
+standard error and every output open, as POSIX's fflush has it.
+
+Parameter(s):
+  _in:   the interpreter.
+  _name: the name to flush, or NULL for all.
+Return:
+  0 when what was named was flushed, or -1 when a flush failed or nothing
+  is open for output under the name.
+*/
+static int
+d_internal_stream_flush(
+    struct d_awk_interp* _in,
+    const char*          _name
+)
+{
+    int  status = 0;
+    bool found  = (_name == NULL);
+
+    // with no name, the standard streams first
+    if (!_name)
+    {
+        status = ( (fflush(stdout) == 0) &&
+                   (fflush(stderr) == 0) ) ? 0 : -1;
+    }
+    else if ( (strcmp(_name, "/dev/stdout") == 0) ||
+              (strcmp(_name, "/dev/stderr") == 0) )
+    {
+        FILE* const standard = (strcmp(_name, "/dev/stdout") == 0) ? stdout
+                                                                   : stderr;
+
+        found  = true;
+        status = (fflush(standard) == 0) ? 0 : -1;
+    }
+
+    // each output stream, of the name or of any
+    for (size_t at = 0; at < _in->stream_count; ++at)
+    {
+        const struct d_internal_stream* const stream = &_in->streams[at];
+
+        // an input stream, or one of another name, is not flushed
+        if ( (stream->kind == D_INTERNAL_STREAM_IN_FILE) ||
+             (stream->kind == D_INTERNAL_STREAM_IN_PIPE) ||
+             ( (_name) && (strcmp(stream->name, _name) != 0) ) )
+        {
+            continue;
+        }
+
+        found  = true;
+        status = (fflush(stream->handle) == 0) ? status : -1;
+    }
+
+    return (found) ? status : -1;
 }
 
 
@@ -4042,10 +4873,10 @@ d_internal_next_stream(
         _in->stream_owned = (_in->stream != stdin);
         _in->opened_any   = true;
 
-        // a file that will not open is a runtime error
+        // a file that will not open is a runtime error, naming the file
         if (!_in->stream)
         {
-            return d_internal_fail(_in, "cannot open input file");
+            return d_internal_fail_about(_in, "cannot open input file", text);
         }
 
         (void)d_awk_value_set_input(d_internal_cell(_in, "FILENAME"),
@@ -4160,6 +4991,17 @@ d_internal_read_one(
     if ((!any) && (byte == EOF))
     {
         return false;
+    }
+
+    // a paragraph the stream ends with one newline after does not keep it:
+    // that newline ends the last line, and no blank line follows to end the
+    // record, so without this the last record of a file ending, as files do,
+    // in a newline would carry it
+    if ( (paragraph)       &&
+         (byte == EOF)     &&
+         (newlines == 1) )
+    {
+        used--;
     }
 
     // a buffer that was never grown still needs a terminator
@@ -4694,6 +5536,8 @@ d_awk_interp_free(
         free(_interp->streams);
         free(_interp->read_buffer);
         free(_interp->split_fs);
+        free(_interp->rebuild_ofs);
+        free(_interp->hosts);
 
         d_awk_value_free(_interp->retval);
         d_awk_array_free(_interp->globals);
@@ -4711,16 +5555,31 @@ d_awk_interp_free(
 
 
 /*
-d_awk_interp_assign
-  Applies a `name=value` assignment, as -v and a file operand both give.
+d_internal_is_name_byte
+  Reports whether a byte may stand in an awk name: a letter of the portable
+character set or an underscore anywhere, a digit anywhere but first.  The
+ranges are spelled out, so the answer does not follow the C locale as isalpha
+would.
+*/
+static bool
+d_internal_is_name_byte(
+    char _byte,
+    bool _first
+)
+{
+    return ( (_byte == '_')                              ||
+             ( (_byte >= 'a') && (_byte <= 'z') )        ||
+             ( (_byte >= 'A') && (_byte <= 'Z') )        ||
+             ( (!_first)                         &&
+               (_byte >= '0') && (_byte <= '9') ) );
+}
 
-Parameter(s):
-  _interp: the interpreter.
-  _text:   the assignment text.
-Return:
-  A boolean value corresponding to either:
-  - true, if the assignment was applied, or
-  - false, if the text is not an assignment.
+
+/*
+d_awk_interp_assign
+  An operand is an assignment only when what precedes its first `=` is a name,
+as POSIX says; `dir/x=y.txt` is a file.  The value is decoded by the scanner's
+own decoder before the numeric string test sees it.
 */
 bool
 d_awk_interp_assign(
@@ -4728,32 +5587,52 @@ d_awk_interp_assign(
     const char*          _text
 )
 {
-    const char* const split = strchr(_text, '=');
-
-    // text without an equals sign is not an assignment
-    if ((!_interp) || (!split) || (split == _text))
+    // parameter validation first
+    if ( (!_interp) ||
+         (!_text) )
     {
         return false;
     }
 
-    char* const name = malloc((size_t)(split - _text) + 1u);
+    size_t name_length = 0;
 
-    // report the failure rather than applying half an assignment
-    if (!name)
+    // the name runs up to the first byte that cannot stand in one
+    while (d_internal_is_name_byte(_text[name_length], (name_length == 0)))
+    {
+        name_length++;
+    }
+
+    // anything but `=` after a name makes the text no assignment
+    if ( (name_length == 0) ||
+         (_text[name_length] != '=') )
     {
         return false;
     }
 
-    memcpy(name, _text, (size_t)(split - _text));
-    name[split - _text] = '\0';
+    const char* const value        = &_text[name_length + 1u];
+    const size_t      value_length = strlen(value);
 
-    struct d_awk_value* const cell = d_internal_cell(_interp, name);
-    const bool                ok   = (cell != NULL) &&
-                                     d_awk_value_set_input(cell,
-                                                           split + 1,
-                                                           strlen(split + 1));
+    char* const name    = malloc(name_length + 1u);
+    char* const decoded = malloc(value_length + 1u);
+    bool        ok      = ( (name) && (decoded) );
+
+    if (ok)
+    {
+        memcpy(name, _text, name_length);
+        name[name_length] = '\0';
+
+        const size_t decoded_length = d_awk_unescape(value,
+                                                     value_length,
+                                                     decoded);
+
+        struct d_awk_value* const cell = d_internal_cell(_interp, name);
+
+        ok = (cell) &&
+             d_awk_value_set_input(cell, decoded, decoded_length);
+    }
 
     free(name);
+    free(decoded);
 
     return ok;
 }
@@ -4888,6 +5767,91 @@ d_awk_interp_set_source(
     }
 
     _interp->source = _source;
+
+    return true;
+
+#endif  // D_AWK_STRICT_POSIX
+}
+
+
+/*
+d_awk_interp_add_functions
+  The table grows by the extension's count at once, and every name is checked
+before any is added, so a refused extension leaves nothing of itself behind.
+*/
+bool
+d_awk_interp_add_functions(
+    struct d_awk_interp*              _interp,
+    const struct d_awk_host_function* _functions,
+    size_t                            _count,
+    void*                             _user
+)
+{
+    // parameter validation first
+    if ( (!_interp) ||
+         ( (!_functions) && (_count > 0) ) )
+    {
+        return false;
+    }
+
+#ifdef D_AWK_STRICT_POSIX
+
+    (void)_user;
+
+    return d_internal_fail(_interp,
+                           "host functions are refused under strict POSIX");
+
+#else
+
+    // a name taken already, or a descriptor that cannot be called, is
+    // refused before anything is added
+    for (size_t at = 0; at < _count; ++at)
+    {
+        // a descriptor without a name or a body is a wiring bug
+        if ( (!_functions[at].name) ||
+             (!_functions[at].call) )
+        {
+            return d_internal_fail(_interp, "host function has no name or "
+                                            "no implementation");
+        }
+
+        for (size_t held = 0; held < _interp->host_count; ++held)
+        {
+            // two extensions defining one name would make the call ambiguous
+            if (strcmp(_interp->hosts[held].function->name,
+                       _functions[at].name) == 0)
+            {
+                return d_internal_fail_about(_interp,
+                                             "host function defined twice",
+                                             _functions[at].name);
+            }
+        }
+    }
+
+    // grow the table when the extension's functions do not fit
+    if ((_interp->host_count + _count) > _interp->host_capacity)
+    {
+        const size_t capacity = _interp->host_count + _count;
+
+        struct d_internal_host* const grown =
+            realloc(_interp->hosts, capacity * sizeof(*grown));
+
+        // report the failure rather than adding half an extension
+        if (!grown)
+        {
+            return d_internal_fail(_interp, "out of memory");
+        }
+
+        _interp->hosts         = grown;
+        _interp->host_capacity = capacity;
+    }
+
+    for (size_t at = 0; at < _count; ++at)
+    {
+        _interp->hosts[_interp->host_count].function = &_functions[at];
+        _interp->hosts[_interp->host_count].user     = _user;
+        _interp->host_count++;
+    }
 
     return true;
 
@@ -5081,7 +6045,14 @@ d_awk_interp_run(
         }
     }
 
-    (void)fflush(stdout);
+    // output that could not be written is an error, whatever the program
+    // asked to exit with: a status of 0 would tell a pipeline it succeeded
+    if ( ( (fflush(stdout) != 0) ||
+           (ferror(stdout)) )                        &&
+         (_interp->flow != D_INTERNAL_FLOW_ERROR) )
+    {
+        (void)d_internal_fail(_interp, "write error on standard output");
+    }
 
     // a runtime error reports a status of its own
     if (_interp->flow == D_INTERNAL_FLOW_ERROR)

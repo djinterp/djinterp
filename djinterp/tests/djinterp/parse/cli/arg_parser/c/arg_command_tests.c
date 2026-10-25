@@ -22,7 +22,7 @@
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_command_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_command_tests.h"  // corresponding header
 // std
@@ -447,6 +447,14 @@ static const struct d_tests_arg_command_args LIFECYCLE_ARGS[] =
     { { "--ret", "a", "b", NULL } },
     { { "--gone", NULL } },
     { { "--gone", "x", NULL } }
+};
+
+// DEPRECATED_NAMED_ARGS
+//   constant: DEPRECATED_NAMED's parse: both options deprecated by name,
+// each given a value.
+static const struct d_tests_arg_command_args DEPRECATED_NAMED_ARGS[] =
+{
+    { { "--named", "v", "-s", "w", NULL } }
 };
 
 // TRIGGER_ARGS
@@ -1124,6 +1132,27 @@ static const char LIFECYCLE[] =
     "N18d: OptionAlreadyAdded: cannot add '-h': short name '-h' already used "
     "by '--help'\n"
     "N18e: {-h}\n";
+
+// DEPRECATED_NAMED
+//   constant: CLI11's transcript of options deprecated by the name a command
+// finds them by -- deprecate_option(app, name, replacement) -- as the C++
+// command suite's LIFECYCLE reference writes the same calls; then the
+// module's own: a NULL command or name refused, nothing recorded.
+static const char DEPRECATED_NAMED[] =
+    "N15c: ok\n"
+    "N15d: ok\n"
+    "N15e: OptionNotFound: --nowhere not found\n"
+    "N15f: [--named] desc=' DEPRECATED: please use '--newer' instead' "
+    "type=':DEPRECATED' def='' ts=1,1 exp=1,1 extra=0 req=0\n"
+    "N15g: [-s,--short] desc='' type=':DEPRECATED' def='' ts=1,1 exp=1,1 "
+    "extra=0 req=0\n"
+    "[--named v -s w]\n"
+    "cmd app n=1 miss=[] subs=[] order=[--named|--short]\n"
+    "opt named n=1 res=[v]\n"
+    "opt short n=1 res=[w]\n"
+    "out=\"--named is deprecated please use '--newer' instead\\n--short is "
+    "deprecated please use '' instead\\n\"\n"
+    "N15h: BadArgument BadArgument recorded=OK\n";
 
 // TRIGGERS
 //   constant: CLI11's transcript of triggers, and its parses of
@@ -7444,7 +7473,7 @@ d_tests_arg_command_line_counts(
 /**
  * @brief Parses arguments, as d_tests_arg_command_parse_listed, then notes
  *        what the parser wrote to its output, `out="..."` with each newline
- *        as `\n`, and forgets it.
+ *        as `\\n`, and forgets it.
  *
  * @param[in,out] _run   the run.
  * @param[in]     _args  the arguments, ending in NULL.
@@ -7744,6 +7773,114 @@ d_tests_arg_command_lifecycle(void)
                                      LIFECYCLE_CASES,
                                      LIFECYCLE_COUNT,
                                      LIFECYCLE);
+}
+
+/**
+ * @brief N15c: options deprecated by name -- one by its long name, with a
+ *        replacement, one by its short name, without -- and a name no
+ *        option has, refused as CLI11's OptionNotFound; then a parse using
+ *        both. Last, the module's own: a NULL command and a NULL name,
+ *        refused with nothing recorded.
+ *
+ * @param[in,out] _case  the case's transcript and run.
+ */
+static void
+d_tests_arg_command_n15c(
+    struct d_tests_arg_command_case* _case
+)
+{
+    struct d_arg_buffer* const out   = &_case->run->transcript;
+    struct d_arg_option* const named =
+        d_tests_arg_watch_option(_case->run,
+                                 "named",
+                                 d_arg_command_add_option(_case->app,
+                                                          "--named",
+                                                          NULL));
+    struct d_arg_option* const brief =
+        d_tests_arg_watch_option(_case->run,
+                                 "short",
+                                 d_arg_command_add_option(_case->app,
+                                                          "-s,--short",
+                                                          NULL));
+
+    d_tests_arg_command_tried(
+        out,
+        _case->run,
+        "N15c",
+        (d_arg_command_deprecate_option_name(_case->app,
+                                             "--named",
+                                             "--newer") == D_ARG_OK));
+    d_tests_arg_command_tried(
+        out,
+        _case->run,
+        "N15d",
+        (d_arg_command_deprecate_option_name(_case->app,
+                                             "-s",
+                                             NULL) == D_ARG_OK));
+    d_tests_arg_command_tried(
+        out,
+        _case->run,
+        "N15e",
+        (d_arg_command_deprecate_option_name(_case->app,
+                                             "--nowhere",
+                                             "--named") == D_ARG_OK));
+    d_tests_arg_command_line_counts(out,
+                                    "N15f",
+                                    named);
+    d_tests_arg_command_line_counts(out,
+                                    "N15g",
+                                    brief);
+    d_tests_arg_command_parse_written(_case->run,
+                                      DEPRECATED_NAMED_ARGS[0].list);
+
+    const int no_command = d_arg_command_deprecate_option_name(NULL,
+                                                               "--named",
+                                                               NULL);
+    const int no_name    = d_arg_command_deprecate_option_name(_case->app,
+                                                               NULL,
+                                                               NULL);
+
+    (void)d_arg_buffer_printf(
+        out,
+        "N15h: %s %s recorded=%s\n",
+        d_arg_status_name(no_command),
+        d_arg_status_name(no_name),
+        d_arg_status_name(
+            d_arg_parser_definition_error(&_case->run->parser)->status));
+
+    return;
+}
+
+// DEPRECATED_NAMED_CASES
+//   constant: DEPRECATED_NAMED's cases.
+static const d_tests_arg_command_case_fn DEPRECATED_NAMED_CASES[] =
+{
+    d_tests_arg_command_n15c
+};
+
+// DEPRECATED_NAMED_COUNT
+//   constant: how many cases DEPRECATED_NAMED_CASES holds.
+static const size_t DEPRECATED_NAMED_COUNT =
+    sizeof(DEPRECATED_NAMED_CASES) / sizeof(DEPRECATED_NAMED_CASES[0]);
+
+/*
+d_tests_arg_command_deprecated_named
+  Options deprecated by the name a command finds them by, as CLI11's
+deprecate_option(app, name, replacement) does it.
+  Tests the following:
+  - an option found by its long name and one by its short name, deprecated
+    with a replacement and without: their descriptions and type names, and
+    the warnings a parse writes
+  - a name no option has: CLI11's OptionNotFound, recorded
+  - a NULL command or name: refused, nothing recorded
+*/
+bool
+d_tests_arg_command_deprecated_named(void)
+{
+    return d_tests_arg_command_cases("DEPRECATED_NAMED",
+                                     DEPRECATED_NAMED_CASES,
+                                     DEPRECATED_NAMED_COUNT,
+                                     DEPRECATED_NAMED);
 }
 
 //==============================================================================
@@ -9160,6 +9297,8 @@ const struct d_tests_section d_tests_arg_command[] =
       d_tests_arg_command_triggers },
     { "arg_command_lifecycle",
       d_tests_arg_command_lifecycle },
+    { "arg_command_deprecated_named",
+      d_tests_arg_command_deprecated_named },
     { "arg_command_unread_sums",
       d_tests_arg_command_unread_sums },
     { "arg_command_decimal_sums",

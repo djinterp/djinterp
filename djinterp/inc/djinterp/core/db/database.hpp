@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/core/db/database.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 /*
@@ -62,6 +62,7 @@ TABLE OF CONTENTS
     2.  Refusals
          1.  internal::refuse_nul
          2.  internal::refuse_nul_setting
+         3.  internal::relabel
 3.  CONFIGURATION
     -------------
     1.  Connections
@@ -74,6 +75,7 @@ TABLE OF CONTENTS
     ----------
     1.  Hooks
          1.  internal hook detectors
+         2.  interface probes
     2.  Result sets
          1.  result_set
     3.  Statements
@@ -104,22 +106,23 @@ TABLE OF CONTENTS
     ---------------
     1.  The store target
          1.  store_direction
-         2.  store_D
-         3.  retrieve_D
+         2.  store_table
+         3.  load_table
 */
 
 #ifndef DJINTERP_DB_DATABASE_HPP
 #define DJINTERP_DB_DATABASE_HPP 1
 
 // djinterp
-#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: this header's floor
+#include "../../env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER: the floor
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
-#include <algorithm>    // std::find
-#include <chrono>       // std::chrono::milliseconds, system_clock
-#include <cstddef>      // std::size_t
+#include <algorithm>    // std::find_if
+#include <chrono>       // std::chrono::milliseconds, system_clock,
+                        // steady_clock
+#include <cstddef>      // std::size_t, std::ptrdiff_t
 #include <functional>   // std::function
 #include <map>          // std::map
 #include <memory>       // std::unique_ptr
@@ -394,6 +397,28 @@ NS_INTERNAL
         return;
     }
 
+    // 2.2.3
+    // relabel
+    /**
+     * @brief Throws a core/db exception again, under the name of the
+     *        operation that ran another's hook, so that what fails names
+     *        the operation the program called.
+     *
+     * @note The message's label is its start, or the word after the
+     *       vendor's name, before ": ". Where it is `_from` it becomes `_to`;
+     *       anything else is thrown again as it is.
+     *
+     * @param[in] _e     the exception.
+     * @param[in] _from  the label it carries.
+     * @param[in] _to    the label it is to carry.
+     * @throws an exception of `_e`'s type, connection_exception,
+     *         query_exception, transaction_exception or
+     *         type_conversion_exception, with `_e`'s error_code().
+     */
+    [[noreturn]] void relabel(const exception& _e,
+                              const char*      _from,
+                              const char*      _to);
+
 NS_END  // internal
 
 
@@ -446,22 +471,25 @@ struct connection_config
 
 // 3.1.2
 // pool_config
-//   struct: how many connections a connection_pool keeps, and when it checks
-// them.
+//   struct: how many connections a connection_pool keeps, how long, and when
+// it checks them. A duration of 0 is no limit. connection_queue_size and
+// connection_timeout are a waiting pool's; connection_pool never waits,
+// since it is not thread-safe, and reads neither.
 struct pool_config
 {
-    std::size_t min_connections;        // 1
-    std::size_t max_connections;        // 10
-    std::size_t connection_queue_size;  // 100
+    std::size_t min_connections;        // 1: made up front
+    std::size_t max_connections;        // 10: lent and idle together
+    std::size_t connection_queue_size;  // 100: not read
 
-    std::chrono::milliseconds connection_timeout;  // 30 s
-    std::chrono::milliseconds idle_timeout;        // 10 min
-    std::chrono::milliseconds max_lifetime;        // 1 h
+    std::chrono::milliseconds connection_timeout;  // 30 s: not read
+    std::chrono::milliseconds idle_timeout;        // 10 min: then retired,
+                                                   // down to the minimum
+    std::chrono::milliseconds max_lifetime;        // 1 h: then retired
 
     bool validate_on_acquire;  // false
     bool validate_on_return;   // false
 
-    std::string validation_query;
+    std::string validation_query;  // empty: a check is a ping
 
     pool_config();
 };
@@ -563,50 +591,57 @@ struct vendor_traits
 //   type: the calls that tell whether a connection class can do what the
 // gated operations below need. database_connection (database_connection.hpp)
 // implements each operation over a hook of the derived class, named after it
-// with the suffix `_helper`; an operation exists where its hook does.
+// with the suffix `_impl`; an operation exists where its hook does.
 NS_INTERNAL
+
+    // interface_probe
+    //   type: the first template argument of every member of the
+    // interfaces below, which no member of a class derived from one takes:
+    // naming it tells the interface's member from the derived class's.
+    struct interface_probe
+    {};
 
     template<typename Type>
     using begin_transaction_level_hook_t =
-        decltype(std::declval<Type&>().begin_transaction_helper(
+        decltype(std::declval<Type&>().begin_transaction_impl(
             std::declval<isolation_level>()));
 
     template<typename Type>
     using get_isolation_level_hook_t =
-        decltype(std::declval<const Type&>().get_isolation_level_helper());
+        decltype(std::declval<const Type&>().get_isolation_level_impl());
 
     template<typename Type>
     using set_isolation_level_hook_t =
-        decltype(std::declval<Type&>().set_isolation_level_helper(
+        decltype(std::declval<Type&>().set_isolation_level_impl(
             std::declval<isolation_level>()));
 
     template<typename Type>
     using create_savepoint_hook_t =
-        decltype(std::declval<Type&>().create_savepoint_helper(
+        decltype(std::declval<Type&>().create_savepoint_impl(
             std::declval<const std::string&>()));
 
     template<typename Type>
     using release_savepoint_hook_t =
-        decltype(std::declval<Type&>().release_savepoint_helper(
+        decltype(std::declval<Type&>().release_savepoint_impl(
             std::declval<const std::string&>()));
 
     template<typename Type>
     using rollback_to_savepoint_hook_t =
-        decltype(std::declval<Type&>().rollback_to_savepoint_helper(
+        decltype(std::declval<Type&>().rollback_to_savepoint_impl(
             std::declval<const std::string&>()));
 
     template<typename Type>
     using set_auto_commit_hook_t =
-        decltype(std::declval<Type&>().set_auto_commit_helper(
+        decltype(std::declval<Type&>().set_auto_commit_impl(
             std::declval<bool>()));
 
     template<typename Type>
     using get_auto_commit_hook_t =
-        decltype(std::declval<const Type&>().get_auto_commit_helper());
+        decltype(std::declval<const Type&>().get_auto_commit_impl());
 
     template<typename Type>
     using in_transaction_hook_t =
-        decltype(std::declval<const Type&>().in_transaction_helper());
+        decltype(std::declval<const Type&>().in_transaction_impl());
 
     // face_hook_t -- the face of a vendor with a layer, through which
     // run_layer and ask_layer reach the layer's calls
@@ -614,8 +649,15 @@ NS_INTERNAL
     using face_hook_t =
         decltype(std::declval<const Type&>().get_face());
 
+    // pool_execute_t -- a pooled connection that runs a statement, which
+    // connection_pool then checks with the configuration's validation_query
+    template<typename Type>
+    using pool_execute_t =
+        decltype(std::declval<Type&>().execute(
+            std::declval<const std::string&>()));
+
     // result_absolute_t, ... -- the members a result set or a statement
-    // offers beyond what every one has
+    // offers beyond what every one has, as the call
     template<typename Type>
     using result_absolute_t =
         decltype(std::declval<Type&>().absolute(
@@ -632,6 +674,401 @@ NS_INTERNAL
         decltype(std::declval<Type&>().bind_null(
             std::declval<const std::string&>()));
 
+    // result_absolute_base_t, ... -- the same calls made through the
+    // interface's own gated member template, its gate given rather than
+    // asked: well formed exactly where Type declares no member of the name,
+    // so that the name still reaches the interface's template
+    template<typename Type>
+    using result_absolute_base_t =
+        decltype(std::declval<Type&>()
+                     .template absolute<interface_probe, Type, void>(
+                         std::declval<re_std::int64_t>()));
+
+    template<typename Type>
+    using statement_bind_value_base_t =
+        decltype(std::declval<Type&>()
+                     .template bind_value<interface_probe, Type, void>(
+                         std::declval<std::size_t>(),
+                         std::declval<const value&>()));
+
+    template<typename Type>
+    using statement_named_base_t =
+        decltype(std::declval<Type&>()
+                     .template bind_null<interface_probe, Type, void>(
+                         std::declval<const std::string&>()));
+
+    // has_own
+    //   trait: whether Type's own member answers Call, Base telling first
+    // whether Type declares a member of the name at all. Call alone would
+    // reach the interface's gated template where Type declares none, and
+    // that template's gate asks Call again, without end: a hard error where
+    // a false is meant. conjunction stops at Base.
+    template<template<typename...> class Base,
+             template<typename...> class Call,
+             typename                    Type>
+    struct has_own : conjunction<negation<is_detected<Base, Type>>,
+                                 is_detected<Call, Type>>
+    {};
+
+    // result_absolute_gate_t, ... -- the gates: void where Type's own member
+    // answers the call, and no type otherwise
+    template<typename Type>
+    using result_absolute_gate_t =
+        std::enable_if_t<has_own<result_absolute_base_t,
+                                 result_absolute_t,
+                                 Type>::value>;
+
+    template<typename Type>
+    using statement_bind_value_gate_t =
+        std::enable_if_t<has_own<statement_bind_value_base_t,
+                                 statement_bind_value_t,
+                                 Type>::value>;
+
+    template<typename Type>
+    using statement_named_gate_t =
+        std::enable_if_t<has_own<statement_named_base_t,
+                                 statement_named_t,
+                                 Type>::value>;
+
+    // 4.1.2
+    // interface probes
+    //   type: for each member an interface forwards, the call made
+    // through the interface's own forwarder, interface_probe given
+    // first, and every gate given rather than asked: well formed exactly
+    // where Type declares no member of the name, so that the name's
+    // lookup reaches the interface. Each forwarder asserts that its probe
+    // is not: a member Derived lacks would otherwise reach the forwarder
+    // again, and call it without end, at run time.
+    template<typename Type>
+    using result_set_next_probe_t =
+        decltype(std::declval<Type&>().template next<interface_probe>());
+
+    template<typename Type>
+    using result_set_previous_probe_t =
+        decltype(std::declval<Type&>().template previous<interface_probe>());
+
+    template<typename Type>
+    using result_set_first_probe_t =
+        decltype(std::declval<Type&>().template first<interface_probe>());
+
+    template<typename Type>
+    using result_set_last_probe_t =
+        decltype(std::declval<Type&>().template last<interface_probe>());
+
+    template<typename Type>
+    using result_set_absolute_probe_t =
+        decltype(std::declval<Type&>()
+                     .template absolute<interface_probe, Type, void>(
+                         std::declval<re_std::int64_t>()));
+
+    template<typename Type>
+    using result_set_column_count_probe_t =
+        decltype(std::declval<Type&>()
+                     .template column_count<interface_probe>());
+
+    template<typename Type>
+    using result_set_column_name_probe_t =
+        decltype(std::declval<Type&>().template column_name<interface_probe>(
+            std::declval<std::size_t>()));
+
+    template<typename Type>
+    using result_set_column_type_probe_t =
+        decltype(std::declval<Type&>().template column_type<interface_probe>(
+            std::declval<std::size_t>()));
+
+    template<typename Type>
+    using result_set_column_index_probe_t =
+        decltype(std::declval<Type&>().template column_index<interface_probe>(
+            std::declval<const std::string&>()));
+
+    template<typename Type>
+    using result_set_row_count_probe_t =
+        decltype(std::declval<Type&>().template row_count<interface_probe>());
+
+    template<typename Type>
+    using result_set_current_row_probe_t =
+        decltype(std::declval<Type&>().template current_row<interface_probe>());
+
+    template<typename Type>
+    using result_set_get_value_probe_t =
+        decltype(std::declval<Type&>().template get_value<interface_probe>(
+            std::declval<std::size_t>()));
+
+    template<typename Type>
+    using result_set_is_null_probe_t =
+        decltype(std::declval<Type&>().template is_null<interface_probe>(
+            std::declval<std::size_t>()));
+
+    template<typename Type>
+    using result_set_get_bool_probe_t =
+        decltype(std::declval<Type&>().template get_bool<interface_probe>(
+            std::declval<std::size_t>()));
+
+    template<typename Type>
+    using result_set_get_int_probe_t =
+        decltype(std::declval<Type&>().template get_int<interface_probe>(
+            std::declval<std::size_t>()));
+
+    template<typename Type>
+    using result_set_get_long_probe_t =
+        decltype(std::declval<Type&>().template get_long<interface_probe>(
+            std::declval<std::size_t>()));
+
+    template<typename Type>
+    using result_set_get_double_probe_t =
+        decltype(std::declval<Type&>().template get_double<interface_probe>(
+            std::declval<std::size_t>()));
+
+    template<typename Type>
+    using result_set_get_string_probe_t =
+        decltype(std::declval<Type&>().template get_string<interface_probe>(
+            std::declval<std::size_t>()));
+
+    template<typename Type>
+    using result_set_get_binary_probe_t =
+        decltype(std::declval<Type&>().template get_binary<interface_probe>(
+            std::declval<std::size_t>()));
+
+    template<typename Type>
+    using result_set_get_current_row_probe_t =
+        decltype(std::declval<Type&>()
+                     .template get_current_row<interface_probe>());
+
+    template<typename Type>
+    using result_set_get_all_rows_probe_t =
+        decltype(std::declval<Type&>()
+                     .template get_all_rows<interface_probe>());
+
+    template<typename Type>
+    using result_set_close_probe_t =
+        decltype(std::declval<Type&>().template close<interface_probe>());
+
+    template<typename Type>
+    using statement_bind_null_probe_t =
+        decltype(std::declval<Type&>().template bind_null<interface_probe>(
+            std::declval<std::size_t>()));
+
+    template<typename Type>
+    using statement_bind_bool_probe_t =
+        decltype(std::declval<Type&>().template bind_bool<interface_probe>(
+            std::declval<std::size_t>(),
+            std::declval<bool>()));
+
+    template<typename Type>
+    using statement_bind_int_probe_t =
+        decltype(std::declval<Type&>().template bind_int<interface_probe>(
+            std::declval<std::size_t>(),
+            std::declval<re_std::int32_t>()));
+
+    template<typename Type>
+    using statement_bind_long_probe_t =
+        decltype(std::declval<Type&>().template bind_long<interface_probe>(
+            std::declval<std::size_t>(),
+            std::declval<re_std::int64_t>()));
+
+    template<typename Type>
+    using statement_bind_double_probe_t =
+        decltype(std::declval<Type&>().template bind_double<interface_probe>(
+            std::declval<std::size_t>(),
+            std::declval<double>()));
+
+    template<typename Type>
+    using statement_bind_string_probe_t =
+        decltype(std::declval<Type&>().template bind_string<interface_probe>(
+            std::declval<std::size_t>(),
+            std::declval<const std::string&>()));
+
+    template<typename Type>
+    using statement_bind_binary_probe_t =
+        decltype(std::declval<Type&>().template bind_binary<interface_probe>(
+            std::declval<std::size_t>(),
+            std::declval<const std::vector<re_std::uint8_t>&>()));
+
+    template<typename Type>
+    using statement_bind_value_probe_t =
+        decltype(std::declval<Type&>()
+                     .template bind_value<interface_probe, Type, void>(
+                         std::declval<std::size_t>(),
+                         std::declval<const value&>()));
+
+    template<typename Type>
+    using statement_execute_query_probe_t =
+        decltype(std::declval<Type&>()
+                     .template execute_query<interface_probe>());
+
+    template<typename Type>
+    using statement_execute_update_probe_t =
+        decltype(std::declval<Type&>()
+                     .template execute_update<interface_probe>());
+
+    template<typename Type>
+    using statement_execute_probe_t =
+        decltype(std::declval<Type&>().template execute<interface_probe>());
+
+    template<typename Type>
+    using statement_parameter_count_probe_t =
+        decltype(std::declval<Type&>()
+                     .template parameter_count<interface_probe>());
+
+    template<typename Type>
+    using statement_clear_parameters_probe_t =
+        decltype(std::declval<Type&>()
+                     .template clear_parameters<interface_probe>());
+
+    template<typename Type>
+    using statement_reset_probe_t =
+        decltype(std::declval<Type&>().template reset<interface_probe>());
+
+    template<typename Type>
+    using statement_close_probe_t =
+        decltype(std::declval<Type&>().template close<interface_probe>());
+
+    template<typename Type>
+    using connection_connect_probe_t =
+        decltype(std::declval<Type&>().template connect<interface_probe>());
+
+    template<typename Type>
+    using connection_disconnect_probe_t =
+        decltype(std::declval<Type&>().template disconnect<interface_probe>());
+
+    template<typename Type>
+    using connection_reconnect_probe_t =
+        decltype(std::declval<Type&>().template reconnect<interface_probe>());
+
+    template<typename Type>
+    using connection_is_connected_probe_t =
+        decltype(std::declval<Type&>()
+                     .template is_connected<interface_probe>());
+
+    template<typename Type>
+    using connection_ping_probe_t =
+        decltype(std::declval<Type&>().template ping<interface_probe>());
+
+    template<typename Type>
+    using connection_execute_query_probe_t =
+        decltype(std::declval<Type&>().template execute_query<interface_probe>(
+            std::declval<const std::string&>()));
+
+    template<typename Type>
+    using connection_execute_update_probe_t =
+        decltype(std::declval<Type&>().template execute_update<interface_probe>(
+            std::declval<const std::string&>()));
+
+    template<typename Type>
+    using connection_execute_probe_t =
+        decltype(std::declval<Type&>().template execute<interface_probe>(
+            std::declval<const std::string&>()));
+
+    template<typename Type>
+    using connection_prepare_probe_t =
+        decltype(std::declval<Type&>().template prepare<interface_probe>(
+            std::declval<const std::string&>()));
+
+    template<typename Type>
+    using connection_begin_transaction_probe_t =
+        decltype(std::declval<Type&>()
+                     .template begin_transaction<interface_probe>());
+
+    template<typename Type>
+    using connection_commit_probe_t =
+        decltype(std::declval<Type&>().template commit<interface_probe>());
+
+    template<typename Type>
+    using connection_rollback_probe_t =
+        decltype(std::declval<Type&>().template rollback<interface_probe>());
+
+    template<typename Type>
+    using connection_in_transaction_probe_t =
+        decltype(std::declval<Type&>()
+                     .template in_transaction<interface_probe>());
+
+    template<typename Type>
+    using connection_get_isolation_level_probe_t =
+        decltype(std::declval<Type&>()
+                     .template get_isolation_level<interface_probe,
+                                                   Type,
+                                                   void>());
+
+    template<typename Type>
+    using connection_set_isolation_level_probe_t =
+        decltype(std::declval<Type&>()
+                     .template set_isolation_level<interface_probe,
+                                                   Type,
+                                                   void>(
+                         std::declval<isolation_level>()));
+
+    template<typename Type>
+    using connection_create_savepoint_probe_t =
+        decltype(std::declval<Type&>()
+                     .template create_savepoint<interface_probe, Type, void>(
+                         std::declval<const std::string&>()));
+
+    template<typename Type>
+    using connection_rollback_to_savepoint_probe_t =
+        decltype(std::declval<Type&>()
+                     .template rollback_to_savepoint<interface_probe,
+                                                     Type,
+                                                     void>(
+                         std::declval<const std::string&>()));
+
+    template<typename Type>
+    using connection_release_savepoint_probe_t =
+        decltype(std::declval<Type&>()
+                     .template release_savepoint<interface_probe,
+                                                 Type,
+                                                 void>(
+                         std::declval<const std::string&>()));
+
+    template<typename Type>
+    using connection_get_database_type_probe_t =
+        decltype(std::declval<Type&>()
+                     .template get_database_type<interface_probe>());
+
+    template<typename Type>
+    using connection_get_database_name_probe_t =
+        decltype(std::declval<Type&>()
+                     .template get_database_name<interface_probe>());
+
+    template<typename Type>
+    using connection_get_server_version_probe_t =
+        decltype(std::declval<Type&>()
+                     .template get_server_version<interface_probe>());
+
+    template<typename Type>
+    using connection_get_state_probe_t =
+        decltype(std::declval<Type&>().template get_state<interface_probe>());
+
+    template<typename Type>
+    using connection_get_last_insert_id_probe_t =
+        decltype(std::declval<Type&>()
+                     .template get_last_insert_id<interface_probe>());
+
+    template<typename Type>
+    using connection_get_affected_rows_probe_t =
+        decltype(std::declval<Type&>()
+                     .template get_affected_rows<interface_probe>());
+
+    template<typename Type>
+    using connection_set_auto_commit_probe_t =
+        decltype(std::declval<Type&>()
+                     .template set_auto_commit<interface_probe, Type, void>(
+                         std::declval<bool>()));
+
+    template<typename Type>
+    using connection_get_auto_commit_probe_t =
+        decltype(std::declval<Type&>()
+                     .template get_auto_commit<interface_probe>());
+
+    template<typename Type>
+    using connection_get_last_error_probe_t =
+        decltype(std::declval<Type&>()
+                     .template get_last_error<interface_probe>());
+
+    template<typename Type>
+    using connection_get_last_error_code_probe_t =
+        decltype(std::declval<Type&>()
+                     .template get_last_error_code<interface_probe>());
+
 NS_END  // internal
 
 // 4.2    Result sets
@@ -647,229 +1084,439 @@ class result_set
 {
 public:
     // navigation -- move the cursor, answering whether it is on a row
+    template<typename Probe = internal::interface_probe>
     bool
     next()
     {
+        static_assert(
+            !is_detected<internal::result_set_next_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::next forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().next();
     }
 
+    template<typename Probe = internal::interface_probe>
     bool
     previous()
     {
+        static_assert(
+            !is_detected<internal::result_set_previous_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::previous forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().previous();
     }
 
+    template<typename Probe = internal::interface_probe>
     bool
     first()
     {
+        static_assert(
+            !is_detected<internal::result_set_first_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::first forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().first();
     }
 
+    template<typename Probe = internal::interface_probe>
     bool
     last()
     {
+        static_assert(
+            !is_detected<internal::result_set_last_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::last forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().last();
     }
 
-    template<typename Type = Derived,
-             typename      = internal::result_absolute_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::result_absolute_gate_t<Type>>
     bool
     absolute(
         re_std::int64_t _row
     )
     {
+        static_assert(
+            !is_detected<internal::result_set_absolute_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::absolute forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().absolute(_row);
     }
 
     // metadata -- the columns, and where the cursor is
+    template<typename Probe = internal::interface_probe>
     std::size_t
     column_count() const
     {
+        static_assert(
+            !is_detected<internal::result_set_column_count_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::column_count forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().column_count();
     }
 
+    template<typename Probe = internal::interface_probe>
     std::string
     column_name(
         std::size_t _index
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_column_name_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::column_name forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().column_name(_index);
     }
 
+    template<typename Probe = internal::interface_probe>
     field_type
     column_type(
         std::size_t _index
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_column_type_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::column_type forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().column_type(_index);
     }
 
+    template<typename Probe = internal::interface_probe>
     std::size_t
     column_index(
         const std::string& _name
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_column_index_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::column_index forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().column_index(_name);
     }
 
+    template<typename Probe = internal::interface_probe>
     re_std::int64_t
     row_count() const
     {
+        static_assert(
+            !is_detected<internal::result_set_row_count_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::row_count forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().row_count();
     }
 
+    template<typename Probe = internal::interface_probe>
     re_std::int64_t
     current_row() const
     {
+        static_assert(
+            !is_detected<internal::result_set_current_row_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::current_row forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().current_row();
     }
 
     // values by column index -- the current row's
+    template<typename Probe = internal::interface_probe>
     value
     get_value(
         std::size_t _index
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_value_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_value forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_value(_index);
     }
 
+    template<typename Probe = internal::interface_probe>
     bool
     is_null(
         std::size_t _index
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_is_null_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::is_null forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().is_null(_index);
     }
 
+    template<typename Probe = internal::interface_probe>
     std::optional<bool>
     get_bool(
         std::size_t _index
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_bool_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_bool forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_bool(_index);
     }
 
+    template<typename Probe = internal::interface_probe>
     std::optional<re_std::int32_t>
     get_int(
         std::size_t _index
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_int_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_int forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_int(_index);
     }
 
+    template<typename Probe = internal::interface_probe>
     std::optional<re_std::int64_t>
     get_long(
         std::size_t _index
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_long_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_long forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_long(_index);
     }
 
+    template<typename Probe = internal::interface_probe>
     std::optional<double>
     get_double(
         std::size_t _index
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_double_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_double forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_double(_index);
     }
 
+    template<typename Probe = internal::interface_probe>
     std::optional<std::string>
     get_string(
         std::size_t _index
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_string_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_string forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_string(_index);
     }
 
+    template<typename Probe = internal::interface_probe>
     std::optional<std::vector<re_std::uint8_t>>
     get_binary(
         std::size_t _index
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_binary_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_binary forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_binary(_index);
     }
 
     // values by column name -- the current row's
+    template<typename Probe = internal::interface_probe>
     value
     get_value(
         const std::string& _name
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_value_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_value forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_value(_name);
     }
 
+    template<typename Probe = internal::interface_probe>
     bool
     is_null(
         const std::string& _name
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_is_null_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::is_null forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().is_null(_name);
     }
 
+    template<typename Probe = internal::interface_probe>
     std::optional<bool>
     get_bool(
         const std::string& _name
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_bool_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_bool forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_bool(_name);
     }
 
+    template<typename Probe = internal::interface_probe>
     std::optional<re_std::int32_t>
     get_int(
         const std::string& _name
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_int_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_int forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_int(_name);
     }
 
+    template<typename Probe = internal::interface_probe>
     std::optional<re_std::int64_t>
     get_long(
         const std::string& _name
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_long_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_long forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_long(_name);
     }
 
+    template<typename Probe = internal::interface_probe>
     std::optional<double>
     get_double(
         const std::string& _name
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_double_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_double forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_double(_name);
     }
 
+    template<typename Probe = internal::interface_probe>
     std::optional<std::string>
     get_string(
         const std::string& _name
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_string_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_string forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_string(_name);
     }
 
+    template<typename Probe = internal::interface_probe>
     std::optional<std::vector<re_std::uint8_t>>
     get_binary(
         const std::string& _name
     ) const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_binary_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_binary forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_binary(_name);
     }
 
     // rows -- the current one by name, the rest, and releasing them all
+    template<typename Probe = internal::interface_probe>
     row
     get_current_row() const
     {
+        static_assert(
+            !is_detected<internal::result_set_get_current_row_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_current_row forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_current_row();
     }
 
+    template<typename Probe = internal::interface_probe>
     result_rows
     get_all_rows()
     {
+        static_assert(
+            !is_detected<internal::result_set_get_all_rows_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::get_all_rows forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_all_rows();
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     close()
     {
+        static_assert(
+            !is_detected<internal::result_set_close_probe_t,
+                         Derived>::value,
+            "result_set<Derived>::close forwards to "
+            "Derived, which declares no member of the name");
+
         impl().close();
 
         return;
@@ -914,231 +1561,385 @@ class statement
 {
 public:
     // binding by index -- the parameter, from 1, and its value
+    template<typename Probe = internal::interface_probe>
     void
     bind_null(
         std::size_t _index
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_null_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_null forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_null(_index);
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     bind_bool(
         std::size_t _index,
         bool        _value
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_bool_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_bool forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_bool(_index, _value);
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     bind_int(
         std::size_t     _index,
         re_std::int32_t _value
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_int_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_int forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_int(_index, _value);
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     bind_long(
         std::size_t     _index,
         re_std::int64_t _value
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_long_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_long forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_long(_index, _value);
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     bind_double(
         std::size_t _index,
         double      _value
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_double_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_double forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_double(_index, _value);
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     bind_string(
         std::size_t        _index,
         const std::string& _value
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_string_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_string forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_string(_index, _value);
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     bind_binary(
         std::size_t                         _index,
         const std::vector<re_std::uint8_t>& _value
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_binary_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_binary forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_binary(_index, _value);
 
         return;
     }
 
-    template<typename Type = Derived,
-             typename      = internal::statement_bind_value_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::statement_bind_value_gate_t<Type>>
     void
     bind_value(
         std::size_t  _index,
         const value& _value
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_value_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_value forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_value(_index, _value);
 
         return;
     }
 
     // binding by name -- where the database names parameters
-    template<typename Type = Derived,
-             typename      = internal::statement_named_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::statement_named_gate_t<Type>>
     void
     bind_null(
         const std::string& _name
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_null_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_null forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_null(_name);
 
         return;
     }
 
-    template<typename Type = Derived,
-             typename      = internal::statement_named_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::statement_named_gate_t<Type>>
     void
     bind_bool(
         const std::string& _name,
         bool               _value
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_bool_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_bool forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_bool(_name, _value);
 
         return;
     }
 
-    template<typename Type = Derived,
-             typename      = internal::statement_named_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::statement_named_gate_t<Type>>
     void
     bind_int(
         const std::string& _name,
         re_std::int32_t    _value
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_int_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_int forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_int(_name, _value);
 
         return;
     }
 
-    template<typename Type = Derived,
-             typename      = internal::statement_named_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::statement_named_gate_t<Type>>
     void
     bind_long(
         const std::string& _name,
         re_std::int64_t    _value
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_long_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_long forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_long(_name, _value);
 
         return;
     }
 
-    template<typename Type = Derived,
-             typename      = internal::statement_named_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::statement_named_gate_t<Type>>
     void
     bind_double(
         const std::string& _name,
         double             _value
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_double_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_double forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_double(_name, _value);
 
         return;
     }
 
-    template<typename Type = Derived,
-             typename      = internal::statement_named_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::statement_named_gate_t<Type>>
     void
     bind_string(
         const std::string& _name,
         const std::string& _value
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_string_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_string forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_string(_name, _value);
 
         return;
     }
 
-    template<typename Type = Derived,
-             typename      = internal::statement_named_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::statement_named_gate_t<Type>>
     void
     bind_binary(
         const std::string&                  _name,
         const std::vector<re_std::uint8_t>& _value
     )
     {
+        static_assert(
+            !is_detected<internal::statement_bind_binary_probe_t,
+                         Derived>::value,
+            "statement<Derived>::bind_binary forwards to "
+            "Derived, which declares no member of the name");
+
         impl().bind_binary(_name, _value);
 
         return;
     }
 
     // execution -- run the statement with the values bound
+    template<typename Probe = internal::interface_probe>
     auto
     execute_query()
     {
+        static_assert(
+            !is_detected<internal::statement_execute_query_probe_t,
+                         Derived>::value,
+            "statement<Derived>::execute_query forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().execute_query();
     }
 
+    template<typename Probe = internal::interface_probe>
     re_std::int64_t
     execute_update()
     {
+        static_assert(
+            !is_detected<internal::statement_execute_update_probe_t,
+                         Derived>::value,
+            "statement<Derived>::execute_update forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().execute_update();
     }
 
+    template<typename Probe = internal::interface_probe>
     bool
     execute()
     {
+        static_assert(
+            !is_detected<internal::statement_execute_probe_t,
+                         Derived>::value,
+            "statement<Derived>::execute forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().execute();
     }
 
     // metadata and lifetime -- the parameters, and releasing the statement
+    template<typename Probe = internal::interface_probe>
     std::size_t
     parameter_count() const
     {
+        static_assert(
+            !is_detected<internal::statement_parameter_count_probe_t,
+                         Derived>::value,
+            "statement<Derived>::parameter_count forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().parameter_count();
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     clear_parameters()
     {
+        static_assert(
+            !is_detected<internal::statement_clear_parameters_probe_t,
+                         Derived>::value,
+            "statement<Derived>::clear_parameters forwards to "
+            "Derived, which declares no member of the name");
+
         impl().clear_parameters();
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     reset()
     {
+        static_assert(
+            !is_detected<internal::statement_reset_probe_t,
+                         Derived>::value,
+            "statement<Derived>::reset forwards to "
+            "Derived, which declares no member of the name");
+
         impl().reset();
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     close()
     {
+        static_assert(
+            !is_detected<internal::statement_close_probe_t,
+                         Derived>::value,
+            "statement<Derived>::close forwards to "
+            "Derived, which declares no member of the name");
+
         impl().close();
 
         return;
@@ -1440,170 +2241,303 @@ class connection
 {
 public:
     // management -- open, close and test the connection
+    template<typename Probe = internal::interface_probe>
     void
     connect()
     {
+        static_assert(
+            !is_detected<internal::connection_connect_probe_t,
+                         Derived>::value,
+            "connection<Derived>::connect forwards to "
+            "Derived, which declares no member of the name");
+
         impl().connect();
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     disconnect()
     {
+        static_assert(
+            !is_detected<internal::connection_disconnect_probe_t,
+                         Derived>::value,
+            "connection<Derived>::disconnect forwards to "
+            "Derived, which declares no member of the name");
+
         impl().disconnect();
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     reconnect()
     {
+        static_assert(
+            !is_detected<internal::connection_reconnect_probe_t,
+                         Derived>::value,
+            "connection<Derived>::reconnect forwards to "
+            "Derived, which declares no member of the name");
+
         impl().reconnect();
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     bool
     is_connected() const noexcept
     {
+        static_assert(
+            !is_detected<internal::connection_is_connected_probe_t,
+                         Derived>::value,
+            "connection<Derived>::is_connected forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().is_connected();
     }
 
+    template<typename Probe = internal::interface_probe>
     bool
     ping() const
     {
+        static_assert(
+            !is_detected<internal::connection_ping_probe_t,
+                         Derived>::value,
+            "connection<Derived>::ping forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().ping();
     }
 
     // execution -- run SQL, or prepare it
+    template<typename Probe = internal::interface_probe>
     auto
     execute_query(
         const std::string& _query
     )
     {
+        static_assert(
+            !is_detected<internal::connection_execute_query_probe_t,
+                         Derived>::value,
+            "connection<Derived>::execute_query forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().execute_query(_query);
     }
 
+    template<typename Probe = internal::interface_probe>
     re_std::int64_t
     execute_update(
         const std::string& _query
     )
     {
+        static_assert(
+            !is_detected<internal::connection_execute_update_probe_t,
+                         Derived>::value,
+            "connection<Derived>::execute_update forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().execute_update(_query);
     }
 
+    template<typename Probe = internal::interface_probe>
     bool
     execute(
         const std::string& _query
     )
     {
+        static_assert(
+            !is_detected<internal::connection_execute_probe_t,
+                         Derived>::value,
+            "connection<Derived>::execute forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().execute(_query);
     }
 
+    template<typename Probe = internal::interface_probe>
     auto
     prepare(
         const std::string& _query
     )
     {
+        static_assert(
+            !is_detected<internal::connection_prepare_probe_t,
+                         Derived>::value,
+            "connection<Derived>::prepare forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().prepare(_query);
     }
 
     // transactions -- begin_transaction with a level, the level itself and
     // the savepoints are gated
+    template<typename Probe = internal::interface_probe>
     void
     begin_transaction()
     {
+        static_assert(
+            !is_detected<internal::connection_begin_transaction_probe_t,
+                         Derived>::value,
+            "connection<Derived>::begin_transaction forwards to "
+            "Derived, which declares no member of the name");
+
         impl().begin_transaction();
 
         return;
     }
 
-    template<typename Type = Derived,
-             typename      = internal::begin_transaction_level_hook_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::begin_transaction_level_hook_t<Type>>
     void
     begin_transaction(
         isolation_level _isolation
     )
     {
+        static_assert(
+            !is_detected<internal::connection_begin_transaction_probe_t,
+                         Derived>::value,
+            "connection<Derived>::begin_transaction forwards to "
+            "Derived, which declares no member of the name");
+
         impl().begin_transaction(_isolation);
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     commit()
     {
+        static_assert(
+            !is_detected<internal::connection_commit_probe_t,
+                         Derived>::value,
+            "connection<Derived>::commit forwards to "
+            "Derived, which declares no member of the name");
+
         impl().commit();
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     void
     rollback()
     {
+        static_assert(
+            !is_detected<internal::connection_rollback_probe_t,
+                         Derived>::value,
+            "connection<Derived>::rollback forwards to "
+            "Derived, which declares no member of the name");
+
         impl().rollback();
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     bool
     in_transaction() const noexcept
     {
+        static_assert(
+            !is_detected<internal::connection_in_transaction_probe_t,
+                         Derived>::value,
+            "connection<Derived>::in_transaction forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().in_transaction();
     }
 
-    template<typename Type = Derived,
-             typename      = internal::get_isolation_level_hook_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::get_isolation_level_hook_t<Type>>
     isolation_level
     get_isolation_level() const
     {
+        static_assert(
+            !is_detected<internal::connection_get_isolation_level_probe_t,
+                         Derived>::value,
+            "connection<Derived>::get_isolation_level forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_isolation_level();
     }
 
-    template<typename Type = Derived,
-             typename      = internal::set_isolation_level_hook_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::set_isolation_level_hook_t<Type>>
     void
     set_isolation_level(
         isolation_level _level
     )
     {
+        static_assert(
+            !is_detected<internal::connection_set_isolation_level_probe_t,
+                         Derived>::value,
+            "connection<Derived>::set_isolation_level forwards to "
+            "Derived, which declares no member of the name");
+
         impl().set_isolation_level(_level);
 
         return;
     }
 
-    template<typename Type = Derived,
-             typename      = internal::create_savepoint_hook_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::create_savepoint_hook_t<Type>>
     void
     create_savepoint(
         const std::string& _name
     )
     {
+        static_assert(
+            !is_detected<internal::connection_create_savepoint_probe_t,
+                         Derived>::value,
+            "connection<Derived>::create_savepoint forwards to "
+            "Derived, which declares no member of the name");
+
         impl().create_savepoint(_name);
 
         return;
     }
 
-    template<typename Type = Derived,
-             typename      = internal::rollback_to_savepoint_hook_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::rollback_to_savepoint_hook_t<Type>>
     void
     rollback_to_savepoint(
         const std::string& _name
     )
     {
+        static_assert(
+            !is_detected<internal::connection_rollback_to_savepoint_probe_t,
+                         Derived>::value,
+            "connection<Derived>::rollback_to_savepoint forwards to "
+            "Derived, which declares no member of the name");
+
         impl().rollback_to_savepoint(_name);
 
         return;
     }
 
-    template<typename Type = Derived,
-             typename      = internal::release_savepoint_hook_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::release_savepoint_hook_t<Type>>
     void
     release_savepoint(
         const std::string& _name
     )
     {
+        static_assert(
+            !is_detected<internal::connection_release_savepoint_probe_t,
+                         Derived>::value,
+            "connection<Derived>::release_savepoint forwards to "
+            "Derived, which declares no member of the name");
+
         impl().release_savepoint(_name);
 
         return;
@@ -1611,39 +2545,81 @@ public:
 
     // metadata -- the vendor, the database, the server, and what the latest
     // statements did
+    template<typename Probe = internal::interface_probe>
     database_type
     get_database_type() const noexcept
     {
+        static_assert(
+            !is_detected<internal::connection_get_database_type_probe_t,
+                         Derived>::value,
+            "connection<Derived>::get_database_type forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_database_type();
     }
 
+    template<typename Probe = internal::interface_probe>
     std::string
     get_database_name() const
     {
+        static_assert(
+            !is_detected<internal::connection_get_database_name_probe_t,
+                         Derived>::value,
+            "connection<Derived>::get_database_name forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_database_name();
     }
 
+    template<typename Probe = internal::interface_probe>
     std::string
     get_server_version() const
     {
+        static_assert(
+            !is_detected<internal::connection_get_server_version_probe_t,
+                         Derived>::value,
+            "connection<Derived>::get_server_version forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_server_version();
     }
 
+    template<typename Probe = internal::interface_probe>
     connection_state
     get_state() const noexcept
     {
+        static_assert(
+            !is_detected<internal::connection_get_state_probe_t,
+                         Derived>::value,
+            "connection<Derived>::get_state forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_state();
     }
 
+    template<typename Probe = internal::interface_probe>
     re_std::int64_t
     get_last_insert_id() const
     {
+        static_assert(
+            !is_detected<internal::connection_get_last_insert_id_probe_t,
+                         Derived>::value,
+            "connection<Derived>::get_last_insert_id forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_last_insert_id();
     }
 
+    template<typename Probe = internal::interface_probe>
     re_std::int64_t
     get_affected_rows() const
     {
+        static_assert(
+            !is_detected<internal::connection_get_affected_rows_probe_t,
+                         Derived>::value,
+            "connection<Derived>::get_affected_rows forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_affected_rows();
     }
 
@@ -1654,34 +2630,62 @@ public:
         return m_config;
     }
 
-    template<typename Type = Derived,
-             typename      = internal::set_auto_commit_hook_t<Type>>
+    template<typename Probe = internal::interface_probe,
+             typename Type  = Derived,
+             typename       = internal::set_auto_commit_hook_t<Type>>
     void
     set_auto_commit(
         bool _enabled
     )
     {
+        static_assert(
+            !is_detected<internal::connection_set_auto_commit_probe_t,
+                         Derived>::value,
+            "connection<Derived>::set_auto_commit forwards to "
+            "Derived, which declares no member of the name");
+
         impl().set_auto_commit(_enabled);
 
         return;
     }
 
+    template<typename Probe = internal::interface_probe>
     bool
     get_auto_commit() const
     {
+        static_assert(
+            !is_detected<internal::connection_get_auto_commit_probe_t,
+                         Derived>::value,
+            "connection<Derived>::get_auto_commit forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_auto_commit();
     }
 
     // errors -- the latest failure an operation threw
+    template<typename Probe = internal::interface_probe>
     std::string
     get_last_error() const
     {
+        static_assert(
+            !is_detected<internal::connection_get_last_error_probe_t,
+                         Derived>::value,
+            "connection<Derived>::get_last_error forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_last_error();
     }
 
+    template<typename Probe = internal::interface_probe>
     int
     get_last_error_code() const noexcept
     {
+        static_assert(
+            !is_detected<internal::connection_get_last_error_code_probe_t,
+                         Derived>::value,
+            "connection<Derived>::get_last_error_code forwards to "
+            "Derived, which declares no member of the name");
+
         return impl().get_last_error_code();
     }
 
@@ -1849,11 +2853,39 @@ private:
 // 4.6.2
 // connection_pool
 //   class template: connections made by a factory, connected, and lent out
-// as pooled_connection. Not thread-safe: a program that shares a pool
-// between threads guards it. Not copyable or movable.
+// as pooled_connection. Connection is any type with connect() and ping();
+// one with execute(const std::string&) is checked by the configuration's
+// validation_query, where it has one. The pool retires what waited idle or
+// lived too long (pool_config's idle_timeout and max_lifetime) when it lends
+// and when it takes back, never while a connection is lent. Not
+// thread-safe: a program that shares a pool between threads guards it, and
+// so the pool never waits for a connection. Not copyable or movable.
 template<typename Connection>
 class connection_pool
 {
+private:
+    // clock
+    //   type: the clock a pool's durations are measured on.
+    using clock = std::chrono::steady_clock;
+
+    // idle_slot
+    //   struct: an idle connection, when it was made, and since when it
+    // waits.
+    struct idle_slot
+    {
+        std::unique_ptr<Connection> connection;
+        clock::time_point           created;
+        clock::time_point           idle_since;
+    };
+
+    // lent_slot
+    //   struct: a connection lent out, and when it was made.
+    struct lent_slot
+    {
+        Connection*       connection;
+        clock::time_point created;
+    };
+
 public:
     // connection_factory
     //   type: makes one connection, not yet connected.
@@ -1864,7 +2896,7 @@ public:
      * @brief Makes a pool, and connects its minimum of connections.
      *
      * @param[in] _factory  makes each connection.
-     * @param[in] _config   the pool's sizes and checks.
+     * @param[in] _config   the pool's sizes, durations and checks.
      * @throws connection_exception when the factory makes no connection, and
      *         whatever a connection's connect() throws.
      */
@@ -1878,7 +2910,7 @@ public:
         // the minimum, made and connected up front
         for (std::size_t i = 0; i < m_config.min_connections; ++i)
         {
-            m_idle_connections.push_back(create_connection());
+            m_idle_connections.push_back(m_make_slot());
         }
     }
 
@@ -1891,7 +2923,8 @@ public:
     connection_pool& operator=(const connection_pool&) = delete;
 
     /**
-     * @brief Lends a connection: an idle one, checked first when the
+     * @brief Lends a connection: after retiring what waited or lived too
+     *        long, the idle one that came back last, checked first when the
      *        configuration says so, or a new one while the pool is below its
      *        maximum.
      *
@@ -1902,40 +2935,46 @@ public:
     pooled_connection<Connection>
     acquire()
     {
-        std::unique_ptr<Connection> conn;
+        cleanup_idle_connections();
+
+        idle_slot slot;
 
         // an idle connection first, a new one while there is room
         if (!m_idle_connections.empty())
         {
-            conn = std::move(m_idle_connections.back());
+            slot = std::move(m_idle_connections.back());
             m_idle_connections.pop_back();
 
             // one that fails its check is replaced
             if ( (m_config.validate_on_acquire) &&
-                 (!validate_connection(conn.get())) )
+                 (!validate_connection(slot.connection.get())) )
             {
-                conn = create_connection();
+                slot = m_make_slot();
             }
         }
         else if (total_connections() < m_config.max_connections)
         {
-            conn = create_connection();
+            slot = m_make_slot();
         }
         else
         {
             throw connection_exception("connection pool exhausted");
         }
 
-        m_active_connections.push_back(conn.get());
+        m_active_connections.push_back(
+            lent_slot{slot.connection.get(), slot.created});
 
-        return pooled_connection<Connection>(*this, std::move(conn));
+        return pooled_connection<Connection>(*this,
+                                             std::move(slot.connection));
     }
 
     /**
-     * @brief Takes a connection back: idle again, or dropped when it fails
-     *        its check or the pool already holds its maximum.
+     * @brief Takes a connection back: idle again, or dropped when it lived
+     *        past max_lifetime, fails its check, or finds the pool already
+     *        holding its maximum.
      *
-     * @param[in] _conn  the connection; may be empty.
+     * @param[in] _conn  the connection; may be empty. One the pool did not
+     *                   lend counts as made now.
      */
     void
     release(
@@ -1948,19 +2987,27 @@ public:
             return;
         }
 
-        auto it = std::find(m_active_connections.begin(),
-                            m_active_connections.end(),
-                            _conn.get());
+        const clock::time_point now     = clock::now();
+        clock::time_point       created = now;
+
+        auto it = std::find_if(m_active_connections.begin(),
+                               m_active_connections.end(),
+                               [&_conn](const lent_slot& _slot)
+                               {
+                                   return (_slot.connection == _conn.get());
+                               });
 
         // no longer lent out
         if (it != m_active_connections.end())
         {
+            created = it->created;
             m_active_connections.erase(it);
         }
 
-        // one that fails its check is dropped
-        if ( (m_config.validate_on_return) &&
-             (!validate_connection(_conn.get())) )
+        // one that lived too long, or fails its check, is dropped
+        if ( (m_lived_too_long(created, now)) ||
+             ( (m_config.validate_on_return) &&
+               (!validate_connection(_conn.get())) ) )
         {
             return;
         }
@@ -1970,11 +3017,12 @@ public:
         {
             try
             {
-                m_idle_connections.push_back(std::move(_conn));
+                m_idle_connections.push_back(
+                    idle_slot{std::move(_conn), created, now});
             }
             catch (...)
             {
-                // no room for the pointer: the connection is dropped
+                // no room for the slot: the connection is dropped
             }
         }
 
@@ -2003,7 +3051,7 @@ public:
         // up to the new minimum
         while (m_idle_connections.size() < _min)
         {
-            m_idle_connections.push_back(create_connection());
+            m_idle_connections.push_back(m_make_slot());
         }
 
         // down to the new maximum
@@ -2077,7 +3125,9 @@ protected:
         return conn;
     }
 
-    // validate_connection -- whether a connection answers a ping
+    // validate_connection -- whether a connection runs the configuration's
+    // validation_query, where it has one and the connection runs queries,
+    // or else answers a ping
     bool
     validate_connection(
         Connection* _conn
@@ -2091,6 +3141,19 @@ protected:
 
         try
         {
+            // the query, where both the configuration and the connection
+            // have what it takes
+            if constexpr (is_detected<internal::pool_execute_t,
+                                      Connection>::value)
+            {
+                if (!m_config.validation_query.empty())
+                {
+                    _conn->execute(m_config.validation_query);
+
+                    return true;
+                }
+            }
+
             return _conn->ping();
         }
         catch (...)
@@ -2099,11 +3162,86 @@ protected:
         }
     }
 
+    // cleanup_idle_connections -- retires the idle connections that lived
+    // past max_lifetime, and, while the pool holds more than its minimum,
+    // those that waited past idle_timeout, the longest waiting first;
+    // acquire calls it first
+    void
+    cleanup_idle_connections() noexcept
+    {
+        const clock::time_point now   = clock::now();
+        std::size_t             total = total_connections();
+        std::size_t             kept  = 0;
+
+        // the slots kept close up, in order, over the slots retired
+        for (std::size_t i = 0; i < m_idle_connections.size(); ++i)
+        {
+            if ( (m_lived_too_long(m_idle_connections[i].created, now)) ||
+                 ( (total > m_config.min_connections) &&
+                   (m_waited_too_long(m_idle_connections[i].idle_since,
+                                      now)) ) )
+            {
+                --total;
+
+                continue;
+            }
+
+            // a retired slot before this one takes its place
+            if (kept != i)
+            {
+                m_idle_connections[kept] = std::move(m_idle_connections[i]);
+            }
+
+            ++kept;
+        }
+
+        m_idle_connections.erase(m_idle_connections.begin() +
+                                     static_cast<std::ptrdiff_t>(kept),
+                                 m_idle_connections.end());
+
+        return;
+    }
+
 private:
-    connection_factory                       m_factory;
-    pool_config                              m_config;
-    std::vector<std::unique_ptr<Connection>> m_idle_connections;
-    std::vector<Connection*>                 m_active_connections;
+    // m_make_slot -- a new connection, connected, as an idle slot made now
+    idle_slot
+    m_make_slot()
+    {
+        const clock::time_point now = clock::now();
+
+        return idle_slot{create_connection(), now, now};
+    }
+
+    // m_lived_too_long -- whether a connection made at _created is past
+    // max_lifetime; a max_lifetime of 0 is none
+    bool
+    m_lived_too_long(
+        clock::time_point _created,
+        clock::time_point _now
+    ) const noexcept
+    {
+        return ( (m_config.max_lifetime >
+                  std::chrono::milliseconds::zero()) &&
+                 (_now - _created >= m_config.max_lifetime) );
+    }
+
+    // m_waited_too_long -- whether a connection idle since _idle_since is
+    // past idle_timeout; an idle_timeout of 0 is none
+    bool
+    m_waited_too_long(
+        clock::time_point _idle_since,
+        clock::time_point _now
+    ) const noexcept
+    {
+        return ( (m_config.idle_timeout >
+                  std::chrono::milliseconds::zero()) &&
+                 (_now - _idle_since >= m_config.idle_timeout) );
+    }
+
+    connection_factory     m_factory;
+    pool_config            m_config;
+    std::vector<idle_slot> m_idle_connections;
+    std::vector<lent_slot> m_active_connections;
 };
 
 
@@ -2383,7 +3521,7 @@ std::string get_field_type_name(field_type _type);
 // store side, and already lives below the fold: in the vendor's C layer,
 // which spells each column's type and every change to a table, in
 // quote_identifier, and in database_table's write path, its commit().
-// store_D and retrieve_D are declared here and defined in
+// store_table and load_table are declared here and defined in
 // database_table_render.hpp, which owns the encoder, so that this header
 // includes nothing of database_table.hpp.
 
@@ -2400,24 +3538,24 @@ enum class store_direction
 };
 
 // 7.1.2
-// store_D
+// store_table
 //   function template: renders a table-shaped container into the store
 // behind a connection, through Theta -- a database_table bound to that
 // connection by its commit(), which changes it, so it is taken by a
 // forwarding reference; defined in database_table_render.hpp.
 template<typename Connection,
          typename RenderableTable>
-void store_D(Connection&       _connection,
-             RenderableTable&& _table);
+void store_table(Connection&       _connection,
+                 RenderableTable&& _table);
 
 // 7.1.3
-// retrieve_D
+// load_table
 //   function template: the adjoint direction, a table-shaped container
 // filled from the store behind a connection -- a database_table bound to
 // that connection by its refresh(); defined in database_table_render.hpp.
 template<typename Connection,
          typename RenderableTable>
-void retrieve_D(Connection&      _connection,
+void load_table(Connection&      _connection,
                 RenderableTable& _table);
 
 

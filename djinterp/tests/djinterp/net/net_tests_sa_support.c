@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/net/net_tests_sa_support.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.27
-*                                                            revised: 2026.09.27
+*                                                            revised: 2026.10.14
 *******************************************************************************/
 #include "./net_tests_sa_support.h"  // corresponding header
 // std
@@ -72,7 +72,7 @@ d_tests_net_mock_read(
     mock->input_at += take;
 
     return d_net_io_result_make(take,
-                                D_NET_ERROR_NONE);
+                                D_NET_OK);
 }
 
 /*
@@ -120,7 +120,7 @@ d_tests_net_mock_write(
     mock->writes        += 1u;
 
     return d_net_io_result_make(take,
-                                D_NET_ERROR_NONE);
+                                D_NET_OK);
 }
 
 /*
@@ -168,7 +168,7 @@ d_tests_net_mock_shutdown(
     mock->shutdowns     += 1u;
     mock->last_shutdown  = _mode;
 
-    return D_NET_ERROR_NONE;
+    return D_NET_OK;
 }
 
 /*
@@ -188,13 +188,14 @@ d_tests_net_mock_remote(
     return (d_net_endpoint_set(_out,
                                host,
                                80u,
-                               D_NET_PROTOCOL_TCP) == D_NET_ERROR_NONE);
+                               D_NET_PROTOCOL_TCP) == D_NET_OK);
 }
 
 /*
 d_tests_net_mock_local
-  Scribbles on the output and then refuses, which the dispatch must not pass
-on.
+  Knows its own address once told to: 198.51.100.7:8080, from the
+documentation address blocks. Until then it scribbles on the output and
+refuses, which the dispatch must not pass on.
 */
 static bool
 d_tests_net_mock_local(
@@ -202,7 +203,18 @@ d_tests_net_mock_local(
     struct d_net_endpoint*         _out
 )
 {
-    (void)_connection;
+    const struct d_tests_net_mock* const mock =
+        (const struct d_tests_net_mock*)_connection;
+    const struct d_pack_text             host = { "198.51.100.7", 12u };
+
+    // a mock told its address reports it
+    if (mock->knows_local)
+    {
+        return (d_net_endpoint_set(_out,
+                                   host,
+                                   8080u,
+                                   D_NET_PROTOCOL_TCP) == D_NET_OK);
+    }
 
     _out->host[0] = 'x';
     _out->host[1] = '\0';
@@ -223,6 +235,34 @@ d_tests_net_mock_destroy(
     d_tests_net_mock_of(_connection)->destroys += 1u;
 
     return;
+}
+
+/*
+d_tests_net_mock_available
+  Counts the input not yet delivered while the mock is open; a closed mock
+scribbles on the count and then refuses, which the dispatch must not pass
+on.
+*/
+static bool
+d_tests_net_mock_available(
+    const struct d_net_connection* _connection,
+    size_t*                        _out_count
+)
+{
+    const struct d_tests_net_mock* const mock =
+        (const struct d_tests_net_mock*)_connection;
+
+    // a closed mock cannot say, whatever it leaves behind
+    if (!mock->open)
+    {
+        *_out_count = 99u;
+
+        return false;
+    }
+
+    *_out_count = mock->input_size - mock->input_at;
+
+    return true;
 }
 
 /*
@@ -270,7 +310,8 @@ d_tests_net_mock_init(
         d_tests_net_mock_shutdown,
         d_tests_net_mock_remote,
         d_tests_net_mock_local,
-        d_tests_net_mock_destroy
+        d_tests_net_mock_destroy,
+        d_tests_net_mock_available
     };
     static const struct d_net_connection_vtable MINIMAL =
     {
@@ -278,6 +319,7 @@ d_tests_net_mock_init(
         d_tests_net_mock_write,
         d_tests_net_mock_is_open,
         d_tests_net_mock_close,
+        NULL,
         NULL,
         NULL,
         NULL,

@@ -16,13 +16,13 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_completion.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_completion.h"  // corresponding header
 // std
 #include <stddef.h>  // size_t, NULL
 #include <stdlib.h>  // free
-#include <string.h>  // strlen, strstr
+#include <string.h>  // strcmp, strstr
 // djinterp
 #include "../../../../../../inc/djinterp/c/djinterp.h"  // framework root
 #include "../../../../../../inc/djinterp/c/util/sink_common.h"  // d_pack_text, d_pack_sink
@@ -155,11 +155,19 @@ d_arg_shell_name(
 // 2.  THE MODEL
 //==============================================================================
 
-/*
-d_arg_internal_complete_room
-  An array with room for one more element: the array, grown when full and
-its capacity updated; NULL when it could not grow, the array then as it was.
-*/
+/**
+ * @brief Makes room in a model's array for one more element.
+ *
+ * @param[in]     _items     the array; NULL when it has no storage yet.
+ * @param[in]     _count     how many elements it holds.
+ * @param[in,out] _capacity  its capacity in elements, updated when it grows.
+ * @param[in]     _size      the size of one element.
+ * @return the array, grown when it was full, which replaces `_items`; NULL when
+ *         it could not grow, the array then as it was.
+ *
+ * An array with room for one more element: the array, grown when full and
+ * its capacity updated; NULL when it could not grow, the array then as it was.
+ */
 D_STATIC void*
 d_arg_internal_complete_room(
     void*   _items,
@@ -190,13 +198,17 @@ d_arg_internal_complete_room(
     return items;
 }
 
-/*
-d_arg_internal_complete_flags
-  A command's switches as the scripts spell them: `s` for subcommand
-fallthrough, `f` for fallthrough, `w` for Windows-style options, `e` for
-extra arguments kept -- by an extras mode that keeps them, or as a prefix
-command keeps them -- and `-` alone for none.
-*/
+/**
+ * @brief Spells a command's switches as the scripts read them.
+ *
+ * @param[in]  _command  the command.
+ * @param[out] _out      receives the letters, NUL-terminated; room for five.
+ *
+ * A command's switches as the scripts spell them: `s` for subcommand
+ * fallthrough, `f` for fallthrough, `w` for Windows-style options, `e` for
+ * extra arguments kept -- by an extras mode that keeps them, or as a prefix
+ * command keeps them -- and `-` alone for none.
+ */
 D_STATIC void
 d_arg_internal_complete_flags(
     const struct d_arg_command* _command,
@@ -246,11 +258,17 @@ d_arg_internal_complete_flags(
     return;
 }
 
-/*
-d_arg_internal_complete_add_command
-  A command at the end of the model's, under `_parent`; its lists are
-filled in when its turn comes.
-*/
+/**
+ * @brief Adds a command to the end of a model's.
+ *
+ * @param[in,out] _model    the model.
+ * @param[in]     _command  the command.
+ * @param[in]     _parent   its parent's place in the model.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the model unchanged.
+ *
+ * A command at the end of the model's, under `_parent`; its lists are
+ * filled in when its turn comes.
+ */
 D_STATIC int
 d_arg_internal_complete_add_command(
     struct d_arg_internal_model* _model,
@@ -289,10 +307,18 @@ d_arg_internal_complete_add_command(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_complete_add_name
-  A subcommand's name or alias at the end of the model's.
-*/
+/**
+ * @brief Adds a subcommand's name or alias to the end of a model's.
+ *
+ * @param[in,out] _model    the model.
+ * @param[in]     _command  the place of the command the name is under.
+ * @param[in]     _target   the place of the command it leads to.
+ * @param[in]     _name     the name, which stays the command's.
+ * @param[in]     _summary  the description's first line, borrowed.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the model unchanged.
+ *
+ * A subcommand's name or alias at the end of the model's.
+ */
 D_STATIC int
 d_arg_internal_complete_add_name(
     struct d_arg_internal_model* _model,
@@ -327,10 +353,18 @@ d_arg_internal_complete_add_name(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_complete_add_entry
-  An option's name at the end of the model's.
-*/
+/**
+ * @brief Adds an option's name to the end of a model's.
+ *
+ * @param[in,out] _model   the model.
+ * @param[in]     _option  the option's place in the model.
+ * @param[in]     _name    the name, without its dashes, which stays the
+ *                         option's.
+ * @param[in]     _long    whether it is a long name.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the model unchanged.
+ *
+ * An option's name at the end of the model's.
+ */
 D_STATIC int
 d_arg_internal_complete_add_entry(
     struct d_arg_internal_model* _model,
@@ -363,11 +397,17 @@ d_arg_internal_complete_add_entry(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_complete_choice
-  A value a validator lists, copied into the model's choices, unless the
-option's choices so far hold it already.
-*/
+/**
+ * @brief Copies a value a validator lists into a model's choices.
+ *
+ * @param[in] _choice   the value.
+ * @param[in] _context  the d_arg_internal_complete_listing: the model, and
+ *                      where the option's choices begin.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the choices unchanged.
+ *
+ * A value a validator lists, copied into the model's choices, unless the
+ * option's choices so far hold it already.
+ */
 D_STATIC int
 d_arg_internal_complete_choice(
     struct d_pack_text _choice,
@@ -394,11 +434,16 @@ d_arg_internal_complete_choice(
                                     _choice);
 }
 
-/*
-d_arg_internal_complete_applies
-  Whether a validator speaks for an option's values in completion: one
-that is active, was made, and applies to every value or to the first.
-*/
+/**
+ * @brief Tells whether a validator speaks for an option's values in completion.
+ *
+ * @param[in] _validator  the validator.
+ * @return `true` for one that is active, was made, and applies to every value
+ *         or to the first; `false` otherwise.
+ *
+ * Whether a validator speaks for an option's values in completion: one
+ * that is active, was made, and applies to every value or to the first.
+ */
 D_STATIC bool
 d_arg_internal_complete_applies(
     const struct d_arg_validator* _validator
@@ -409,11 +454,17 @@ d_arg_internal_complete_applies(
              (_validator->application_index < 1) );
 }
 
-/*
-d_arg_internal_complete_listed
-  The choices an option's validators list, appended to the model's: those
-of each validator that speaks for the values.
-*/
+/**
+ * @brief Appends the choices an option's validators list to a model's.
+ *
+ * @param[in,out] _model   the model.
+ * @param[in]     _option  the option.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, or the status a listing
+ *         stopped with.
+ *
+ * The choices an option's validators list, appended to the model's: those
+ * of each validator that speaks for the values.
+ */
 D_STATIC int
 d_arg_internal_complete_listed(
     struct d_arg_internal_model* _model,
@@ -446,13 +497,18 @@ d_arg_internal_complete_listed(
     return status;
 }
 
-/*
-d_arg_internal_complete_value_kind
-  How values complete that no choices list: as nothing when a validator
-takes numbers; else as directories or files when one takes paths; else as
-nothing for a bound number, truth value, character or enumeration; and as
-files for anything else.
-*/
+/**
+ * @brief Tells how an option's values complete when no choices list them.
+ *
+ * @param[in] _option  the option.
+ * @return D_ARG_INTERNAL_COMPLETE_NOTHING, D_ARG_INTERNAL_COMPLETE_DIRECTORIES,
+ *         or D_ARG_INTERNAL_COMPLETE_FILES.
+ *
+ * How values complete that no choices list: as nothing when a validator
+ * takes numbers; else as directories or files when one takes paths; else as
+ * nothing for a bound number, truth value, character or enumeration; and as
+ * files for anything else.
+ */
 D_STATIC int
 d_arg_internal_complete_value_kind(
     const struct d_arg_option* _option
@@ -495,11 +551,17 @@ d_arg_internal_complete_value_kind(
            : (int)D_ARG_INTERNAL_COMPLETE_FILES;
 }
 
-/*
-d_arg_internal_complete_count
-  A count of values as the scripts write it: unlimited for an option that
-takes extra arguments, or for a count at CLI11's unlimited one.
-*/
+/**
+ * @brief Writes a count of values as the scripts read it.
+ *
+ * @param[in] _option  the option.
+ * @param[in] _count   the count.
+ * @return D_INTERNAL_ARG_COMPLETE_UNLIMITED for an option that takes extra
+ *         arguments, or a count at CLI11's unlimited one; `_count` otherwise.
+ *
+ * A count of values as the scripts write it: unlimited for an option that
+ * takes extra arguments, or for a count at CLI11's unlimited one.
+ */
 D_STATIC int
 d_arg_internal_complete_count(
     const struct d_arg_option* _option,
@@ -513,14 +575,20 @@ d_arg_internal_complete_count(
            : _count;
 }
 
-/*
-d_arg_internal_complete_values
-  An option record's counts and kind: the values a name of it takes --
-CLI11's min_num and max_num -- and as a positional; then, for one that
-takes values, how they complete: as its choices, if its validators list
-any, or as d_arg_internal_complete_value_kind says -- or, for one help
-hides, as nothing.
-*/
+/**
+ * @brief Fills an option record's counts and how its values complete.
+ *
+ * @param[in,out] _model   the model, whose choices gain the option's.
+ * @param[in,out] _record  the record, its option set.
+ * @param[in]     _shown   whether help shows the option.
+ * @return D_ARG_OK, or the failure of listing the choices.
+ *
+ * An option record's counts and kind: the values a name of it takes --
+ * CLI11's min_num and max_num -- and as a positional; then, for one that
+ * takes values, how they complete: as its choices, if its validators list
+ * any, or as d_arg_internal_complete_value_kind says -- or, for one help
+ * hides, as nothing.
+ */
 D_STATIC int
 d_arg_internal_complete_values(
     struct d_arg_internal_model*           _model,
@@ -572,11 +640,91 @@ d_arg_internal_complete_values(
     return status;
 }
 
-/*
-d_arg_internal_complete_names
-  An option's names, each at the end of the model's: the short ones, then
-the long ones.
-*/
+/**
+ * @brief Determines whether the command an option is recorded under lists a
+ *        name already.
+ *
+ * @param[in] _model   the model, its command's names being recorded.
+ * @param[in] _option  the option's index in the model.
+ * @param[in] _name    the name, without its dashes.
+ * @param[in] _long    whether it is a long name.
+ * @return whether a name of the command's, recorded since its own began,
+ *         is the same: an earlier option's.
+ *
+ * The earlier option is the one the parse finds the name in: a command's
+ * own options are searched before its groups', in the order recorded.
+ */
+D_STATIC bool
+d_arg_internal_complete_known(
+    const struct d_arg_internal_model* _model,
+    size_t                             _option,
+    const char*                        _name,
+    bool                               _long
+)
+{
+    const size_t command = _model->options[_option].command;
+
+    // each name the command lists so far
+    for (size_t index = _model->commands[command].first_entry;
+         index < _model->entry_count;
+         ++index)
+    {
+        if ( (_model->entries[index].long_name == _long) &&
+             (strcmp(_model->entries[index].name,
+                     _name) == 0) )
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * @brief Records an option's name at the end of the model's, unless its
+ *        command lists it already.
+ *
+ * @param[in,out] _model  the model.
+ * @param[in]     _index  the option's index in the model.
+ * @param[in]     _name   the name, without its dashes.
+ * @param[in]     _long   whether it is a long name.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * An option group's copy of the help-all flag, or a name a command gave an
+ * option after one of its groups had it, is the parse's to find in the
+ * option before it: a script lists each name once, for that option.
+ */
+D_STATIC int
+d_arg_internal_complete_name_once(
+    struct d_arg_internal_model* _model,
+    size_t                       _index,
+    const char*                  _name,
+    bool                         _long
+)
+{
+    return d_arg_internal_complete_known(_model,
+                                         _index,
+                                         _name,
+                                         _long)
+           ? D_ARG_OK
+           : d_arg_internal_complete_add_entry(_model,
+                                               _index,
+                                               _name,
+                                               _long);
+}
+
+/**
+ * @brief Adds an option's names to a model's, but for those its command lists
+ *        already.
+ *
+ * @param[in,out] _model   the model.
+ * @param[in]     _index   the option's place in the model.
+ * @param[in]     _option  the option.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * An option's names, each at the end of the model's but for one its command
+ * lists already: the short ones, then the long ones.
+ */
 D_STATIC int
 d_arg_internal_complete_names(
     struct d_arg_internal_model* _model,
@@ -591,7 +739,7 @@ d_arg_internal_complete_names(
          (status == D_ARG_OK) && (index < _option->short_names.count);
          ++index)
     {
-        status = d_arg_internal_complete_add_entry(
+        status = d_arg_internal_complete_name_once(
                      _model,
                      _index,
                      _option->short_names.items[index],
@@ -603,7 +751,7 @@ d_arg_internal_complete_names(
          (status == D_ARG_OK) && (index < _option->long_names.count);
          ++index)
     {
-        status = d_arg_internal_complete_add_entry(
+        status = d_arg_internal_complete_name_once(
                      _model,
                      _index,
                      _option->long_names.items[index],
@@ -613,12 +761,19 @@ d_arg_internal_complete_names(
     return status;
 }
 
-/*
-d_arg_internal_complete_add_option
-  An option of the command at `_command`, if completion knows it: a
-positional always -- one help hides completing as nothing -- and a named
-option help shows, with its names.
-*/
+/**
+ * @brief Adds an option of a command to a model, if completion knows it.
+ *
+ * @param[in,out] _model    the model.
+ * @param[in]     _command  the place of the command it is recorded under.
+ * @param[in]     _option   the option.
+ * @return D_ARG_OK; D_ARG_ERROR_OUT_OF_MEMORY; or the failure of listing its
+ *         choices.
+ *
+ * An option of the command at `_command`, if completion knows it: a
+ * positional always -- one help hides completing as nothing -- and a named
+ * option help shows, with its names.
+ */
 D_STATIC int
 d_arg_internal_complete_add_option(
     struct d_arg_internal_model* _model,
@@ -671,11 +826,15 @@ d_arg_internal_complete_add_option(
            : status;
 }
 
-/*
-d_arg_internal_complete_shown
-  Whether help shows a subcommand or an option group: one enabled, outside
-the empty group.
-*/
+/**
+ * @brief Tells whether help shows a subcommand or an option group.
+ *
+ * @param[in] _command  the subcommand or option group.
+ * @return `true` for one enabled, outside the empty group; `false` otherwise.
+ *
+ * Whether help shows a subcommand or an option group: one enabled, outside
+ * the empty group.
+ */
 D_STATIC bool
 d_arg_internal_complete_shown(
     const struct d_arg_command* _command
@@ -686,12 +845,19 @@ d_arg_internal_complete_shown(
              (d_arg_command_group(_command)[0] != '\0') );
 }
 
-/*
-d_arg_internal_complete_options
-  A command's options, then those of each option group it holds that help
-shows, in turn -- the order the parse searches them in -- recorded under
-the command at `_index`.
-*/
+/**
+ * @brief Adds a command's options, then those of each option group help shows,
+ *        to a model.
+ *
+ * @param[in,out] _model    the model.
+ * @param[in]     _index    the place of the command they are recorded under.
+ * @param[in]     _command  the command or option group whose options are added.
+ * @return D_ARG_OK, or the failure of an option's addition.
+ *
+ * A command's options, then those of each option group it holds that help
+ * shows, in turn -- the order the parse searches them in -- recorded under
+ * the command at `_index`.
+ */
 D_STATIC int
 d_arg_internal_complete_options(
     struct d_arg_internal_model* _model,
@@ -732,11 +898,17 @@ d_arg_internal_complete_options(
     return status;
 }
 
-/*
-d_arg_internal_complete_subcommand
-  A subcommand added to the model's commands, under the command at
-`_index`, with its name and its aliases.
-*/
+/**
+ * @brief Adds a subcommand, with its name and aliases, to a model.
+ *
+ * @param[in,out] _model  the model.
+ * @param[in]     _index  the place of the command it is under.
+ * @param[in]     _sub    the subcommand.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * A subcommand added to the model's commands, under the command at
+ * `_index`, with its name and its aliases.
+ */
 D_STATIC int
 d_arg_internal_complete_subcommand(
     struct d_arg_internal_model* _model,
@@ -775,12 +947,19 @@ d_arg_internal_complete_subcommand(
     return status;
 }
 
-/*
-d_arg_internal_complete_subcommands
-  The subcommands help shows of a command, and of each option group it
-holds that help shows -- where the parse finds them too -- added under the
-command at `_index`.
-*/
+/**
+ * @brief Adds the subcommands help shows of a command and of its option groups
+ *        to a model.
+ *
+ * @param[in,out] _model    the model.
+ * @param[in]     _index    the place of the command they are under.
+ * @param[in]     _command  the command or option group.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The subcommands help shows of a command, and of each option group it
+ * holds that help shows -- where the parse finds them too -- added under the
+ * command at `_index`.
+ */
 D_STATIC int
 d_arg_internal_complete_subcommands(
     struct d_arg_internal_model* _model,
@@ -999,7 +1178,7 @@ d_arg_internal_complete_line_text(
     size_t                   end  = 0u;
 
     // to the first line break
-    while ( (end < text.length) &&
+    while ( (end < text.length)      &&
             (text.data[end] != '\n') &&
             (text.data[end] != '\r') )
     {
@@ -1010,11 +1189,15 @@ d_arg_internal_complete_line_text(
                                                    end));
 }
 
-/*
-d_arg_internal_complete_base
-  The name a path runs a program by: its last component, after its last
-`/` or `\`, less a ".exe" in any case.
-*/
+/**
+ * @brief Finds the name a path runs a program by.
+ *
+ * @param[in] _path  the path.
+ * @return a span of the path: its last component, less a ".exe" in any case.
+ *
+ * The name a path runs a program by: its last component, after its last
+ * `/` or `\`, less a ".exe" in any case.
+ */
 D_STATIC struct d_pack_text
 d_arg_internal_complete_base(
     struct d_pack_text _path
@@ -1047,12 +1230,23 @@ d_arg_internal_complete_base(
                                end - start);
 }
 
-/*
-d_arg_internal_complete_script
-  The script for a shell, appended to a buffer: the model built, then
-written by the shell's writer, for the program given -- or named by the
-command's name, as d_arg_internal_complete_base reads it.
-*/
+/**
+ * @brief Appends the completion script for a shell.
+ *
+ * @param[in]     _command  the root command.
+ * @param[in]     _shell    the d_arg_shell.
+ * @param[in]     _program  the program's name; empty for the one the command's
+ *                          name gives.
+ * @param[in,out] _out      the buffer that gains the script.
+ * @return D_ARG_OK; D_ARG_ERROR_BAD_ARGUMENT for a shell outside the
+ *         enumeration, or no name to complete; D_ARG_ERROR_OUT_OF_MEMORY, or
+ *         the status a listing stopped with, when the script could not be
+ *         built.
+ *
+ * The script for a shell, appended to a buffer: the model built, then
+ * written by the shell's writer, for the program given -- or named by the
+ * command's name, as d_arg_internal_complete_base reads it.
+ */
 D_STATIC int
 d_arg_internal_complete_script(
     const struct d_arg_command* _command,
@@ -1130,11 +1324,18 @@ d_arg_completion_script(
 // 4.  THE COMPLETION FLAG
 //==============================================================================
 
-/*
-d_arg_internal_complete_shell_check
-  A shell's name passes; anything else is rejected as CLI11's IsMember
-rejects a value outside its set.
-*/
+/**
+ * @brief Judges whether a value names a shell.
+ *
+ * @param[in]     _validator   the validator; unused.
+ * @param[in,out] _validation  the validation, rejected as CLI11's IsMember
+ *                             rejects a value outside its set.
+ * @return D_ARG_OK once a verdict is reached; D_ARG_ERROR_OUT_OF_MEMORY when
+ *         the rejection could not be kept.
+ *
+ * A shell's name passes; anything else is rejected as CLI11's IsMember
+ * rejects a value outside its set.
+ */
 D_STATIC int
 d_arg_internal_complete_shell_check(
     const struct d_arg_validator* _validator,
@@ -1157,10 +1358,17 @@ d_arg_internal_complete_shell_check(
                SHELL_SET);
 }
 
-/*
-d_arg_internal_complete_shell_choices
-  The shells' names, each listed.
-*/
+/**
+ * @brief Lists the shells' names.
+ *
+ * @param[in] _validator  the validator; unused.
+ * @param[in] _each       receives each name.
+ * @param[in] _context    `_each`'s context.
+ * @return D_ARG_OK, or the first status other than D_ARG_OK that `_each`
+ *         returned.
+ *
+ * The shells' names, each listed.
+ */
 D_STATIC int
 d_arg_internal_complete_shell_choices(
     const struct d_arg_validator* _validator,
@@ -1184,14 +1392,25 @@ d_arg_internal_complete_shell_choices(
     return status;
 }
 
-/*
-d_arg_internal_complete_requested
-  The completion option's callback: the script for the shell named last,
-for the program as the parse was given its name -- `argv[0]`, as
-d_arg_internal_complete_base reads it -- or else as the root is named,
-becomes the parse's report, its storage handed over, which ends the parse
-with D_ARG_CALL_FOR_COMPLETION.
-*/
+/**
+ * @brief Makes the script asked for the parse's report, as the completion
+ *        option's callback.
+ *
+ * @param[in] _option   the completion option.
+ * @param[in] _results  the values given: the shells' names.
+ * @param[in] _count    how many.
+ * @param[in] _context  unused.
+ * @return D_ARG_CALL_FOR_COMPLETION, recorded with the script as its message;
+ *         D_ARG_OK when there is no parser or no value; otherwise the failure,
+ *         recorded -- D_ARG_ERROR_OUT_OF_MEMORY when the script could not be
+ *         kept.
+ *
+ * The completion option's callback: the script for the shell named last,
+ * for the program as the parse was given its name -- `argv[0]`, as
+ * d_arg_internal_complete_base reads it -- or else as the root is named,
+ * becomes the parse's report, its storage handed over, which ends the parse
+ * with D_ARG_CALL_FOR_COMPLETION.
+ */
 D_STATIC int
 d_arg_internal_complete_requested(
     struct d_arg_option*      _option,
@@ -1234,13 +1453,20 @@ d_arg_internal_complete_requested(
     return status;
 }
 
-/*
-d_arg_internal_complete_set_up
-  What makes an option the completion option: a shell's name for a value,
-named SHELL in help and listed for completion; not configurable; called
-back first, as the help flag is, with the script.
-*/
-D_STATIC void
+/**
+ * @brief Makes an option the completion option.
+ *
+ * @param[in,out] _option  the option.
+ * @return D_ARG_OK; otherwise the first failure, the type name's or the
+ *         check's, recorded as a definition error.
+ *
+ * What makes an option the completion option: a shell's name for a value,
+ * named SHELL in help and listed for completion; not configurable; called
+ * back first, as the help flag is, with the script. The check is given to the
+ * option whatever came before, as the option frees what it cannot keep; the
+ * first failure is the status.
+ */
+D_STATIC int
 d_arg_internal_complete_set_up(
     struct d_arg_option* _option
 )
@@ -1252,11 +1478,13 @@ d_arg_internal_complete_set_up(
 
     d_arg_validator_set_choices(&check,
                                 d_arg_internal_complete_shell_choices);
-    (void)d_arg_option_set_type_name(_option,
-                                     "SHELL");
-    (void)d_arg_option_check(_option,
-                             check,
-                             NULL);
+
+    const int named   = d_arg_option_set_type_name(_option,
+                                                   "SHELL");
+    const int checked = d_arg_option_check(_option,
+                                           check,
+                                           NULL);
+
     d_arg_option_set_configurable(_option,
                                   false);
     d_arg_option_set_callback_priority(_option,
@@ -1266,13 +1494,14 @@ d_arg_internal_complete_set_up(
                               NULL,
                               NULL);
 
-    return;
+    return (named != D_ARG_OK) ? named : checked;
 }
 
 /*
 d_arg_parser_set_completion_flag
   The option made before removed, wherever it was moved; then, for names,
-a new one on the root, set up as the completion option.
+a new one on the root, set up as the completion option, or refused whole
+when it cannot be.
 */
 struct d_arg_option*
 d_arg_parser_set_completion_flag(
@@ -1309,12 +1538,23 @@ d_arg_parser_set_completion_flag(
                                             ? _description
                                             : DEFAULT_DESCRIPTION);
 
-    // an option made is set up
-    if (option != NULL)
+    // refused, recorded
+    if (!option)
     {
-        d_arg_internal_complete_set_up(option);
-        _parser->completion = option;
+        return NULL;
     }
+
+    const int status = d_arg_internal_complete_set_up(option);
+
+    // an option that cannot be set up is not the completion option
+    if (status != D_ARG_OK)
+    {
+        return d_arg_internal_command_refuse_option(&_parser->command,
+                                                    option,
+                                                    status);
+    }
+
+    _parser->completion = option;
 
     return option;
 }

@@ -15,19 +15,14 @@
 * path:      /inc/re_std/functional/bad_function_call.hpp
 * link(s):   TBA
 * author(s): re_std                                          created: 2026.05.07
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.04
 *******************************************************************************/
 
 #ifndef RE_STD_FUNCTIONAL_BAD_FUNCTION_CALL_HPP
 #define RE_STD_FUNCTIONAL_BAD_FUNCTION_CALL_HPP 1
 
-// FLOOR, FOR NOW: below C++11 this header is empty rather than an error
-// (README rule 5; re_std omits rather than degrades). The owner's ruling:
-// compile at every level first; port to C++98 only where something needs it.
-#include "../config.hpp"  // RE_STD_* configuration
-#if RE_STD_LANG_IS_CPP11_OR_HIGHER
-
 // re_std
+#include "../config.hpp"  // RE_STD_* configuration
 
 #if RE_STD_HAS_EXCEPTIONS
     // std
@@ -54,6 +49,8 @@ public:
     virtual ~bad_function_call()
 #if RE_STD_LANG_IS_CPP11_OR_HIGHER
         noexcept
+#else
+        throw()
 #endif
     {}
 
@@ -61,6 +58,8 @@ public:
     what() const
 #if RE_STD_LANG_IS_CPP11_OR_HIGHER
         noexcept
+#else
+        throw()
 #endif
     {
         return "bad_function_call";
@@ -91,8 +90,6 @@ public:
 #endif // RE_STD_HAS_EXCEPTIONS
 
 }  // re_std
-
-#endif  // floor, for now
 
 
 #endif  // RE_STD_FUNCTIONAL_BAD_FUNCTION_CALL_HPP

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                  dinterp.h
+* djinterp [tools]                                                     dinterp.h
 *
 *   Tree-walking interpreter for the syntax tree in dparse.h.
 *     Fields are split lazily: a record is not divided until a field or NF is
@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/tools/dawk/dinterp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -71,6 +71,7 @@ struct d_awk_interp;
 #endif
 
 struct d_awk_source;
+struct d_awk_host_function;
 
 
 //==============================================================================
@@ -87,6 +88,19 @@ void                 d_awk_interp_free(struct d_awk_interp* _interp);
 //------------------------------------------------------------------------------
 // An assignment given with -v, or as a file operand of the form name=value,
 // is input-derived text and therefore obeys the numeric string rule.
+/**
+ * @brief Applies a `name=value` assignment, as -v and an operand give one.
+ *
+ * @note The value's escape sequences are decoded as a string literal's are,
+ *       as POSIX has it, so the operand `x='a\nz'` assigns a newline.
+ *
+ * @param[in,out] _interp  the interpreter.
+ * @param[in]     _text    a name -- a letter or an underscore, then letters,
+ *                         digits and underscores -- then `=` and the value.
+ * @return `true` if the assignment was applied; `false` if `_text` is not an
+ *         assignment, which makes an operand a file name, or if memory ran
+ *         out.
+ */
 bool                 d_awk_interp_assign(struct d_awk_interp* _interp,
                                          const char*          _text);
 bool                 d_awk_interp_add_input(struct d_awk_interp* _interp,
@@ -99,6 +113,27 @@ bool                 d_awk_interp_set_source(struct d_awk_interp* _interp,
 bool                 d_awk_interp_set_limits(struct d_awk_interp* _interp,
                                              size_t               _call_depth,
                                              size_t               _stack_budget);
+/**
+ * @brief Adds an extension's host functions, which a program then calls by
+ *        name as it calls its own.
+ *
+ * @note A function the program defines itself wins over a host function of
+ *       the same name. Under D_AWK_STRICT_POSIX every call is refused.
+ *
+ * @param[in,out] _interp     the interpreter.
+ * @param[in]     _functions  the descriptors, borrowed: they must outlive
+ *                            the interpreter, as a static table does.
+ * @param[in]     _count      how many descriptors there are.
+ * @param[in]     _user       handed to every one of them when it is called.
+ * @return `true` if every function was added; `false` if a name was taken
+ *         already, a descriptor is incomplete, or memory ran out, with none
+ *         of them added and the error recorded.
+ */
+bool                 d_awk_interp_add_functions(
+                         struct d_awk_interp*              _interp,
+                         const struct d_awk_host_function* _functions,
+                         size_t                            _count,
+                         void*                             _user);
 
 // 2.3    Execution
 //------------------------------------------------------------------------------

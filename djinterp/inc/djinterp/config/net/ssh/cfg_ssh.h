@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/config/net/ssh/cfg_ssh.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -70,7 +70,10 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "../../cfg_common.h"               // D_CFG_IS_ON, D_CFG_NORM
-#include "../../../env/net/ssh/env_ssh.h"   // D_ENV_SSH_*, D_ENV_NET_*
+#include "../../../env/env.h"               // D_ENV_OS_ID, D_ENV_IS_OS_*
+#include "../../../env/net/env_net.h"       // D_ENV_NET_CAN_SOCKET,
+                                            // D_ENV_NET_SOCKET_BACKEND_*
+#include "../../../env/net/ssh/env_ssh.h"   // D_ENV_SSH_*
 
 
 //==============================================================================

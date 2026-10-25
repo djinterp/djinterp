@@ -13,7 +13,7 @@
 * path:      /src/djinterp/core/db/mariadb/mariadb.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "../../../../../inc/djinterp/core/db/mariadb/mariadb.hpp"  // corresponding header
 
@@ -30,7 +30,7 @@
 NS_DJINTERP
 
 //==============================================================================
-// VIII. MARIADB CONNECTION
+// 7.  MARIADB CONNECTION
 //==============================================================================
 
 template class mysql_common_connection<mariadb_connection,
@@ -70,10 +70,19 @@ mariadb_connection::mariadb_connection(
     m_mariadb_config.mysql_config = this->m_mysql_config;
 }
 
-const mariadb_connect_config&
-mariadb_connection::get_mariadb_config() const noexcept
+/*
+mariadb_connection::get_mariadb_config
+  The family's settings, and the generic configuration in them, as they now
+are (get_mysql_config); the copy kept here is only what was set.
+*/
+mariadb_connect_config
+mariadb_connection::get_mariadb_config() const
 {
-    return m_mariadb_config;
+    mariadb_connect_config config = m_mariadb_config;
+
+    config.mysql_config = this->get_mysql_config();
+
+    return config;
 }
 
 void
@@ -90,7 +99,7 @@ mariadb_connection::set_mariadb_config(
 }
 
 void
-mariadb_connection::add_settings_helper(
+mariadb_connection::add_settings_impl(
     internal::mariadb_settings& _settings
 ) const
 {
@@ -100,14 +109,14 @@ mariadb_connection::add_settings_helper(
 }
 
 /*
-mariadb_connection::on_connected_helper
+mariadb_connection::on_connected_impl
   Both run on the new connection, before the object takes it: a server that
 refuses either leaves the object as it was, and the new connection closes as
 the face holding it goes. An engine's name is quoted as a literal, since the
 layer takes a variable's value as SQL.
 */
 void
-mariadb_connection::on_connected_helper(
+mariadb_connection::on_connected_impl(
     face::mariadb& _db
 )
 {

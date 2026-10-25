@@ -426,6 +426,48 @@ public:
     }
 #endif  // D_INTERNAL_DB_FACE_EXPECTED
 
+    int
+    open_cursor() D_NOEXCEPT
+    {
+        return d_postgres_open_cursor(m_statement);
+    }
+
+    int
+    fetch_rows(
+        std::size_t _max,
+        rows&       _rows
+    ) D_NOEXCEPT
+    {
+        return d_postgres_fetch_rows(m_statement, _max, _rows.out());
+    }
+
+#if D_INTERNAL_DB_FACE_EXPECTED
+    D_NODISCARD std::expected<rows, int>
+    fetch_rows(
+        std::size_t _max
+    ) D_NOEXCEPT
+    {
+        rows      value{};
+        const int result = d_postgres_fetch_rows(m_statement,
+                                                 _max,
+                                                 value.out());
+
+        // the value, or the layer's result when it failed
+        if (result != 0)
+        {
+            return std::unexpected(result);
+        }
+
+        return value;
+    }
+#endif  // D_INTERNAL_DB_FACE_EXPECTED
+
+    int
+    close_cursor() D_NOEXCEPT
+    {
+        return d_postgres_close_cursor(m_statement);
+    }
+
 private:
     D_DELETED_FN_MSG(postgres_statement(const postgres_statement&),
                      "a statement owns what the server prepared; move it")
@@ -623,6 +665,14 @@ public:
         return d_postgres_client_version_number();
     }
 
+    D_NODISCARD static bool
+    client_supports(
+        d_postgres_client_feature _feature
+    ) D_NOEXCEPT
+    {
+        return d_postgres_client_supports(_feature);
+    }
+
     /**
      * @brief Spells a result's SQLSTATE into a buffer, as
      *        d_postgres_result_sqlstate does.
@@ -706,6 +756,14 @@ public:
     error_message() const D_NOEXCEPT
     {
         return d_postgres_error_message(m_db);
+    }
+
+    bool
+    result_is_own(
+        int _result
+    ) D_NOEXCEPT
+    {
+        return d_postgres_result_is_own(m_db, _result);
     }
 
     // 1.2.1.4
@@ -1689,6 +1747,14 @@ public:
         return value;
     }
 #endif  // D_INTERNAL_DB_FACE_EXPECTED
+
+    int
+    close_prepared(
+        string_arg _name
+    ) D_NOEXCEPT
+    {
+        return d_postgres_close_prepared(m_db, _name.c_str());
+    }
 
     // 1.2.1.7
     // Databases, schemas and extensions
@@ -3723,6 +3789,81 @@ public:
     consume_input() D_NOEXCEPT
     {
         return d_postgres_consume_input(m_db);
+    }
+
+    int
+    set_chunked_rows(
+        int _rows
+    ) D_NOEXCEPT
+    {
+        return d_postgres_set_chunked_rows(m_db, _rows);
+    }
+
+    D_NODISCARD d_postgres_pipeline
+    pipeline_status() const D_NOEXCEPT
+    {
+        return d_postgres_pipeline_status(m_db);
+    }
+
+    int
+    enter_pipeline() D_NOEXCEPT
+    {
+        return d_postgres_enter_pipeline(m_db);
+    }
+
+    int
+    exit_pipeline() D_NOEXCEPT
+    {
+        return d_postgres_exit_pipeline(m_db);
+    }
+
+    int
+    pipeline_sync() D_NOEXCEPT
+    {
+        return d_postgres_pipeline_sync(m_db);
+    }
+
+    int
+    pipeline_flush() D_NOEXCEPT
+    {
+        return d_postgres_pipeline_flush(m_db);
+    }
+
+    int
+    lo_import(
+        string_arg    _path,
+        unsigned int& _oid
+    ) D_NOEXCEPT
+    {
+        return d_postgres_lo_import(m_db, _path.c_str(), &_oid);
+    }
+
+#if D_INTERNAL_DB_FACE_EXPECTED
+    D_NODISCARD std::expected<unsigned int, int>
+    lo_import(
+        string_arg _path
+    ) D_NOEXCEPT
+    {
+        unsigned int value{};
+        const int    result = d_postgres_lo_import(m_db, _path.c_str(), &value);
+
+        // the value, or the layer's result when it failed
+        if (result != 0)
+        {
+            return std::unexpected(result);
+        }
+
+        return value;
+    }
+#endif  // D_INTERNAL_DB_FACE_EXPECTED
+
+    int
+    lo_export(
+        unsigned int _oid,
+        string_arg   _path
+    ) D_NOEXCEPT
+    {
+        return d_postgres_lo_export(m_db, _oid, _path.c_str());
     }
 
 private:

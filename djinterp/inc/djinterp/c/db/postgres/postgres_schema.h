@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/c/db/postgres/postgres_schema.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -91,9 +91,10 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict
-// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
-// ruling of 2026.10.03 on round 3's question 1, (a)).
+// declares only where the build can spell one. Below it -- ISO strict C++98
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
+// question 1, (a)).
 #if defined(INT64_MAX)
 
 
@@ -170,7 +171,8 @@ int    d_postgres_has_table_s(struct pg_conn* _db,
  *                      "pg_temp" for a temporary table.
  * @param[in] _table    the table's name.
  * @param[in] _columns  the columns, in order. Several marked
- *                      D_DB_COLUMN_PRIMARY_KEY make a composite key;
+ *                      D_DB_COLUMN_PRIMARY_KEY make a composite key, in the
+ *                      order their key_place numbers them, or theirs;
  *                      D_DB_COLUMN_AUTO_INCREMENT is valid only on a sole
  *                      key column.
  * @param[in] _count    how many columns; at least one.
@@ -178,8 +180,9 @@ int    d_postgres_has_table_s(struct pg_conn* _db,
  * @return 0; the SQLSTATE of a failure (42P07, the name is taken; 3F000, no
  *         such schema, or no current one); 53200; or D_DB_INVALID_ARGUMENT
  *         for a `NULL` argument, an empty name, an unknown flag or type, a
- *         NONE type without type_sql, a DECIMAL scale without a size, or
- *         AUTO_INCREMENT without a sole primary key.
+ *         NONE type without type_sql, a DECIMAL scale without a size,
+ *         AUTO_INCREMENT without a sole primary key, or key places that
+ *         skip, repeat, or fall outside the key.
  */
 int    d_postgres_create_table(struct pg_conn*           _db,
                                const char*               _schema,

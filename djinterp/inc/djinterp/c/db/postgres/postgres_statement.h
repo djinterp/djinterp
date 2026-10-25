@@ -16,21 +16,33 @@
 * and integer parameters alike accept -- and bytes go as bytes.
 * d_postgres_execute_update runs the statement and counts the rows it
 * changed; d_postgres_execute_query runs it and returns its rows, typed as
-* postgres_query.h describes. d_postgres_finalize releases the statement, and
-* the server's copy.
+* postgres_query.h describes. d_postgres_open_cursor runs it with its rows
+* read a few at a time: d_postgres_fetch_rows reads the next of them, up to
+* a number, until a short page ends the run, and d_postgres_close_cursor
+* ends it sooner. The server sends every row; libpq hands them over one at a
+* time, so a run holds the connection until it ends: every other call that
+* waits on the connection meanwhile -- another statement's run, prepare or
+* release among them -- is 08000, as the layer's own answer
+* (d_postgres_result_is_own). A statement released then cannot reach the
+* server, whose copy stays until the session ends. d_postgres_finalize
+* releases the statement, and the server's copy; d_postgres_close_prepared
+* closes, by its name, one the session prepared another way -- with PREPARE,
+* say.
 *   RESULTS. As every module's (postgres_common.h): 0, or a failure's
 * SQLSTATE, packed, which d_postgres_error_message on the statement's
 * connection then describes; 42P02 (undefined parameter) for a parameter the
 * statement does not have; 53200 when memory runs out; D_DB_INVALID_ARGUMENT
 * for an argument that cannot be right.
 *   A statement belongs to its connection and holds it: finalize the
-* statement before closing the connection.
+* statement before closing the connection. Its run ends before anything
+* else it does: running it again, opening another run, or finalizing it
+* reads away whatever rows the run had left.
 *
 *
 * path:      /inc/djinterp/c/db/postgres/postgres_statement.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -39,7 +51,7 @@ TABLE OF CONTENTS
 1.  STATEMENTS
     ----------
     1.  Preparing
-    2.  Finalizing
+    2.  Finalizing and closing
     3.  Describing
 2.  VALUES
     ------
@@ -49,6 +61,7 @@ TABLE OF CONTENTS
     -------
     1.  Rows changed
     2.  Rows
+    3.  Rows a few at a time
 */
 
 #ifndef DJINTERP_C_DB_POSTGRES_POSTGRES_STATEMENT_H
@@ -64,9 +77,10 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict
-// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
-// ruling of 2026.10.03 on round 3's question 1, (a)).
+// declares only where the build can spell one. Below it -- ISO strict C++98
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
+// question 1, (a)).
 #if defined(INT64_MAX)
 
 
@@ -114,7 +128,7 @@ int    d_postgres_preparef(struct pg_conn*               _db,
                            const char*                   _format,
                            ...) D_NOTHROW;
 
-// 1.2    Finalizing
+// 1.2    Finalizing and closing
 //------------------------------------------------------------------------------
 /**
  * @brief Releases a statement, and the server's copy of it.
@@ -133,6 +147,25 @@ int    d_postgres_preparef(struct pg_conn*               _db,
  */
 int    d_postgres_finalize(struct d_postgres_statement* _statement)
        D_NOTHROW;
+/**
+ * @brief Closes a statement the session has prepared, by its name: one
+ *        PREPARE made, or a program's own libpq call.
+ *
+ * @note libpq from 17 closes it by the protocol's own message
+ *       (PQclosePrepared), which a failed transaction takes too; before it
+ *       the layer looks for the statement, and runs DEALLOCATE, which a
+ *       failed transaction refuses (25P02). The layer's own statements are
+ *       its own to close (d_postgres_finalize); a name of theirs, d_stmt_
+ *       and hexadecimal digits, is no name to give here.
+ *
+ * @param[in] _db    the connection.
+ * @param[in] _name  the statement's name.
+ * @return 0, whether or not the session had a statement of the name; the
+ *         SQLSTATE of the failure, packed; D_DB_INVALID_ARGUMENT for a
+ *         `NULL` connection, or a `NULL` or empty name.
+ */
+int    d_postgres_close_prepared(struct pg_conn* _db,
+                                 const char*     _name) D_NOTHROW;
 
 // 1.3    Describing
 //------------------------------------------------------------------------------
@@ -226,6 +259,54 @@ int    d_postgres_execute_update(struct d_postgres_statement* _statement,
  */
 int    d_postgres_execute_query(struct d_postgres_statement* _statement,
                                 struct d_db_rows*            _rows) D_NOTHROW;
+
+// 3.3    Rows a few at a time
+//------------------------------------------------------------------------------
+/**
+ * @brief Runs a statement whose rows d_postgres_fetch_rows then reads a few
+ *        at a time, as the server sends them, rather than all at once.
+ *
+ * @note The run holds the connection until it ends, as the banner
+ *       describes; a run of the statement's own that was open ends first,
+ *       read to its end. Values bound during the run serve the next one.
+ *
+ * @param[in] _statement  the statement, its values bound.
+ * @return 0; 08000 while another run holds the connection, or in pipeline
+ *         mode, which reads its results statement by statement
+ *         (postgres_protocol.h); 08006 when the connection is lost;
+ *         D_DB_INVALID_ARGUMENT for a `NULL` statement.
+ */
+int    d_postgres_open_cursor(struct d_postgres_statement* _statement)
+       D_NOTHROW;
+/**
+ * @brief Reads the next rows of the run d_postgres_open_cursor began.
+ *
+ * @param[in]  _statement  the statement.
+ * @param[in]  _max        the most rows to read; 1 or more.
+ * @param[out] _rows       receives the columns and up to `_max` rows, typed
+ *                         as postgres_query.h describes; fewer -- none
+ *                         among them -- once the run has none left, which
+ *                         ends it. A statement that returns no rows has no
+ *                         columns either, and its first fetch ends its
+ *                         run. Written only on success.
+ * @return 0; the SQLSTATE of a failure, packed, which ends the run -- the
+ *         server's failure part-way through the rows among them;
+ *         D_DB_UNSUPPORTED for COPY, ended at once; 53200 when the rows
+ *         could not be built, which ends the run too, read to its end;
+ *         D_DB_INVALID_ARGUMENT for a `NULL` argument, no rows asked for,
+ *         or no run open.
+ * @post On success the caller releases `_rows` with d_db_rows_free.
+ */
+int    d_postgres_fetch_rows(struct d_postgres_statement* _statement,
+                             size_t                       _max,
+                             struct d_db_rows*            _rows) D_NOTHROW;
+// ending a run -- _close_cursor ends the run d_postgres_open_cursor began,
+// reading away whatever rows it had left, so that the connection is free
+// again: 0, or the SQLSTATE, packed, of a failure the server reported among
+// them, the run ended all the same; 0 for a statement with no run open;
+// D_DB_INVALID_ARGUMENT for NULL
+int    d_postgres_close_cursor(struct d_postgres_statement* _statement)
+       D_NOTHROW;
 
 
 D_EXTERN_C_END

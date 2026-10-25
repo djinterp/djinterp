@@ -25,11 +25,12 @@
 * function of that name under `using namespace djinterp`, its mysql_ssl_mode
 * libmysqlclient's enum, and on Windows libmysqlclient's mysql.h brings
 * <windows.h>, and its min and max macros, with it.
-*   Where both clients are installed, name the header of the library the
-* program links: env looks for <mysql/mysql.h> first, which may be the other
-* client's, and the two lay struct MYSQL out differently. With the client's
-* own flags (mariadb_config --cflags, mysql_config --cflags), define
-* D_CFG_ENV_MARIADB_C_PATH as <mysql.h>, which they put first.
+*   Where both clients are installed, the header must be the one of the
+* library the program links, since the two lay struct MYSQL out differently.
+* env looks for <mysql.h> first (D_CFG_ENV_MARIADB_C_PATH's default), which
+* the client's own flags (mariadb_config --cflags, mysql_config --cflags)
+* find in its own directory; a build that compiles with them needs nothing
+* more.
 *
 *   targets:  c/db/mariadb/mariadb_*.h and their sources ->
 *             D_INTERNAL_MARIADB, D_INTERNAL_MARIADB_CHARSET,
@@ -40,7 +41,7 @@
 * path:      /inc/djinterp/config/c/db/mariadb/cfg_mariadb_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -93,12 +94,13 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_CFG_MARIADB
 //   knob: build the layer over a client library (1) or as stubs (0).
-// Defaults to 1 where the client's mysql.h can be found -- at
-// D_CFG_ENV_MARIADB_C_PATH when the build names one, else as
-// <mariadb/mysql.h>, <mysql/mysql.h> or <mysql.h>, where env looks -- and to
-// 0 where it cannot; to 1 where the preprocessor has no __has_include to
-// look with. Define it as 1 to require a client, which stops a build that
-// lacks one with an #error, or as 0 to build the stubs whatever is installed.
+// Defaults to 1 where the client's mysql.h can be found where env looks --
+// at D_CFG_ENV_MARIADB_C_PATH when the build names one, else as <mysql.h>,
+// <mariadb/mysql.h> or <mysql/mysql.h> -- and to 0 where it cannot; to 1
+// where the preprocessor has no __has_include to look with. A path the build
+// names but cannot be found leaves the stubs, rather than another client's
+// header. Define it as 1 to require a client, which stops a build that lacks
+// one with an #error, or as 0 to build the stubs whatever is installed.
 #ifndef D_CFG_MARIADB
     #if defined(__has_include)
         #if defined(D_CFG_ENV_MARIADB_C_PATH)
@@ -107,11 +109,11 @@ TABLE OF CONTENTS
             #else
                 #define D_CFG_MARIADB 0
             #endif
+        #elif __has_include(<mysql.h>)
+            #define D_CFG_MARIADB 1
         #elif __has_include(<mariadb/mysql.h>)
             #define D_CFG_MARIADB 1
         #elif __has_include(<mysql/mysql.h>)
-            #define D_CFG_MARIADB 1
-        #elif __has_include(<mysql.h>)
             #define D_CFG_MARIADB 1
         #else
             #define D_CFG_MARIADB 0

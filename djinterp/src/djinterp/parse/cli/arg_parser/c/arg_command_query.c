@@ -11,7 +11,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_command_query.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_command.h"  // corresponding header
 // std
@@ -233,7 +233,7 @@ d_arg_command_display_name(
 
     // the aliases, when asked for
     for (size_t index = 0u;
-         (_with_aliases) &&
+         (_with_aliases)      &&
          (status == D_ARG_OK) &&
          (index < _command->aliases.count);
          ++index)
@@ -288,11 +288,17 @@ d_arg_command_each_option(
     return status;
 }
 
-/*
-d_arg_internal_command_group_seen
-  Whether an option before `_index` in the command's list is in the same
-group as the option at it.
-*/
+/**
+ * @brief Tells whether an earlier option shares an option's group.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _index    the option's place in the command's list.
+ * @return `true` when an option before `_index` is in the same group; `false`
+ *         otherwise.
+ *
+ * Whether an option before `_index` in the command's list is in the same
+ * group as the option at it.
+ */
 D_STATIC bool
 d_arg_internal_command_group_seen(
     const struct d_arg_command* _command,
@@ -358,10 +364,17 @@ d_arg_command_each_group(
 // 5.  LEFTOVERS
 //==============================================================================
 
-/*
-d_arg_internal_command_visit_extras
-  Each argument of one list, until a visit stops.
-*/
+/**
+ * @brief Visits each argument of a list, in order.
+ *
+ * @param[in] _list     the arguments.
+ * @param[in] _visit    the visit.
+ * @param[in] _context  its context.
+ * @return D_ARG_OK, or the first status other than D_ARG_OK a visit returned,
+ *         which ends the visits.
+ *
+ * Each argument of one list, until a visit stops.
+ */
 D_STATIC int
 d_arg_internal_command_visit_extras(
     const struct d_arg_extra_list* _list,
@@ -383,11 +396,18 @@ d_arg_internal_command_visit_extras(
     return status;
 }
 
-/*
-d_arg_internal_command_visit_groups
-  The part of CLI11's remaining(true) for option groups: when the command's
-own extras are errors or ignored, those its nameless subcommands kept.
-*/
+/**
+ * @brief Visits the arguments a command's option groups kept.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _visit    the visit.
+ * @param[in] _context  its context.
+ * @return D_ARG_OK, or the first status other than D_ARG_OK a visit returned,
+ *         which ends the visits.
+ *
+ * The part of CLI11's remaining(true) for option groups: when the command's
+ * own extras are errors or ignored, those its nameless subcommands kept.
+ */
 D_STATIC int
 d_arg_internal_command_visit_groups(
     const struct d_arg_command* _command,
@@ -457,7 +477,7 @@ d_arg_command_each_remaining(
     }
 
     for (size_t index = 0u;
-         (_recurse) &&
+         (_recurse)           &&
          (status == D_ARG_OK) &&
          (index < _command->parsed_subcommands.count);
          ++index)
@@ -518,11 +538,19 @@ d_arg_command_remaining_size(
 // 6.  TEXT ON DEMAND
 //==============================================================================
 
-/*
-d_arg_internal_command_write_text
-  CLI11's get_usage and get_footer: the function's text and a newline, when
-there is a function, then the fixed text.
-*/
+/**
+ * @brief Writes a usage or a footer: a function's text, then the fixed text.
+ *
+ * @param[in] _command  the command.
+ * @param[in] _write    the function; NULL for none.
+ * @param[in] _context  its context.
+ * @param[in] _text     the fixed text.
+ * @param[in] _sink     receives the text.
+ * @return D_ARG_OK, or the first failure: the function's or the sink's.
+ *
+ * CLI11's get_usage and get_footer: the function's text and a newline, when
+ * there is a function, then the fixed text.
+ */
 D_STATIC int
 d_arg_internal_command_write_text(
     const struct d_arg_command* _command,

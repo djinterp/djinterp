@@ -14,12 +14,23 @@
 * or bytes -- so a run only points libpq at them. Numbers are written in the
 * C locale's absence: integers in decimal, real numbers by db_internal's
 * formatter, which writes a `.` whatever the locale says.
+*   A cursor's run is libpq's single-row mode over PQsendQueryPrepared: the
+* server sends every row, and libpq hands them over one a result, so a page
+* is built from as many results as it holds. Until the run's last result is
+* read libpq reports the connection's transaction status as active, which is
+* how every other call that waits on it knows to refuse
+* (d_internal_postgres_ready); the statement only remembers that its own run
+* is open. A statement released while another's run holds the connection
+* cannot reach the server, so its copy there stays, under a name that a
+* statement later prepared at the same address would take: from then on a
+* prepare inside a transaction looks the name up first, as one before libpq
+* 17 always does (d_internal_postgres_clear_stale).
 *
 *
 * path:      /src/djinterp/c/db/postgres/postgres_statement.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -30,6 +41,7 @@
 // std
 #include <limits.h>  // INT_MAX
 #include <math.h>    // isinf, isnan
+#include <signal.h>  // sig_atomic_t
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stddef.h>  // size_t, NULL
 #include <stdlib.h>  // malloc, free
@@ -82,7 +94,18 @@ struct d_postgres_statement
     int*                              lengths;  // count: the bytes' lengths
     int*                              formats;  // count: 1 for bytes, 0 for
                                                 // text
+    bool                              running;  // its cursor's run is open:
+                                                // rows still to fetch
 };
+
+// d_internal_postgres_left_behind
+//   flag: 1 once a statement's server copy has been left behind -- released
+// while the connection could not take its Close, or in a failed transaction
+// before libpq 17 -- anywhere in the process; never cleared. Each thread only
+// ever writes 1, so a thread that reads 0 a moment late merely skips one
+// lookup it did not yet need. sig_atomic_t, the one type C99 promises is
+// written whole.
+static volatile sig_atomic_t d_internal_postgres_left_behind = 0;
 
 /**
  * @brief Names a statement after its record's address, in hexadecimal.
@@ -114,6 +137,21 @@ d_internal_postgres_name(
 }
 
 /**
+ * @brief Whether libpq closes a statement by the protocol's own message:
+ *        PQclosePrepared, which the header compiled against must declare
+ *        and the library loaded have, from 17.
+ *
+ * @return the answer.
+ */
+static bool
+d_internal_postgres_closes(
+    void
+)
+{
+    return d_postgres_client_supports(D_POSTGRES_CLIENT_CLOSE_PREPARED);
+}
+
+/**
  * @brief Has the server drop a statement of the layer's.
  *
  * @param[in] _db    the connection.
@@ -130,11 +168,47 @@ d_internal_postgres_drop(
     const char* _name
 )
 {
+    const int ready = d_internal_postgres_ready(_db);
+
+    // a run holds the connection
+    if (ready != 0)
+    {
+        return ready;
+    }
+
 #if defined(LIBPQ_HAS_CLOSE_PREPARED)
-    return d_internal_postgres_take(_db, PQclosePrepared(_db, _name), NULL);
-#else
+    if (d_internal_postgres_closes())
+    {
+        return d_internal_postgres_take(_db,
+                                        PQclosePrepared(_db, _name),
+                                        NULL);
+    }
+#endif  // LIBPQ_HAS_CLOSE_PREPARED
+
     return d_internal_postgres_run(_db, NULL, "DEALLOCATE %I", _name);
-#endif
+}
+
+/**
+ * @brief Whether the session holds a prepared statement of a name.
+ *
+ * @param[in]  _db    the connection.
+ * @param[in]  _name  the name.
+ * @param[out] _held  receives the answer; written only on success.
+ * @return 0, or the failure's SQLSTATE, packed.
+ */
+static int
+d_internal_postgres_held(
+    PGconn*     _db,
+    const char* _name,
+    bool*       _held
+)
+{
+    return d_internal_postgres_query_bool(
+               _db,
+               _held,
+               "SELECT EXISTS (SELECT 1 FROM "
+               "pg_catalog.pg_prepared_statements WHERE name = %Q)",
+               _name);
 }
 
 /**
@@ -149,7 +223,9 @@ d_internal_postgres_drop(
  * A PREPARE that fails fails the transaction it runs in, so there the name
  * is looked for first, at the cost of a round trip; outside one the prepare
  * is tried, and a name still held (42P05) dropped and tried again. libpq's
- * PQclosePrepared, from 17, leaves no name behind, and needs neither.
+ * PQclosePrepared, from 17, leaves no name behind, and needs neither -- until
+ * a statement is released while the connection cannot take its Close
+ * (d_internal_postgres_left_behind).
  */
 static int
 d_internal_postgres_clear_stale(
@@ -157,32 +233,23 @@ d_internal_postgres_clear_stale(
     const char* _name
 )
 {
-#if defined(LIBPQ_HAS_CLOSE_PREPARED)
-    (void)_db;
-    (void)_name;
-
-    return 0;
-#else
     bool held   = false;
     int  result = 0;
 
-    // only a transaction in progress is failed by a PREPARE that fails
-    if (PQtransactionStatus(_db) != PQTRANS_INTRANS)
+    // a closing that has left no name behind; or no transaction in
+    // progress, the only one a PREPARE that fails would fail
+    if ( ( (d_internal_postgres_closes()) &&
+           (d_internal_postgres_left_behind == 0) ) ||
+         (PQtransactionStatus(_db) != PQTRANS_INTRANS) )
     {
         return 0;
     }
 
-    result = d_internal_postgres_query_bool(
-                 _db,
-                 &held,
-                 "SELECT EXISTS (SELECT 1 FROM "
-                 "pg_catalog.pg_prepared_statements WHERE name = %Q)",
-                 _name);
+    result = d_internal_postgres_held(_db, _name, &held);
 
     return ( (result == 0) &&
              (held) ) ? d_internal_postgres_drop(_db, _name)
                       : result;
-#endif
 }
 
 /**
@@ -228,7 +295,9 @@ d_internal_postgres_check(
     if ( (_index == 0u) ||
          (_index > _statement->count) )
     {
-        return D_POSTGRES_SQLSTATE_UNDEFINED_PARAMETER;
+        return d_internal_postgres_answer(
+                   _statement->db,
+                   D_POSTGRES_SQLSTATE_UNDEFINED_PARAMETER);
     }
 
     return 0;
@@ -352,17 +421,13 @@ d_internal_postgres_keep_number(
 }
 
 /**
- * @brief Runs a statement with its values.
+ * @brief Points libpq's arrays at a statement's values, for a run.
  *
  * @param[in,out] _statement  the statement.
- * @param[out]    _result     receives the statement's result on success.
- * @return 0, or as d_internal_postgres_take.
- * @post On success the caller frees `*_result` with PQclear.
  */
-static int
-d_internal_postgres_execute_prepared(
-    struct d_postgres_statement* _statement,
-    PGresult**                   _result
+static void
+d_internal_postgres_point(
+    struct d_postgres_statement* _statement
 )
 {
     // libpq's arrays, pointed at the values
@@ -377,6 +442,92 @@ d_internal_postgres_execute_prepared(
         _statement->lengths[i] = (int)value->size;
         _statement->formats[i] = (value->type == D_DB_VALUE_BLOB) ? 1 : 0;
     }
+
+    return;
+}
+
+/**
+ * @brief Ends a statement's open run, reading away every result left.
+ *
+ * @param[in,out] _statement  the statement, its run open.
+ * @return 0, or the SQLSTATE, packed, of a failure among the results read
+ *         away; D_DB_UNSUPPORTED for a COPY, which is ended.
+ * @post The run is over and the connection free of it.
+ *
+ * The server sends every row whatever the client reads, so the rest of the
+ * run is read and dropped; a failure the server reports among them -- a
+ * division by zero at the thousandth row -- is still the run's, and the
+ * transaction's, so it is reported.
+ */
+static int
+d_internal_postgres_end_run(
+    struct d_postgres_statement* _statement
+)
+{
+    PGconn* const db     = _statement->db;
+    int           result = 0;
+
+    _statement->running = false;
+
+    // every result left, to libpq's NULL
+    for (PGresult* next = PQgetResult(db); next; next = PQgetResult(db))
+    {
+        const ExecStatusType status = PQresultStatus(next);
+
+        // a COPY, ended with every result after it
+        if (d_internal_postgres_copying(status))
+        {
+            PQclear(next);
+            d_internal_postgres_end_copy(db, status);
+
+            return (result != 0) ? result : D_DB_UNSUPPORTED;
+        }
+
+        const int code = d_internal_postgres_result(db, next);
+
+        // the first failure is the run's
+        if ( (code != 0) &&
+             (result == 0) )
+        {
+            result = code;
+        }
+
+        PQclear(next);
+    }
+
+    return result;
+}
+
+/**
+ * @brief Runs a statement with its values, ending its own open run first.
+ *
+ * @param[in,out] _statement  the statement.
+ * @param[out]    _result     receives the statement's result on success.
+ * @return 0; 08000 while another run holds the connection; or as
+ *         d_internal_postgres_take.
+ * @post On success the caller frees `*_result` with PQclear.
+ */
+static int
+d_internal_postgres_execute_prepared(
+    struct d_postgres_statement* _statement,
+    PGresult**                   _result
+)
+{
+    // its own run, read away
+    if (_statement->running)
+    {
+        (void)d_internal_postgres_end_run(_statement);
+    }
+
+    const int ready = d_internal_postgres_ready(_statement->db);
+
+    // another's run holds the connection
+    if (ready != 0)
+    {
+        return ready;
+    }
+
+    d_internal_postgres_point(_statement);
 
     return d_internal_postgres_take(
                _statement->db,
@@ -445,6 +596,14 @@ d_internal_postgres_prepare_text(
     const char*                   _sql
 )
 {
+    const int ready = d_internal_postgres_ready(_db);
+
+    // a run holds the connection
+    if (ready != 0)
+    {
+        return ready;
+    }
+
     struct d_postgres_statement* const made =
         (struct d_postgres_statement*)malloc(sizeof(*made));
 
@@ -460,6 +619,7 @@ d_internal_postgres_prepare_text(
     made->texts   = NULL;
     made->lengths = NULL;
     made->formats = NULL;
+    made->running = false;
     d_internal_postgres_name(made);
 
     int result = d_internal_postgres_clear_stale(_db, made->name);
@@ -643,12 +803,14 @@ d_postgres_preparef(
     return result;
 }
 
-// 1.2    Finalizing
+// 1.2    Finalizing and closing
 //------------------------------------------------------------------------------
 /*
 d_postgres_finalize
-  The server's copy first, while the connection is known to be the
-statement's; the memory goes whatever the server said.
+  Its own run ended, then the server's copy, while the connection is known to
+be the statement's; the memory goes whatever the server said. A copy the
+server keeps is a name left behind, which prepares inside a transaction look
+for from then on.
 */
 int
 d_postgres_finalize(
@@ -661,12 +823,60 @@ d_postgres_finalize(
         return 0;
     }
 
+    // its own run, read away
+    if (_statement->running)
+    {
+        (void)d_internal_postgres_end_run(_statement);
+    }
+
     const int result = d_internal_postgres_drop(_statement->db,
                                                 _statement->name);
+
+    // the server's copy kept: its name may come round again
+    if (result != 0)
+    {
+        d_internal_postgres_left_behind = 1;
+    }
 
     d_internal_postgres_free(_statement);
 
     return result;
+}
+
+/*
+d_postgres_close_prepared
+  The protocol's Close succeeds whether or not the session has the name;
+DEALLOCATE fails where it has none (26000), so before libpq 17 the name is
+looked for first.
+*/
+int
+d_postgres_close_prepared(
+    struct pg_conn* _db,
+    const char*     _name
+)
+{
+    bool held = false;
+
+    // parameter validation
+    if ( (!_db) ||
+         (!d_internal_postgres_name_ok(_name)) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    // a statement the session has, where the server must be asked
+    if (!d_internal_postgres_closes())
+    {
+        const int result = d_internal_postgres_held(_db, _name, &held);
+
+        if ( (result != 0) ||
+             (!held) )
+        {
+            return result;
+        }
+    }
+
+    return d_internal_postgres_drop(_db, _name);
 }
 
 // 1.3    Describing
@@ -938,6 +1148,230 @@ d_postgres_execute_query(
     return d_internal_postgres_collect_rows(result_rows, _rows);
 }
 
+// 3.3    Rows a few at a time
+//------------------------------------------------------------------------------
+/*
+d_postgres_open_cursor
+  PQsendQueryPrepared, then single-row mode, which libpq takes only straight
+after the send, before anything is read. A pipeline reads its results its
+own way, statement by statement, and is refused.
+*/
+int
+d_postgres_open_cursor(
+    struct d_postgres_statement* _statement
+)
+{
+    // parameter validation
+    if (!_statement)
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    PGconn* const db = _statement->db;
+
+    // its own run, read away
+    if (_statement->running)
+    {
+        (void)d_internal_postgres_end_run(_statement);
+    }
+
+    // pipeline mode
+    if (d_internal_postgres_pipelined(db))
+    {
+        return d_internal_postgres_answer(
+                   db,
+                   D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    }
+
+    const int ready = d_internal_postgres_ready(db);
+
+    // another's run holds the connection
+    if (ready != 0)
+    {
+        return ready;
+    }
+
+    d_internal_postgres_point(_statement);
+
+    const int sent = PQsendQueryPrepared(db,
+                                         _statement->name,
+                                         (int)_statement->count,
+                                         _statement->texts,
+                                         _statement->lengths,
+                                         _statement->formats,
+                                         0);
+
+    // libpq has answered, by its return value and its message
+    d_internal_postgres_heard(db);
+
+    // refused before anything was sent, or the connection lost
+    if (!sent)
+    {
+        return (PQstatus(db) == CONNECTION_BAD)
+                   ? D_POSTGRES_SQLSTATE_CONNECTION_FAILURE
+                   : D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION;
+    }
+
+    _statement->running = true;
+
+    // libpq refuses single-row mode only at the wrong moment, which this is
+    // not; were it to, the rows would come whole, and the run is ended
+    if (PQsetSingleRowMode(db) != 1)
+    {
+        (void)d_internal_postgres_end_run(_statement);
+
+        return d_internal_postgres_answer(
+                   db,
+                   D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    }
+
+    return 0;
+}
+
+/*
+d_postgres_fetch_rows
+  One result a row, until the page is full or a result that is not a row's
+ends the run: the zero-row result of rows, which carries their columns; a
+command's, which has none; or a failure. The run's end is read to libpq's
+NULL, so that the connection is free when the call returns.
+*/
+int
+d_postgres_fetch_rows(
+    struct d_postgres_statement* _statement,
+    size_t                       _max,
+    struct d_db_rows*            _rows
+)
+{
+    struct d_internal_db_rows builder =
+    {
+        { NULL, 0u, 0u }, { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u, 0u
+    };
+
+    // parameter validation
+    if ( (!_statement)          ||
+         (!_rows)               ||
+         (_max == 0u)           ||
+         (!_statement->running) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    PGconn* const db        = _statement->db;
+    size_t        count     = 0u;
+    bool          described = false;
+    bool          ended     = false;
+    bool          kept      = true;
+    int           result    = 0;
+
+    // a row a result, until the page is full or the run ends
+    while ( (!ended) &&
+            (count < _max) )
+    {
+        PGresult* const next = PQgetResult(db);
+
+        // libpq has nothing more: the run is over, or the connection lost
+        if (!next)
+        {
+            ended  = true;
+            result = (PQstatus(db) == CONNECTION_BAD)
+                         ? D_POSTGRES_SQLSTATE_CONNECTION_FAILURE
+                         : 0;
+
+            break;
+        }
+
+        const ExecStatusType status = PQresultStatus(next);
+
+        // a COPY, which the layer ends everywhere
+        if (d_internal_postgres_copying(status))
+        {
+            PQclear(next);
+            d_internal_postgres_end_copy(db, status);
+            _statement->running = false;
+            d_internal_db_rows_release(&builder);
+
+            return D_DB_UNSUPPORTED;
+        }
+
+        // the end of the run, a failure among the ways
+        ended  = (status != PGRES_SINGLE_TUPLE);
+        result = d_internal_postgres_result(db, next);
+
+        // the columns once, from the first result; then any row
+        if (result == 0)
+        {
+            kept = ( ( (described) ||
+                       (d_internal_postgres_describe_columns(next,
+                                                             &builder)) ) &&
+                     (d_internal_postgres_keep_rows(next, &builder)) );
+            described = true;
+            count    += (size_t)PQntuples(next);
+        }
+
+        PQclear(next);
+
+        // memory ran out, which ends the run too
+        if (!kept)
+        {
+            ended  = true;
+            result = D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
+        }
+    }
+
+    // the run's end read to libpq's NULL; a failure keeps its own code
+    if (ended)
+    {
+        const int rest = d_internal_postgres_end_run(_statement);
+
+        result = (result != 0) ? result : rest;
+    }
+
+    // the page built, or memory ran out for its last step
+    if ( (result == 0) &&
+         (!d_internal_db_rows_finish(&builder, _rows)) )
+    {
+        result = D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
+
+        // the run ends with the page it could not give
+        if (_statement->running)
+        {
+            (void)d_internal_postgres_end_run(_statement);
+        }
+    }
+
+    // a failure gives no rows
+    if (result != 0)
+    {
+        d_internal_db_rows_release(&builder);
+    }
+
+    return result;
+}
+
+/*
+d_postgres_close_cursor
+  The rest of the run read away (d_internal_postgres_end_run).
+*/
+int
+d_postgres_close_cursor(
+    struct d_postgres_statement* _statement
+)
+{
+    // parameter validation
+    if (!_statement)
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    // no run open
+    if (!_statement->running)
+    {
+        return 0;
+    }
+
+    return d_internal_postgres_end_run(_statement);
+}
+
 #else
 
 //==============================================================================
@@ -1007,6 +1441,22 @@ d_postgres_finalize(
     (void)_statement;
 
     return 0;
+}
+
+/*
+d_postgres_close_prepared
+  Without libpq, D_DB_UNSUPPORTED.
+*/
+int
+d_postgres_close_prepared(
+    struct pg_conn* _db,
+    const char*     _name
+)
+{
+    (void)_db;
+    (void)_name;
+
+    return D_DB_UNSUPPORTED;
 }
 
 /*
@@ -1187,6 +1637,53 @@ d_postgres_execute_query(
 {
     (void)_statement;
     (void)_rows;
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_postgres_open_cursor
+  Without libpq there is nothing to run: D_DB_UNSUPPORTED.
+*/
+int
+d_postgres_open_cursor(
+    struct d_postgres_statement* _statement
+)
+{
+    (void)_statement;
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_postgres_fetch_rows
+  Without libpq there are no rows: D_DB_UNSUPPORTED, and the rows left as
+they were.
+*/
+int
+d_postgres_fetch_rows(
+    struct d_postgres_statement* _statement,
+    size_t                       _max,
+    struct d_db_rows*            _rows
+)
+{
+    (void)_statement;
+    (void)_max;
+    (void)_rows;
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_postgres_close_cursor
+  Without libpq there is no run to end: D_DB_UNSUPPORTED.
+*/
+int
+d_postgres_close_cursor(
+    struct d_postgres_statement* _statement
+)
+{
+    (void)_statement;
 
     return D_DB_UNSUPPORTED;
 }

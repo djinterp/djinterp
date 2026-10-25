@@ -15,7 +15,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_validator_unit.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_validator_extra.h"  // corresponding header
 // std
@@ -132,10 +132,16 @@ static const char* const SIZE_DESCRIPTIONS[2] =
 // 2.  VALUES
 //==============================================================================
 
-/*
-d_arg_internal_unit_append
-  A unit, as written or in lowercase; it holds letters only.
-*/
+/**
+ * @brief Appends a unit, as written or in lowercase.
+ *
+ * @param[in,out] _out   the buffer that gains it.
+ * @param[in]     _unit  the unit, letters only.
+ * @param[in]     _fold  whether it is lowered.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * A unit, as written or in lowercase; it holds letters only.
+ */
 D_STATIC int
 d_arg_internal_unit_append(
     struct d_arg_buffer* _out,
@@ -165,11 +171,16 @@ d_arg_internal_unit_append(
     return status;
 }
 
-/*
-d_arg_internal_unit_thrown
-  The status a message stops validation with: the validation error CLI11
-throws, or the failure that cost the message.
-*/
+/**
+ * @brief Gives the status a message stops validation with.
+ *
+ * @param[in] _message  the message.
+ * @return D_ARG_ERROR_VALIDATION, as CLI11 throws it; D_ARG_ERROR_OUT_OF_MEMORY
+ *         when the message could not be written whole.
+ *
+ * The status a message stops validation with: the validation error CLI11
+ * throws, or the failure that cost the message.
+ */
 D_STATIC int
 d_arg_internal_unit_thrown(
     const struct d_arg_buffer* _message
@@ -180,15 +191,26 @@ d_arg_internal_unit_thrown(
            : D_ARG_ERROR_VALIDATION;
 }
 
-/*
-d_arg_internal_unit_split
-  AsNumberWithUnit's first steps: the value trimmed -- nothing left stops
-validation with "Input is empty" -- then split before the ASCII letters that
-end it into a number, trimmed, and a unit; a unit that must be there and is
-not stops validation with "Missing mandatory unit". Trimming the front as
-well, where CLI11 trims only the end, changes nothing: the number is
-trimmed.
-*/
+/**
+ * @brief Splits a value into a number and a unit, as AsNumberWithUnit's first
+ *        steps.
+ *
+ * @param[in,out] _validation  the validation, stopped with CLI11's message for
+ *                             an empty value or a missing unit.
+ * @param[in]     _options     the D_ARG_UNIT_* switches.
+ * @param[out]    _parts       receives the number, trimmed, the unit, and
+ *                             whether units match without case.
+ * @return D_ARG_OK; D_ARG_ERROR_VALIDATION, or D_ARG_ERROR_OUT_OF_MEMORY when
+ *         its message could not be kept, when the value is empty or a required
+ *         unit is missing.
+ *
+ * AsNumberWithUnit's first steps: the value trimmed -- nothing left stops
+ * validation with "Input is empty" -- then split before the ASCII letters that
+ * end it into a number, trimmed, and a unit; a unit that must be there and is
+ * not stops validation with "Missing mandatory unit". Trimming the front as
+ * well, where CLI11 trims only the end, changes nothing: the number is
+ * trimmed.
+ */
 D_STATIC int
 d_arg_internal_unit_split(
     struct d_arg_validation*          _validation,
@@ -234,12 +256,23 @@ d_arg_internal_unit_split(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_unit_read
-  The number converted into an object of the type as CLI11's lexical_cast
-converts it; one that does not convert stops validation with "Value
-<number> could not be converted to <TYPE>".
-*/
+/**
+ * @brief Converts a number into an object of a type, as CLI11's lexical_cast
+ *        converts it.
+ *
+ * @param[in]     _type        the type.
+ * @param[in,out] _validation  the validation, stopped with CLI11's message when
+ *                             the number does not convert.
+ * @param[in]     _number      the number.
+ * @param[out]    _object      receives the object; it holds the type's size.
+ * @return D_ARG_OK; D_ARG_ERROR_VALIDATION, or D_ARG_ERROR_OUT_OF_MEMORY when
+ *         its message could not be kept, for a number that does not convert; or
+ *         another status the conversion stopped with.
+ *
+ * The number converted into an object of the type as CLI11's lexical_cast
+ * converts it; one that does not convert stops validation with "Value
+ * <number> could not be converted to <TYPE>".
+ */
 D_STATIC int
 d_arg_internal_unit_read(
     const struct d_arg_type* _type,
@@ -273,11 +306,18 @@ d_arg_internal_unit_read(
     return d_arg_internal_unit_thrown(&_validation->message);
 }
 
-/*
-d_arg_internal_unit_plain
-  A number without a unit: once it converts, it stands, trimmed, as CLI11
-leaves the value it trimmed in place.
-*/
+/**
+ * @brief Keeps a number without a unit, once it converts.
+ *
+ * @param[in]     _type        the type.
+ * @param[in,out] _validation  the validation, whose value is replaced by the
+ *                             number, trimmed.
+ * @param[in]     _number      the number.
+ * @return D_ARG_OK, or the failure that stopped validation.
+ *
+ * A number without a unit: once it converts, it stands, trimmed, as CLI11
+ * leaves the value it trimmed in place.
+ */
 D_STATIC int
 d_arg_internal_unit_plain(
     const struct d_arg_type* _type,
@@ -310,11 +350,19 @@ d_arg_internal_unit_plain(
            : status;
 }
 
-/*
-d_arg_internal_unit_times_float
-  CLI11's checked_multiply for `float`: the product formed in `float`,
-refused when it is infinite though neither factor is.
-*/
+/**
+ * @brief Multiplies two numbers in `float`, as CLI11's checked_multiply.
+ *
+ * @param[in]  _a       one factor.
+ * @param[in]  _b       the other.
+ * @param[out] _object  receives the product, a `float`; untouched on overflow.
+ * @return `true`, or `false` for a product infinite though neither factor is.
+ *
+ * CLI11's checked_multiply for `float`: the product formed in `float` and
+ * held as CLI11's `T c = a * b` holds it, a `float`, even where the unit
+ * computes with more range (d_arg_internal_float_stored); refused when it is
+ * infinite though neither factor is.
+ */
 D_STATIC bool
 d_arg_internal_unit_times_float(
     long double _a,
@@ -324,7 +372,7 @@ d_arg_internal_unit_times_float(
 {
     const float a       = (float)_a;
     const float b       = (float)_b;
-    const float product = a * b;
+    const float product = d_arg_internal_float_stored(a * b);
 
     // an overflow its factors did not bring
     if ( (isinf(product)) &&
@@ -341,10 +389,17 @@ d_arg_internal_unit_times_float(
     return true;
 }
 
-/*
-d_arg_internal_unit_times_double
-  As d_arg_internal_unit_times_float, in `double`.
-*/
+/**
+ * @brief Multiplies two numbers in `double`, as CLI11's checked_multiply.
+ *
+ * @param[in]  _a       one factor.
+ * @param[in]  _b       the other.
+ * @param[out] _object  receives the product, a `double`; untouched on overflow.
+ * @return `true`, or `false` for a product infinite though neither factor is.
+ *
+ * As d_arg_internal_unit_times_float, in `double`
+ * (d_arg_internal_double_stored).
+ */
 D_STATIC bool
 d_arg_internal_unit_times_double(
     long double _a,
@@ -354,7 +409,7 @@ d_arg_internal_unit_times_double(
 {
     const double a       = (double)_a;
     const double b       = (double)_b;
-    const double product = a * b;
+    const double product = d_arg_internal_double_stored(a * b);
 
     // an overflow its factors did not bring
     if ( (isinf(product)) &&
@@ -371,10 +426,17 @@ d_arg_internal_unit_times_double(
     return true;
 }
 
-/*
-d_arg_internal_unit_times_long_double
-  As d_arg_internal_unit_times_float, in `long double`.
-*/
+/**
+ * @brief Multiplies two numbers in `long double`, as CLI11's checked_multiply.
+ *
+ * @param[in]  _a       one factor.
+ * @param[in]  _b       the other.
+ * @param[out] _object  receives the product, a `long double`; untouched on
+ *                      overflow.
+ * @return `true`, or `false` for a product infinite though neither factor is.
+ *
+ * As d_arg_internal_unit_times_float, in `long double`.
+ */
 D_STATIC bool
 d_arg_internal_unit_times_long_double(
     long double _a,
@@ -399,12 +461,18 @@ d_arg_internal_unit_times_long_double(
     return true;
 }
 
-/*
-d_arg_internal_unit_overflows
-  CLI11's overflowCheck for two signed values, neither 0, 1 nor the least:
-past the greatest value when their signs agree, below the least when they
-differ, judged by quotients that cannot overflow themselves.
-*/
+/**
+ * @brief Tells whether the product of two signed values leaves intmax_t, as
+ *        CLI11's overflowCheck.
+ *
+ * @param[in] _a  one factor, neither 0, 1 nor INTMAX_MIN.
+ * @param[in] _b  the other, neither 0, 1 nor INTMAX_MIN.
+ * @return `true` when it does; `false` otherwise.
+ *
+ * CLI11's overflowCheck for two signed values, neither 0, 1 nor the least:
+ * past the greatest value when their signs agree, below the least when they
+ * differ, judged by quotients that cannot overflow themselves.
+ */
 D_STATIC bool
 d_arg_internal_unit_overflows(
     intmax_t _a,
@@ -419,13 +487,20 @@ d_arg_internal_unit_overflows(
            : ((INTMAX_MIN / a) > -b);
 }
 
-/*
-d_arg_internal_unit_times_integer
-  CLI11's checked_multiply for integers, on widened values: the product in
-place of `*_a`, false when it would leave intmax_t or uintmax_t. The signed
-tests are CLI11's: a product by 0 or 1 first, then the least value, which
-has no magnitude, then the quotients.
-*/
+/**
+ * @brief Multiplies two widened integers, as CLI11's checked_multiply.
+ *
+ * @param[in,out] _a  one factor, replaced by the product; untouched on
+ *                    overflow.
+ * @param[in]     _b  the other, of the same kind.
+ * @return `true`, or `false` when the product would leave intmax_t or
+ *         uintmax_t.
+ *
+ * CLI11's checked_multiply for integers, on widened values: the product in
+ * place of `*_a`, false when it would leave intmax_t or uintmax_t. The signed
+ * tests are CLI11's: a product by 0 or 1 first, then the least value, which
+ * has no magnitude, then the quotients.
+ */
 D_STATIC bool
 d_arg_internal_unit_times_integer(
     struct d_arg_internal_number*       _a,
@@ -472,14 +547,21 @@ d_arg_internal_unit_times_integer(
     return true;
 }
 
-/*
-d_arg_internal_unit_multiply
-  The object times the factor, in place; false on overflow, the object then
-as it was. Floating point is multiplied in its own type, the narrowest
-first since sizes may coincide; integers through their widened product,
-refused when it leaves the type's range -- exactly where CLI11's tests in
-the type itself refuse it.
-*/
+/**
+ * @brief Multiplies an object of a type by a factor, in place.
+ *
+ * @param[in]     _type    the type.
+ * @param[in,out] _object  the object, replaced by the product; as it was on
+ *                         overflow.
+ * @param[in]     _factor  the factor, widened.
+ * @return `true`, or `false` when the product leaves the type's range.
+ *
+ * The object times the factor, in place; false on overflow, the object then
+ * as it was. Floating point is multiplied in its own type, the narrowest
+ * first since sizes may coincide; integers through their widened product,
+ * refused when it leaves the type's range -- exactly where CLI11's tests in
+ * the type itself refuse it.
+ */
 D_STATIC bool
 d_arg_internal_unit_multiply(
     const struct d_arg_type*            _type,
@@ -520,11 +602,19 @@ d_arg_internal_unit_multiply(
                                                    _object);
 }
 
-/*
-d_arg_internal_unit_overflow
-  CLI11's message for a product that overflows: the number, written as the
-type writes it, and the unit, lowercase when units match without case.
-*/
+/**
+ * @brief Stops validation with CLI11's message for a product that overflows.
+ *
+ * @param[in]     _type        the type.
+ * @param[in]     _object      the number, an object of the type.
+ * @param[in]     _parts       the unit, and whether units match without case.
+ * @param[in,out] _validation  the validation, whose message is CLI11's.
+ * @return D_ARG_ERROR_VALIDATION, or D_ARG_ERROR_OUT_OF_MEMORY when the message
+ *         could not be written whole.
+ *
+ * CLI11's message for a product that overflows: the number, written as the
+ * type writes it, and the unit, lowercase when units match without case.
+ */
 D_STATIC int
 d_arg_internal_unit_overflow(
     const struct d_arg_type*                _type,
@@ -551,12 +641,21 @@ d_arg_internal_unit_overflow(
     return d_arg_internal_unit_thrown(message);
 }
 
-/*
-d_arg_internal_unit_scale
-  A number with a unit: the number converted, then multiplied by the unit's
-factor; a number that does not convert, or a product that overflows, stops
-validation.
-*/
+/**
+ * @brief Converts a number with a unit and multiplies it by the unit's factor.
+ *
+ * @param[in]     _type        the type.
+ * @param[in,out] _validation  the validation, stopped for a number that does
+ *                             not convert or a product that overflows.
+ * @param[in]     _parts       the number and the unit.
+ * @param[in]     _factor      the unit's factor.
+ * @param[out]    _object      receives the product, an object of the type.
+ * @return D_ARG_OK, or the failure that stopped validation.
+ *
+ * A number with a unit: the number converted, then multiplied by the unit's
+ * factor; a number that does not convert, or a product that overflows, stops
+ * validation.
+ */
 D_STATIC int
 d_arg_internal_unit_scale(
     const struct d_arg_type*                _type,
@@ -587,12 +686,20 @@ d_arg_internal_unit_scale(
                                           _validation);
 }
 
-/*
-d_arg_internal_unit_apply
-  A value with a unit becomes a number of the type: the unit alone stands
-for its factor, and a number is multiplied by it; the result, written as the
-type writes values, replaces the value.
-*/
+/**
+ * @brief Makes a value with a unit a number of the type.
+ *
+ * @param[in]     _type        the type.
+ * @param[in,out] _validation  the validation, whose value is replaced by the
+ *                             result, written as the type writes values.
+ * @param[in]     _parts       the number, empty for none, and the unit.
+ * @param[in]     _factor      the unit's factor.
+ * @return D_ARG_OK, or the failure that stopped validation or the replacement.
+ *
+ * A value with a unit becomes a number of the type: the unit alone stands
+ * for its factor, and a number is multiplied by it; the result, written as the
+ * type writes values, replaces the value.
+ */
 D_STATIC int
 d_arg_internal_unit_apply(
     const struct d_arg_type*                _type,
@@ -644,11 +751,15 @@ d_arg_internal_unit_apply(
     return status;
 }
 
-/*
-d_arg_internal_unit_unknown
-  The start of CLI11's message for a unit it does not recognize: the unit,
-lowercase when units match without case; the units allowed follow it.
-*/
+/**
+ * @brief Writes the start of CLI11's message for a unit it does not recognize.
+ *
+ * @param[in]     _parts    the unit, and whether units match without case.
+ * @param[in,out] _message  the buffer, cleared first, its failure kept in it.
+ *
+ * The start of CLI11's message for a unit it does not recognize: the unit,
+ * lowercase when units match without case; the units allowed follow it.
+ */
 D_STATIC void
 d_arg_internal_unit_unknown(
     const struct d_arg_internal_unit_parts* _parts,
@@ -669,11 +780,16 @@ d_arg_internal_unit_unknown(
 // 3.  UNITS
 //==============================================================================
 
-/*
-d_arg_internal_units_find
-  The unit a value names: one whose name equals it, both folded to lowercase
-when units match without case; NULL for none. The units are few.
-*/
+/**
+ * @brief Finds the unit a value names.
+ *
+ * @param[in] _units  the units.
+ * @param[in] _parts  the unit named, and whether units match without case.
+ * @return the unit; NULL for none.
+ *
+ * The unit a value names: one whose name equals it, both folded to lowercase
+ * when units match without case; NULL for none. The units are few.
+ */
 D_STATIC const struct d_arg_internal_unit*
 d_arg_internal_units_find(
     const struct d_arg_internal_units*      _units,
@@ -698,11 +814,20 @@ d_arg_internal_units_find(
     return NULL;
 }
 
-/*
-d_arg_internal_units_unknown
-  CLI11's message for a unit its map does not hold, the units allowed listed
-in the map's order between braces.
-*/
+/**
+ * @brief Stops validation with CLI11's message for a unit its map does not
+ *        hold.
+ *
+ * @param[in]     _units       the units, listed in the message.
+ * @param[in]     _parts       the unit named, and whether units match without
+ *                             case.
+ * @param[in,out] _validation  the validation, whose message is CLI11's.
+ * @return D_ARG_ERROR_VALIDATION, or D_ARG_ERROR_OUT_OF_MEMORY when the message
+ *         could not be written whole.
+ *
+ * CLI11's message for a unit its map does not hold, the units allowed listed
+ * in the map's order between braces.
+ */
 D_STATIC int
 d_arg_internal_units_unknown(
     const struct d_arg_internal_units*      _units,
@@ -734,11 +859,18 @@ d_arg_internal_units_unknown(
     return d_arg_internal_unit_thrown(message);
 }
 
-/*
-d_arg_internal_units_validate
-  CLI11's AsNumberWithUnit: the value split, a number alone kept once it
-converts, and a unit looked up among the validator's units and applied.
-*/
+/**
+ * @brief Reads a value as a number with a unit, as CLI11's AsNumberWithUnit.
+ *
+ * @param[in]     _validator   the validator, whose data is the units.
+ * @param[in,out] _validation  the validation, whose value is replaced by the
+ *                             number, or stopped.
+ * @return D_ARG_OK once the value is replaced; otherwise the failure that
+ *         stopped validation.
+ *
+ * CLI11's AsNumberWithUnit: the value split, a number alone kept once it
+ * converts, and a unit looked up among the validator's units and applied.
+ */
 D_STATIC int
 d_arg_internal_units_validate(
     const struct d_arg_validator* _validator,
@@ -782,11 +914,16 @@ d_arg_internal_units_validate(
                                      &unit->factor);
 }
 
-/*
-d_arg_internal_units_describe
-  CLI11's description: "<TYPE> [<unit name>]", or "<TYPE> <unit name>" when
-a unit is required.
-*/
+/**
+ * @brief Describes an AsNumberWithUnit, as CLI11 does.
+ *
+ * @param[in]     _validator  the validator, whose data is the units.
+ * @param[in,out] _out        the buffer that gains the description.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's description: "<TYPE> [<unit name>]", or "<TYPE> <unit name>" when
+ * a unit is required.
+ */
 D_STATIC int
 d_arg_internal_units_describe(
     const struct d_arg_validator* _validator,
@@ -811,10 +948,13 @@ d_arg_internal_units_describe(
                                     (required) ? "" : "]");
 }
 
-/*
-d_arg_internal_units_release
-  The units, their text, then the record; the validator's release function.
-*/
+/**
+ * @brief Frees a units record, as its validator's release function.
+ *
+ * @param[in] _context  the record; NULL is ignored.
+ *
+ * The units, their text, then the record; the validator's release function.
+ */
 D_STATIC void
 d_arg_internal_units_release(
     void* _context
@@ -836,12 +976,17 @@ d_arg_internal_units_release(
     return;
 }
 
-/*
-d_arg_internal_units_copy
-  The validator's copy function: the record, its units and its text copied
-whole, which their slices make enough; NULL, with nothing kept, when an
-allocation is refused.
-*/
+/**
+ * @brief Copies a units record, as its validator's copy function.
+ *
+ * @param[in] _context  the record; NULL for none.
+ * @return the copy, which d_arg_internal_units_release frees; NULL for no
+ *         record, or, with nothing kept, when an allocation is refused.
+ *
+ * The validator's copy function: the record, its units and its text copied
+ * whole, which their slices make enough; NULL, with nothing kept, when an
+ * allocation is refused.
+ */
 D_STATIC void*
 d_arg_internal_units_copy(
     const void* _context
@@ -889,11 +1034,17 @@ d_arg_internal_units_copy(
     return copy;
 }
 
-/*
-d_arg_internal_units_given
-  Whether every unit has a name and a factor to read, and the units' count
-can be allocated.
-*/
+/**
+ * @brief Tells whether every unit has a name and a factor to read, and the
+ *        units' count can be allocated.
+ *
+ * @param[in] _units  the units.
+ * @param[in] _count  how many.
+ * @return `true` when they do; `false` otherwise.
+ *
+ * Whether every unit has a name and a factor to read, and the units' count
+ * can be allocated.
+ */
 D_STATIC bool
 d_arg_internal_units_given(
     const struct d_arg_mapping* _units,
@@ -920,13 +1071,19 @@ d_arg_internal_units_given(
     return true;
 }
 
-/*
-d_arg_internal_units_text
-  The units' names and the unit name copied into the record's text, which a
-buffer gathers and the record then owns; a NUL closes it, so that the text
-is never empty and always has storage to own. False when an allocation was
-refused.
-*/
+/**
+ * @brief Copies the units' names and the unit name into the text a record owns.
+ *
+ * @param[in,out] _units      the record, whose names are sliced into its text.
+ * @param[in]     _mapping    the units: each name and factor.
+ * @param[in]     _unit_name  the name the description gives the unit.
+ * @return `true`, or `false` when an allocation was refused.
+ *
+ * The units' names and the unit name copied into the record's text, which a
+ * buffer gathers and the record then owns; a NUL closes it, so that the text
+ * is never empty and always has storage to own. False when an allocation was
+ * refused.
+ */
 D_STATIC bool
 d_arg_internal_units_text(
     struct d_arg_internal_units* _units,
@@ -966,12 +1123,19 @@ d_arg_internal_units_text(
     return (_units->text != NULL);
 }
 
-/*
-d_arg_internal_units_factors
-  Each unit's factor converted from its text to an object of the type, as
-CLI11's lexical_cast converts one, under the configured integer rule, then
-widened; D_ARG_ERROR_BAD_ARGUMENT for one that does not convert.
-*/
+/**
+ * @brief Converts each unit's factor to an object of the type, then widens it.
+ *
+ * @param[in,out] _units    the record, whose factors are written.
+ * @param[in]     _mapping  the units: each name and factor.
+ * @return D_ARG_OK; D_ARG_ERROR_BAD_ARGUMENT for a factor that does not
+ *         convert; or D_ARG_ERROR_OUT_OF_MEMORY, or another status a conversion
+ *         stopped with.
+ *
+ * Each unit's factor converted from its text to an object of the type, as
+ * CLI11's lexical_cast converts one, under the configured integer rule, then
+ * widened; D_ARG_ERROR_BAD_ARGUMENT for one that does not convert.
+ */
 D_STATIC int
 d_arg_internal_units_factors(
     struct d_arg_internal_units* _units,
@@ -1009,11 +1173,18 @@ d_arg_internal_units_factors(
            : status;
 }
 
-/*
-d_arg_internal_units_order
-  std::string's order, which CLI11's std::map keeps its units in: the bytes
-compared as unsigned, a prefix first.
-*/
+/**
+ * @brief Compares two names as std::string's order does.
+ *
+ * @param[in] _units  the record, whose text holds the names.
+ * @param[in] _a      one name's slice.
+ * @param[in] _b      the other's.
+ * @return less than 0, 0, or more than 0 as `_a` sorts before, with, or after
+ *         `_b`.
+ *
+ * std::string's order, which CLI11's std::map keeps its units in: the bytes
+ * compared as unsigned, a prefix first.
+ */
 D_STATIC int
 d_arg_internal_units_order(
     const struct d_arg_internal_units* _units,
@@ -1037,11 +1208,14 @@ d_arg_internal_units_order(
     return (_a.length < _b.length) ? -1 : (_a.length > _b.length) ? 1 : 0;
 }
 
-/*
-d_arg_internal_units_sort
-  An insertion sort by name: stable, so that of units with one name the
-first given stays first, and fast enough for the few units there are.
-*/
+/**
+ * @brief Sorts a record's units by name, stably.
+ *
+ * @param[in,out] _units  the record.
+ *
+ * An insertion sort by name: stable, so that of units with one name the
+ * first given stays first, and fast enough for the few units there are.
+ */
 D_STATIC void
 d_arg_internal_units_sort(
     struct d_arg_internal_units* _units
@@ -1069,11 +1243,15 @@ d_arg_internal_units_sort(
     return;
 }
 
-/*
-d_arg_internal_units_unique
-  std::map's construction from a list: of sorted units with one name, the
-first given is kept and the others dropped.
-*/
+/**
+ * @brief Keeps the first given of sorted units with one name, as std::map's
+ *        construction from a list.
+ *
+ * @param[in,out] _units  the record.
+ *
+ * std::map's construction from a list: of sorted units with one name, the
+ * first given is kept and the others dropped.
+ */
 D_STATIC void
 d_arg_internal_units_unique(
     struct d_arg_internal_units* _units
@@ -1099,12 +1277,21 @@ d_arg_internal_units_unique(
     return;
 }
 
-/*
-d_arg_internal_units_make
-  The record: the units' names and the unit name copied, the factors
-converted, then the units put in the map's order, of equal names the first
-given kept; nothing is kept on failure.
-*/
+/**
+ * @brief Makes a units record.
+ *
+ * @param[in]  _type       the type the numbers convert to.
+ * @param[in]  _mapping    the units: each name and factor.
+ * @param[in]  _count      how many.
+ * @param[in]  _unit_name  the name the description gives the unit.
+ * @param[out] _out        receives the record; untouched on failure.
+ * @return D_ARG_OK; D_ARG_ERROR_BAD_ARGUMENT for a factor that does not
+ *         convert; or D_ARG_ERROR_OUT_OF_MEMORY; nothing kept on failure.
+ *
+ * The record: the units' names and the unit name copied, the factors
+ * converted, then the units put in the map's order, of equal names the first
+ * given kept; nothing is kept on failure.
+ */
 D_STATIC int
 d_arg_internal_units_make(
     const struct d_arg_type*      _type,
@@ -1153,10 +1340,15 @@ d_arg_internal_units_make(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_units_letters
-  Whether a name is letters only, as CLI11's isalpha asks of a unit.
-*/
+/**
+ * @brief Tells whether a name is letters only, as CLI11's isalpha asks of a
+ *        unit.
+ *
+ * @param[in] _name  the name.
+ * @return `true` when it is; `false` otherwise.
+ *
+ * Whether a name is letters only, as CLI11's isalpha asks of a unit.
+ */
 D_STATIC bool
 d_arg_internal_units_letters(
     struct d_pack_text _name
@@ -1175,10 +1367,15 @@ d_arg_internal_units_letters(
     return true;
 }
 
-/*
-d_arg_internal_units_seen
-  Whether a unit before `_index` has the name the unit at `_index` has.
-*/
+/**
+ * @brief Tells whether a unit before a place has the name the unit there has.
+ *
+ * @param[in] _units  the record.
+ * @param[in] _index  the place.
+ * @return `true` when one does; `false` otherwise.
+ *
+ * Whether a unit before `_index` has the name the unit at `_index` has.
+ */
 D_STATIC bool
 d_arg_internal_units_seen(
     const struct d_arg_internal_units* _units,
@@ -1200,12 +1397,19 @@ d_arg_internal_units_seen(
     return false;
 }
 
-/*
-d_arg_internal_units_lower
-  CLI11's lowercase map: each name lowered in place, in the map's order, the
-first to lower to a name lowered before it refused with CLI11's message;
-then the units sorted again, by their lowercase names.
-*/
+/**
+ * @brief Lowers a record's names, as CLI11's lowercase map.
+ *
+ * @param[in,out] _units   the record, its names lowered and its units sorted
+ *                         again.
+ * @param[in,out] _reason  the buffer that gains CLI11's message for two names
+ *                         that lower alike.
+ * @return D_ARG_OK, or D_ARG_ERROR_VALIDATION for two names that lower alike.
+ *
+ * CLI11's lowercase map: each name lowered in place, in the map's order, the
+ * first to lower to a name lowered before it refused with CLI11's message;
+ * then the units sorted again, by their lowercase names.
+ */
 D_STATIC int
 d_arg_internal_units_lower(
     struct d_arg_internal_units* _units,
@@ -1245,12 +1449,18 @@ d_arg_internal_units_lower(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_units_check
-  CLI11's validate_mapping, on the units in the map's order: an empty name,
-then one of anything but letters, refused with CLI11's messages; then, for
-units matching without case, the lowercase map.
-*/
+/**
+ * @brief Checks a record's names, as CLI11's validate_mapping.
+ *
+ * @param[in,out] _units   the record, lowered when units match without case.
+ * @param[in,out] _reason  the buffer that gains CLI11's message for a name
+ *                         refused.
+ * @return D_ARG_OK, or D_ARG_ERROR_VALIDATION for a name refused.
+ *
+ * CLI11's validate_mapping, on the units in the map's order: an empty name,
+ * then one of anything but letters, refused with CLI11's messages; then, for
+ * units matching without case, the lowercase map.
+ */
 D_STATIC int
 d_arg_internal_units_check(
     struct d_arg_internal_units* _units,
@@ -1284,14 +1494,20 @@ d_arg_internal_units_check(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_units_validator
-  The validator over a units record: CLI11's checks first, a failure
-freeing the record and keeping its reason -- CLI11's message -- as the
-failed validator's description; otherwise the record is the validator's
-context, owned, copied and freed with it, and its values complete as
-numbers.
-*/
+/**
+ * @brief Makes the validator over a units record.
+ *
+ * @param[in] _units  the record, which the validator takes over either way.
+ * @return the validator; a failed validator, the record freed, holding
+ *         D_ARG_ERROR_VALIDATION with CLI11's message as its description for a
+ *         name refused, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The validator over a units record: CLI11's checks first, a failure
+ * freeing the record and keeping its reason -- CLI11's message -- as the
+ * failed validator's description; otherwise the record is the validator's
+ * context, owned, copied and freed with it, and its values complete as
+ * numbers.
+ */
 D_STATIC struct d_arg_validator
 d_arg_internal_units_validator(
     struct d_arg_internal_units* _units
@@ -1391,13 +1607,19 @@ d_arg_validator_as_number_with_unit(
 // 4.  SIZES
 //==============================================================================
 
-/*
-d_arg_internal_size_factor
-  AsSizeValue's map without the map: `b` is 1; a prefix alone or with `b`
-after it is its power of the base -- 1000 with `_kb_is_1000`, else 1024 --
-and with `i` or `ib` after it its power of 1024. Case is folded, as
-AsSizeValue matches units.
-*/
+/**
+ * @brief Works out the factor of one of AsSizeValue's units.
+ *
+ * @param[in]  _unit        the unit.
+ * @param[in]  _kb_is_1000  whether a kilobyte is 1000 bytes, not 1024.
+ * @param[out] _factor      receives the factor, an unsigned number.
+ * @return `true` for a unit AsSizeValue's map holds; `false` otherwise.
+ *
+ * AsSizeValue's map without the map: `b` is 1; a prefix alone or with `b`
+ * after it is its power of the base -- 1000 with `_kb_is_1000`, else 1024 --
+ * and with `i` or `ib` after it its power of 1024. Case is folded, as
+ * AsSizeValue matches units.
+ */
 D_STATIC bool
 d_arg_internal_size_factor(
     struct d_pack_text            _unit,
@@ -1456,12 +1678,20 @@ d_arg_internal_size_factor(
     return true;
 }
 
-/*
-d_arg_internal_size_validate
-  CLI11's AsSizeValue: AsNumberWithUnit with its options left at their
-default -- units matched without case, and optional -- over a 64-bit
-unsigned integer, the units' factors worked out rather than looked up.
-*/
+/**
+ * @brief Reads a value as a size, as CLI11's AsSizeValue.
+ *
+ * @param[in]     _validator   the validator: the type, and in `low` whether a
+ *                             kilobyte is 1000 bytes.
+ * @param[in,out] _validation  the validation, whose value is replaced by the
+ *                             size, or stopped.
+ * @return D_ARG_OK once the value is replaced; otherwise the failure that
+ *         stopped validation.
+ *
+ * CLI11's AsSizeValue: AsNumberWithUnit with its options left at their
+ * default -- units matched without case, and optional -- over a 64-bit
+ * unsigned integer, the units' factors worked out rather than looked up.
+ */
 D_STATIC int
 d_arg_internal_size_validate(
     const struct d_arg_validator* _validator,
@@ -1507,11 +1737,17 @@ d_arg_internal_size_validate(
                                      &factor);
 }
 
-/*
-d_arg_internal_size_describe
-  AsSizeValue's description, as CLI11 sets it for either size of a
-kilobyte.
-*/
+/**
+ * @brief Describes an AsSizeValue, as CLI11 does.
+ *
+ * @param[in]     _validator  the validator, in whose `low` a kilobyte's size is
+ *                            kept.
+ * @param[in,out] _out        the buffer that gains the description.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * AsSizeValue's description, as CLI11 sets it for either size of a
+ * kilobyte.
+ */
 D_STATIC int
 d_arg_internal_size_describe(
     const struct d_arg_validator* _validator,

@@ -3,7 +3,7 @@
 *
 * Arguments from text: splitting command lines and response files, quoting
 * words to survive a split, finding a program's name, and converting wide
-* arguments to UTF-8.
+* arguments to UTF-8, and UTF-8 to wide text.
 *   d_arg_split_line splits a line by one of four sets of rules, the
 * d_arg_quoting values: a POSIX shell's, without expansions; the Microsoft C
 * runtime's, by which a Windows program's `argv` is made; CLI11's, which its
@@ -17,7 +17,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_argv.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.17
 *******************************************************************************/
 
 /*
@@ -42,6 +42,7 @@ TABLE OF CONTENTS
     --------
     1.  Wide text
          1.  d_arg_utf8_from_wide
+         2.  d_arg_wide_from_utf8
 */
 
 #ifndef DJINTERP_PARSE_CLI_ARG_PARSER_C_ARG_ARGV_H
@@ -286,6 +287,38 @@ D_EXTERN_C_BEGIN
 int     d_arg_utf8_from_wide(const wchar_t*       _text,
                              size_t               _length,
                              struct d_arg_buffer* _out);
+
+// 3.1.2
+// d_arg_wide_from_utf8
+/**
+ * @brief Converts UTF-8 to wide text; CLI11's widen.
+ *
+ * @note `wchar_t` is written as UTF-16 where it has 16 bits, as on Windows,
+ *       a code point past U+FFFF as a surrogate pair, and as UTF-32 where it
+ *       has more. Only well-formed UTF-8 converts, as RFC 3629 defines it --
+ *       no overlong form, no surrogate, nothing past U+10FFFF, no sequence
+ *       cut short -- where CLI11's widen throws std::range_error. A NUL byte
+ *       is a 0 unit, kept. Text never takes more units than it has bytes, so
+ *       room for `_length` units always suffices, and a capacity of 0
+ *       measures.
+ *
+ * @param[in]  _text      the UTF-8; may be NULL when `_length` is 0.
+ * @param[in]  _length    its length, in bytes.
+ * @param[out] _out       receives the units, when they fit; may be NULL when
+ *                        `_capacity` is 0.
+ * @param[in]  _capacity  how many units `_out` has room for.
+ * @param[out] _needed    receives how many units the text takes.
+ * @return D_ARG_OK, every unit written when they fit in `_capacity` and
+ *         none otherwise; D_ARG_ERROR_CONVERSION for text that is not
+ *         well-formed UTF-8; D_ARG_ERROR_BAD_ARGUMENT for a NULL `_needed`,
+ *         NULL text with a nonzero length, or a NULL `_out` with a nonzero
+ *         capacity. A failure writes nothing.
+ */
+int     d_arg_wide_from_utf8(const char* _text,
+                             size_t      _length,
+                             wchar_t*    _out,
+                             size_t      _capacity,
+                             size_t*     _needed);
 
 D_EXTERN_C_END
 

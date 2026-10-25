@@ -22,7 +22,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_config_read.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_config.h"  // corresponding header
 // std
@@ -51,11 +51,18 @@ static const size_t NPOS = (size_t)-1;
 // in any case, returns to.
 static const char DEFAULT_SECTION[] = "default";
 
-/*
-d_arg_internal_config_find
-  std::string::find_first_of(_c, _from): the first `_c` at or after
-`_from`, or NPOS; a `_from` past the end finds nothing.
-*/
+/**
+ * @brief Finds a byte at or after a place, as std::string::find_first_of(_c,
+ *        _from).
+ *
+ * @param[in] _text  the text.
+ * @param[in] _c     the byte.
+ * @param[in] _from  the place.
+ * @return its position; NPOS when there is none, or `_from` is past the end.
+ *
+ * std::string::find_first_of(_c, _from): the first `_c` at or after
+ * `_from`, or NPOS; a `_from` past the end finds nothing.
+ */
 D_STATIC size_t
 d_arg_internal_config_find(
     struct d_pack_text _text,
@@ -74,11 +81,18 @@ d_arg_internal_config_find(
            : NPOS;
 }
 
-/*
-d_arg_internal_config_find_any
-  find_first_of over a set of three bytes -- NUL among them when one is NUL,
-as CLI11's std::string of them holds it -- from `_from` on.
-*/
+/**
+ * @brief Finds any of three bytes at or after a place, as find_first_of over
+ *        them.
+ *
+ * @param[in] _text  the text.
+ * @param[in] _set   the three bytes, NUL among them when one is.
+ * @param[in] _from  the place.
+ * @return the first's position; NPOS when there is none.
+ *
+ * find_first_of over a set of three bytes -- NUL among them when one is NUL,
+ * as CLI11's std::string of them holds it -- from `_from` on.
+ */
 D_STATIC size_t
 d_arg_internal_config_find_any(
     struct d_pack_text _text,
@@ -100,11 +114,18 @@ d_arg_internal_config_find_any(
     return NPOS;
 }
 
-/*
-d_arg_internal_config_skip
-  find_first_not_of(_c, _from): the first byte at or after `_from` that is
-not `_c`, or NPOS.
-*/
+/**
+ * @brief Finds the first byte at or after a place that is not a byte, as
+ *        find_first_not_of(_c, _from).
+ *
+ * @param[in] _text  the text.
+ * @param[in] _c     the byte.
+ * @param[in] _from  the place.
+ * @return its position; NPOS when there is none.
+ *
+ * find_first_not_of(_c, _from): the first byte at or after `_from` that is
+ * not `_c`, or NPOS.
+ */
 D_STATIC size_t
 d_arg_internal_config_skip(
     struct d_pack_text _text,
@@ -124,11 +145,16 @@ d_arg_internal_config_skip(
     return NPOS;
 }
 
-/*
-d_arg_internal_config_unblank
-  find_first_not_of(" \t"): the first byte that is neither a space nor a
-tab, or NPOS.
-*/
+/**
+ * @brief Finds the first byte that is neither a space nor a tab, as
+ *        find_first_not_of(" \\t").
+ *
+ * @param[in] _text  the text.
+ * @return its position; NPOS when there is none.
+ *
+ * find_first_not_of(" \\t"): the first byte that is neither a space nor a
+ * tab, or NPOS.
+ */
 D_STATIC size_t
 d_arg_internal_config_unblank(
     struct d_pack_text _text
@@ -147,11 +173,16 @@ d_arg_internal_config_unblank(
     return NPOS;
 }
 
-/*
-d_arg_internal_config_quote
-  Whether a byte is one of the three quotes CLI11's reader passes over
-whole.
-*/
+/**
+ * @brief Tells whether a byte is one of the three quotes CLI11's reader passes
+ *        over whole.
+ *
+ * @param[in] _c  the byte.
+ * @return `true` for `"`, `'` and a backquote; `false` otherwise.
+ *
+ * Whether a byte is one of the three quotes CLI11's reader passes over
+ * whole.
+ */
 D_STATIC bool
 d_arg_internal_config_quote(
     char _c
@@ -162,10 +193,15 @@ d_arg_internal_config_quote(
              (_c == '`') );
 }
 
-/*
-d_arg_internal_config_has_quote
-  find_first_of("\"'`") != npos: whether the text holds any of the three.
-*/
+/**
+ * @brief Tells whether text holds any of the three quotes, as
+ *        find_first_of("\\"'`") != npos.
+ *
+ * @param[in] _text  the text.
+ * @return `true` when it does; `false` otherwise.
+ *
+ * find_first_of("\\"'`") != npos: whether the text holds any of the three.
+ */
 D_STATIC bool
 d_arg_internal_config_has_quote(
     struct d_pack_text _text
@@ -183,10 +219,15 @@ d_arg_internal_config_has_quote(
     return false;
 }
 
-/*
-d_arg_internal_config_tail
-  substr(_from): the text from `_from` on, empty past the end.
-*/
+/**
+ * @brief Gives text from a place on, as substr(_from).
+ *
+ * @param[in] _text  the text.
+ * @param[in] _from  the place.
+ * @return the span from `_from` on; empty past the end.
+ *
+ * substr(_from): the text from `_from` on, empty past the end.
+ */
 D_STATIC struct d_pack_text
 d_arg_internal_config_tail(
     struct d_pack_text _text,
@@ -200,10 +241,15 @@ d_arg_internal_config_tail(
                                  0u);
 }
 
-/*
-d_arg_internal_config_head
-  substr(0, _count): the first `_count` bytes, all of them for NPOS.
-*/
+/**
+ * @brief Gives the first bytes of text, as substr(0, _count).
+ *
+ * @param[in] _text   the text.
+ * @param[in] _count  how many; NPOS for all.
+ * @return the span of the first `_count` bytes, or of all of them.
+ *
+ * substr(0, _count): the first `_count` bytes, all of them for NPOS.
+ */
 D_STATIC struct d_pack_text
 d_arg_internal_config_head(
     struct d_pack_text _text,
@@ -216,10 +262,14 @@ d_arg_internal_config_head(
                                : _text.length);
 }
 
-/*
-d_arg_internal_config_ltrim
-  CLI11's ltrim: the text less its leading whitespace.
-*/
+/**
+ * @brief Drops text's leading whitespace, as CLI11's ltrim.
+ *
+ * @param[in] _text  the text.
+ * @return the span without it.
+ *
+ * CLI11's ltrim: the text less its leading whitespace.
+ */
 D_STATIC struct d_pack_text
 d_arg_internal_config_ltrim(
     struct d_pack_text _text
@@ -238,10 +288,16 @@ d_arg_internal_config_ltrim(
                                       at);
 }
 
-/*
-d_arg_internal_config_triple
-  Whether text has three of a byte from `_at`: a `"""` or a `'''`.
-*/
+/**
+ * @brief Tells whether text has three of a byte from a place.
+ *
+ * @param[in] _text  the text.
+ * @param[in] _at    the place.
+ * @param[in] _c     the byte.
+ * @return `true` when it does; `false` otherwise.
+ *
+ * Whether text has three of a byte from `_at`: a `"""` or a `'''`.
+ */
 D_STATIC bool
 d_arg_internal_config_triple(
     struct d_pack_text _text,
@@ -256,10 +312,14 @@ d_arg_internal_config_triple(
              (_text.data[_at + 2u] == _c) );
 }
 
-/*
-d_arg_internal_config_ml_opens
-  Whether text starts with `"""` or `'''`, CLI11's multiline quotes.
-*/
+/**
+ * @brief Tells whether text starts with CLI11's multiline quotes.
+ *
+ * @param[in] _text  the text.
+ * @return `true` for `"""` or `'''`; `false` otherwise.
+ *
+ * Whether text starts with `"""` or `'''`, CLI11's multiline quotes.
+ */
 D_STATIC bool
 d_arg_internal_config_ml_opens(
     struct d_pack_text _text
@@ -273,10 +333,15 @@ d_arg_internal_config_ml_opens(
                                            '\'')) );
 }
 
-/*
-d_arg_internal_config_ml_string
-  CLI11's hasMLString: whether text ends with three of a byte.
-*/
+/**
+ * @brief Tells whether text ends with three of a byte, as CLI11's hasMLString.
+ *
+ * @param[in] _text   the text.
+ * @param[in] _check  the byte.
+ * @return `true` when it does; `false` otherwise.
+ *
+ * CLI11's hasMLString: whether text ends with three of a byte.
+ */
 D_STATIC bool
 d_arg_internal_config_ml_string(
     struct d_pack_text _text,
@@ -289,11 +354,17 @@ d_arg_internal_config_ml_string(
                                            _check)) );
 }
 
-/*
-d_arg_internal_config_ml_escaped
-  Whether an odd run of backslashes comes right before `_at`, escaping the
-quote there in a `"""` value.
-*/
+/**
+ * @brief Tells whether an odd run of backslashes comes right before a place.
+ *
+ * @param[in] _text  the text.
+ * @param[in] _at    the place.
+ * @return `true` when one does, escaping the quote there in a `"""` value;
+ *         `false` otherwise.
+ *
+ * Whether an odd run of backslashes comes right before `_at`, escaping the
+ * quote there in a `"""` value.
+ */
 D_STATIC bool
 d_arg_internal_config_ml_escaped(
     struct d_pack_text _text,
@@ -312,13 +383,21 @@ d_arg_internal_config_ml_escaped(
     return ((slashes % 2u) == 1u);
 }
 
-/*
-d_arg_internal_config_ml_close
-  CLI11's find_ml_close: the length of a multiline value's content before
-the three quotes that close it -- unescaped for `"`, with up to two more
-quotes belonging to the content, and only blanks or a comment after them --
-or NPOS when the line does not close it.
-*/
+/**
+ * @brief Finds where a multiline value closes on a line, as CLI11's
+ *        find_ml_close.
+ *
+ * @param[in] _text     the line.
+ * @param[in] _quote    the value's quote.
+ * @param[in] _comment  the comment character.
+ * @return the length of the content before the closing quotes; NPOS when the
+ *         line does not close the value.
+ *
+ * CLI11's find_ml_close: the length of a multiline value's content before
+ * the three quotes that close it -- unescaped for `"`, with up to two more
+ * quotes belonging to the content, and only blanks or a comment after them --
+ * or NPOS when the line does not close it.
+ */
 D_STATIC size_t
 d_arg_internal_config_ml_close(
     struct d_pack_text _text,
@@ -380,11 +459,17 @@ struct d_arg_internal_config_lines
     size_t             at;
 };
 
-/*
-d_arg_internal_config_getline
-  std::getline: the next line, without its `\n`; false once no byte is
-left, so that text ending in `\n` ends there.
-*/
+/**
+ * @brief Reads the next line, as std::getline.
+ *
+ * @param[in,out] _lines  the text and the place reached, moved past the line.
+ * @param[out]    _line   receives the line, without its `\\n`; untouched once
+ *                        no byte is left.
+ * @return `true` when a line was read; `false` once no byte is left.
+ *
+ * std::getline: the next line, without its `\\n`; false once no byte is
+ * left, so that text ending in `\\n` ends there.
+ */
 D_STATIC bool
 d_arg_internal_config_getline(
     struct d_arg_internal_config_lines* _lines,
@@ -413,10 +498,16 @@ d_arg_internal_config_getline(
 // 2.  ITEMS
 //==============================================================================
 
-/*
-d_arg_internal_config_copy_parents
-  The first `_count` spans of a list appended to an item's sections.
-*/
+/**
+ * @brief Appends the first spans of a list to an item's sections.
+ *
+ * @param[in,out] _item     the item.
+ * @param[in]     _parents  the list.
+ * @param[in]     _count    how many.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The first `_count` spans of a list appended to an item's sections.
+ */
 D_STATIC int
 d_arg_internal_config_copy_parents(
     struct d_arg_config_item*     _item,
@@ -438,11 +529,18 @@ d_arg_internal_config_copy_parents(
     return status;
 }
 
-/*
-d_arg_internal_config_adopt
-  An item built for the list adopted by it, or, when building it failed,
-released; the item is left empty either way.
-*/
+/**
+ * @brief Hands an item built to a list, or releases it when building it failed.
+ *
+ * @param[in,out] _items   the list.
+ * @param[in,out] _item    the item, left empty either way.
+ * @param[in]     _status  the status of its building.
+ * @return `_status` when it is a failure; otherwise D_ARG_OK, or
+ *         D_ARG_ERROR_OUT_OF_MEMORY when the list could not take it.
+ *
+ * An item built for the list adopted by it, or, when building it failed,
+ * released; the item is left empty either way.
+ */
 D_STATIC int
 d_arg_internal_config_adopt(
     struct d_arg_config_item_list* _items,
@@ -460,11 +558,19 @@ d_arg_internal_config_adopt(
     return status;
 }
 
-/*
-d_arg_internal_config_marker
-  An item marking a section's start or end -- `++` or `--` -- whose
-sections are the first `_depth` of `_parents`, appended.
-*/
+/**
+ * @brief Adds an item marking a section's start or end.
+ *
+ * @param[in,out] _items    the list that gains it.
+ * @param[in]     _parents  the sections.
+ * @param[in]     _depth    how many of them, from the outermost, are the
+ *                          item's.
+ * @param[in]     _name     the mark: `++` or `--`.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * An item marking a section's start or end -- `++` or `--` -- whose
+ * sections are the first `_depth` of `_parents`, appended.
+ */
 D_STATIC int
 d_arg_internal_config_marker(
     struct d_arg_config_item_list* _items,
@@ -489,11 +595,17 @@ d_arg_internal_config_marker(
                                        status);
 }
 
-/*
-d_arg_internal_config_repeat_last
-  CLI11's output.push_back(output.back()), then output.back().parents.
-pop_back(): the last item copied, less its innermost section.
-*/
+/**
+ * @brief Repeats the last item less its innermost section, as CLI11's
+ *        output.push_back(output.back()) and output.back().parents.pop_back().
+ *
+ * @param[in,out] _items  the list, which has an item with a section.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's output.push_back(output.back()), then
+ * output.back().parents.pop_back(): the last item copied, less its innermost
+ * section.
+ */
 D_STATIC int
 d_arg_internal_config_repeat_last(
     struct d_arg_config_item_list* _items
@@ -528,11 +640,17 @@ d_arg_internal_config_repeat_last(
                                        status);
 }
 
-/*
-d_arg_internal_config_peel
-  CLI11's loops that repeat the last item, a section fewer each time, while
-it has more than `_keep` sections.
-*/
+/**
+ * @brief Repeats the last item, a section fewer each time, while it has more
+ *        than a number of sections, as CLI11's loops do.
+ *
+ * @param[in,out] _items  the list, which has an item.
+ * @param[in]     _keep   how many sections the last item is left with.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's loops that repeat the last item, a section fewer each time, while
+ * it has more than `_keep` sections.
+ */
 D_STATIC int
 d_arg_internal_config_peel(
     struct d_arg_config_item_list* _items,
@@ -551,10 +669,13 @@ d_arg_internal_config_peel(
     return status;
 }
 
-/*
-d_arg_internal_config_pop_last
-  CLI11's output.pop_back(): the last item released and taken off.
-*/
+/**
+ * @brief Releases and takes off the last item, as CLI11's output.pop_back().
+ *
+ * @param[in,out] _items  the list, which has an item.
+ *
+ * CLI11's output.pop_back(): the last item released and taken off.
+ */
 D_STATIC void
 d_arg_internal_config_pop_last(
     struct d_arg_config_item_list* _items
@@ -566,11 +687,15 @@ d_arg_internal_config_pop_last(
     return;
 }
 
-/*
-d_arg_internal_config_drop_first
-  An item's outermost section taken off its sections, its copy staying in
-the item's storage.
-*/
+/**
+ * @brief Takes an item's outermost section off its sections.
+ *
+ * @param[in,out] _item  the item, which has a section; the copy stays in its
+ *                       storage.
+ *
+ * An item's outermost section taken off its sections, its copy staying in
+ * the item's storage.
+ */
 D_STATIC void
 d_arg_internal_config_drop_first(
     struct d_arg_config_item* _item
@@ -584,10 +709,15 @@ d_arg_internal_config_drop_first(
     return;
 }
 
-/*
-d_arg_internal_config_same_parents
-  Whether an item's sections are exactly those of a list, byte for byte.
-*/
+/**
+ * @brief Tells whether an item's sections are exactly those of a list.
+ *
+ * @param[in] _item     the item.
+ * @param[in] _parents  the list.
+ * @return `true` when they are, byte for byte; `false` otherwise.
+ *
+ * Whether an item's sections are exactly those of a list, byte for byte.
+ */
 D_STATIC bool
 d_arg_internal_config_same_parents(
     const struct d_arg_config_item* _item,
@@ -613,11 +743,18 @@ d_arg_internal_config_same_parents(
     return true;
 }
 
-/*
-d_arg_internal_config_common
-  How many of the first `_count` sections an item shares with a section's
-path, counted from the outermost until one differs.
-*/
+/**
+ * @brief Counts the sections an item shares with a path, from the outermost
+ *        until one differs.
+ *
+ * @param[in] _item     the item.
+ * @param[in] _parents  the path.
+ * @param[in] _count    how many of the first sections are compared.
+ * @return the count.
+ *
+ * How many of the first `_count` sections an item shares with a section's
+ * path, counted from the outermost until one differs.
+ */
 D_STATIC size_t
 d_arg_internal_config_common(
     const struct d_arg_config_item* _item,
@@ -638,12 +775,20 @@ d_arg_internal_config_common(
     return common;
 }
 
-/*
-d_arg_internal_config_matching
-  CLI11's find_matching_config: from the last item back -- only the last,
-unless searching fully -- the first with an entry's sections and name; NULL
-for none.
-*/
+/**
+ * @brief Finds the item an entry repeats, as CLI11's find_matching_config.
+ *
+ * @param[in,out] _items        the list.
+ * @param[in]     _entry        the entry.
+ * @param[in]     _full_search  whether every item is searched, not only the
+ *                              last.
+ * @return the item with the entry's sections and name, the last first; NULL for
+ *         none.
+ *
+ * CLI11's find_matching_config: from the last item back -- only the last,
+ * unless searching fully -- the first with an entry's sections and name; NULL
+ * for none.
+ */
 D_STATIC struct d_arg_config_item*
 d_arg_internal_config_matching(
     struct d_arg_config_item_list*  _items,
@@ -674,12 +819,19 @@ d_arg_internal_config_matching(
     return NULL;
 }
 
-/*
-d_arg_internal_config_separated
-  Whether CLI11 puts `%%` between an item's values and those merged into
-it: not when either side, at the join, has an empty value or a `%%`. A
-side with no values at all, past which CLI11 would read, counts as empty.
-*/
+/**
+ * @brief Tells whether CLI11 puts `%%` between an item's values and those
+ *        merged into it.
+ *
+ * @param[in] _match  the item.
+ * @param[in] _entry  the entry merged.
+ * @return `true` unless either side, at the join, has an empty value, a `%%`,
+ *         or no value at all; `false` otherwise.
+ *
+ * Whether CLI11 puts `%%` between an item's values and those merged into
+ * it: not when either side, at the join, has an empty value or a `%%`. A
+ * side with no values at all, past which CLI11 would read, counts as empty.
+ */
 D_STATIC bool
 d_arg_internal_config_separated(
     const struct d_arg_config_item* _match,
@@ -690,8 +842,8 @@ d_arg_internal_config_separated(
     const struct d_arg_text_list* const after  = &_entry->inputs;
 
     // a side with no values, or an empty one at the join
-    if ( (before->count == 0u)                             ||
-         (after->count == 0u)                              ||
+    if ( (before->count == 0u)                            ||
+         (after->count == 0u)                             ||
          (before->items[before->count - 1u].length == 0u) ||
          (after->items[0].length == 0u) )
     {
@@ -704,12 +856,19 @@ d_arg_internal_config_separated(
                                          "%%")) );
 }
 
-/*
-d_arg_internal_config_merge
-  CLI11's merge of an entry into the item it repeats: `%%` between the
-groups -- when both hold several values, or whenever duplicates are
-allowed -- making the item multiline; then the entry's values appended.
-*/
+/**
+ * @brief Merges an entry into the item it repeats, as CLI11 does.
+ *
+ * @param[in,out] _match       the item, which gains a `%%` where CLI11 puts
+ *                             one, and the entry's values.
+ * @param[in]     _entry       the entry.
+ * @param[in]     _duplicates  whether duplicates are allowed.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's merge of an entry into the item it repeats: `%%` between the
+ * groups -- when both hold several values, or whenever duplicates are
+ * allowed -- making the item multiline; then the entry's values appended.
+ */
 D_STATIC int
 d_arg_internal_config_merge(
     struct d_arg_config_item*       _match,
@@ -771,12 +930,17 @@ static const struct d_arg_internal_config_quoting NAME_QUOTING =
     true   // keep_brackets
 };
 
-/*
-d_arg_internal_config_secondary
-  CLI11's handle_secondary_array: a text in brackets becomes `[[` followed
-by each byte after the first, twice, so that a quoted value is not read as
-an array.
-*/
+/**
+ * @brief Doubles a text in brackets, as CLI11's handle_secondary_array.
+ *
+ * @param[in,out] _text  the text, replaced by `[[` and each byte after the
+ *                       first, twice, when it is in brackets.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the text as it was.
+ *
+ * CLI11's handle_secondary_array: a text in brackets becomes `[[` followed
+ * by each byte after the first, twice, so that a quoted value is not read as
+ * an array.
+ */
 D_STATIC int
 d_arg_internal_config_secondary(
     struct d_arg_buffer* _text
@@ -822,11 +986,20 @@ d_arg_internal_config_secondary(
     return status;
 }
 
-/*
-d_arg_internal_config_unescape
-  CLI11's remove_escaped_characters as the reader calls it: a malformed
-escape is its ParseError, in the escape's own words.
-*/
+/**
+ * @brief Resolves escapes, as CLI11's remove_escaped_characters does for the
+ *        reader.
+ *
+ * @param[in]     _text   the text.
+ * @param[in,out] _out    the buffer that gains the result.
+ * @param[in,out] _error  the buffer that gains a malformed escape's
+ *                        description.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or a buffer's
+ *         status.
+ *
+ * CLI11's remove_escaped_characters as the reader calls it: a malformed
+ * escape is its ParseError, in the escape's own words.
+ */
 D_STATIC int
 d_arg_internal_config_unescape(
     struct d_pack_text   _text,
@@ -843,11 +1016,20 @@ d_arg_internal_config_unescape(
            : status;
 }
 
-/*
-d_arg_internal_config_string
-  The inside of a string in string quotes: unescaped when it holds a
-backslash, kept as it is otherwise.
-*/
+/**
+ * @brief Appends the inside of a string in string quotes, unescaped when it
+ *        holds a backslash.
+ *
+ * @param[in]     _inner  the inside.
+ * @param[in,out] _out    the buffer that gains it.
+ * @param[in,out] _error  the buffer that gains a malformed escape's
+ *                        description.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or a buffer's
+ *         status.
+ *
+ * The inside of a string in string quotes: unescaped when it holds a
+ * backslash, kept as it is otherwise.
+ */
 D_STATIC int
 d_arg_internal_config_string(
     struct d_pack_text   _inner,
@@ -865,14 +1047,24 @@ d_arg_internal_config_string(
                                       _inner);
 }
 
-/*
-d_arg_internal_config_unquote
-  CLI11's process_quoted_string into `_out`, which it replaces: a binary
-string decoded; a string in the string quotes stripped, and unescaped when
-it holds a backslash; one in the literal quotes or backquotes stripped
-alone; each of these then, unless brackets are kept, doubled when in
-brackets. A text of one byte, and any other, is written as it is.
-*/
+/**
+ * @brief Writes a text as CLI11's process_quoted_string makes it.
+ *
+ * @param[in]     _text     the text.
+ * @param[in]     _quoting  the quotes, and whether brackets are kept.
+ * @param[in,out] _out      the buffer, which receives the result in place of
+ *                          what it held.
+ * @param[in,out] _error    the buffer that gains a malformed escape's
+ *                          description.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or a buffer's
+ *         status.
+ *
+ * CLI11's process_quoted_string into `_out`, which it replaces: a binary
+ * string decoded; a string in the string quotes stripped, and unescaped when
+ * it holds a backslash; one in the literal quotes or backquotes stripped
+ * alone; each of these then, unless brackets are kept, doubled when in
+ * brackets. A text of one byte, and any other, is written as it is.
+ */
 D_STATIC int
 d_arg_internal_config_unquote(
     struct d_pack_text                          _text,
@@ -962,13 +1154,22 @@ struct d_arg_internal_config_reader
     struct d_arg_text_list             raw;
 };
 
-/*
-d_arg_internal_config_parent
-  One part of a path, its quotes removed as CLI11's remove_quotes(vector)
-removes them -- an empty part kept as it is -- added to an item's sections;
-a malformed escape, which d_arg_internal_remove_quotes_text calls text that
-breaks the rules, is CLI11's ParseError.
-*/
+/**
+ * @brief Adds one part of a path to an item's sections, its quotes removed as
+ *        CLI11's remove_quotes removes them.
+ *
+ * @param[in,out] _reader  the reader, whose scratch buffer holds the part
+ *                         unquoted.
+ * @param[in]     _part    the part.
+ * @param[in,out] _item    the item.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * One part of a path, its quotes removed as CLI11's remove_quotes(vector)
+ * removes them -- an empty part kept as it is -- added to an item's sections;
+ * a malformed escape, which d_arg_internal_remove_quotes_text calls text that
+ * breaks the rules, is CLI11's ParseError.
+ */
 D_STATIC int
 d_arg_internal_config_parent(
     struct d_arg_internal_config_reader* _reader,
@@ -1002,12 +1203,22 @@ d_arg_internal_config_parent(
            : status;
 }
 
-/*
-d_arg_internal_config_parts
-  The parts of a dotted path, cut as CLI11's split_up cuts them, added to
-an item's sections: all of them, or, given `_last`, all but the last, which
-`_last` receives.
-*/
+/**
+ * @brief Adds the parts of a dotted path to an item's sections, cut as CLI11's
+ *        split_up cuts them.
+ *
+ * @param[in,out] _reader  the reader.
+ * @param[in]     _path    the path.
+ * @param[in,out] _item    the item.
+ * @param[out]    _last    receives the last part, which is then not added; NULL
+ *                         to add it too.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The parts of a dotted path, cut as CLI11's split_up cuts them, added to
+ * an item's sections: all of them, or, given `_last`, all but the last, which
+ * `_last` receives.
+ */
 D_STATIC int
 d_arg_internal_config_parts(
     struct d_arg_internal_config_reader* _reader,
@@ -1062,13 +1273,21 @@ d_arg_internal_config_parts(
            : status;
 }
 
-/*
-d_arg_internal_config_parents
-  CLI11's generate_parents: the parts of the section under way, unless it
-is the default one, then, given a name, its dotted parts but the last,
-which becomes the name -- each part added to the item's sections without
-its quotes.
-*/
+/**
+ * @brief Gives an item its sections, as CLI11's generate_parents.
+ *
+ * @param[in,out] _reader  the reader, whose section under way applies.
+ * @param[in,out] _name    the item's name, replaced by its last dotted part;
+ *                         NULL for none.
+ * @param[in,out] _item    the item.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's generate_parents: the parts of the section under way, unless it
+ * is the default one, then, given a name, its dotted parts but the last,
+ * which becomes the name -- each part added to the item's sections without
+ * its quotes.
+ */
 D_STATIC int
 d_arg_internal_config_parents(
     struct d_arg_internal_config_reader* _reader,
@@ -1111,11 +1330,17 @@ d_arg_internal_config_parents(
     return status;
 }
 
-/*
-d_arg_internal_config_openers
-  CLI11's `++` items for the sections enclosing the one opened, from the
-`_first`-th: one for each depth short of the section's own.
-*/
+/**
+ * @brief Adds CLI11's `++` items for the sections enclosing the one opened.
+ *
+ * @param[in,out] _items    the list.
+ * @param[in]     _parents  the section's parts.
+ * @param[in]     _first    the depth to start from.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's `++` items for the sections enclosing the one opened, from the
+ * `_first`-th: one for each depth short of the section's own.
+ */
 D_STATIC int
 d_arg_internal_config_openers(
     struct d_arg_config_item_list* _items,
@@ -1139,14 +1364,19 @@ d_arg_internal_config_openers(
     return status;
 }
 
-/*
-d_arg_internal_config_reopen
-  CLI11's checkParentSegments after a section's end: the end repeated a
-level up while it is as deep as the section opened -- or, for one at the
-top, deeper than one level; then, for a nested section, the end dropped
-when it lies along the new section's path, or else repeated up to the
-sections they share, and the enclosing sections not shared opened.
-*/
+/**
+ * @brief Adds the items CLI11's checkParentSegments adds after a section's end.
+ *
+ * @param[in,out] _items    the list, whose last item is the end.
+ * @param[in]     _parents  the parts of the section opened.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's checkParentSegments after a section's end: the end repeated a
+ * level up while it is as deep as the section opened -- or, for one at the
+ * top, deeper than one level; then, for a nested section, the end dropped
+ * when it lies along the new section's path, or else repeated up to the
+ * sections they share, and the enclosing sections not shared opened.
+ */
 D_STATIC int
 d_arg_internal_config_reopen(
     struct d_arg_config_item_list* _items,
@@ -1193,12 +1423,17 @@ d_arg_internal_config_reopen(
            : status;
 }
 
-/*
-d_arg_internal_config_open
-  CLI11's checkParentSegments: the section under way opened -- after the
-end of the one before, as d_arg_internal_config_reopen has it, or with its
-enclosing sections opened first -- and then its own `++` item.
-*/
+/**
+ * @brief Opens the section under way, as CLI11's checkParentSegments.
+ *
+ * @param[in,out] _reader  the reader.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's checkParentSegments: the section under way opened -- after the
+ * end of the one before, as d_arg_internal_config_reopen has it, or with its
+ * enclosing sections opened first -- and then its own `++` item.
+ */
 D_STATIC int
 d_arg_internal_config_open(
     struct d_arg_internal_config_reader* _reader
@@ -1236,11 +1471,16 @@ d_arg_internal_config_open(
                                        status);
 }
 
-/*
-d_arg_internal_config_close
-  The `--` item ending the section under way, its sections the section's
-parts.
-*/
+/**
+ * @brief Adds the `--` item ending the section under way.
+ *
+ * @param[in,out] _reader  the reader.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The `--` item ending the section under way, its sections the section's
+ * parts.
+ */
 D_STATIC int
 d_arg_internal_config_close(
     struct d_arg_internal_config_reader* _reader
@@ -1262,11 +1502,16 @@ d_arg_internal_config_close(
                                        status);
 }
 
-/*
-d_arg_internal_config_count
-  CLI11's currentSectionIndex: one more for a header naming the section the
-header before named, 0 for any other, which becomes the section before.
-*/
+/**
+ * @brief Counts a header's section's occurrence, as CLI11's
+ *        currentSectionIndex.
+ *
+ * @param[in,out] _reader  the reader, whose section index and section before
+ *                         are updated.
+ *
+ * CLI11's currentSectionIndex: one more for a header naming the section the
+ * header before named, 0 for any other, which becomes the section before.
+ */
 D_STATIC void
 d_arg_internal_config_count(
     struct d_arg_internal_config_reader* _reader
@@ -1287,13 +1532,19 @@ d_arg_internal_config_count(
     return;
 }
 
-/*
-d_arg_internal_config_header
-  A `[section]` line: the section under way ended, unless it is the default
-one; the new one named -- without a second pair of brackets, and "default"
-in any case being the default -- and opened; the section entered by no item
-yet, and its occurrence counted.
-*/
+/**
+ * @brief Takes a `[section]` line.
+ *
+ * @param[in,out] _reader  the reader, whose section under way it changes.
+ * @param[in]     _line    the line, trimmed, in brackets.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * A `[section]` line: the section under way ended, unless it is the default
+ * one; the new one named -- without a second pair of brackets, and "default"
+ * in any case being the default -- and opened; the section entered by no item
+ * yet, and its occurrence counted.
+ */
 D_STATIC int
 d_arg_internal_config_header(
     struct d_arg_internal_config_reader* _reader,
@@ -1338,13 +1589,17 @@ d_arg_internal_config_header(
     return status;
 }
 
-/*
-d_arg_internal_config_ml_comment
-  A line opening with `"""` or `'''`: a comment, closed on the line itself
-when it is long enough to hold both ends and ends with the same quotes,
-else by the first later line that, trimmed, does -- or by the end of the
-text.
-*/
+/**
+ * @brief Skips a multiline comment.
+ *
+ * @param[in,out] _reader  the reader, its lines moved past the comment.
+ * @param[in]     _line    the line that opens it, trimmed.
+ *
+ * A line opening with `"""` or `'''`: a comment, closed on the line itself
+ * when it is long enough to hold both ends and ends with the same quotes,
+ * else by the first later line that, trimmed, does -- or by the end of the
+ * text.
+ */
 D_STATIC void
 d_arg_internal_config_ml_comment(
     struct d_arg_internal_config_reader* _reader,
@@ -1377,13 +1632,18 @@ d_arg_internal_config_ml_comment(
     return;
 }
 
-/*
-d_arg_internal_config_header_comment
-  CLI11's cut of a comment after a section header, `[section] # note`: a
-line that opens with `[`, does not end with `]` and holds the comment
-character is cut at the first comment character outside quotes, if any,
-and trimmed.
-*/
+/**
+ * @brief Cuts a comment off a section header, as CLI11 does.
+ *
+ * @param[in]     _reader  the reader, whose comment character applies.
+ * @param[in,out] _line    the line, trimmed, cut at the first comment character
+ *                         outside quotes and trimmed again.
+ *
+ * CLI11's cut of a comment after a section header, `[section] # note`: a
+ * line that opens with `[`, does not end with `]` and holds the comment
+ * character is cut at the first comment character outside quotes, if any,
+ * and trimmed.
+ */
 D_STATIC void
 d_arg_internal_config_header_comment(
     const struct d_arg_internal_config_reader* _reader,
@@ -1467,14 +1727,22 @@ struct d_arg_internal_config_ml
     bool first;
 };
 
-/*
-d_arg_internal_config_search_start
-  CLI11's search_start for a line holding quotes: past quoted runs, blanks
-and section separators to just before the first value delimiter or comment
-character -- wrapping round, as CLI11's size_t does, when that is the first
-character -- or past the end when neither follows. 0 for a line without
-quotes.
-*/
+/**
+ * @brief Finds where CLI11's search_start puts the search for a line's value
+ *        delimiter.
+ *
+ * @param[in] _format  the format.
+ * @param[in] _line    the line.
+ * @return the place just before the first value delimiter or comment character
+ *         outside quotes, wrapping round when that is the first character; past
+ *         the end when neither follows; 0 for a line without quotes.
+ *
+ * CLI11's search_start for a line holding quotes: past quoted runs, blanks
+ * and section separators to just before the first value delimiter or comment
+ * character -- wrapping round, as CLI11's size_t does, when that is the first
+ * character -- or past the end when neither follows. 0 for a line without
+ * quotes.
+ */
 D_STATIC size_t
 d_arg_internal_config_search_start(
     const struct d_arg_config_format* _format,
@@ -1528,12 +1796,18 @@ d_arg_internal_config_search_start(
     return at;
 }
 
-/*
-d_arg_internal_config_uncomment
-  CLI11's cut of a comment off a value: the first piece split_up makes of it
-at the comment character, trimmed; where CLI11 would read a piece that is
-not there, the value is empty.
-*/
+/**
+ * @brief Cuts a comment off a value, as CLI11 does.
+ *
+ * @param[in]     _comment  the comment character.
+ * @param[in,out] _value    the value, replaced by its first piece, trimmed;
+ *                          empty for none.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's cut of a comment off a value: the first piece split_up makes of it
+ * at the comment character, trimmed; where CLI11 would read a piece that is
+ * not there, the value is empty.
+ */
 D_STATIC int
 d_arg_internal_config_uncomment(
     char                _comment,
@@ -1558,10 +1832,17 @@ d_arg_internal_config_uncomment(
     return status;
 }
 
-/*
-d_arg_internal_config_split
-  CLI11's split_up of a value into the line's values, each a span of it.
-*/
+/**
+ * @brief Splits a value into a line's values, as CLI11's split_up.
+ *
+ * @param[in]     _value      the value.
+ * @param[in]     _delimiter  the separator; NUL for whitespace.
+ * @param[in,out] _raw        the list that gains the values, spans of the
+ *                            value.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's split_up of a value into the line's values, each a span of it.
+ */
 D_STATIC int
 d_arg_internal_config_split(
     struct d_pack_text      _value,
@@ -1591,13 +1872,20 @@ d_arg_internal_config_split(
     return status;
 }
 
-/*
-d_arg_internal_config_array
-  CLI11's array value: from its opening character, later lines added,
-trimmed, until it ends with the closing one or the text ends; then split at
-the separator, inside the brackets -- or after the opening one, when it
-never closed.
-*/
+/**
+ * @brief Reads an array value, as CLI11 does.
+ *
+ * @param[in,out] _reader  the reader, whose lines it may read on, and whose
+ *                         value buffer holds the array.
+ * @param[in]     _value   the value, from its opening character.
+ * @param[in,out] _raw     the list that gains the values.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's array value: from its opening character, later lines added,
+ * trimmed, until it ends with the closing one or the text ends; then split at
+ * the separator, inside the brackets -- or after the opening one, when it
+ * never closed.
+ */
 D_STATIC int
 d_arg_internal_config_array(
     struct d_arg_internal_config_reader* _reader,
@@ -1643,13 +1931,19 @@ d_arg_internal_config_array(
                _raw);
 }
 
-/*
-d_arg_internal_config_values
-  The values of a value that is not a multiline string: an array, when it
-opens with the array's opening character; else, for the default or an INI
-format, a list split at the separator when it holds one, or at whitespace
-when it holds a space; else the value itself.
-*/
+/**
+ * @brief Reads the values of a value that is not a multiline string.
+ *
+ * @param[in,out] _reader  the reader.
+ * @param[in]     _value   the value.
+ * @param[in,out] _raw     the list that gains the values.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The values of a value that is not a multiline string: an array, when it
+ * opens with the array's opening character; else, for the default or an INI
+ * format, a list split at the separator when it holds one, or at whitespace
+ * when it holds a space; else the value itself.
+ */
 D_STATIC int
 d_arg_internal_config_values(
     struct d_arg_internal_config_reader* _reader,
@@ -1695,10 +1989,15 @@ d_arg_internal_config_values(
                                     _value);
 }
 
-/*
-d_arg_internal_config_replace
-  The reader's value replaced by what a step wrote into its scratch buffer.
-*/
+/**
+ * @brief Replaces the reader's value by what a step wrote into its scratch
+ *        buffer.
+ *
+ * @param[in,out] _reader  the reader.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The reader's value replaced by what a step wrote into its scratch buffer.
+ */
 D_STATIC int
 d_arg_internal_config_replace(
     struct d_arg_internal_config_reader* _reader
@@ -1710,12 +2009,17 @@ d_arg_internal_config_replace(
                                     d_arg_buffer_text(&_reader->scratch));
 }
 
-/*
-d_arg_internal_config_ml_unescape
-  A `"""` value's escapes resolved once it closes: CLI11's
-remove_escaped_characters over the whole value, a malformed escape being
-its ParseError.
-*/
+/**
+ * @brief Resolves a `"""` value's escapes once it closes.
+ *
+ * @param[in,out] _reader  the reader, whose value is replaced.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * A `"""` value's escapes resolved once it closes: CLI11's
+ * remove_escaped_characters over the whole value, a malformed escape being
+ * its ParseError.
+ */
 D_STATIC int
 d_arg_internal_config_ml_unescape(
     struct d_arg_internal_config_reader* _reader
@@ -1733,11 +2037,17 @@ d_arg_internal_config_ml_unescape(
            : status;
 }
 
-/*
-d_arg_internal_config_ml_binary
-  A multiline value as CLI11 leaves it once read: refused when it could not
-be stored, decoded when it is a binary string.
-*/
+/**
+ * @brief Settles a multiline value as CLI11 leaves it once read.
+ *
+ * @param[in,out] _reader  the reader, whose value is decoded when it is a
+ *                         binary string.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when the value could not be
+ *         stored or decoded.
+ *
+ * A multiline value as CLI11 leaves it once read: refused when it could not
+ * be stored, decoded when it is a binary string.
+ */
 D_STATIC int
 d_arg_internal_config_ml_binary(
     struct d_arg_internal_config_reader* _reader
@@ -1766,13 +2076,21 @@ d_arg_internal_config_ml_binary(
            : status;
 }
 
-/*
-d_arg_internal_config_ml_first
-  The first line of a multiline value, from after its opening quotes:
-closed on the line, its content before the closing quotes, unescaped for
-`"""`; or left open, a backslash ending a `"""` value's line dropped to
-join the next.
-*/
+/**
+ * @brief Takes the first line of a multiline value.
+ *
+ * @param[in,out] _reader  the reader, whose value receives the line's content.
+ * @param[in,out] _ml      the value's state: whether it is open, and whether a
+ *                         backslash joins the next line.
+ * @param[in]     _text    the line from after the opening quotes.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The first line of a multiline value, from after its opening quotes:
+ * closed on the line, its content before the closing quotes, unescaped for
+ * `"""`; or left open, a backslash ending a `"""` value's line dropped to
+ * join the next.
+ */
 D_STATIC int
 d_arg_internal_config_ml_first(
     struct d_arg_internal_config_reader* _reader,
@@ -1817,13 +2135,19 @@ d_arg_internal_config_ml_first(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_config_ml_more
-  A line inside a multiline value, joined to it: trimmed after a line that
-ended in a backslash, else after a newline -- unless the value is still
-empty on the first line after its own -- a backslash ending it, in a `"""`
-value, dropped to join the next line.
-*/
+/**
+ * @brief Joins a line inside a multiline value to it.
+ *
+ * @param[in,out] _reader  the reader, whose value gains the line, its failure
+ *                         kept in it.
+ * @param[in,out] _ml      the value's state.
+ * @param[in]     _line    the line.
+ *
+ * A line inside a multiline value, joined to it: trimmed after a line that
+ * ended in a backslash, else after a newline -- unless the value is still
+ * empty on the first line after its own -- a backslash ending it, in a `"""`
+ * value, dropped to join the next line.
+ */
 D_STATIC void
 d_arg_internal_config_ml_more(
     struct d_arg_internal_config_reader* _reader,
@@ -1863,13 +2187,21 @@ d_arg_internal_config_ml_more(
     return;
 }
 
-/*
-d_arg_internal_config_ml_last
-  The line that closes a multiline value: its content before the closing
-quotes joined as d_arg_internal_config_ml_more joins a line -- but with
-only its leading whitespace dropped after a backslash -- a newline ending
-the value dropped, and the value unescaped for `"""`.
-*/
+/**
+ * @brief Takes the line that closes a multiline value.
+ *
+ * @param[in,out] _reader  the reader, whose value gains the line's content.
+ * @param[in,out] _ml      the value's state, closed.
+ * @param[in]     _line    the line.
+ * @param[in]     _close   the length of its content before the closing quotes.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The line that closes a multiline value: its content before the closing
+ * quotes joined as d_arg_internal_config_ml_more joins a line -- but with
+ * only its leading whitespace dropped after a backslash -- a newline ending
+ * the value dropped, and the value unescaped for `"""`.
+ */
 D_STATIC int
 d_arg_internal_config_ml_last(
     struct d_arg_internal_config_reader* _reader,
@@ -1912,14 +2244,22 @@ d_arg_internal_config_ml_last(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_config_ml_value
-  CLI11's multiline string value, `'''` or `"""`: taken from the line as
-read, past its leading spaces and tabs and the delimiter -- whose position
-is the trimmed line's, so that other leading whitespace shifts it -- its
-own leading whitespace and three characters dropped; lines then added until
-one closes it or the text ends; a binary string decoded.
-*/
+/**
+ * @brief Reads a multiline string value, as CLI11 does.
+ *
+ * @param[in,out] _reader     the reader, whose lines it reads on.
+ * @param[in,out] _entry      the entry, whose values gain the string.
+ * @param[in]     _delimiter  the value delimiter's place in the trimmed line.
+ * @param[in]     _quote      the value's quote.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's multiline string value, `'''` or `"""`: taken from the line as
+ * read, past its leading spaces and tabs and the delimiter -- whose position
+ * is the trimmed line's, so that other leading whitespace shifts it -- its
+ * own leading whitespace and three characters dropped; lines then added until
+ * one closes it or the text ends; a binary string decoded.
+ */
 D_STATIC int
 d_arg_internal_config_ml_value(
     struct d_arg_internal_config_reader* _reader,
@@ -1981,12 +2321,20 @@ d_arg_internal_config_ml_value(
            : status;
 }
 
-/*
-d_arg_internal_config_name_value
-  The two sides of a name-value line's delimiter, trimmed: the name before
-it, and after it the value -- a multiline string, or, cut at a comment when
-the line holds one, an array, a list or a single value.
-*/
+/**
+ * @brief Reads the two sides of a name-value line's delimiter.
+ *
+ * @param[in,out] _reader     the reader.
+ * @param[in,out] _entry      the entry, which receives the name and the values.
+ * @param[in]     _delimiter  the delimiter's place.
+ * @param[in]     _comment    the comment character's place; NPOS for none.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The two sides of a name-value line's delimiter, trimmed: the name before
+ * it, and after it the value -- a multiline string, or, cut at a comment when
+ * the line holds one, an array, a list or a single value.
+ */
 D_STATIC int
 d_arg_internal_config_name_value(
     struct d_arg_internal_config_reader* _reader,
@@ -2028,12 +2376,18 @@ d_arg_internal_config_name_value(
            : status;
 }
 
-/*
-d_arg_internal_config_split_line
-  CLI11's split of a name-value line: at the first value delimiter after the
-search start -- none when a comment character comes first -- or, without
-one, a name alone, before any comment, being `true`.
-*/
+/**
+ * @brief Splits a name-value line, as CLI11 does.
+ *
+ * @param[in,out] _reader  the reader.
+ * @param[in,out] _entry   the entry, which receives the name and the values.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's split of a name-value line: at the first value delimiter after the
+ * search start -- none when a comment character comes first -- or, without
+ * one, a name alone, before any comment, being `true`.
+ */
 D_STATIC int
 d_arg_internal_config_split_line(
     struct d_arg_internal_config_reader* _reader,
@@ -2076,11 +2430,19 @@ d_arg_internal_config_split_line(
 // 6.  ENTRIES
 //==============================================================================
 
-/*
-d_arg_internal_config_name
-  CLI11's process_quoted_string of an item's name -- `"` strings and `'`
-literals, brackets kept -- naming the item.
-*/
+/**
+ * @brief Names an item, its name through CLI11's process_quoted_string.
+ *
+ * @param[in,out] _reader  the reader, whose scratch buffer holds the name
+ *                         unquoted.
+ * @param[in]     _name    the name.
+ * @param[in,out] _item    the item.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's process_quoted_string of an item's name -- `"` strings and `'`
+ * literals, brackets kept -- naming the item.
+ */
 D_STATIC int
 d_arg_internal_config_name(
     struct d_arg_internal_config_reader* _reader,
@@ -2099,12 +2461,20 @@ d_arg_internal_config_name(
            : status;
 }
 
-/*
-d_arg_internal_config_inputs
-  An item's values: a multiline string's as read; any other's each through
-CLI11's process_quoted_string with the format's quotes, a result in
-brackets doubled.
-*/
+/**
+ * @brief Gives an item its values.
+ *
+ * @param[in,out] _reader  the reader, whose scratch buffer holds each value
+ *                         unquoted.
+ * @param[in]     _entry   the entry, whose values are read.
+ * @param[in,out] _item    the item.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * An item's values: a multiline string's as read; any other's each through
+ * CLI11's process_quoted_string with the format's quotes, a result in
+ * brackets doubled.
+ */
 D_STATIC int
 d_arg_internal_config_inputs(
     struct d_arg_internal_config_reader*      _reader,
@@ -2148,14 +2518,19 @@ d_arg_internal_config_inputs(
     return status;
 }
 
-/*
-d_arg_internal_config_enter
-  CLI11's section filter: with a section asked for and not yet entered, an
-item belongs only when its outermost section is that one -- in the
-occurrence asked for, when one is -- and it then loses that section, and
-the section is entered, so that later items until the next header pass
-whatever their sections.
-*/
+/**
+ * @brief Tells whether an item passes the section filter, as CLI11's does.
+ *
+ * @param[in,out] _reader  the reader, which enters the section asked for.
+ * @param[in,out] _item    the item, which loses that section when it enters it.
+ * @return `true` when it passes; `false` otherwise.
+ *
+ * CLI11's section filter: with a section asked for and not yet entered, an
+ * item belongs only when its outermost section is that one -- in the
+ * occurrence asked for, when one is -- and it then loses that section, and
+ * the section is entered, so that later items until the next header pass
+ * whatever their sections.
+ */
 D_STATIC bool
 d_arg_internal_config_enter(
     struct d_arg_internal_config_reader* _reader,
@@ -2188,13 +2563,18 @@ d_arg_internal_config_enter(
     return true;
 }
 
-/*
-d_arg_internal_config_place
-  Where CLI11 puts an item read: nowhere when nested deeper than the
-format's layers, or outside the section asked for; else merged into the
-item it repeats -- the last, or any, when duplicates are allowed -- or
-added.
-*/
+/**
+ * @brief Puts an item read where CLI11 puts it.
+ *
+ * @param[in,out] _reader  the reader, whose list gains or merges the item.
+ * @param[in,out] _item    the item, handed over when it is added, left empty.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * Where CLI11 puts an item read: nowhere when nested deeper than the
+ * format's layers, or outside the section asked for; else merged into the
+ * item it repeats -- the last, or any, when duplicates are allowed -- or
+ * added.
+ */
 D_STATIC int
 d_arg_internal_config_place(
     struct d_arg_internal_config_reader* _reader,
@@ -2228,12 +2608,19 @@ d_arg_internal_config_place(
                                           _item);
 }
 
-/*
-d_arg_internal_config_entry
-  A name-value line: split; its sections found and its name and values
-unquoted, in CLI11's order, which decides which malformed escape is
-reported; then placed.
-*/
+/**
+ * @brief Reads a name-value line into an item, and places it.
+ *
+ * @param[in,out] _reader  the reader.
+ * @param[in]     _buffer  the line as read.
+ * @param[in]     _line    the line, trimmed.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * A name-value line: split; its sections found and its name and values
+ * unquoted, in CLI11's order, which decides which malformed escape is
+ * reported; then placed.
+ */
 D_STATIC int
 d_arg_internal_config_entry(
     struct d_arg_internal_config_reader* _reader,
@@ -2280,12 +2667,18 @@ d_arg_internal_config_entry(
     return status;
 }
 
-/*
-d_arg_internal_config_line
-  One line as from_config takes it: trimmed; skipped when shorter than
-three characters; a multiline comment; a section header, a comment after
-it cut first; a comment line, skipped; else a name and its value.
-*/
+/**
+ * @brief Reads one line, as CLI11's from_config takes it.
+ *
+ * @param[in,out] _reader  the reader.
+ * @param[in]     _buffer  the line as read.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * One line as from_config takes it: trimmed; skipped when shorter than
+ * three characters; a multiline comment; a section header, a comment after
+ * it cut first; a comment line, skipped; else a name and its value.
+ */
 D_STATIC int
 d_arg_internal_config_line(
     struct d_arg_internal_config_reader* _reader,
@@ -2340,11 +2733,17 @@ d_arg_internal_config_line(
                                        line);
 }
 
-/*
-d_arg_internal_config_finish
-  The end of the text: the section under way, unless it is the default one,
-ended with a `--` item, repeated a level up until it has one section.
-*/
+/**
+ * @brief Ends the text: the section under way ended, unless it is the default
+ *        one.
+ *
+ * @param[in,out] _reader  the reader.
+ * @return D_ARG_OK; D_ARG_ERROR_PARSE for a malformed escape; or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * The end of the text: the section under way, unless it is the default one,
+ * ended with a `--` item, repeated a level up until it has one section.
+ */
 D_STATIC int
 d_arg_internal_config_finish(
     struct d_arg_internal_config_reader* _reader
@@ -2365,13 +2764,22 @@ d_arg_internal_config_finish(
            : status;
 }
 
-/*
-d_arg_internal_config_start
-  A reader at the start of the text: the array characters as CLI11's
-from_config derives them -- an INI format, whose start and end are alike
-and blank, reading brackets, and a comma for a space -- with the default
-section under way, and the section before it the same.
-*/
+/**
+ * @brief Makes a reader at the start of a text.
+ *
+ * @param[in] _format  the format.
+ * @param[in] _input   the text.
+ * @param[in] _out     the list the items go to.
+ * @param[in] _error   the buffer that gains a failure's description; may be
+ *                     NULL.
+ * @return the reader, its array characters as CLI11's from_config derives them,
+ *         the default section under way.
+ *
+ * A reader at the start of the text: the array characters as CLI11's
+ * from_config derives them -- an INI format, whose start and end are alike
+ * and blank, reading brackets, and a comma for a space -- with the default
+ * section under way, and the section before it the same.
+ */
 D_STATIC struct d_arg_internal_config_reader
 d_arg_internal_config_start(
     const struct d_arg_config_format* _format,

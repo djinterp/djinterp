@@ -5,15 +5,15 @@
 *   What the SFTP client needs to reach a server: SFTP rides the "sftp"
 * subsystem of an SSH channel, so it needs an SSH connection, which env_ssh.h
 * judges -- a usable SSH library and a TCP transport. The codec and client
-* contain no OS code of their own, and over any other byte stream
-* (d_sftp_client_open_transport) they need nothing from here at all.
+* contain no OS code of their own, and over any other net.h connection
+* (d_sftp_client_open_connection) they need nothing from here at all.
 *   Include it after the framework root.
 *
 *
 * path:      /inc/djinterp/env/net/sftp/env_sftp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.14
 *******************************************************************************/
 
 /*

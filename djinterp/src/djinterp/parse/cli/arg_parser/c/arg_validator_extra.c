@@ -5,15 +5,16 @@
 *   TypeValidator and Number convert a value as CLI11's lexical_cast does and
 * reject what does not convert; Bound clamps what does to its bounds, which
 * it keeps as a range keeps them; and ValidIPV4 reads four integers between
-* three dots. None allocates. The sets and mappings are arg_validator_
-* member.c's, and the numbers with units arg_validator_unit.c's.
+* three dots. None allocates. The sets and mappings are
+* arg_validator_member.c's, and the numbers with units
+* arg_validator_unit.c's.
 *   Without D_INTERNAL_ARG_PARSER_EXTRA_VALIDATORS nothing here is compiled.
 *
 *
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_validator_extra.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.13
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_validator_extra.h"  // corresponding header
 // std
@@ -36,12 +37,19 @@
 // 1.  CHECKS
 //==============================================================================
 
-/*
-d_arg_internal_extra_type_validate
-  CLI11's TypeValidator: the value converted into a scratch object, which is
-then dropped, and rejected with "Failed parsing <value> as a <TYPE>" when it
-does not convert.
-*/
+/**
+ * @brief Judges whether a value converts to a type, as CLI11's TypeValidator.
+ *
+ * @param[in]     _validator   the validator, whose parameter is the type.
+ * @param[in,out] _validation  the validation, rejected when the value does not
+ *                             convert.
+ * @return D_ARG_OK once a verdict is reached; otherwise the status the
+ *         conversion stopped with, such as D_ARG_ERROR_OUT_OF_MEMORY.
+ *
+ * CLI11's TypeValidator: the value converted into a scratch object, which is
+ * then dropped, and rejected with "Failed parsing <value> as a <TYPE>" when it
+ * does not convert.
+ */
 D_STATIC int
 d_arg_internal_extra_type_validate(
     const struct d_arg_validator* _validator,
@@ -87,10 +95,15 @@ d_arg_internal_extra_type_validate(
                                     type->name);
 }
 
-/*
-d_arg_internal_extra_type_describe
-  CLI11's TypeValidator description: the type's name.
-*/
+/**
+ * @brief Describes a TypeValidator.
+ *
+ * @param[in]     _validator  the validator, whose parameter is the type.
+ * @param[in,out] _out        the buffer that gains the type's name.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's TypeValidator description: the type's name.
+ */
 D_STATIC int
 d_arg_internal_extra_type_describe(
     const struct d_arg_validator* _validator,
@@ -104,10 +117,15 @@ d_arg_internal_extra_type_describe(
                                     type->name);
 }
 
-/*
-d_arg_internal_extra_number_describe
-  Number's description, as CLI11 names it.
-*/
+/**
+ * @brief Describes Number.
+ *
+ * @param[in]     _validator  the validator; unused.
+ * @param[in,out] _out        the buffer that gains `NUMBER`.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * Number's description, as CLI11 names it.
+ */
 D_STATIC int
 d_arg_internal_extra_number_describe(
     const struct d_arg_validator* _validator,
@@ -172,13 +190,21 @@ d_arg_validator_number(void)
     return validator;
 }
 
-/*
-d_arg_internal_extra_bound_validate
-  CLI11's Bound: a value that does not convert is rejected with "Value
-<value> could not be converted"; one below the low bound becomes the low
-bound, one above the high bound the high bound; anything else -- a NaN,
-which neither comparison catches, among it -- stands.
-*/
+/**
+ * @brief Clamps a value to a validator's bounds, as CLI11's Bound.
+ *
+ * @param[in]     _validator   the validator: the type and the bounds.
+ * @param[in,out] _validation  the validation, whose value is replaced by a
+ *                             bound it passes, or rejected when it does not
+ *                             convert.
+ * @return D_ARG_OK once a verdict is reached; otherwise the status the
+ *         conversion or the replacement stopped with.
+ *
+ * CLI11's Bound: a value that does not convert is rejected with "Value
+ * <value> could not be converted"; one below the low bound becomes the low
+ * bound, one above the high bound the high bound; anything else -- a NaN,
+ * which neither comparison catches, among it -- stands.
+ */
 D_STATIC int
 d_arg_internal_extra_bound_validate(
     const struct d_arg_validator* _validator,
@@ -230,11 +256,16 @@ d_arg_internal_extra_bound_validate(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_extra_bound_describe
-  CLI11's Bound description: "<TYPE> bounded to [<low> - <high>]", the
-bounds streamed as a range's are.
-*/
+/**
+ * @brief Describes a Bound.
+ *
+ * @param[in]     _validator  the validator: the type and the bounds.
+ * @param[in,out] _out        the buffer that gains the description.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's Bound description: "<TYPE> bounded to [<low> - <high>]", the
+ * bounds streamed as a range's are.
+ */
 D_STATIC int
 d_arg_internal_extra_bound_describe(
     const struct d_arg_validator* _validator,
@@ -325,10 +356,15 @@ d_arg_validator_bound_double(
                                  &_high);
 }
 
-/*
-d_arg_internal_extra_ipv4_end
-  Where a part of an address ends: at the next dot, or at the end.
-*/
+/**
+ * @brief Finds where a part of an address ends.
+ *
+ * @param[in] _value  the address.
+ * @param[in] _start  where the part starts.
+ * @return the place of the next dot from `_start` on, or the address's length.
+ *
+ * Where a part of an address ends: at the next dot, or at the end.
+ */
 D_STATIC size_t
 d_arg_internal_extra_ipv4_end(
     struct d_pack_text _value,
@@ -347,14 +383,21 @@ d_arg_internal_extra_ipv4_end(
     return end;
 }
 
-/*
-d_arg_internal_extra_ipv4_part
-  One part of an address, read as an integer under the validation's rule:
-CLI11's "Failed parsing number (<part>)" for one that is not an integer an
-`int` holds -- the empty part among them -- and "Each IP number must be
-between 0 and 255 <part>" for an `int` outside an octet's range. Unlike
-CLI11's conversion to `int`, the word `true` is not an integer here.
-*/
+/**
+ * @brief Judges one part of an address.
+ *
+ * @param[in]     _part        the part.
+ * @param[in,out] _validation  the validation, rejected when the part is not an
+ *                             octet.
+ * @return D_ARG_OK once a verdict is reached; D_ARG_ERROR_OUT_OF_MEMORY when
+ *         the rejection could not be kept.
+ *
+ * One part of an address, read as an integer under the validation's rule:
+ * CLI11's "Failed parsing number (<part>)" for one that is not an integer an
+ * `int` holds -- the empty part among them -- and "Each IP number must be
+ * between 0 and 255 <part>" for an `int` outside an octet's range. Unlike
+ * CLI11's conversion to `int`, the word `true` is not an integer here.
+ */
 D_STATIC int
 d_arg_internal_extra_ipv4_part(
     struct d_pack_text       _part,
@@ -366,8 +409,8 @@ d_arg_internal_extra_ipv4_part(
         ( (_part.length > 0u)                                  &&
           (d_arg_internal_read_integer(_part,
                                        _validation->integer_rule,
-                                       &number) == D_ARG_OK)    &&
-          (!number.overflow)                                   &&
+                                       &number) == D_ARG_OK) &&
+          (!number.overflow)                                 &&
           (number.magnitude <= ( (number.negative)
                                  ? ((uintmax_t)INT_MAX + 1u)
                                  : (uintmax_t)INT_MAX )) );
@@ -396,11 +439,18 @@ d_arg_internal_extra_ipv4_part(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_extra_ipv4_validate
-  CLI11's ValidIPV4: three dots, then the four parts they separate, an empty
-one among them, judged in turn until one is rejected.
-*/
+/**
+ * @brief Judges an IPv4 address, as CLI11's ValidIPV4.
+ *
+ * @param[in]     _validator   the validator; unused.
+ * @param[in,out] _validation  the validation, rejected for anything but four
+ *                             octets.
+ * @return D_ARG_OK once a verdict is reached; D_ARG_ERROR_OUT_OF_MEMORY when a
+ *         rejection could not be kept.
+ *
+ * CLI11's ValidIPV4: three dots, then the four parts they separate, an empty
+ * one among them, judged in turn until one is rejected.
+ */
 D_STATIC int
 d_arg_internal_extra_ipv4_validate(
     const struct d_arg_validator* _validator,
@@ -450,10 +500,15 @@ d_arg_internal_extra_ipv4_validate(
     return D_ARG_OK;
 }
 
-/*
-d_arg_internal_extra_ipv4_describe
-  ValidIPV4's description, as CLI11 names it.
-*/
+/**
+ * @brief Describes ValidIPV4.
+ *
+ * @param[in]     _validator  the validator; unused.
+ * @param[in,out] _out        the buffer that gains `IPV4`.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * ValidIPV4's description, as CLI11 names it.
+ */
 D_STATIC int
 d_arg_internal_extra_ipv4_describe(
     const struct d_arg_validator* _validator,

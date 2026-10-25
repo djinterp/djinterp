@@ -1,0 +1,4 @@
+rule r
+  command = $description
+  description = $command
+build x: r

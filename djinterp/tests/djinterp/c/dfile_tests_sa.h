@@ -20,7 +20,7 @@
 #include "../../../inc/djinterp/c/djinterp.h"
 #include "../../../inc/djinterp/c/memory/dmemory.h"
 #include "../../../inc/djinterp/c/filesys/dfile.h"
-#include "./filesys/file_tests_sa_assert.h"
+#include "../../../inc/djinterp/test/c/test_standalone.h"
 #include "../../../inc/djinterp/c/string_fn.h"
 
 

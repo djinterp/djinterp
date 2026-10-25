@@ -1,0 +1,8 @@
+command = FILE
+description = FD
+rule r
+  command = RULE $description
+  description = RD
+build a: r
+build b: r
+  q = 1

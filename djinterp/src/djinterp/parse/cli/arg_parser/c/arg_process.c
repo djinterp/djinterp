@@ -283,9 +283,6 @@ d_arg_internal_process_version(
                                      _command,
                                      d_arg_buffer_sink(&text));
 
-    // a buffer that could not grow refuses what is written to it: the
-    // refusal is the memory's, not a file's
-    status = (text.failed) ? D_ARG_ERROR_OUT_OF_MEMORY : status;
     status = (status == D_ARG_OK)
              ? d_arg_internal_fail_text(_command,
                                         version,

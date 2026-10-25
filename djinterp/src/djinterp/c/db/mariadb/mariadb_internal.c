@@ -13,7 +13,7 @@
 * path:      /src/djinterp/c/db/mariadb/mariadb_internal.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.22
 *******************************************************************************/
 // D_INTERNAL_MARIADB_SOURCE
 //   macro: this file is one of the MariaDB layer's own sources, for which
@@ -159,7 +159,9 @@ d_internal_mariadb_ascii_letter(
  * @return 0, or the client's error number for the result that failed.
  *
  * mysql_store_result answers NULL both for a statement with no rows and for a
- * failure to read them; the field count tells which. mysql_next_result
+ * failure to read them; the field count tells which, and the error number
+ * too, since a failure that closes the connection -- a row past the largest
+ * packet the client takes -- leaves the field count 0. mysql_next_result
  * answers 0 for a further result and more for a failure; it is called only
  * while mysql_more_results says one follows, since both clients reset the
  * affected-row count on every call, even one past the last result.
@@ -181,7 +183,8 @@ d_internal_mariadb_read_results(
 
         // rows that should have come and did not
         if ( (!rows) &&
-             (mysql_field_count(_native) != 0u) )
+             ( (mysql_field_count(_native) != 0u) ||
+               (mysql_errno(_native) != 0u) ) )
         {
             more = 1;
 
@@ -659,6 +662,118 @@ d_internal_mariadb_case_rule(
     return 0;
 }
 
+// 2.4    Replies
+//------------------------------------------------------------------------------
+/*
+d_internal_mariadb_replied
+  The server sets SERVER_SESSION_STATE_CHANGED in the status of the OK packet
+that carries changes, and the client copies that status into the MYSQL it
+keeps, which both clients' mysql.h define in full.
+*/
+void
+d_internal_mariadb_replied(
+    struct d_mariadb* _db,
+    bool              _ok
+)
+{
+    _db->tracked = ( (_ok) &&
+                     ((_db->native->server_status &
+                       (unsigned int)SERVER_SESSION_STATE_CHANGED) != 0u) );
+
+    return;
+}
+
+/*
+d_internal_mariadb_rows_end_ok
+  Both sides must have agreed: the client asks for CLIENT_DEPRECATE_EOF, and
+keeps the flag where the server offered it too. Connector/C knows no such
+flag.
+*/
+bool
+d_internal_mariadb_rows_end_ok(
+    const struct d_mariadb* _db
+)
+{
+#if defined(CLIENT_DEPRECATE_EOF)
+    const unsigned long flag = (unsigned long)CLIENT_DEPRECATE_EOF;
+
+    return ( ((_db->native->client_flag & flag) != 0ul) &&
+             ((_db->native->server_capabilities & flag) != 0ul) );
+#else
+    (void)_db;
+
+    return false;
+#endif  // CLIENT_DEPRECATE_EOF
+}
+
+// 2.5    Query attributes
+//------------------------------------------------------------------------------
+/*
+d_internal_mariadb_attributes_sent
+  The client drops what mysql_bind_param bound once a query is sent; it is
+told to here as well, which costs nothing, so that a query the client never
+sent drops them just the same. Binding none changes no error state, so a
+failure the caller is about to read still reads.
+*/
+void
+d_internal_mariadb_attributes_sent(
+    struct d_mariadb* _db
+)
+{
+    // nothing bound, nothing to drop
+    if (_db->attribute_count == 0u)
+    {
+        return;
+    }
+
+#if (D_INTERNAL_MARIADB_QUERY_ATTRIBUTES == 1)
+    (void)mysql_bind_param(_db->native, 0u, NULL, NULL);
+#endif  // D_INTERNAL_MARIADB_QUERY_ATTRIBUTES
+
+    d_internal_mariadb_attributes_release(_db);
+
+    return;
+}
+
+/*
+d_internal_mariadb_attributes_release
+  Each attribute's two copies, then the array.
+*/
+void
+d_internal_mariadb_attributes_release(
+    struct d_mariadb* _db
+)
+{
+    for (size_t i = 0u; i < _db->attribute_count; ++i)
+    {
+        free(_db->attributes[i].name);
+        free(_db->attributes[i].value);
+    }
+
+    free(_db->attributes);
+
+    _db->attributes      = NULL;
+    _db->attribute_count = 0u;
+
+    return;
+}
+
+// 2.6    Statements
+//------------------------------------------------------------------------------
+/*
+d_internal_mariadb_idle
+  The handle knows which statement's run, if any, holds the connection; the
+client's own refusal is not relied on, since a client may instead read the
+run's rows away.
+*/
+int
+d_internal_mariadb_idle(
+    const struct d_mariadb* _db
+)
+{
+    return (_db->cursor) ? D_INTERNAL_MARIADB_OUT_OF_SYNC : 0;
+}
+
 //==============================================================================
 // 3.  NAMES
 //==============================================================================
@@ -873,16 +988,25 @@ d_internal_mariadb_format_result(
 
 /*
 d_internal_mariadb_ready
-  A statement whose prepare failed was never prepared on the server, so
-closing it sends nothing, but it clears the connection's error, which is why
-it was kept until now. The mode is a command to the server, so it is turned
-off only when a script left it on, which the handle remembers.
+  A run that holds the connection refuses everything first, before anything
+is closed or sent. A statement whose prepare failed was never prepared on the
+server, so closing it sends nothing, but it clears the connection's error,
+which is why it was kept until now; so do the statements finalized while a
+run held the connection, whose closing tells the server. The mode is a
+command to the server, so it is turned off only when a script left it on,
+which the handle remembers.
 */
 int
 d_internal_mariadb_ready(
     struct d_mariadb* _db
 )
 {
+    // nothing is sent while a statement's rows are still arriving
+    if (_db->cursor)
+    {
+        return D_INTERNAL_MARIADB_OUT_OF_SYNC;
+    }
+
     // the statement whose failure has been read by now
     if (_db->failed)
     {
@@ -891,28 +1015,39 @@ d_internal_mariadb_ready(
         _db->failed = NULL;
     }
 
+    // statements finalized while a run held the connection
+    d_internal_mariadb_close_retired(_db);
+
     // the mode already off, as the layer connects
     if (!_db->multi_statements)
     {
         return 0;
     }
 
-    if (mysql_set_server_option(_db->native,
-                                MYSQL_OPTION_MULTI_STATEMENTS_OFF) != 0)
+    const int result = (mysql_set_server_option(
+                            _db->native,
+                            MYSQL_OPTION_MULTI_STATEMENTS_OFF) == 0)
+                           ? 0
+                           : (int)mysql_errno(_db->native);
+
+    // a reply that reports no changes
+    d_internal_mariadb_replied(_db, false);
+
+    if (result == 0)
     {
-        return (int)mysql_errno(_db->native);
+        _db->multi_statements = false;
     }
 
-    _db->multi_statements = false;
-
-    return 0;
+    return result;
 }
 
 /*
 d_internal_mariadb_send
   A script that failed may have left the client's multi-statement mode on,
 so that its error would still read; it goes off first, before anything else
-runs. Then the statement, and every result it produces.
+runs. Then the statement, which takes the query attributes set for it, and
+every result it produces; the last result's end says whether the reply
+carried the session's changes.
 */
 int
 d_internal_mariadb_send(
@@ -936,21 +1071,30 @@ d_internal_mariadb_send(
         return D_DB_INVALID_ARGUMENT;
     }
 
-    const int ready = d_internal_mariadb_ready(_db);
+    int result = d_internal_mariadb_ready(_db);
 
-    // the connection as the layer's statements need it
-    if (ready != 0)
+    // the statement, then its results, on the connection as the layer's
+    // statements need it
+    if (result == 0)
     {
-        return ready;
+        result = (mysql_real_query(native, _sql, (unsigned long)_length) == 0)
+                     ? 0
+                     : (int)mysql_errno(native);
+
+        d_internal_mariadb_attributes_sent(_db);
     }
 
-    // the statement, then its results
-    if (mysql_real_query(native, _sql, (unsigned long)_length) != 0)
+    if (result == 0)
     {
-        return (int)mysql_errno(native);
+        result = d_internal_mariadb_read_results(native, _rows);
     }
 
-    return d_internal_mariadb_read_results(native, _rows);
+    d_internal_mariadb_replied(_db,
+                               ( (result == 0) &&
+                                 ( (mysql_field_count(native) == 0u) ||
+                                   (d_internal_mariadb_rows_end_ok(_db)) ) ));
+
+    return result;
 }
 
 /*

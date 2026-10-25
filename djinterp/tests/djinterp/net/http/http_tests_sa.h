@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/net/http/http_tests_sa.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.28
-*                                                            revised: 2026.09.28
+*                                                            revised: 2026.10.12
 *******************************************************************************/
 
 /*
@@ -30,8 +30,8 @@ TABLE OF CONTENTS
 #define DJINTERP_NET_HTTP_HTTP_TESTS_SA_H 1
 
 // djinterp
-#include "../../../../inc/djinterp/net/http/http.h"             // the module
-#include "../../../../inc/djinterp/test/c/test_standalone.h"  // asserts
+#include "../../../../inc/djinterp/net/http/http.h"  // the module
+#include "../net_tests_sa_assert.h"                  // asserts
 
 
 D_EXTERN_C_BEGIN
@@ -68,6 +68,7 @@ bool d_tests_sa_http_reasons(struct d_test_counter* _counter);
 bool d_tests_sa_http_syntax(struct d_test_counter* _counter);
 bool d_tests_sa_http_names(struct d_test_counter* _counter);
 bool d_tests_sa_http_errors(struct d_test_counter* _counter);
+bool d_tests_sa_http_errors_to_net(struct d_test_counter* _counter);
 
 // 2.2    HTTP/1.1 heads
 //------------------------------------------------------------------------------

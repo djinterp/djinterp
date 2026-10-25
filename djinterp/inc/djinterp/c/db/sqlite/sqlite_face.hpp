@@ -447,6 +447,46 @@ public:
     }
 #endif  // D_INTERNAL_DB_FACE_EXPECTED
 
+    int
+    open_cursor() D_NOEXCEPT
+    {
+        return d_sqlite_open_cursor(m_statement);
+    }
+
+    int
+    fetch_rows(
+        std::size_t _max,
+        rows&       _rows
+    ) D_NOEXCEPT
+    {
+        return d_sqlite_fetch_rows(m_statement, _max, _rows.out());
+    }
+
+#if D_INTERNAL_DB_FACE_EXPECTED
+    D_NODISCARD std::expected<rows, int>
+    fetch_rows(
+        std::size_t _max
+    ) D_NOEXCEPT
+    {
+        rows      value{};
+        const int result = d_sqlite_fetch_rows(m_statement, _max, value.out());
+
+        // the value, or the layer's result when it failed
+        if (result != 0)
+        {
+            return std::unexpected(result);
+        }
+
+        return value;
+    }
+#endif  // D_INTERNAL_DB_FACE_EXPECTED
+
+    int
+    close_cursor() D_NOEXCEPT
+    {
+        return d_sqlite_close_cursor(m_statement);
+    }
+
 private:
     D_DELETED_FN_MSG(sqlite_statement(const sqlite_statement&),
                      "a statement owns what SQLite prepared; move it")
@@ -656,6 +696,12 @@ public:
         return d_sqlite_supports(_feature);
     }
 
+    D_NODISCARD static int
+    library_threadsafe() D_NOEXCEPT
+    {
+        return d_sqlite_library_threadsafe();
+    }
+
     D_NODISCARD static const char*
     result_message(
         int _result
@@ -802,6 +848,73 @@ public:
     total_changes() const D_NOEXCEPT
     {
         return d_sqlite_total_changes(m_db);
+    }
+
+    int
+    load_extension(
+        string_arg _path,
+        string_arg _entry_point,
+        text&      _message
+    ) D_NOEXCEPT
+    {
+        return d_sqlite_load_extension(m_db,
+                                       _path.c_str(),
+                                       _entry_point.c_str(),
+                                       _message.out());
+    }
+
+    int
+    load_extension(
+        string_arg   _path,
+        string_arg   _entry_point,
+        std::string& _message
+    )
+    {
+        text      text_value;
+        const int result = d_sqlite_load_extension(m_db,
+                                                   _path.c_str(),
+                                                   _entry_point.c_str(),
+                                                   text_value.out());
+
+        _message = text_value.str();
+
+        return result;
+    }
+
+#if D_INTERNAL_DB_FACE_OPTIONAL
+    int
+    load_extension(
+        string_arg                  _path,
+        string_arg                  _entry_point,
+        std::optional<std::string>& _message
+    )
+    {
+        text      text_value;
+        const int result = d_sqlite_load_extension(m_db,
+                                                   _path.c_str(),
+                                                   _entry_point.c_str(),
+                                                   text_value.out());
+
+        // the text; nothing for SQL NULL, and for a failure
+        if (text_value.is_null())
+        {
+            _message.reset();
+        }
+        else
+        {
+            _message = text_value.str();
+        }
+
+        return result;
+    }
+#endif  // D_INTERNAL_DB_FACE_OPTIONAL
+
+    int
+    enable_load_extension(
+        bool _enabled
+    ) D_NOEXCEPT
+    {
+        return d_sqlite_enable_load_extension(m_db, _enabled);
     }
 
     D_NODISCARD const char*
@@ -1528,6 +1641,31 @@ public:
     ) D_NOEXCEPT
     {
         return d_sqlite_is_database_file(_path.c_str());
+    }
+
+    int
+    serialize(
+        string_arg   _schema,
+        void*&       _bytes,
+        std::size_t& _size
+    ) D_NOEXCEPT
+    {
+        return d_sqlite_serialize(m_db, _schema.c_str(), &_bytes, &_size);
+    }
+
+    int
+    deserialize(
+        string_arg  _schema,
+        const void* _bytes,
+        std::size_t _size,
+        bool        _read_only
+    ) D_NOEXCEPT
+    {
+        return d_sqlite_deserialize(m_db,
+                                    _schema.c_str(),
+                                    _bytes,
+                                    _size,
+                                    _read_only);
     }
 
     // 1.2.1.7

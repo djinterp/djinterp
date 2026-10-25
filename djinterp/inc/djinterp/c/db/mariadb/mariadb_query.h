@@ -40,12 +40,16 @@
 * A string column counts as binary by its character set, `binary`. TINYTEXT,
 * MEDIUMTEXT and LONGTEXT, and their BLOBs, are named so. MySQL's JSON is a
 * type of its own; MariaDB's JSON is a LONGTEXT, and arrives as TEXT.
+*   ATTRIBUTES. MySQL from 8.0.23 takes attributes with a query -- names and
+* values beside its text, which the server's query_attributes component
+* reads with mysql_query_attribute_string() -- set here for the next query
+* the connection sends.
 *
 *
 * path:      /inc/djinterp/c/db/mariadb/mariadb_query.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -58,6 +62,9 @@ TABLE OF CONTENTS
     3.  Single values
     4.  Rows
     5.  Quoting
+2.  QUERY ATTRIBUTES
+    ----------------
+    1.  Setting and clearing
 */
 
 #ifndef DJINTERP_C_DB_MARIADB_MARIADB_QUERY_H
@@ -71,9 +78,10 @@ TABLE OF CONTENTS
                                                  // floor; int64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, which dstdint.h
-// declares only where the build can spell one. Below it -- ISO strict
-// C++98 on a 32-bit target -- the header compiles to nothing (the owner's
-// ruling of 2026.10.03 on round 3's question 1, (a)).
+// declares only where the build can spell one. Below it -- ISO strict C++98
+// wherever int64_t is `long long`: a 32-bit target, 64-bit Windows or macOS --
+// the header compiles to nothing (the owner's ruling of 2026.10.03 on round 3's
+// question 1, (a)).
 #if defined(INT64_MAX)
 
 
@@ -211,6 +219,43 @@ char*  d_mariadb_quote_identifier(const char* _name) D_NOTHROW;
  */
 char*  d_mariadb_quote_literal(struct d_mariadb* _db,
                                const char*       _text) D_NOTHROW;
+
+
+//==============================================================================
+// 2.  QUERY ATTRIBUTES
+//==============================================================================
+
+
+// 2.1    Setting and clearing
+//------------------------------------------------------------------------------
+/**
+ * @brief Sets an attribute the next query the connection sends carries, as
+ *        mysql_bind_param does; setting a name again replaces its value.
+ *
+ * @note The next query is whatever the layer sends next, its own among them
+ *       -- d_mariadb_has_table asks one, d_mariadb_set_charset sends SET
+ *       NAMES -- and it drops every attribute set, whether it succeeds or
+ *       not. A prepared statement's execution neither carries nor drops
+ *       them; a reset, a change of user and a close drop them. A query a
+ *       program sends with the client's own calls carries them too, the
+ *       layer keeping its copies until its own next query.
+ *
+ * @param[in] _db     the connection.
+ * @param[in] _name   the attribute's name; not empty.
+ * @param[in] _value  its value, sent as a string.
+ * @return 0; the client's error number, or CR_OUT_OF_MEMORY (2008), for a
+ *         failure, after which the attributes are as they were;
+ *         D_DB_UNSUPPORTED where the server is not MySQL 8.0.23 or later, or
+ *         the client has no query attributes (Connector/C, or libmysqlclient
+ *         before 8.0.23); D_DB_INVALID_ARGUMENT for a `NULL` argument, an
+ *         empty name, or a value longer than the client's lengths carry.
+ */
+int    d_mariadb_set_query_attribute(struct d_mariadb* _db,
+                                     const char*       _name,
+                                     const char*       _value) D_NOTHROW;
+// drops the attributes set and not yet sent: 0, whether any were, and
+// wherever there can be none; D_DB_INVALID_ARGUMENT for a NULL handle
+int    d_mariadb_clear_query_attributes(struct d_mariadb* _db) D_NOTHROW;
 
 
 D_EXTERN_C_END

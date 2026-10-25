@@ -25,7 +25,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 #ifndef DJINTERP_FILE_TESTS_H_
@@ -49,6 +49,26 @@
 //   No tree holds that bridge, so the suite's own stand-in gives the same
 // names until one does (file_tests_dtest.h).
 #include "./file_tests_dtest.h"
+
+// T_PRINT, T_SINK, T_COPY_TO, T_FALSE, T_MISSING_STATUS_OK
+//   the shell commands the pipe tests run, in the shell d_pipe_open uses:
+// /bin/sh on POSIX, cmd.exe on Windows, whose more stands in for cat (and
+// may end the text with a line break) and which reports a missing command as
+// 1
+#if defined(_WIN32)
+    #define T_PRINT(_text)               "<nul set /p =" _text
+    #define T_SINK                       "more > nul"
+    #define T_COPY_TO(_file)             "more > " _file
+    #define T_FALSE                      "exit 1"
+    #define T_MISSING_STATUS_OK(_status) ((_status) != 0)
+#else
+    #define T_PRINT(_text)               "printf " _text
+    #define T_SINK                       "cat > /dev/null"
+    #define T_COPY_TO(_file)             "cat > " _file
+    #define T_FALSE                      "false"
+    #define T_MISSING_STATUS_OK(_status) ((_status) == 127)
+#endif
+
 
 
 #if defined(__cplusplus)

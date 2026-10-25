@@ -21,7 +21,7 @@
 * path:      /src/djinterp/c/filesys/file_dir.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/filesys/file_dir.h"  // corresponding header
 // std
@@ -31,9 +31,15 @@
 #include <stddef.h>  // NULL, size_t
 #include <stdlib.h>  // free, realpath
 #include <string.h>  // memcpy, memmove, memset, strlen
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)
+    #include <fcntl.h>     // openat, O_DIRECTORY, O_NOFOLLOW, O_CLOEXEC
+    #include <sys/stat.h>  // fstatat, S_ISLNK
+    #include <unistd.h>    // unlinkat, close
+#endif
 // djinterp
 #include "../../../../inc/djinterp/c/filesys/file_common.h"  // D_INTERNAL_FILE_*, d_internal_file_alloc
 #include "../../../../inc/djinterp/c/filesys/file_path.h"    // d_path_root_length
+#include "../../../../inc/djinterp/c/filesys/file_ops.h"     // d_file_unlink
 #include "../../../../inc/djinterp/c/filesys/file_stat.h"    // d_file_stat_nofollow64, d_dir_exists
 #include "../../../../inc/djinterp/config/c/filesys/cfg_file_dir.h"  // D_INTERNAL_FILE_DIR_*
 // re_std
@@ -127,20 +133,71 @@ D_INTERNAL_FILE_ASSERT_LARGE_FILES;
 struct d_dir_t
 {
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
-    HANDLE              handle;                    // FindFirstFile handle
-    D_INTERNAL_DIR_FIND find_data;                 // the entry Win32 hands back
-    int                 pending;                   // 1 when find_data is unread
-    int                 empty;                     // 1 when nothing matched
-    char                pattern[D_FILE_PATH_MAX];  // for rewind
+    HANDLE              handle;        // FindFirstFile handle
+    HANDLE              pin;           // the directory, held (d_dir_open_at)
+    D_INTERNAL_DIR_FIND find_data;     // the entry Win32 hands back
+    int                 pending;       // 1 when find_data is unread
+    int                 empty;         // 1 when nothing matched
+    char*               pattern;       // for rewind: the path and "\\*"
+    size_t              pattern_room;  // pattern's bytes
 #elif D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)
-    DIR*                handle;                    // the platform's stream
+    DIR*                handle;
+    int                 fd;            // handle's descriptor, for the *at calls                    // the platform's stream
 #else
     void*               handle;                    // none: no directory API
 #endif
-    struct d_dirent64_t entry;                     // what d_dir_read64 returns
-    struct d_dirent32_t entry32;                   // what d_dir_read32 returns
-    char                path[D_FILE_PATH_MAX];     // for stat and the search
+    struct d_dirent64_t entry;         // what d_dir_read64 returns
+    struct d_dirent32_t entry32;       // what d_dir_read32 returns
+    char*               path;          // for stat and the search
+    char                text[];        // path, then the pattern: as long as
+                                       // they are, not D_FILE_PATH_MAX
 };
+
+
+/**
+ * @brief A handle for a directory at `_path`, its text sized to the path.
+ *
+ * @param[in] _path    the path, `_length` bytes and a terminator.
+ * @param[in] _length  its length.
+ * @return the handle, zeroed but for its path (and, on Windows, its pattern's
+ *         room and an empty hold), or `NULL` with errno set.
+ */
+static struct d_dir_t*
+d_internal_dir_new(
+    const char* _path,
+    size_t      _length
+)
+{
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    // the path, then the pattern: the path, a separator, "*", a terminator
+    const size_t room = (_length + 1) + (_length + 3);
+#else
+    const size_t room = _length + 1;
+#endif
+    struct d_dir_t* const dir =
+        (struct d_dir_t*)d_internal_file_alloc(sizeof(struct d_dir_t) + room);
+
+    // d_internal_file_alloc has reported the failure
+    if (!dir)
+    {
+        return NULL;
+    }
+
+    memset(dir,
+           0,
+           sizeof(*dir));
+    dir->path = dir->text;
+    memcpy(dir->path,
+           _path,
+           _length + 1);
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    dir->pin          = INVALID_HANDLE_VALUE;
+    dir->pattern      = dir->text + _length + 1;
+    dir->pattern_room = _length + 3;
+#endif
+
+    return dir;
+}
 
 /*
 d_internal_dir_is_sep
@@ -277,7 +334,8 @@ d_internal_dir_join(
 d_internal_dir_type_by_stat
   The expensive path, taken only when the kernel would not say: one stat per
 entry, which on a network filesystem is one round trip per entry (see
-D_CFG_FILE_DIR_FILL_TYPE). lstat rather than stat, so a dangling symlink
+D_CFG_FILE_DIR_FILL_TYPE). fstatat on the handle's descriptor, so the entry is
+the one in the directory read; AT_SYMLINK_NOFOLLOW, so a dangling symlink
 reports DT_LNK instead of vanishing. An entry that cannot be described is
 DT_UNKNOWN.
 */
@@ -287,23 +345,16 @@ d_internal_dir_type_by_stat(
     const char*     _name
 )
 {
-    char full[D_FILE_PATH_MAX];
+    struct stat st;
 
-    // an entry whose full path cannot be built cannot be described
-    if (!d_internal_dir_join(full,
-                             sizeof(full),
-                             _dir->path,
-                             _name))
-    {
-        return DT_UNKNOWN;
-    }
-
-    struct d_stat64_t st;
-
-    // lstat: describe the link itself, so a dangling one is still DT_LNK
-    // rather than an entry that appears not to exist
-    if (d_file_stat_nofollow64(full,
-                               &st) != 0)
+    // the entry looked up in the directory read, not along a path built
+    // afresh: nothing renamed meanwhile can answer for it, and no path is
+    // too long to ask about. Without following it, so a dangling link is
+    // still DT_LNK rather than an entry that appears not to exist
+    if (fstatat(_dir->fd,
+                _name,
+                &st,
+                AT_SYMLINK_NOFOLLOW) != 0)
     {
         return DT_UNKNOWN;
     }
@@ -781,7 +832,7 @@ d_internal_dir_start(
 {
     // every entry of the directory, as a pattern the kernel reads
     if (!d_internal_dir_join(_dir->pattern,
-                             sizeof(_dir->pattern),
+                             _dir->pattern_room,
                              _dir->path,
                              "*"))
     {
@@ -850,9 +901,9 @@ d_internal_dir_win32_type(
  * @param[in]  _dstsize  capacity of `_dst`, in bytes.
  * @param[in]  _src      the name the search handed back.
  * @return D_INTERNAL_DIR_TAKEN, or D_INTERNAL_DIR_SKIPPED for a name that
- *         cannot be reported -- longer than D_FILE_NAME_MAX in UTF-8, or one
- *         with a lone surrogate, which Windows allows in a name and UTF-8
- *         cannot carry -- after a notice saying which.
+ *         cannot be reported -- longer than D_FILE_NAME_MAX in UTF-8 -- after a
+ *         notice saying so. A lone surrogate is no longer such a name: it
+ *         comes back in WTF-8 (d_internal_file_from_native).
  *
  * errno is the caller's again afterwards: a skipped name is no failure of the
  * read, which goes on to the next entry.
@@ -1099,9 +1150,32 @@ d_internal_dir_start(
     struct d_dir_t* _dir
 )
 {
-    _dir->handle = opendir(_dir->path);
+    // open, then fdopendir, rather than opendir: the descriptor is kept for
+    // the directory-relative calls, as dirfd is not everywhere to be had
+    const int fd = open(_dir->path,
+                        O_RDONLY | O_DIRECTORY | O_CLOEXEC);
 
-    return (_dir->handle != NULL) ? 0 : -1;
+    if (fd < 0)
+    {
+        return -1;
+    }
+
+    _dir->handle = fdopendir(fd);
+
+    // fdopendir leaves the descriptor to the caller when it fails
+    if (!_dir->handle)
+    {
+        const int code = errno;
+
+        (void)close(fd);
+        errno = code;
+
+        return -1;
+    }
+
+    _dir->fd = fd;
+
+    return 0;
 }
 
 /*
@@ -1924,21 +1998,15 @@ d_dir_open(
                              NULL);
     }
 
-    struct d_dir_t* const dir =
-        (struct d_dir_t*)d_internal_file_alloc(sizeof(struct d_dir_t));
+    struct d_dir_t* const dir = d_internal_dir_new(_path,
+                                                   length);
 
-    // d_internal_file_alloc has already reported the failure
+
+    // d_internal_dir_new has reported the failure
     if (!dir)
     {
         return NULL;
     }
-
-    memset(dir,
-           0,
-           sizeof(*dir));
-    memcpy(dir->path,
-           _path,
-           length + 1);
 
     // a directory that cannot open releases the handle, keeping the
     // platform's errno across the release
@@ -2209,6 +2277,15 @@ d_dir_close(
 
     const int result = d_internal_dir_release(_dir);
 
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    // the hold d_dir_open_at took on the directory itself
+    if ( (_dir->pin != NULL) &&
+         (_dir->pin != INVALID_HANDLE_VALUE) )
+    {
+        (void)CloseHandle(_dir->pin);
+    }
+#endif
+
     // release the handle whatever the platform said: it is not usable either
     // way, and leaking it would be the worse failure
     d_internal_file_free(_dir);
@@ -2393,4 +2470,798 @@ d_path_resolve(
     d_internal_file_path_release(&found_held);
 
     return result;
+}
+
+
+//==============================================================================
+// directory-relative operations
+//==============================================================================
+
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    // D_INTERNAL_DIR_HOLD
+    //   macro: CreateFile in the build's text, to hold a directory open.
+    #if (D_INTERNAL_FILE_WIDE == 1)
+        #define D_INTERNAL_DIR_HOLD CreateFileW
+    #else
+        #define D_INTERNAL_DIR_HOLD CreateFileA
+    #endif  // D_INTERNAL_FILE_WIDE == 1
+#endif
+
+/**
+ * @brief Whether `_name` is one entry's name: not empty, not "." or "..", and
+ *        without a separator.
+ *
+ * @param[in] _name  the name.
+ * @return 1 for a name, 0 otherwise.
+ */
+static int
+d_internal_dir_is_name(
+    const char* _name
+)
+{
+    // nothing, or a step up or nowhere, names no entry
+    if ( (_name[0] == '\0') ||
+         (d_internal_dir_is_dots(_name)) )
+    {
+        return 0;
+    }
+
+    // a separator would make it a path
+    for (const char* at = _name; *at != '\0'; ++at)
+    {
+        if (d_internal_dir_is_sep(*at))
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+#if ( D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX) ||                                     \
+      D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32) )
+
+/**
+ * @brief The path of an entry of an open directory, in a block the caller
+ *        frees: the directory's path, a separator where it lacks one, the name.
+ *
+ * @param[in]  _dir     the open directory.
+ * @param[in]  _name    the entry's name.
+ * @param[out] _length  receives the path's length.
+ * @return the path, or `NULL` with errno set.
+ */
+static char*
+d_internal_dir_compose(
+    const struct d_dir_t* _dir,
+    const char*           _name,
+    size_t*               _length
+)
+{
+    const size_t room = strlen(_dir->path) + strlen(_name) + 2;
+    char* const  text = (char*)d_internal_file_alloc(room);
+
+    // d_internal_file_alloc has reported the failure
+    if (!text)
+    {
+        return NULL;
+    }
+
+    // the room is the path, a separator, the name and a terminator
+    if (!d_internal_dir_join(text,
+                             room,
+                             _dir->path,
+                             _name))
+    {
+        d_internal_file_free(text);
+        D_INTERNAL_FILE_SET_ERR(ENAMETOOLONG);
+
+        return NULL;
+    }
+
+    *_length = strlen(text);
+
+    return text;
+}
+
+#endif  // D_CFG_FILE_HAS_POSIX || D_CFG_FILE_HAS_WIN32
+
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)
+
+/**
+ * @brief A handle on a directory descriptor, which it takes over.
+ *
+ * @param[in] _fd      a descriptor on a directory, closed on failure.
+ * @param[in] _path    the path the handle reports.
+ * @param[in] _length  its length.
+ * @return the handle, or `NULL` with errno set.
+ */
+static struct d_dir_t*
+d_internal_dir_adopt(
+    int         _fd,
+    const char* _path,
+    size_t      _length
+)
+{
+    DIR* const stream = fdopendir(_fd);
+
+    // fdopendir leaves the descriptor to the caller when it fails
+    if (!stream)
+    {
+        const int code = errno;
+
+        (void)close(_fd);
+        errno = code;
+
+        return NULL;
+    }
+
+    struct d_dir_t* const dir = d_internal_dir_new(_path,
+                                                   _length);
+
+    // d_internal_dir_new has reported the failure
+    if (!dir)
+    {
+        const int code = errno;
+
+        (void)closedir(stream);
+        errno = code;
+
+        return NULL;
+    }
+
+    dir->handle = stream;
+    dir->fd     = _fd;
+
+    return dir;
+}
+
+/**
+ * @brief Opens a directory without following a link at its last component:
+ *        relative to `_parent`'s descriptor, or to the working directory.
+ *
+ * @param[in] _at      the directory descriptor, or AT_FDCWD.
+ * @param[in] _name    what to open there.
+ * @param[in] _path    the path the handle reports.
+ * @param[in] _length  its length.
+ * @return the handle, or `NULL` with errno set: ELOOP for a link (EMLINK, as
+ *         FreeBSD names it, is ELOOP here), ENOTDIR for anything else that
+ *         is no directory.
+ */
+static struct d_dir_t*
+d_internal_dir_open_held(
+    int         _at,
+    const char* _name,
+    const char* _path,
+    size_t      _length
+)
+{
+#if defined(O_NOFOLLOW)
+    const int fd = openat(_at,
+                          _name,
+                          O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+#else
+    // no O_NOFOLLOW at this level (Darwin hides it at a strict POSIX one):
+    // the entry is looked at without following it, and what opens must be
+    // the very directory looked at, or it was swapped in between
+    struct stat seen;
+
+    if (fstatat(_at,
+                _name,
+                &seen,
+                AT_SYMLINK_NOFOLLOW) != 0)
+    {
+        return NULL;
+    }
+
+    if (S_ISLNK(seen.st_mode))
+    {
+        errno = ELOOP;
+
+        return NULL;
+    }
+
+    const int fd = openat(_at,
+                          _name,
+                          O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+
+    if (fd >= 0)
+    {
+        struct stat opened;
+
+        if ( (fstat(fd,
+                    &opened) != 0)            ||
+             (opened.st_dev != seen.st_dev) ||
+             (opened.st_ino != seen.st_ino) )
+        {
+            (void)close(fd);
+            errno = ELOOP;
+
+            return NULL;
+        }
+    }
+#endif
+
+    // a link is refused at the open itself: nothing is followed. Linux says
+    // ENOTDIR for one when O_DIRECTORY is asked too, and FreeBSD EMLINK, so a
+    // refusal is looked at once more -- only to name it, ELOOP for a link
+    if (fd < 0)
+    {
+        struct stat st;
+        const int   code = errno;
+
+        if ( ( (code == ENOTDIR) ||
+               (code == EMLINK) ) &&
+             (fstatat(_at,
+                      _name,
+                      &st,
+                      AT_SYMLINK_NOFOLLOW) == 0) &&
+             (S_ISLNK(st.st_mode)) )
+        {
+            errno = ELOOP;
+        }
+        else
+        {
+            errno = (code == EMLINK) ? ELOOP : code;
+        }
+
+        return NULL;
+    }
+
+    return d_internal_dir_adopt(fd,
+                                _path,
+                                _length);
+}
+
+#elif D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+
+/**
+ * @brief Opens a directory without following a link at its last component,
+ *        and holds it -- open without FILE_SHARE_DELETE -- so that nobody can
+ *        rename it, or replace it with a link, while the handle lives: the
+ *        path of every entry beneath then names what was read.
+ *
+ * @param[in] _path    the directory's path.
+ * @param[in] _length  its length.
+ * @return the handle, or `NULL` with errno set: ELOOP for a link or a
+ *         junction, ENOTDIR for anything else that is no directory.
+ */
+static struct d_dir_t*
+d_internal_dir_open_held(
+    const char* _path,
+    size_t      _length
+)
+{
+    struct d_internal_file_native        held   = {0};
+    const d_internal_file_nchar_t* const native =
+        d_internal_file_native_of(&held,
+                                  _path);
+
+    // the conversion has set errno
+    if (!native)
+    {
+        return NULL;
+    }
+
+    HANDLE const pin   = D_INTERNAL_DIR_HOLD(native,
+                                             FILE_READ_ATTRIBUTES,
+                                             FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                             NULL,
+                                             OPEN_EXISTING,
+                                             FILE_FLAG_BACKUP_SEMANTICS |
+                                             FILE_FLAG_OPEN_REPARSE_POINT,
+                                             NULL);
+    const DWORD  error = (pin == INVALID_HANDLE_VALUE) ? GetLastError() : 0;
+
+    d_internal_file_native_release(&held);
+
+    // nothing to hold
+    if (pin == INVALID_HANDLE_VALUE)
+    {
+        D_INTERNAL_FILE_SET_ERR(d_internal_file_errno_win32(error));
+
+        return NULL;
+    }
+
+    FILE_ATTRIBUTE_TAG_INFO tag  = {0};
+    int                     code = 0;
+
+    // what was opened, asked of the open handle itself
+    if (!GetFileInformationByHandleEx(pin,
+                                      FileAttributeTagInfo,
+                                      &tag,
+                                      (DWORD)sizeof(tag)))
+    {
+        code = d_internal_file_errno_win32(GetLastError());
+    }
+    else if ( ((tag.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) &&
+              ( (tag.ReparseTag == 0) ||
+                (d_internal_file_tag_is_link_win32(tag.ReparseTag)) ) )
+    {
+        code = ELOOP;
+    }
+    else if ((tag.FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+    {
+        code = ENOTDIR;
+    }
+
+    struct d_dir_t* const dir = (code == 0) ? d_internal_dir_new(_path,
+                                                                 _length)
+                                            : NULL;
+
+    // a link, no directory, or no handle to make
+    if (!dir)
+    {
+        (void)CloseHandle(pin);
+
+        if (code != 0)
+        {
+            D_INTERNAL_FILE_SET_ERR(code);
+        }
+
+        return NULL;
+    }
+
+    // the search, under the hold
+    if (d_internal_dir_start(dir) != 0)
+    {
+        const int saved = errno;
+
+        (void)CloseHandle(pin);
+        d_internal_file_free(dir);
+        errno = saved;
+
+        return NULL;
+    }
+
+    dir->pin = pin;
+
+    return dir;
+}
+
+#endif  // D_CFG_FILE_HAS_POSIX
+
+/*
+d_dir_open_at
+  POSIX opens the entry relative to the parent's descriptor with O_NOFOLLOW,
+so the name is looked up in the directory already open, whatever has been
+renamed since. Windows has no such call in Win32; the parent's hold keeps its
+path naming it, and the child is held in turn and examined through the hold.
+*/
+struct d_dir_t*
+d_dir_open_at(
+    struct d_dir_t* _parent,
+    const char*     _name
+)
+{
+    D_INTERNAL_FILE_REQUIRE( ( (_parent != NULL) &&
+                               (_name != NULL) ),
+                            EINVAL,
+                            "d_dir_open_at",
+                            NULL,
+                            "handle or name is NULL",
+                            NULL);
+
+    // a name, not a path
+    if (!d_internal_dir_is_name(_name))
+    {
+        D_INTERNAL_FILE_FAIL(EINVAL,
+                             "d_dir_open_at",
+                             _name,
+                             "not one entry's name",
+                             NULL);
+    }
+
+#if ( D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX) ||                                     \
+      D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32) )
+    size_t     length = 0;
+    char* const path  = d_internal_dir_compose(_parent,
+                                               _name,
+                                               &length);
+
+    // d_internal_dir_compose has set errno
+    if (!path)
+    {
+        return NULL;
+    }
+
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)
+    struct d_dir_t* const dir = d_internal_dir_open_held(_parent->fd,
+                                                         _name,
+                                                         path,
+                                                         length);
+#else
+    struct d_dir_t* const dir = d_internal_dir_open_held(path,
+                                                         length);
+#endif
+    const int saved = errno;
+
+    d_internal_file_free(path);
+    errno = saved;
+
+    return dir;
+#else
+    D_INTERNAL_FILE_FAIL(ENOSYS,
+                         "d_dir_open_at",
+                         _name,
+                         "this backend has no directories",
+                         NULL);
+#endif
+}
+
+/*
+d_dir_remove_at
+  unlinkat relative to the open directory on POSIX; on Windows, the entry's
+path under the directory's hold.
+*/
+int
+d_dir_remove_at(
+    struct d_dir_t* _dir,
+    const char*     _name,
+    int             _flags
+)
+{
+    D_INTERNAL_FILE_REQUIRE( ( (_dir != NULL) &&
+                               (_name != NULL) ),
+                            EINVAL,
+                            "d_dir_remove_at",
+                            NULL,
+                            "handle or name is NULL",
+                            -1);
+
+    // a name, not a path
+    if (!d_internal_dir_is_name(_name))
+    {
+        D_INTERNAL_FILE_FAIL(EINVAL,
+                             "d_dir_remove_at",
+                             _name,
+                             "not one entry's name",
+                             -1);
+    }
+
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)
+    return unlinkat(_dir->fd,
+                    _name,
+                    ((_flags & D_DIR_REMOVE_DIRECTORY) != 0) ? AT_REMOVEDIR
+                                                             : 0);
+#elif D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    size_t     length = 0;
+    char* const path  = d_internal_dir_compose(_dir,
+                                               _name,
+                                               &length);
+
+    // d_internal_dir_compose has set errno
+    if (!path)
+    {
+        return -1;
+    }
+
+    (void)length;
+
+    const int result = ((_flags & D_DIR_REMOVE_DIRECTORY) != 0)
+                           ? d_internal_dir_rmdir(path)
+                           : d_file_unlink(path);
+    const int saved  = errno;
+
+    d_internal_file_free(path);
+    errno = saved;
+
+    return result;
+#else
+    (void)_flags;
+
+    D_INTERNAL_FILE_FAIL(ENOSYS,
+                         "d_dir_remove_at",
+                         _name,
+                         "this backend has no directories",
+                         -1);
+#endif
+}
+
+#if ( D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX) ||                                     \
+      D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32) )
+
+// d_internal_dir_frame
+//   struct: one directory on the path d_dir_remove_all has opened down to,
+// and the name its parent knows it by (none for the root).
+struct d_internal_dir_frame
+{
+    struct d_dir_t* dir;
+    char*           name;
+};
+
+/**
+ * @brief Closes every directory a removal still holds, and frees the stack.
+ *
+ * @param[in] _stack  the frames.
+ * @param[in] _depth  how many are open.
+ */
+static void
+d_internal_dir_unwind(
+    struct d_internal_dir_frame* _stack,
+    size_t                       _depth
+)
+{
+    while (_depth > 0)
+    {
+        --_depth;
+        (void)d_dir_close(_stack[_depth].dir);
+        d_internal_file_free(_stack[_depth].name);
+    }
+
+    d_internal_file_free(_stack);
+
+    return;
+}
+
+/**
+ * @brief Takes the entry it was handed: a directory is opened (with
+ *        d_dir_open_at, which refuses a link) and pushed, anything else
+ *        removed as itself.
+ *
+ * @param[in,out] _stack  the frames; grown as needed.
+ * @param[in,out] _depth  how many are open.
+ * @param[in,out] _room   how many the stack has room for.
+ * @param[in]     _name   the entry's name.
+ * @param[in]     _type   its DT_* type, DT_UNKNOWN where the reader could not
+ *                        tell.
+ * @return 0, or -1 with errno set.
+ */
+static int
+d_internal_dir_take_entry(
+    struct d_internal_dir_frame** _stack,
+    size_t*                       _depth,
+    size_t*                       _room,
+    const char*                   _name,
+    uint8_t                       _type
+)
+{
+    struct d_dir_t* const top = (*_stack)[*_depth - 1].dir;
+
+    // a directory, or what may be one: opened without following a link
+    if ( (_type == DT_DIR) ||
+         (_type == DT_UNKNOWN) )
+    {
+        struct d_dir_t* const child = d_dir_open_at(top,
+                                                    _name);
+
+        if (child)
+        {
+            const size_t length = strlen(_name);
+            char* const  name   = (char*)d_internal_file_alloc(length + 1);
+
+            // room for one more frame
+            if ( (name) &&
+                 (*_depth == *_room) )
+            {
+                struct d_internal_dir_frame* const grown =
+                    (struct d_internal_dir_frame*)d_internal_file_realloc(
+                        *_stack,
+                        (*_room * 2) * sizeof(**_stack));
+
+                if (!grown)
+                {
+                    d_internal_file_free(name);
+                    (void)d_dir_close(child);
+
+                    return -1;
+                }
+
+                *_stack = grown;
+                *_room *= 2;
+            }
+
+            // d_internal_file_alloc has reported the failure
+            if (!name)
+            {
+                (void)d_dir_close(child);
+
+                return -1;
+            }
+
+            memcpy(name,
+                   _name,
+                   length + 1);
+            (*_stack)[*_depth].dir  = child;
+            (*_stack)[*_depth].name = name;
+            ++*_depth;
+
+            return 0;
+        }
+
+        // gone already, which is what was asked
+        if (errno == ENOENT)
+        {
+            return 0;
+        }
+
+        // a failure other than "not a directory after all"
+        if ( (errno != ELOOP) &&
+             (errno != ENOTDIR) )
+        {
+            return -1;
+        }
+    }
+
+    // a file, a link, or a directory swapped for one: removed as itself
+    if ( (d_dir_remove_at(top,
+                          _name,
+                          0) != 0) &&
+         (errno != ENOENT) )
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
+#endif  // D_CFG_FILE_HAS_POSIX || D_CFG_FILE_HAS_WIN32
+
+/*
+d_dir_remove_all
+  Iterative, so that depth costs heap rather than stack: a stack of the
+directories open from the root down, each opened with d_dir_open_at, which
+refuses to follow a link. An entry is removed relative to the directory it was
+read from (d_dir_remove_at), never by a path built afresh, so no link swapped
+in between can send the removal elsewhere -- the race std::filesystem's own
+remove_all had (CVE-2022-21658). A directory is removed once read to its end,
+after its handle is closed. One handle is open per level of depth.
+*/
+int
+d_dir_remove_all(
+    const char* _path
+)
+{
+    D_INTERNAL_FILE_REQUIRE(_path != NULL,
+                            EINVAL,
+                            "d_dir_remove_all",
+                            NULL,
+                            "path is NULL",
+                            -1);
+
+    const size_t length = strlen(_path);
+
+    // an empty path names nothing to remove
+    if (length == 0)
+    {
+        D_INTERNAL_FILE_FAIL(ENOENT,
+                             "d_dir_remove_all",
+                             _path,
+                             "path is empty",
+                             -1);
+    }
+
+#if ( D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX) ||                                     \
+      D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32) )
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)
+    struct d_dir_t* const root = d_internal_dir_open_held(AT_FDCWD,
+                                                          _path,
+                                                          _path,
+                                                          length);
+#else
+    struct d_dir_t* const root = d_internal_dir_open_held(_path,
+                                                          length);
+#endif
+
+    // the root is no directory: removed as itself, never what a link names
+    if (!root)
+    {
+        if (errno == ENOENT)
+        {
+            return 0;
+        }
+
+        if ( (errno != ELOOP) &&
+             (errno != ENOTDIR) )
+        {
+            return -1;
+        }
+
+        return ( (d_file_unlink(_path) == 0) ||
+                 (errno == ENOENT) ) ? 0
+                                     : -1;
+    }
+
+    size_t                       room  = 16;
+    size_t                       depth = 1;
+    struct d_internal_dir_frame* stack =
+        (struct d_internal_dir_frame*)d_internal_file_alloc(room *
+                                                            sizeof(*stack));
+
+    // d_internal_file_alloc has reported the failure
+    if (!stack)
+    {
+        const int saved = errno;
+
+        (void)d_dir_close(root);
+        errno = saved;
+
+        return -1;
+    }
+
+    stack[0].dir  = root;
+    stack[0].name = NULL;
+
+    while (depth > 0)
+    {
+        struct d_dir_t* const top  = stack[depth - 1].dir;
+        uint8_t               type = DT_UNKNOWN;
+
+        errno = 0;
+
+        const char* const name = d_dir_read_name(top,
+                                                 &type);
+
+        // an entry: taken, unless it is "." or ".."
+        if (name)
+        {
+            if ( (!d_internal_dir_is_dots(name)) &&
+                 (d_internal_dir_take_entry(&stack,
+                                            &depth,
+                                            &room,
+                                            name,
+                                            type) != 0) )
+            {
+                break;
+            }
+
+            continue;
+        }
+
+        // a failed read
+        if (errno != 0)
+        {
+            break;
+        }
+
+        // the end: the directory is closed, then removed from its parent
+        char* const frame_name = stack[depth - 1].name;
+        int         result     = d_dir_close(top);
+
+        --depth;
+
+        if (result == 0)
+        {
+            result = (depth > 0) ? d_dir_remove_at(stack[depth - 1].dir,
+                                                   frame_name,
+                                                   D_DIR_REMOVE_DIRECTORY)
+                                 : d_internal_dir_rmdir(_path);
+
+            if ( (result != 0) &&
+                 (errno == ENOENT) )
+            {
+                result = 0;
+            }
+        }
+
+        d_internal_file_free(frame_name);
+
+        // the removal failed: what is still open is closed below
+        if (result != 0)
+        {
+            break;
+        }
+    }
+
+    // a failure leaves frames open
+    if (depth > 0)
+    {
+        const int saved = (errno != 0) ? errno : EIO;
+
+        d_internal_dir_unwind(stack,
+                              depth);
+        errno = saved;
+
+        return -1;
+    }
+
+    d_internal_file_free(stack);
+
+    return 0;
+#else
+    D_INTERNAL_FILE_FAIL(ENOSYS,
+                         "d_dir_remove_all",
+                         _path,
+                         "this backend has no directories",
+                         -1);
+#endif
 }

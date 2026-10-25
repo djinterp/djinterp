@@ -17,7 +17,7 @@
 * path:      /tests/djinterp/c/filesys/file_tests_io.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 // std
@@ -498,7 +498,7 @@ d_fs_tests_io_fread_all_stream
 
 #if D_FILE_PIPE_IS_AVAILABLE
     dtest_test(_suite, "an unsized pipe reads correctly via the growth path");
-    file    = d_pipe_open("printf abcdef", "r");
+    file    = d_pipe_open(T_PRINT("abcdef"), "r");
     content = NULL;
     size    = 0;
 

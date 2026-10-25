@@ -15,9 +15,9 @@ SHEET="$TOP/sheets/banner.dss"
 TMP=${TMPDIR:-/tmp}/dawk_gate.$$
 mkdir -p "$TMP"
 SRCS="$S/dsymbol.c $S/dss.c $S/dnode.c $S/dmatch.c $S/dcascade.c $S/dschema.c \
-      $S/dtree.c $S/dfs.c $S/dedit.c $S/drepair.c $S/daudit.c $S/dsettings.c \
-      $S/dgit.c $S/dline.c $S/dbanner.c $S/dguard.c $S/dinclude.c \
-      $S/dsection.c $S/dlayout.c $S/dproperty.c $S/dcheck.c $S/ext/*.c \
+      $S/dtree.c $S/dedit.c $S/daudit.c $S/dsettings.c $S/dgit.c $S/dline.c \
+      $S/dbanner.c $S/dguard.c $S/dinclude.c $S/dsection.c $S/dlayout.c \
+      $S/dproperty.c $S/dcheck.c $S/ext/*.c \
       $TOP/src/djinterp/parse/source/*.c $TOP/src/djinterp/parse/lex/*.c \
       $TOP/src/djinterp/parse/lang/c/*.c $TOP/src/djinterp/parse/lang/cpp/*.c \
       $TOP/src/djinterp/parse/syntax/*.c $TOP/src/djinterp/parse/c/diagnostic.c \

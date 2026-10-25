@@ -23,7 +23,7 @@
 * path:      /inc/djinterp/env/net/ssl/env_ssl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 /*
@@ -51,6 +51,7 @@ TABLE OF CONTENTS
          3.  D_ENV_SSL_OPENSSL_HAS_CIPHERSUITES
          4.  D_ENV_SSL_OPENSSL_HAS_KEYLOG
          5.  D_ENV_SSL_OPENSSL_HAS_GET1_PEER
+         6.  D_ENV_SSL_OPENSSL_HAS_CIPHER_IANA
 4.  PLATFORM TRUST
     --------------
     1.  Trust store identifiers
@@ -85,8 +86,8 @@ TABLE OF CONTENTS
 //==============================================================================
 // TLS runs over a reliable, ordered byte stream -- in practice TCP, which
 // env_net.h already answers for. It is restated under the D_ENV_SSL_* name so
-// an SSL module reads one family. The kernel itself runs over any
-// d_ssl_transport, memory included, and needs none of this to build.
+// an SSL module reads one family. The kernel itself runs over any net.h
+// connection, an in-memory pipe included, and needs none of this to build.
 
 
 // 1.1    Stream transport
@@ -108,8 +109,8 @@ TABLE OF CONTENTS
 //==============================================================================
 // An engine is the derived module that binds the kernel to one TLS library.
 // Which libraries are installed is env_tls.h's question and is not asked a
-// second time: these forward its answers, so the C SSL modules and the C++
-// tls.hpp cannot disagree about what is present.
+// second time: these forward its answers, so the C SSL modules, and the C++
+// tls.hpp built on them, cannot disagree about what is present.
 
 
 // 2.1    Library availability
@@ -148,12 +149,16 @@ TABLE OF CONTENTS
 // automatic initialization, SSL_CTX_set_min_proto_version, and memory BIOs.
 // Releases below that floor have been out of support since 2019 and are not
 // built for. A few calls the engine uses are newer still, and are gated here.
-//   Thresholds are compared against OPENSSL_VERSION_NUMBER in the 1.x packing
-// (0xMNNFFPPS), not through D_ENV_TLS_OPENSSL_AT_LEAST, which is exact below
-// 3.0 only at minor boundaries. LibreSSL pins the number at 0x20000000 and
-// BoringSSL at 0x1010107F, so each fork is decided by name before any number
-// is compared, and both are assumed to be current releases, as env_tls.h
-// assumes. Everything in this section reads 0 when the family is absent.
+//   Thresholds are OPENSSL_VERSION_NUMBER values in OpenSSL's own packing
+// (0xMNNFFPPS below 3.0), as D_ENV_TLS_OPENSSL_AT_LEAST builds them. LibreSSL
+// pins the number at 0x20000000 and BoringSSL at 0x1010107F, so each fork is
+// decided by name before any number is compared. LibreSSL is then read by
+// its own version number, D_ENV_TLS_LIBRESSL_AT_LEAST, each threshold the
+// stable release of the OpenBSD release whose manuals or LibreSSL's
+// ChangeLog name the call (decision 104 of the register). BoringSSL, which
+// makes no releases, is taken to be current, as env_tls.h takes it; TLS 1.3
+// is env_tls.h's answer. Everything in this section reads 0 when the family
+// is absent.
 
 
 // 3.1    Version floors
@@ -180,13 +185,21 @@ TABLE OF CONTENTS
 // 3.2.1
 // D_ENV_SSL_OPENSSL_USABLE
 //   feature: 1 if the OpenSSL family is present at or above the engine's
-// floor. An unknown version -- D_CFG_ENV_TLS_PROBE_VERSION set to 0 -- reads
-// as unusable; pre-define this to 1 to vouch for the library instead.
+// floor. LibreSSL meets it from 2.9.1 (OpenBSD 6.5), which brought
+// SSL_CTX_add1_chain_cert, the newest call the engine makes ungated; the 1.1.0
+// calls it needs came before it -- TLS_client_method in OpenBSD 5.8, the
+// protocol-version setters in 6.2, ASN1_STRING_get0_data in 6.3. An unknown
+// version -- D_CFG_ENV_TLS_PROBE_VERSION set to 0 -- reads as unusable;
+// pre-define this to 1 to vouch for the library instead.
 #ifndef D_ENV_SSL_OPENSSL_USABLE
     #if !D_ENV_TLS_HAS_OPENSSL
         #define D_ENV_SSL_OPENSSL_USABLE 0
-    #elif ( (D_ENV_TLS_IS_LIBRESSL) ||                                         \
-            (D_ENV_TLS_IS_BORINGSSL) )
+    #elif ( (D_ENV_TLS_IS_LIBRESSL) &&                                         \
+            (D_ENV_TLS_LIBRESSL_AT_LEAST(2, 9, 1)) )
+        #define D_ENV_SSL_OPENSSL_USABLE 1
+    #elif D_ENV_TLS_IS_LIBRESSL
+        #define D_ENV_SSL_OPENSSL_USABLE 0
+    #elif D_ENV_TLS_IS_BORINGSSL
         #define D_ENV_SSL_OPENSSL_USABLE 1
     #elif (D_ENV_TLS_OPENSSL_VERSION_NUMBER >= D_ENV_SSL_OPENSSL_MIN_VERSION)
         #define D_ENV_SSL_OPENSSL_USABLE 1
@@ -198,10 +211,10 @@ TABLE OF CONTENTS
 // 3.2.2
 // D_ENV_SSL_OPENSSL_HAS_TLS1_3
 //   feature: 1 if the usable library negotiates TLS 1.3 (env_tls.h's
-// D_ENV_TLS_HAS_TLS1_3, restricted to a usable library).
+// D_ENV_TLS_OPENSSL_HAS_TLS1_3, restricted to a usable library).
 #ifndef D_ENV_SSL_OPENSSL_HAS_TLS1_3
     #if ( (D_ENV_SSL_OPENSSL_USABLE) &&                                        \
-          (D_ENV_TLS_HAS_TLS1_3) )
+          (D_ENV_TLS_OPENSSL_HAS_TLS1_3) )
         #define D_ENV_SSL_OPENSSL_HAS_TLS1_3 1
     #else
         #define D_ENV_SSL_OPENSSL_HAS_TLS1_3 0
@@ -211,13 +224,18 @@ TABLE OF CONTENTS
 // 3.2.3
 // D_ENV_SSL_OPENSSL_HAS_CIPHERSUITES
 //   feature: 1 if SSL_CTX_set_ciphersuites can choose the TLS 1.3 suites.
-// BoringSSL fixes those suites and has no such call. LibreSSL gained it later
-// than any version macro this header can read reliably, so it is not assumed;
-// pre-define this to 1 for a LibreSSL known to provide it.
+// BoringSSL fixes those suites and has no such call. LibreSSL has it from
+// 3.4.1 (OpenBSD 7.0), with the rest of OpenSSL 1.1.1's TLS 1.3 calls, as
+// env_tls.h reads its TLS 1.3; its ChangeLog gives the suites OpenSSL's TLS_
+// names from 3.5.0, its own AEAD- names before.
 #ifndef D_ENV_SSL_OPENSSL_HAS_CIPHERSUITES
     #if ( (!D_ENV_SSL_OPENSSL_USABLE) ||                                       \
-          (D_ENV_TLS_IS_LIBRESSL)     ||                                       \
           (D_ENV_TLS_IS_BORINGSSL) )
+        #define D_ENV_SSL_OPENSSL_HAS_CIPHERSUITES 0
+    #elif ( (D_ENV_TLS_IS_LIBRESSL) &&                                         \
+            (D_ENV_TLS_LIBRESSL_AT_LEAST(3, 4, 1)) )
+        #define D_ENV_SSL_OPENSSL_HAS_CIPHERSUITES 1
+    #elif D_ENV_TLS_IS_LIBRESSL
         #define D_ENV_SSL_OPENSSL_HAS_CIPHERSUITES 0
     #elif (D_ENV_TLS_OPENSSL_VERSION_NUMBER >= D_ENV_SSL_OPENSSL_1_1_1_VERSION)
         #define D_ENV_SSL_OPENSSL_HAS_CIPHERSUITES 1
@@ -228,8 +246,10 @@ TABLE OF CONTENTS
 
 // 3.2.4
 // D_ENV_SSL_OPENSSL_HAS_KEYLOG
-//   feature: 1 if SSL_CTX_set_keylog_callback exists (OpenSSL 1.1.1 and
-// BoringSSL; LibreSSL is not assumed, as for 3.2.3).
+//   feature: 1 if SSL_CTX_set_keylog_callback exists and logs (OpenSSL 1.1.1
+// and BoringSSL). LibreSSL declares it from 3.5.0 (OpenBSD 7.1) only for
+// compatibility: its manual says the callback is never called, so it reads 0
+// in every release.
 #ifndef D_ENV_SSL_OPENSSL_HAS_KEYLOG
     #if ( (!D_ENV_SSL_OPENSSL_USABLE) ||                                       \
           (D_ENV_TLS_IS_LIBRESSL) )
@@ -259,6 +279,26 @@ TABLE OF CONTENTS
         #define D_ENV_SSL_OPENSSL_HAS_GET1_PEER 0
     #endif
 #endif  // D_ENV_SSL_OPENSSL_HAS_GET1_PEER
+
+// 3.2.6
+// D_ENV_SSL_OPENSSL_HAS_CIPHER_IANA
+//   feature: 1 if a cipher suite can report its IANA code point and name,
+// SSL_CIPHER_get_protocol_id and SSL_CIPHER_standard_name (OpenSSL 1.1.1 and
+// BoringSSL). LibreSSL's ssl.h declares neither, to its current release, so
+// it reads 0 in every release. Where it is 0, the engine reports the
+// library's own suite name and a code point of 0.
+#ifndef D_ENV_SSL_OPENSSL_HAS_CIPHER_IANA
+    #if ( (!D_ENV_SSL_OPENSSL_USABLE) ||                                       \
+          (D_ENV_TLS_IS_LIBRESSL) )
+        #define D_ENV_SSL_OPENSSL_HAS_CIPHER_IANA 0
+    #elif D_ENV_TLS_IS_BORINGSSL
+        #define D_ENV_SSL_OPENSSL_HAS_CIPHER_IANA 1
+    #elif (D_ENV_TLS_OPENSSL_VERSION_NUMBER >= D_ENV_SSL_OPENSSL_1_1_1_VERSION)
+        #define D_ENV_SSL_OPENSSL_HAS_CIPHER_IANA 1
+    #else
+        #define D_ENV_SSL_OPENSSL_HAS_CIPHER_IANA 0
+    #endif
+#endif  // D_ENV_SSL_OPENSSL_HAS_CIPHER_IANA
 
 
 //==============================================================================

@@ -16,7 +16,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_formatter_command.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_formatter.h"  // corresponding header
 // std
@@ -35,12 +35,19 @@
 // 1.  TEXT OF A COMMAND
 //==============================================================================
 
-/*
-d_arg_internal_help_written
-  A command's usage or footer -- CLI11's get_usage() or get_footer(), what
-d_arg_command_usage or d_arg_command_footer writes -- caught in a buffer;
-a buffer that ran out of memory turns the sink's refusal into what it was.
-*/
+/**
+ * @brief Catches a command's usage or footer in a buffer.
+ *
+ * @param[in]     _command  the command.
+ * @param[in]     _footer   whether the footer is caught, not the usage.
+ * @param[in,out] _text     the buffer that gains the text.
+ * @return D_ARG_OK; D_ARG_ERROR_OUT_OF_MEMORY when the buffer ran out of
+ *         memory; otherwise the usage's or the footer's status.
+ *
+ * A command's usage or footer -- CLI11's get_usage() or get_footer(), what
+ * d_arg_command_usage or d_arg_command_footer writes -- caught in a buffer;
+ * a buffer that ran out of memory turns the sink's refusal into what it was.
+ */
 D_STATIC int
 d_arg_internal_help_written(
     const struct d_arg_command* _command,
@@ -60,11 +67,18 @@ d_arg_internal_help_written(
            : status;
 }
 
-/*
-d_arg_internal_help_requirement
-  The sentence CLI11's make_description adds for a command's option
-requirements: at most, exactly, between or at least so many.
-*/
+/**
+ * @brief Appends the sentence CLI11's make_description adds for a command's
+ *        option requirements.
+ *
+ * @param[in]     _command  the command.
+ * @param[in,out] _out      the buffer that gains the sentence; nothing without
+ *                          a requirement.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The sentence CLI11's make_description adds for a command's option
+ * requirements: at most, exactly, between or at least so many.
+ */
 D_STATIC int
 d_arg_internal_help_requirement(
     const struct d_arg_command* _command,
@@ -174,11 +188,17 @@ d_arg_format_description_default(
            : status;
 }
 
-/*
-d_arg_internal_help_named
-  The filter make_usage's badge collects with: an option with a name --
-hidden ones and the help flag among them.
-*/
+/**
+ * @brief Tells whether an option has a name, as the filter make_usage's badge
+ *        collects with.
+ *
+ * @param[in] _option   the option.
+ * @param[in] _context  unused.
+ * @return `true` for an option with a name; `false` for a positional.
+ *
+ * The filter make_usage's badge collects with: an option with a name --
+ * hidden ones and the help flag among them.
+ */
 D_STATIC bool
 d_arg_internal_help_named(
     const struct d_arg_option* _option,
@@ -190,11 +210,17 @@ d_arg_internal_help_named(
     return d_arg_option_is_nonpositional(_option);
 }
 
-/*
-d_arg_internal_help_shown_positional
-  The filter make_usage and make_positionals collect positionals with: a
-positional name, and a group, so not hidden.
-*/
+/**
+ * @brief Tells whether an option is a positional help shows, as the filter
+ *        make_usage and make_positionals collect with.
+ *
+ * @param[in] _option   the option.
+ * @param[in] _context  unused.
+ * @return `true` for a positional with a group; `false` otherwise.
+ *
+ * The filter make_usage and make_positionals collect positionals with: a
+ * positional name, and a group, so not hidden.
+ */
 D_STATIC bool
 d_arg_internal_help_shown_positional(
     const struct d_arg_option* _option,
@@ -207,10 +233,17 @@ d_arg_internal_help_shown_positional(
              (d_arg_option_is_positional(_option)) );
 }
 
-/*
-d_arg_internal_help_badge
-  " [OPTIONS]" when the command lists any option with a name.
-*/
+/**
+ * @brief Appends the usage line's options badge when a command lists an option
+ *        with a name.
+ *
+ * @param[in]     _formatter  the formatter, whose labels apply.
+ * @param[in]     _command    the command.
+ * @param[in,out] _out        the buffer that gains the badge.
+ * @return D_ARG_OK, or the failure of the collecting or of the buffer.
+ *
+ * " [OPTIONS]" when the command lists any option with a name.
+ */
 D_STATIC int
 d_arg_internal_help_badge(
     const struct d_arg_formatter* _formatter,
@@ -248,12 +281,20 @@ d_arg_internal_help_badge(
     return status;
 }
 
-/*
-d_arg_internal_help_usage_options
-  The usage line's middle: the options badge, then each positional the
-command lists that is not hidden, as its usage step writes it, after a
-space.
-*/
+/**
+ * @brief Appends the usage line's middle: the options badge, then each
+ *        positional shown.
+ *
+ * @param[in]     _formatter  the formatter.
+ * @param[in]     _command    the command.
+ * @param[in,out] _out        the buffer that gains the text.
+ * @return D_ARG_OK, or the failure of the collecting, of a positional's usage
+ *         step, or of the buffer.
+ *
+ * The usage line's middle: the options badge, then each positional the
+ * command lists that is not hidden, as its usage step writes it, after a
+ * space.
+ */
 D_STATIC int
 d_arg_internal_help_usage_options(
     const struct d_arg_formatter* _formatter,
@@ -295,12 +336,19 @@ d_arg_internal_help_usage_options(
     return status;
 }
 
-/*
-d_arg_internal_help_usage_marker
-  The usage line's end: "[SUBCOMMANDS]" when the command has an enabled
-subcommand with a name, without the brackets when one is required, and in
-the singular when at most one may be given.
-*/
+/**
+ * @brief Appends the usage line's subcommand marker when a command has a
+ *        subcommand to give.
+ *
+ * @param[in]     _formatter  the formatter, whose labels apply.
+ * @param[in]     _command    the command.
+ * @param[in,out] _out        the buffer that gains the marker.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The usage line's end: "[SUBCOMMANDS]" when the command has an enabled
+ * subcommand with a name, without the brackets when one is required, and in
+ * the singular when at most one may be given.
+ */
 D_STATIC int
 d_arg_internal_help_usage_marker(
     const struct d_arg_formatter* _formatter,
@@ -347,12 +395,19 @@ d_arg_internal_help_usage_marker(
            : status;
 }
 
-/*
-d_arg_internal_help_usage_line
-  The usage line make_usage composes: a line feed, the name -- or "Usage:"
-for a nameless command -- the options badge, the positionals and the
-subcommand marker, then a blank line.
-*/
+/**
+ * @brief Appends the usage line make_usage composes.
+ *
+ * @param[in]     _formatter  the formatter.
+ * @param[in]     _command    the command.
+ * @param[in]     _name       the name the line begins with; empty for "Usage:".
+ * @param[in,out] _out        the buffer that gains the line.
+ * @return D_ARG_OK, or the failure of a step.
+ *
+ * The usage line make_usage composes: a line feed, the name -- or "Usage:"
+ * for a nameless command -- the options badge, the positionals and the
+ * subcommand marker, then a blank line.
+ */
 D_STATIC int
 d_arg_internal_help_usage_line(
     const struct d_arg_formatter* _formatter,
@@ -555,11 +610,18 @@ struct d_arg_internal_help_groups
     struct d_pack_text            group;
 };
 
-/*
-d_arg_internal_help_in_group
-  The filter of make_groups: an option of the group, with a name, but, for
-an expanded subcommand, not the command's own help flags.
-*/
+/**
+ * @brief Tells whether an option belongs to a group, as make_groups' filter.
+ *
+ * @param[in] _option   the option.
+ * @param[in] _context  the d_arg_internal_help_groups: the group, the mode and
+ *                      the command.
+ * @return `true` for an option of the group with a name -- for an expanded
+ *         subcommand, not its own help flags; `false` otherwise.
+ *
+ * The filter of make_groups: an option of the group, with a name, but, for
+ * an expanded subcommand, not the command's own help flags.
+ */
 D_STATIC bool
 d_arg_internal_help_in_group(
     const struct d_arg_option* _option,
@@ -577,11 +639,17 @@ d_arg_internal_help_in_group(
                  (_option != groups->command->help_all) ) ) );
 }
 
-/*
-d_arg_internal_help_group_visit
-  One group of make_groups: the options the command lists in it, collected
-through the filter; nothing for the hidden group or a group left empty.
-*/
+/**
+ * @brief Appends one group of make_groups.
+ *
+ * @param[in] _group    the group.
+ * @param[in] _context  the d_arg_internal_help_groups, whose group is set to
+ *                      `_group`.
+ * @return D_ARG_OK, or the failure of the collecting or of the group's step.
+ *
+ * One group of make_groups: the options the command lists in it, collected
+ * through the filter; nothing for the hidden group or a group left empty.
+ */
 D_STATIC int
 d_arg_internal_help_group_visit(
     struct d_pack_text _group,
@@ -728,11 +796,17 @@ d_arg_format_subcommand_default(
            : status;
 }
 
-/*
-d_arg_internal_help_seen
-  Whether a group is among those already listed, compared with ASCII case
-folded, as CLI11 compares them through to_lower.
-*/
+/**
+ * @brief Tells whether a group is among those already listed, its case ignored,
+ *        as CLI11 compares them.
+ *
+ * @param[in] _seen   the groups listed.
+ * @param[in] _group  the group.
+ * @return `true` when it is among them; `false` otherwise.
+ *
+ * Whether a group is among those already listed, compared with ASCII case
+ * folded, as CLI11 compares them through to_lower.
+ */
 D_STATIC bool
 d_arg_internal_help_seen(
     const struct d_arg_text_list* _seen,
@@ -755,13 +829,21 @@ d_arg_internal_help_seen(
     return false;
 }
 
-/*
-d_arg_internal_help_subgroup
-  One group of make_subcommands: its heading, then each named subcommand in
-it -- whatever the case of its group -- on a line of its own or, for
-help-all, with its own expanded help, built by its own formatter within the
-room this one leaves, and a line feed.
-*/
+/**
+ * @brief Appends one group of make_subcommands.
+ *
+ * @param[in]     _formatter  the formatter.
+ * @param[in]     _command    the command.
+ * @param[in]     _group      the group.
+ * @param[in]     _mode       the d_arg_help_mode.
+ * @param[in,out] _out        the buffer that gains the group.
+ * @return D_ARG_OK, or the failure of a subcommand's step or of the buffer.
+ *
+ * One group of make_subcommands: its heading, then each named subcommand in
+ * it -- whatever the case of its group -- on a line of its own or, for
+ * help-all, with its own expanded help, built by its own formatter within the
+ * room this one leaves, and a line feed.
+ */
 D_STATIC int
 d_arg_internal_help_subgroup(
     const struct d_arg_formatter* _formatter,
@@ -821,12 +903,21 @@ d_arg_internal_help_subgroup(
     return status;
 }
 
-/*
-d_arg_internal_help_gather
-  The first pass of make_subcommands: each option group expanded where it
-stands -- but the hidden ones and those whose group starts with `+` -- and
-the groups of the named subcommands noted in the order first met.
-*/
+/**
+ * @brief Takes the first pass of make_subcommands: option groups expanded in
+ *        place, the subcommands' groups noted.
+ *
+ * @param[in]     _formatter  the formatter.
+ * @param[in]     _command    the command.
+ * @param[in]     _mode       the d_arg_help_mode.
+ * @param[in,out] _seen       the groups noted, in the order first met.
+ * @param[in,out] _out        the buffer that gains the expanded option groups.
+ * @return D_ARG_OK, or the failure of an expansion or of the list.
+ *
+ * The first pass of make_subcommands: each option group expanded where it
+ * stands -- but the hidden ones and those whose group starts with `+` -- and
+ * the groups of the named subcommands noted in the order first met.
+ */
 D_STATIC int
 d_arg_internal_help_gather(
     const struct d_arg_formatter* _formatter,
@@ -920,10 +1011,17 @@ d_arg_format_subcommands_default(
 // 4.  WHOLE HELP
 //==============================================================================
 
-/*
-d_arg_internal_help_indent
-  CLI11's indent_block: the indent before each line that is not empty.
-*/
+/**
+ * @brief Appends text with an indent before each line that is not empty, as
+ *        CLI11's indent_block.
+ *
+ * @param[in,out] _out     the buffer that gains the text.
+ * @param[in]     _text    the text.
+ * @param[in]     _indent  how many spaces.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's indent_block: the indent before each line that is not empty.
+ */
 D_STATIC int
 d_arg_internal_help_indent(
     struct d_arg_buffer* _out,
@@ -960,13 +1058,19 @@ d_arg_internal_help_indent(
     return status;
 }
 
-/*
-d_arg_internal_help_aliases
-  CLI11's format_aliases: "     aliases: " right-aligned in the width --
-setw without std::left -- then the aliases joined by ", ", each with
-fourteen spaces after every carriage return or line feed in it, as
-fix_newlines inserts them, and a line feed.
-*/
+/**
+ * @brief Appends an option group's aliases, as CLI11's format_aliases.
+ *
+ * @param[in,out] _out      the buffer that gains the line.
+ * @param[in]     _aliases  the aliases.
+ * @param[in]     _width    the width the label is right-aligned in.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's format_aliases: "     aliases: " right-aligned in the width --
+ * setw without std::left -- then the aliases joined by ", ", each with
+ * fourteen spaces after every carriage return or line feed in it, as
+ * fix_newlines inserts them, and a line feed.
+ */
 D_STATIC int
 d_arg_internal_help_aliases(
     struct d_arg_buffer*            _out,
@@ -1019,12 +1123,21 @@ d_arg_internal_help_aliases(
            : status;
 }
 
-/*
-d_arg_internal_help_described
-  The description as make_help or make_expanded writes it: wrapped as a
-paragraph behind the indent when paragraphs are on; otherwise as it is --
-indented, and followed by a line feed, when expanded.
-*/
+/**
+ * @brief Appends a command's description as make_help or make_expanded writes
+ *        it.
+ *
+ * @param[in]     _formatter  the formatter.
+ * @param[in]     _command    the command.
+ * @param[in]     _indent     the indent.
+ * @param[in]     _expanded   whether it is an expanded command's.
+ * @param[in,out] _out        the buffer that gains the description.
+ * @return D_ARG_OK, or the failure of the description's step or of the buffer.
+ *
+ * The description as make_help or make_expanded writes it: wrapped as a
+ * paragraph behind the indent when paragraphs are on; otherwise as it is --
+ * indented, and followed by a line feed, when expanded.
+ */
 D_STATIC int
 d_arg_internal_help_described(
     const struct d_arg_formatter* _formatter,
@@ -1073,11 +1186,17 @@ d_arg_internal_help_described(
     return status;
 }
 
-/*
-d_arg_internal_help_footed
-  A footer as make_help and make_expanded write it: wrapped as a paragraph
-when footer paragraphs are on, as it is otherwise.
-*/
+/**
+ * @brief Appends a footer as make_help and make_expanded write it.
+ *
+ * @param[in]     _formatter  the formatter.
+ * @param[in]     _footer     the footer.
+ * @param[in,out] _out        the buffer that gains it.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * A footer as make_help and make_expanded write it: wrapped as a paragraph
+ * when footer paragraphs are on, as it is otherwise.
+ */
 D_STATIC int
 d_arg_internal_help_footed(
     const struct d_arg_formatter* _formatter,
@@ -1099,11 +1218,20 @@ d_arg_internal_help_footed(
                                       _footer);
 }
 
-/*
-d_arg_internal_help_body
-  The positionals, groups and subcommands of an expanded command, each made
-whole and then indented.
-*/
+/**
+ * @brief Appends an expanded command's positionals, groups and subcommands,
+ *        each indented.
+ *
+ * @param[in]     _formatter  the formatter.
+ * @param[in]     _command    the command.
+ * @param[in]     _mode       the d_arg_help_mode.
+ * @param[in]     _indent     the indent.
+ * @param[in,out] _out        the buffer that gains them.
+ * @return D_ARG_OK, or the failure of a step or of the buffer.
+ *
+ * The positionals, groups and subcommands of an expanded command, each made
+ * whole and then indented.
+ */
 D_STATIC int
 d_arg_internal_help_body(
     const struct d_arg_formatter* _formatter,
@@ -1152,11 +1280,19 @@ d_arg_internal_help_body(
     return status;
 }
 
-/*
-d_arg_internal_help_expanded_footer
-  An expanded command's footer, but, inside an expanded help, not one its
-parent shows as well -- the copy a subcommand inherits.
-*/
+/**
+ * @brief Appends an expanded command's footer, unless its parent shows the
+ *        same.
+ *
+ * @param[in]     _formatter  the formatter.
+ * @param[in]     _command    the command.
+ * @param[in]     _mode       the d_arg_help_mode.
+ * @param[in,out] _out        the buffer that gains the footer.
+ * @return D_ARG_OK, or the failure of a footer's step or of the buffer.
+ *
+ * An expanded command's footer, but, inside an expanded help, not one its
+ * parent shows as well -- the copy a subcommand inherits.
+ */
 D_STATIC int
 d_arg_internal_help_expanded_footer(
     const struct d_arg_formatter* _formatter,
@@ -1202,11 +1338,19 @@ d_arg_internal_help_expanded_footer(
     return status;
 }
 
-/*
-d_arg_internal_help_heading
-  The head of an expanded command: its display name on a line of its own,
-its description, and an option group's aliases.
-*/
+/**
+ * @brief Appends the head of an expanded command: its display name, its
+ *        description, and an option group's aliases.
+ *
+ * @param[in]     _formatter  the formatter.
+ * @param[in]     _command    the command.
+ * @param[in]     _indent     the description's indent.
+ * @param[in,out] _out        the buffer that gains the head.
+ * @return D_ARG_OK, or the failure of a step or of the buffer.
+ *
+ * The head of an expanded command: its display name on a line of its own,
+ * its description, and an option group's aliases.
+ */
 D_STATIC int
 d_arg_internal_help_heading(
     const struct d_arg_formatter* _formatter,
@@ -1298,11 +1442,19 @@ d_arg_format_expanded_default(
            : status;
 }
 
-/*
-d_arg_internal_help_rest
-  The end of make_help: the positionals, the groups, the subcommands, and
-the footer, in turn.
-*/
+/**
+ * @brief Appends the end of make_help: the positionals, the groups, the
+ *        subcommands and the footer.
+ *
+ * @param[in]     _formatter  the formatter.
+ * @param[in]     _command    the command.
+ * @param[in]     _mode       the d_arg_help_mode.
+ * @param[in,out] _out        the buffer that gains them.
+ * @return D_ARG_OK, or the failure of a step or of the buffer.
+ *
+ * The end of make_help: the positionals, the groups, the subcommands, and
+ * the footer, in turn.
+ */
 D_STATIC int
 d_arg_internal_help_rest(
     const struct d_arg_formatter* _formatter,
@@ -1343,11 +1495,19 @@ d_arg_internal_help_rest(
     return status;
 }
 
-/*
-d_arg_internal_help_group_name
-  What make_help writes first for an option group asked for directly: its
-group and a colon, unless the group is "SUBCOMMANDS".
-*/
+/**
+ * @brief Appends what make_help writes first for an option group asked for
+ *        directly.
+ *
+ * @param[in]     _command  the command.
+ * @param[in,out] _out      the buffer that gains its group and a colon; nothing
+ *                          for a named command, a root, or the group
+ *                          "SUBCOMMANDS".
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * What make_help writes first for an option group asked for directly: its
+ * group and a colon, unless the group is "SUBCOMMANDS".
+ */
 D_STATIC int
 d_arg_internal_help_group_name(
     const struct d_arg_command* _command,

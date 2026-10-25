@@ -14,7 +14,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_command.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_command.h"  // corresponding header
 // std
@@ -38,12 +38,17 @@
 // NULL, from which a command is built.
 static const struct d_arg_command COMMAND_EMPTY;
 
-/*
-d_arg_internal_command_defaults
-  CLI11's App defaults: errors for extras, configuration extras ignored, no
-prefix command, a stable start, subcommand fallthrough, Windows-style
-options where the configuration says, and options starting configurable.
-*/
+/**
+ * @brief Gives a new command CLI11's App defaults.
+ *
+ * @param[out] _command  the command, all of it written.
+ * @param[in]  _parser   the parser it belongs to.
+ * @param[in]  _parent   its parent; NULL for a root.
+ *
+ * CLI11's App defaults: errors for extras, configuration extras ignored, no
+ * prefix command, a stable start, subcommand fallthrough, Windows-style
+ * options where the configuration says, and options starting configurable.
+ */
 D_STATIC void
 d_arg_internal_command_defaults(
     struct d_arg_command* _command,
@@ -74,13 +79,21 @@ d_arg_internal_command_defaults(
     return;
 }
 
-/*
-d_arg_internal_command_copy_flag
-  One of the parent's help flags -- the help-all flag when `_all` -- made
-again on the command under all its names, with their flag values, and its
-description, as CLI11's App constructor makes it; the setter records what it
-refuses.
-*/
+/**
+ * @brief Makes one of a parent's help flags again on a command.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _source   the parent's flag.
+ * @param[in]     _all      whether it is the help-all flag.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when the names could not be
+ *         written or the flag could not be made, the setter recording its
+ *         refusal.
+ *
+ * One of the parent's help flags -- the help-all flag when `_all` -- made
+ * again on the command under all its names, with their flag values, and its
+ * description, as CLI11's App constructor makes it; the setter records what it
+ * refuses.
+ */
 D_STATIC int
 d_arg_internal_command_copy_flag(
     struct d_arg_command*      _command,
@@ -115,12 +128,17 @@ d_arg_internal_command_copy_flag(
     return status;
 }
 
-/*
-d_arg_internal_command_copy_help
-  The help flags CLI11's App constructor copies from the parent. They are
-made before anything else is inherited, as in CLI11, so they start from
-the plain option defaults.
-*/
+/**
+ * @brief Copies a parent's help flags, as CLI11's App constructor does.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _parent   the parent.
+ * @return D_ARG_OK, or the failure of a flag's copy.
+ *
+ * The help flags CLI11's App constructor copies from the parent. They are
+ * made before anything else is inherited, as in CLI11, so they start from
+ * the plain option defaults.
+ */
 D_STATIC int
 d_arg_internal_command_copy_help(
     struct d_arg_command*       _command,
@@ -149,10 +167,15 @@ d_arg_internal_command_copy_help(
     return status;
 }
 
-/*
-d_arg_internal_command_copy_text
-  A copy of a parent's text field; NULL stays NULL.
-*/
+/**
+ * @brief Copies a parent's text field.
+ *
+ * @param[in]  _text   the parent's text; NULL for none.
+ * @param[out] _field  receives the copy; NULL for none.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with `*_field` NULL.
+ *
+ * A copy of a parent's text field; NULL stays NULL.
+ */
 D_STATIC int
 d_arg_internal_command_copy_text(
     const char* _text,
@@ -169,14 +192,20 @@ d_arg_internal_command_copy_text(
            : D_ARG_OK;
 }
 
-/*
-d_arg_internal_command_inherit
-  The rest of what CLI11's App constructor copies: the option defaults, the
-three modes, the inherited switches, the group, usage and footer text, the
-formatter and configuration format, and the subcommand maximum. The failure
-message is not copied: a command without one of its own uses its parent's,
-so that no command keeps a context its parent may free.
-*/
+/**
+ * @brief Copies the rest of what CLI11's App constructor inherits.
+ *
+ * @param[in,out] _command  the command.
+ * @param[in]     _parent   the parent.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when a text could not be
+ *         copied, the command then releasable.
+ *
+ * The rest of what CLI11's App constructor copies: the option defaults, the
+ * three modes, the inherited switches, the group, usage and footer text, the
+ * formatter and configuration format, and the subcommand maximum. The failure
+ * message is not copied: a command without one of its own uses its parent's,
+ * so that no command keeps a context its parent may free.
+ */
 D_STATIC int
 d_arg_internal_command_inherit(
     struct d_arg_command*       _command,
@@ -282,10 +311,14 @@ d_arg_internal_command_init(
                                             NULL);
 }
 
-/*
-d_arg_internal_command_release_contexts
-  Every callback's context, through the function kept beside it.
-*/
+/**
+ * @brief Frees every callback's context.
+ *
+ * @param[in,out] _command  the command, whose contexts and release functions
+ *                          are forgotten.
+ *
+ * Every callback's context, through the function kept beside it.
+ */
 D_STATIC void
 d_arg_internal_command_release_contexts(
     struct d_arg_command* _command
@@ -311,10 +344,14 @@ d_arg_internal_command_release_contexts(
     return;
 }
 
-/*
-d_arg_internal_command_release_lists
-  The lists that point at records owned elsewhere, and the parse state.
-*/
+/**
+ * @brief Releases the lists that point at records owned elsewhere, and the
+ *        parse state.
+ *
+ * @param[in,out] _command  the command.
+ *
+ * The lists that point at records owned elsewhere, and the parse state.
+ */
 D_STATIC void
 d_arg_internal_command_release_lists(
     struct d_arg_command* _command
@@ -386,11 +423,17 @@ d_arg_internal_command_release(
 // 2.  NAMES
 //==============================================================================
 
-/*
-d_arg_internal_command_skip
-  The position of the next character a comparison reads from `_at` on: past
-underscores when they are ignored.
-*/
+/**
+ * @brief Finds the next character a comparison reads.
+ *
+ * @param[in] _text        the name.
+ * @param[in] _at          where to look from.
+ * @param[in] _underscore  whether underscores are ignored.
+ * @return its position; the name's length when there is none.
+ *
+ * The position of the next character a comparison reads from `_at` on: past
+ * underscores when they are ignored.
+ */
 D_STATIC size_t
 d_arg_internal_command_skip(
     struct d_pack_text _text,
@@ -411,13 +454,22 @@ d_arg_internal_command_skip(
     return at;
 }
 
-/*
-d_arg_internal_command_compare
-  CLI11's comparison in check_name_detail, without copying either name:
-underscores skipped and case folded as asked, the name is EXACT when the two
-read the same, and PREFIX -- when prefixes may match -- when it reads as a
-proper beginning of `_local`.
-*/
+/**
+ * @brief Compares a name with a command's, as CLI11's check_name_detail does.
+ *
+ * @param[in] _name        the name given.
+ * @param[in] _local       the command's name or alias.
+ * @param[in] _case        whether case is ignored.
+ * @param[in] _underscore  whether underscores are ignored.
+ * @param[in] _prefix      whether a prefix may match.
+ * @return D_ARG_NAME_MATCH_EXACT, D_ARG_NAME_MATCH_PREFIX, or
+ *         D_ARG_NAME_MATCH_NONE.
+ *
+ * CLI11's comparison in check_name_detail, without copying either name:
+ * underscores skipped and case folded as asked, the name is EXACT when the two
+ * read the same, and PREFIX -- when prefixes may match -- when it reads as a
+ * proper beginning of `_local`.
+ */
 D_STATIC int
 d_arg_internal_command_compare(
     struct d_pack_text _name,
@@ -552,11 +604,16 @@ d_arg_command_is_option_group(
 // 3.  LOOKUPS
 //==============================================================================
 
-/*
-d_arg_internal_command_named
-  Whether a command has a name: the root or a named subcommand, not an
-option group.
-*/
+/**
+ * @brief Tells whether a command has a name.
+ *
+ * @param[in] _command  the command.
+ * @return `true` when its name is not empty, as a named subcommand's is;
+ *         `false` otherwise, as for an option group.
+ *
+ * Whether a command has a name: the root or a named subcommand, not an
+ * option group.
+ */
 D_STATIC bool
 d_arg_internal_command_named(
     const struct d_arg_command* _command
@@ -590,12 +647,19 @@ d_arg_internal_fallthrough_parent(
     return parent;
 }
 
-/*
-d_arg_internal_command_names_clash
-  CLI11's tests of one pair in _compare_subcommand_names: each one's name
-against the other, then each one's aliases against the other; the name
-that clashes, or NULL.
-*/
+/**
+ * @brief Finds a name on which two subcommands clash, as one pair of CLI11's
+ *        _compare_subcommand_names.
+ *
+ * @param[in] _subcommand  one subcommand.
+ * @param[in] _other       the other.
+ * @return the name or alias that clashes, owned by one of the two; NULL when
+ *         none does.
+ *
+ * CLI11's tests of one pair in _compare_subcommand_names: each one's name
+ * against the other, then each one's aliases against the other; the name
+ * that clashes, or NULL.
+ */
 D_STATIC const char*
 d_arg_internal_command_names_clash(
     const struct d_arg_command* _subcommand,
@@ -642,13 +706,13 @@ d_arg_internal_command_names_clash(
 }
 
 /*
-d_arg_internal_compare_subcommand_names
+d_arg_internal_subcommand_clash
   CLI11's _compare_subcommand_names: a disabled subcommand clashes with
 nothing; otherwise each enabled sibling under `_base` is tested, and an
 option group on either side is searched in turn.
 */
 const char*
-d_arg_internal_compare_subcommand_names(
+d_arg_internal_subcommand_clash(
     const struct d_arg_command* _subcommand,
     const struct d_arg_command* _base
 )
@@ -678,13 +742,13 @@ d_arg_internal_compare_subcommand_names(
 
         clash = ( (clash == NULL) &&
                   (!d_arg_internal_command_named(other)) )
-                ? d_arg_internal_compare_subcommand_names(_subcommand,
-                                                          other)
+                ? d_arg_internal_subcommand_clash(_subcommand,
+                                                  other)
                 : clash;
         clash = ( (clash == NULL) &&
                   (!d_arg_internal_command_named(_subcommand)) )
-                ? d_arg_internal_compare_subcommand_names(other,
-                                                          _subcommand)
+                ? d_arg_internal_subcommand_clash(other,
+                                                  _subcommand)
                 : clash;
 
         if (clash != NULL)
@@ -707,13 +771,19 @@ struct d_arg_internal_command_search
     struct d_arg_command* found;
 };
 
-/*
-d_arg_internal_command_offer
-  A candidate for a search: with prefix matching it is kept and the search
-goes on, unless one was found already, which makes the name ambiguous and
-the result NULL; without, it ends the search. Returns whether the search
-is over, with its result in `found`.
-*/
+/**
+ * @brief Offers a candidate to a search for a subcommand.
+ *
+ * @param[in,out] _search     the search, whose result is `found`.
+ * @param[in]     _candidate  the candidate.
+ * @param[in]     _prefix     whether prefix matching is on.
+ * @return `true` when the search is over; `false` when it goes on.
+ *
+ * A candidate for a search: with prefix matching it is kept and the search
+ * goes on, unless one was found already, which makes the name ambiguous and
+ * the result NULL; without, it ends the search. Returns whether the search
+ * is over, with its result in `found`.
+ */
 D_STATIC bool
 d_arg_internal_command_offer(
     struct d_arg_internal_command_search* _search,
@@ -734,12 +804,18 @@ d_arg_internal_command_offer(
     return (!_prefix);
 }
 
-/*
-d_arg_internal_command_search_group
-  The part of CLI11's _find_subcommand loop for an option group: the group
-is searched in turn, and what it finds is offered. Returns whether the
-search is over.
-*/
+/**
+ * @brief Searches an option group, as part of CLI11's _find_subcommand loop.
+ *
+ * @param[in]     _group   the option group.
+ * @param[in,out] _search  the search, whose result is `found`.
+ * @param[in]     _prefix  whether prefix matching is on.
+ * @return `true` when the search is over; `false` when it goes on.
+ *
+ * The part of CLI11's _find_subcommand loop for an option group: the group
+ * is searched in turn, and what it finds is offered. Returns whether the
+ * search is over.
+ */
 D_STATIC bool
 d_arg_internal_command_search_group(
     struct d_arg_command*                 _group,
@@ -759,12 +835,19 @@ d_arg_internal_command_search_group(
                                            _prefix)) );
 }
 
-/*
-d_arg_internal_command_search_name
-  The part of the loop for a subcommand's own name: an exact match ends the
-search with it, a prefix is offered; a subcommand used already is passed
-over when asked. Returns whether the search is over.
-*/
+/**
+ * @brief Tests a subcommand's own name, as part of CLI11's _find_subcommand
+ *        loop.
+ *
+ * @param[in]     _candidate  the subcommand.
+ * @param[in,out] _search     the search, whose result is `found`.
+ * @param[in]     _prefix     whether prefix matching is on.
+ * @return `true` when the search is over; `false` when it goes on.
+ *
+ * The part of the loop for a subcommand's own name: an exact match ends the
+ * search with it, a prefix is offered; a subcommand used already is passed
+ * over when asked. Returns whether the search is over.
+ */
 D_STATIC bool
 d_arg_internal_command_search_name(
     struct d_arg_command*                 _candidate,
@@ -797,12 +880,18 @@ d_arg_internal_command_search_name(
                                         _prefix);
 }
 
-/*
-d_arg_internal_command_search_in
-  CLI11's _find_subcommand over one command's subcommands, as its loop
-writes it: an option group is searched first, then each subcommand's own
-name is tested, a disabled one passed over when asked.
-*/
+/**
+ * @brief Searches one command's subcommands, as CLI11's _find_subcommand.
+ *
+ * @param[in]     _command  the command.
+ * @param[in,out] _search   the search, whose result is `found`.
+ * @return `true` when the search ended early; `false` when it went through
+ *         every subcommand.
+ *
+ * CLI11's _find_subcommand over one command's subcommands, as its loop
+ * writes it: an option group is searched first, then each subcommand's own
+ * name is tested, a disabled one passed over when asked.
+ */
 D_STATIC bool
 d_arg_internal_command_search_in(
     const struct d_arg_command*           _command,
@@ -850,13 +939,13 @@ struct d_arg_command*
 d_arg_internal_find_subcommand(
     const struct d_arg_command* _command,
     struct d_pack_text          _name,
-    bool                        _ignore_disabled,
-    bool                        _ignore_used
+    bool                        _skip_disabled,
+    bool                        _skip_used
 )
 {
     struct d_arg_internal_command_search search = { _name,
-                                                    _ignore_disabled,
-                                                    _ignore_used,
+                                                    _skip_disabled,
+                                                    _skip_used,
                                                     NULL };
 
     // nothing to search without a command
@@ -960,12 +1049,19 @@ d_arg_internal_parser_of(
 // 4.  OPTION LISTS
 //==============================================================================
 
-/*
-d_arg_internal_command_has_display
-  Whether `_option` answers to the display name of an option the list
-already holds, as CLI11 checks before adding a fallthrough parent's option;
-a name that cannot be written is taken as no match.
-*/
+/**
+ * @brief Tells whether an option answers to the display name of one a list
+ *        holds.
+ *
+ * @param[in] _list    the options.
+ * @param[in] _option  the option.
+ * @return `true` when it does; `false` otherwise, or when a name could not be
+ *         written.
+ *
+ * Whether `_option` answers to the display name of an option the list
+ * already holds, as CLI11 checks before adding a fallthrough parent's option;
+ * a name that cannot be written is taken as no match.
+ */
 D_STATIC bool
 d_arg_internal_command_has_display(
     const struct d_arg_option_list* _list,
@@ -991,12 +1087,22 @@ d_arg_internal_command_has_display(
     return found;
 }
 
-/*
-d_arg_internal_command_collect_parent
-  The fallthrough parent's options a command lists -- those that pass the
-test -- that answer to none of the display names collected so far, as
-CLI11 compares them against the list its filter has already narrowed.
-*/
+/**
+ * @brief Collects the fallthrough parent's options a command lists.
+ *
+ * @param[in]     _command  the command.
+ * @param[in]     _help     which form, as d_arg_internal_command_options.
+ * @param[in]     _test     the filter; NULL passes every option.
+ * @param[in]     _context  `_test`'s context.
+ * @param[in,out] _out      the list that gains the options that answer to none
+ *                          of the display names it holds.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY with the options collected
+ *         before the failure kept.
+ *
+ * The fallthrough parent's options a command lists -- those that pass the
+ * test -- that answer to none of the display names collected so far, as
+ * CLI11 compares them against the list its filter has already narrowed.
+ */
 D_STATIC int
 d_arg_internal_command_collect_parent(
     const struct d_arg_command* _command,
@@ -1033,12 +1139,17 @@ d_arg_internal_command_collect_parent(
     return status;
 }
 
-/*
-d_arg_internal_command_merges
-  Whether a command's get_options takes in a subcommand's: with `_help`, a
-nameless one whose group starts with `+`, as CLI11's const form; otherwise
-every nameless one and every one whose group starts with `+`.
-*/
+/**
+ * @brief Tells whether a command's get_options takes in a subcommand's options.
+ *
+ * @param[in] _sub   the subcommand.
+ * @param[in] _help  which form, as d_arg_internal_command_options.
+ * @return `true` when it does; `false` otherwise.
+ *
+ * Whether a command's get_options takes in a subcommand's: with `_help`, a
+ * nameless one whose group starts with `+`, as CLI11's const form; otherwise
+ * every nameless one and every one whose group starts with `+`.
+ */
 D_STATIC bool
 d_arg_internal_command_merges(
     const struct d_arg_command* _sub,

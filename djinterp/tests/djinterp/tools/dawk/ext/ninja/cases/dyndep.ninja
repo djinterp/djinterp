@@ -1,0 +1,6 @@
+rule r
+  command = c
+  dyndep = $in
+build a: r dd
+build b: r
+  dyndep = nope

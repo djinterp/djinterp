@@ -7,13 +7,14 @@
 * function level rather than by conditionals inside one body.
 *   Build it with -D_XOPEN_SOURCE=700 where the C library hides POSIX in a
 * strict ISO mode (the C guide's rule). timegm, where D_TIME_HAS_TIMEGM
-* selects it, needs _DEFAULT_SOURCE as well on glibc.
+* selects it, needs _DEFAULT_SOURCE as well on glibc. d_strptime parses for
+* itself on every platform and never calls the system's strptime.
 *
 *
 * path:      /src/djinterp/c/dtime.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.21
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.10.18
 *******************************************************************************/
 #include "../../../inc/djinterp/c/dtime.h"      // corresponding header
 // std
@@ -1074,8 +1075,9 @@ d_usleep(
 {
     const struct timespec ts =
     {
-        .tv_sec  = _usec / D_TIME_USEC_PER_SEC,
-        .tv_nsec = (_usec % D_TIME_USEC_PER_SEC) * D_TIME_NSEC_PER_USEC
+        .tv_sec  = (time_t)(_usec / D_TIME_USEC_PER_SEC),
+        .tv_nsec = (long)((_usec % D_TIME_USEC_PER_SEC) *
+                          D_TIME_NSEC_PER_USEC)
     };
 
     return d_nanosleep(&ts,
@@ -1272,492 +1274,901 @@ d_tzset(
 }
 
 // parsing and formatting
-#if D_TIME_HAS_STRPTIME
+
+// d_time_internal_parse
+//   struct: a parse in progress: the input left, the struct it fills, and
+// what the conversions so far have read that d_strptime's last step must
+// settle -- the century and year in it, the week, the 12-hour clock, and
+// which of the date's fields the input gave.
+struct d_time_internal_parse
+{
+    const char* input;
+    struct tm*  tm;
+    int         century;     // %C's, or -1
+    int         short_year;  // %y's, or -1
+    int         week;        // %U's or %W's, or -1
+    int         hour12;      // %I's or %l's, or -1
+    int         pm;          // %p's: 1 PM, 0 AM, -1 unread
+    bool        monday;      // the week is %W's, counted from Monday
+    bool        year;        // the year is known
+    bool        month;       // %b, %B, %h or %m read
+    bool        mday;        // %d or %e read
+    bool        yday;        // %j read, or the day of the year settled
+    bool        wday;        // %a, %A, %u or %w read
+};
 
 /*
-d_strptime
-  Delegates to strptime.
+DAY_NAMES, MONTH_NAMES
+  The C locale's names, whatever the process's locale; each abbreviation is
+its name's first three letters.
 */
-char*
-d_strptime(
-    const char* _s,
-    const char* _format,
-    struct tm*  _tm
+static const char* const DAY_NAMES[7] =
+{
+    "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+    "Saturday"
+};
+static const char* const MONTH_NAMES[12] =
+{
+    "January", "February", "March", "April", "May", "June", "July",
+    "August", "September", "October", "November", "December"
+};
+
+/*
+YEAR_DAYS
+  The days before each month, and in the year, for a common year and for a
+leap year.
+*/
+static const int YEAR_DAYS[2][13] =
+{
+    { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 },
+    { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }
+};
+
+/**
+ * @brief Whether a character is white space in the C locale.
+ *
+ * @param[in] _c  the character.
+ * @return true for a space, tab, newline, vertical tab, form feed or return.
+ */
+static bool
+d_time_internal_is_space(
+    char _c
 )
 {
-    // parameter validation
-    if ( (!_s)      ||
-         (!_format) ||
-         (!_tm) )
-    {
-        return NULL;
-    }
-
-    // use native strptime
-    return strptime(_s,
-                    _format,
-                    _tm);
+    return ( (_c == ' ')  ||
+             (_c == '\t') ||
+             (_c == '\n') ||
+             (_c == '\v') ||
+             (_c == '\f') ||
+             (_c == '\r') );
 }
 
-#else
-
-/*
-d_strptime
-  Fallback parser. It zeroes _tm, then walks the format: a conversion reads at
-most its field's digits, names match case-insensitively in either abbreviated
-or full form, and %p adjusts the hour already parsed, so it must follow %I. A
-space in the format skips any run of spaces in the input, and any other
-character must match exactly. Parsing stops, without failing, when either
-string runs out; an unmatched name or an unsupported conversion is skipped
-rather than rejected.
-*/
-char*
-d_strptime(
-    const char* _s,
-    const char* _format,
-    struct tm*  _tm
+/**
+ * @brief Steps over any white space at the parse's position.
+ *
+ * @param[in,out] _parse  the parse.
+ */
+static void
+d_time_internal_skip_space(
+    struct d_time_internal_parse* _parse
 )
 {
-    // parameter validation
-    if ( (!_s)      ||
-         (!_format) ||
-         (!_tm) )
+    // each white-space character
+    while (d_time_internal_is_space(*_parse->input))
     {
-        return NULL;
+        ++_parse->input;
     }
 
-    // Windows/fallback implementation
-    // supports common format specifiers including month and weekday names
-    // month names (abbreviated and full)
-    static const char* month_abbrev[12] = {
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-    };
-    static const char* month_full[12] = {
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    };
+    return;
+}
 
-    // weekday names (abbreviated and full)
-    static const char* weekday_abbrev[7] = {
-        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
-    };
-    static const char* weekday_full[7] = {
-        "Sunday", "Monday", "Tuesday", "Wednesday",
-        "Thursday", "Friday", "Saturday"
-    };
+/**
+ * @brief Whether a proleptic Gregorian year is a leap year.
+ *
+ * @param[in] _year  the year, as written.
+ * @return 1 for a leap year, 0 otherwise, to index YEAR_DAYS.
+ */
+static int
+d_time_internal_leap(
+    int _year
+)
+{
+    return ( ( ((_year % 4) == 0) &&
+               ((_year % 100) != 0) ) ||
+             ((_year % 400) == 0) ) ? 1 : 0;
+}
 
-    const char* sp = _s;
-    const char* fp = _format;
+/**
+ * @brief The day of the week of a date, 0 for Sunday.
+ *
+ * @param[in] _year   the year, as written; any year.
+ * @param[in] _month  the month, 0 to 11.
+ * @param[in] _mday   the day of the month.
+ * @return the day of the week, 0 to 6.
+ *
+ * Counts days from 1970-01-01, a Thursday, with Howard Hinnant's
+ * days-from-civil, which starts each year at March so that February's
+ * length is the year's last term.
+ */
+static int
+d_time_internal_weekday(
+    int _year,
+    int _month,
+    int _mday
+)
+{
+    const long year  = (long)_year - ((_month < 2) ? 1L : 0L);
+    const long era   = ((year >= 0) ? year : (year - 399L)) / 400L;
+    const long yoe   = year - (era * 400L);
+    const long month = (long)_month + ((_month < 2) ? 10L : -2L);
+    const long doy   = (((153L * month) + 2L) / 5L) + (long)_mday - 1L;
+    const long doe   = (yoe * 365L) + (yoe / 4L) - (yoe / 100L) + doy;
+    const long days  = (era * 146097L) + doe - 719468L;
+    const long wday  = (days + 4L) % 7L;
 
-    // initialize tm to zeros
-    d_memset(_tm,
-             0,
-             sizeof(struct tm));
+    return (int)((wday < 0L) ? (wday + 7L) : wday);
+}
 
-    while ( (*fp) &&
-            (*sp) )
+/**
+ * @brief Reads a number of at most `_digits` digits in [_low, _high].
+ *
+ * @param[in,out] _parse   the parse; its position passes the digits.
+ * @param[in]     _low     the least value accepted.
+ * @param[in]     _high    the greatest value accepted.
+ * @param[in]     _digits  the most digits read.
+ * @param[out]    _value   receives the number.
+ * @return true when a number in range was read.
+ *
+ * White space before the number is skipped, as %e's padding needs. A digit
+ * is read while the field has room and the value so far, times ten, does
+ * not pass `_high`, as the C libraries read: "123" as a month is 12,
+ * leaving "3".
+ */
+static bool
+d_time_internal_number(
+    struct d_time_internal_parse* _parse,
+    int                           _low,
+    int                           _high,
+    int                           _digits,
+    int*                          _value
+)
+{
+    int value = 0;
+    int count = 0;
+
+    d_time_internal_skip_space(_parse);
+
+    // digits, while the field has room and the value can still grow
+    while ( (count < _digits)        &&
+            (*_parse->input >= '0')  &&
+            (*_parse->input <= '9')  &&
+            ( (count == 0) ||
+              ((value * 10) <= _high) ) )
     {
-        if (*fp == '%')
+        value = (value * 10) + (*_parse->input - '0');
+        ++_parse->input;
+        ++count;
+    }
+
+    *_value = value;
+
+    return ( (count > 0)      &&
+             (value >= _low)  &&
+             (value <= _high) );
+}
+
+/**
+ * @brief Reads exactly `_digits` digits, with nothing skipped before them.
+ *
+ * @param[in,out] _parse   the parse; its position passes the digits.
+ * @param[in]     _digits  how many digits.
+ * @param[out]    _value   receives the number.
+ * @return true when that many digits were there.
+ */
+static bool
+d_time_internal_digits(
+    struct d_time_internal_parse* _parse,
+    int                           _digits,
+    int*                          _value
+)
+{
+    int value = 0;
+
+    // each digit in turn
+    for (int i = 0; i < _digits; ++i)
+    {
+        const char digit = _parse->input[i];
+
+        // anything else ends the field too soon
+        if ( (digit < '0') ||
+             (digit > '9') )
         {
-            fp++;
-            if (!*fp)
-            {
-                break;
-            }
-
-            int value   = 0;
-            int digits  = 0;
-            int matched = 0;  // the name conversions' result: %b, %B, %a, %A
-
-            switch (*fp)
-            {
-                case 'Y':  // 4-digit year
-                    while ( (*sp >= '0') &&
-                            (*sp <= '9') &&
-                            (digits < 4) )
-                    {
-                        value = value * 10 + (*sp - '0');
-                        sp++;
-                        digits++;
-                    }
-
-                    _tm->tm_year = value - 1900;
-                    break;
-
-                case 'y':  // 2-digit year
-                    while ( (*sp >= '0') &&
-                            (*sp <= '9') &&
-                            (digits < 2) )
-                    {
-                        value = value * 10 + (*sp - '0');
-                        sp++;
-                        digits++;
-                    }
-
-                    _tm->tm_year = (value < 69) ? value + 100 : value;
-                    break;
-
-                case 'm':  // month (01-12)
-                    while ( (*sp >= '0') &&
-                            (*sp <= '9') &&
-                            (digits < 2) )
-                    {
-                        value = value * 10 + (*sp - '0');
-                        sp++;
-                        digits++;
-                    }
-
-                    _tm->tm_mon = value - 1;
-                    break;
-
-                case 'b':  // abbreviated month name (Jan, Feb, ...)
-                case 'h':  // same as %b
-                    matched = 0;
-
-                    for (int i = 0; i < 12; i++)
-                    {
-                        size_t len = strlen(month_abbrev[i]);
-
-                        if (d_strncasecmp(sp,
-                                          month_abbrev[i],
-                                          len) == 0)
-                        {
-                            _tm->tm_mon = i;
-                            sp += len;
-                            matched = 1;
-                            break;
-                        }
-                    }
-
-                    if (!matched)
-                    {
-                        // try full month names as fallback
-                        for (int i = 0; i < 12; i++)
-                        {
-                            size_t len = strlen(month_full[i]);
-
-                            if (d_strncasecmp(sp,
-                                              month_full[i],
-                                              len) == 0)
-                            {
-                                _tm->tm_mon = i;
-                                sp += len;
-                                matched = 1;
-                                break;
-                            }
-                        }
-                    }
-
-                    break;
-
-                case 'B':  // full month name (January, February, ...)
-                    matched = 0;
-
-                    for (int i = 0; i < 12; i++)
-                    {
-                        size_t len = strlen(month_full[i]);
-
-                        if (d_strncasecmp(sp,
-                                          month_full[i],
-                                          len) == 0)
-                        {
-                            _tm->tm_mon = i;
-                            sp += len;
-                            matched = 1;
-                            break;
-                        }
-                    }
-
-                    if (!matched)
-                    {
-                        // try abbreviated month names as fallback
-                        for (int i = 0; i < 12; i++)
-                        {
-                            size_t len = strlen(month_abbrev[i]);
-
-                            if (d_strncasecmp(sp,
-                                              month_abbrev[i],
-                                              len) == 0)
-                            {
-                                _tm->tm_mon = i;
-                                sp += len;
-                                matched = 1;
-                                break;
-                            }
-                        }
-                    }
-
-                    break;
-
-                case 'a':  // abbreviated weekday name (Sun, Mon, ...)
-                    matched = 0;
-
-                    for (int i = 0; i < 7; i++)
-                    {
-                        size_t len = strlen(weekday_abbrev[i]);
-
-                        if (d_strncasecmp(sp,
-                                          weekday_abbrev[i],
-                                          len) == 0)
-                        {
-                            _tm->tm_wday = i;
-                            sp += len;
-                            matched = 1;
-                            break;
-                        }
-                    }
-
-                    if (!matched)
-                    {
-                        // try full weekday names as fallback
-                        for (int i = 0; i < 7; i++)
-                        {
-                            size_t len = strlen(weekday_full[i]);
-
-                            if (d_strncasecmp(sp,
-                                              weekday_full[i],
-                                              len) == 0)
-                            {
-                                _tm->tm_wday = i;
-                                sp += len;
-                                matched = 1;
-                                break;
-                            }
-                        }
-                    }
-
-                    break;
-
-                case 'A':  // full weekday name (Sunday, Monday, ...)
-                    matched = 0;
-
-                    for (int i = 0; i < 7; i++)
-                    {
-                        size_t len = strlen(weekday_full[i]);
-
-                        if (d_strncasecmp(sp,
-                                          weekday_full[i],
-                                          len) == 0)
-                        {
-                            _tm->tm_wday = i;
-                            sp += len;
-                            matched = 1;
-                            break;
-                        }
-                    }
-
-                    if (!matched)
-                    {
-                        // try abbreviated weekday names as fallback
-                        for (int i = 0; i < 7; i++)
-                        {
-                            size_t len = strlen(weekday_abbrev[i]);
-
-                            if (d_strncasecmp(sp,
-                                              weekday_abbrev[i],
-                                              len) == 0)
-                            {
-                                _tm->tm_wday = i;
-                                sp += len;
-                                matched = 1;
-                                break;
-                            }
-                        }
-                    }
-
-                    break;
-
-                case 'd':  // day of month (01-31)
-                case 'e':  // day of month (1-31, space padded)
-                    // skip leading space for %e
-                    if (*sp == ' ')
-                    {
-                        sp++;
-                    }
-
-                    while ( (*sp >= '0') &&
-                            (*sp <= '9') &&
-                            (digits < 2) )
-                    {
-                        value = value * 10 + (*sp - '0');
-                        sp++;
-                        digits++;
-                    }
-
-                    _tm->tm_mday = value;
-                    break;
-
-                case 'H':  // hour (00-23)
-                case 'k':  // hour (0-23, space padded)
-                    if (*sp == ' ')
-                    {
-                        sp++;
-                    }
-
-                    while ( (*sp >= '0') &&
-                            (*sp <= '9') &&
-                            (digits < 2) )
-                    {
-                        value = value * 10 + (*sp - '0');
-                        sp++;
-                        digits++;
-                    }
-
-                    _tm->tm_hour = value;
-                    break;
-
-                case 'I':  // hour (01-12)
-                case 'l':  // hour (1-12, space padded)
-                    if (*sp == ' ')
-                    {
-                        sp++;
-                    }
-
-                    while ( (*sp >= '0') &&
-                            (*sp <= '9') &&
-                            (digits < 2) )
-                    {
-                        value = value * 10 + (*sp - '0');
-                        sp++;
-                        digits++;
-                    }
-
-                    _tm->tm_hour = value;  // will need AM/PM adjustment
-                    break;
-
-                case 'M':  // minute (00-59)
-                    while ( (*sp >= '0') &&
-                            (*sp <= '9') &&
-                            (digits < 2) )
-                    {
-                        value = value * 10 + (*sp - '0');
-                        sp++;
-                        digits++;
-                    }
-
-                    _tm->tm_min = value;
-                    break;
-
-                case 'S':  // second (00-60)
-                    while ( (*sp >= '0') &&
-                            (*sp <= '9') &&
-                            (digits < 2) )
-                    {
-                        value = value * 10 + (*sp - '0');
-                        sp++;
-                        digits++;
-                    }
-
-                    _tm->tm_sec = value;
-                    break;
-
-                case 'j':  // day of year (001-366)
-                    while ( (*sp >= '0') &&
-                            (*sp <= '9') &&
-                            (digits < 3) )
-                    {
-                        value = value * 10 + (*sp - '0');
-                        sp++;
-                        digits++;
-                    }
-
-                    _tm->tm_yday = value - 1;
-                    break;
-
-                case 'w':  // weekday as decimal (0-6, Sunday = 0)
-                    if ( (*sp >= '0') &&
-                         (*sp <= '6') )
-                    {
-                        _tm->tm_wday = *sp - '0';
-                        sp++;
-                    }
-
-                    break;
-
-                case 'p':  // AM/PM
-                case 'P':  // am/pm
-                    if ( ((*sp == 'P') || (*sp == 'p')) &&
-                         ((*(sp+1) == 'M') || (*(sp+1) == 'm')) )
-                    {
-                        if (_tm->tm_hour < 12)
-                        {
-                            _tm->tm_hour += 12;
-                        }
-
-                        sp += 2;
-                    }
-                    else if ( ((*sp == 'A') || (*sp == 'a')) &&
-                              ((*(sp+1) == 'M') || (*(sp+1) == 'm')) )
-                    {
-                        if (_tm->tm_hour == 12)
-                        {
-                            _tm->tm_hour = 0;
-                        }
-
-                        sp += 2;
-                    }
-
-                    break;
-
-                case '%':  // literal %
-                    if (*sp == '%')
-                    {
-                        sp++;
-                    }
-                    else
-                    {
-                        return NULL;
-                    }
-
-                    break;
-
-                case 'n':  // newline
-                case 't':  // tab
-                    // skip whitespace
-                    while ( (*sp == ' ')  ||
-                            (*sp == '\t') ||
-                            (*sp == '\n') )
-                    {
-                        sp++;
-                    }
-
-                    break;
-
-                default:
-                    // unsupported format specifier, skip it
-                    break;
-            }
-
-            fp++;
+            return false;
         }
-        else if (*fp == ' ')
+
+        value = (value * 10) + (digit - '0');
+    }
+
+    _parse->input += _digits;
+    *_value        = value;
+
+    return true;
+}
+
+/**
+ * @brief Reads a day's or a month's name, full or abbreviated, in any case.
+ *
+ * @param[in,out] _parse  the parse; its position passes the name.
+ * @param[in]     _names  the full names, in order.
+ * @param[in]     _count  how many names there are.
+ * @param[out]    _index  receives the index of the name read.
+ * @return true when a name was read.
+ *
+ * Each name is tried in full and then by its first three letters before the
+ * next name is tried, as the C libraries try them in the C locale.
+ */
+static bool
+d_time_internal_name(
+    struct d_time_internal_parse* _parse,
+    const char* const*            _names,
+    int                           _count,
+    int*                          _index
+)
+{
+    // each name, in full and then abbreviated
+    for (int i = 0; i < _count; ++i)
+    {
+        const size_t full  = strlen(_names[i]);
+        const size_t taken = (d_strncasecmp(_parse->input,
+                                            _names[i],
+                                            full) == 0)
+                                 ? full
+                                 : (d_strncasecmp(_parse->input,
+                                                  _names[i],
+                                                  3u) == 0)
+                                       ? 3u
+                                       : 0u;
+
+        // the first name to match is the one read
+        if (taken > 0u)
         {
-            // skip whitespace in format and input
-            while (*sp == ' ')
+            _parse->input += taken;
+            *_index        = i;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * @brief Reads %p's "AM" or "PM", in any case.
+ *
+ * @param[in,out] _parse  the parse; its position passes the marker.
+ * @return true when either was read.
+ */
+static bool
+d_time_internal_meridiem(
+    struct d_time_internal_parse* _parse
+)
+{
+    const bool am = (d_strncasecmp(_parse->input,
+                                   "AM",
+                                   2u) == 0);
+    const bool pm = (d_strncasecmp(_parse->input,
+                                   "PM",
+                                   2u) == 0);
+
+    // neither marker
+    if ( (!am) &&
+         (!pm) )
+    {
+        return false;
+    }
+
+    _parse->pm     = (pm) ? 1 : 0;
+    _parse->input += 2;
+
+    return true;
+}
+
+/**
+ * @brief Reads %z's offset: "Z", or a sign and hh, hhmm or hh:mm.
+ *
+ * @param[in,out] _parse  the parse; its position passes the offset.
+ * @return true when an offset of at most 23:59 was read. It is checked and
+ *         not stored, struct tm having no standard field for it.
+ */
+static bool
+d_time_internal_offset(
+    struct d_time_internal_parse* _parse
+)
+{
+    int hours   = 0;
+    int minutes = 0;
+
+    d_time_internal_skip_space(_parse);
+
+    // Z alone is UTC
+    if (*_parse->input == 'Z')
+    {
+        ++_parse->input;
+
+        return true;
+    }
+
+    // a sign
+    if ( (*_parse->input != '+') &&
+         (*_parse->input != '-') )
+    {
+        return false;
+    }
+
+    ++_parse->input;
+
+    // the hours' two digits
+    if (!d_time_internal_digits(_parse,
+                                2,
+                                &hours))
+    {
+        return false;
+    }
+
+    // a colon before the minutes is skipped where minutes follow it
+    if ( (_parse->input[0] == ':') &&
+         (_parse->input[1] >= '0') &&
+         (_parse->input[1] <= '9') )
+    {
+        ++_parse->input;
+    }
+
+    // minutes, if any digit follows, must be two
+    if ( (*_parse->input >= '0') &&
+         (*_parse->input <= '9') &&
+         (!d_time_internal_digits(_parse,
+                                  2,
+                                  &minutes)) )
+    {
+        return false;
+    }
+
+    return ( (hours <= 23) &&
+             (minutes <= 59) );
+}
+
+/**
+ * @brief Reads a date conversion: a name, a number or a week.
+ *
+ * @param[in,out] _parse       the parse.
+ * @param[in]     _conversion  the conversion's character.
+ * @return true when it read; false for a mismatch or a character that is
+ *         no date conversion.
+ */
+static bool
+d_time_internal_date(
+    struct d_time_internal_parse* _parse,
+    char                          _conversion
+)
+{
+    struct tm* const tm    = _parse->tm;
+    int              value = 0;
+
+    switch (_conversion)
+    {
+        case 'a':
+        case 'A':
+            _parse->wday = d_time_internal_name(_parse,
+                                           DAY_NAMES,
+                                           7,
+                                           &tm->tm_wday);
+
+            return _parse->wday;
+        case 'b':
+        case 'B':
+        case 'h':
+            _parse->month = d_time_internal_name(_parse,
+                                           MONTH_NAMES,
+                                           12,
+                                           &tm->tm_mon);
+
+            return _parse->month;
+        case 'C':
+            return d_time_internal_number(_parse,
+                                          0,
+                                          99,
+                                          2,
+                                          &_parse->century);
+        case 'd':
+        case 'e':
+            _parse->mday = d_time_internal_number(_parse,
+                                                  1,
+                                                  31,
+                                                  2,
+                                                  &tm->tm_mday);
+
+            return _parse->mday;
+        case 'j':
+            _parse->yday = d_time_internal_number(_parse,
+                                                  1,
+                                                  366,
+                                                  3,
+                                                  &value);
+            tm->tm_yday  = value - 1;
+
+            return _parse->yday;
+        case 'm':
+            _parse->month = d_time_internal_number(_parse,
+                                                   1,
+                                                   12,
+                                                   2,
+                                                   &value);
+            tm->tm_mon    = value - 1;
+
+            return _parse->month;
+        case 'u':
+            _parse->wday = d_time_internal_number(_parse,
+                                                  1,
+                                                  7,
+                                                  1,
+                                                  &value);
+            tm->tm_wday  = value % 7;
+
+            return _parse->wday;
+        case 'U':
+        case 'W':
+            _parse->monday = (_conversion == 'W');
+
+            return d_time_internal_number(_parse,
+                                          0,
+                                          53,
+                                          2,
+                                          &_parse->week);
+        case 'w':
+            _parse->wday = d_time_internal_number(_parse,
+                                                  0,
+                                                  6,
+                                                  1,
+                                                  &tm->tm_wday);
+
+            return _parse->wday;
+        case 'y':
+            return d_time_internal_number(_parse,
+                                          0,
+                                          99,
+                                          2,
+                                          &_parse->short_year);
+        case 'Y':
+            _parse->year = d_time_internal_number(_parse,
+                                                  0,
+                                                  9999,
+                                                  4,
+                                                  &value);
+            tm->tm_year  = value - 1900;
+
+            return _parse->year;
+        default:
+            return false;
+    }
+}
+
+/**
+ * @brief Reads a time conversion: an hour, a minute, a second, a meridiem
+ *        or a zone.
+ *
+ * @param[in,out] _parse       the parse.
+ * @param[in]     _conversion  the conversion's character.
+ * @return true when it read; false for a mismatch or a character that is
+ *         no time conversion.
+ */
+static bool
+d_time_internal_time(
+    struct d_time_internal_parse* _parse,
+    char                          _conversion
+)
+{
+    struct tm* const tm = _parse->tm;
+
+    switch (_conversion)
+    {
+        case 'H':
+        case 'k':
+            _parse->hour12 = -1;
+
+            return d_time_internal_number(_parse,
+                                          0,
+                                          23,
+                                          2,
+                                          &tm->tm_hour);
+        case 'I':
+        case 'l':
+            return d_time_internal_number(_parse,
+                                          1,
+                                          12,
+                                          2,
+                                          &_parse->hour12);
+        case 'M':
+            return d_time_internal_number(_parse,
+                                          0,
+                                          59,
+                                          2,
+                                          &tm->tm_min);
+        case 'S':
+            return d_time_internal_number(_parse,
+                                          0,
+                                          60,
+                                          2,
+                                          &tm->tm_sec);
+        case 'p':
+        case 'P':
+            return d_time_internal_meridiem(_parse);
+        case 'z':
+            return d_time_internal_offset(_parse);
+        case 'Z':
+            // a zone's name: skipped, to the next white space
+            while ( (*_parse->input != '\0') &&
+                    (!d_time_internal_is_space(*_parse->input)) )
             {
-                sp++;
+                ++_parse->input;
             }
 
-            fp++;
+            return true;
+        default:
+            return false;
+    }
+}
+
+static bool d_time_internal_walk(struct d_time_internal_parse* _parse,
+                                 const char*                   _format);
+
+/**
+ * @brief Reads one conversion, a composite one through its C-locale form.
+ *
+ * @param[in,out] _parse       the parse.
+ * @param[in]     _conversion  the conversion's character.
+ * @return true when it read; false for a mismatch or an unknown conversion.
+ */
+static bool
+d_time_internal_convert(
+    struct d_time_internal_parse* _parse,
+    char                          _conversion
+)
+{
+    switch (_conversion)
+    {
+        case 'c':
+            return d_time_internal_walk(_parse,
+                                        "%a %b %e %H:%M:%S %Y");
+        case 'D':
+        case 'x':
+            return d_time_internal_walk(_parse,
+                                        "%m/%d/%y");
+        case 'r':
+            return d_time_internal_walk(_parse,
+                                        "%I:%M:%S %p");
+        case 'R':
+            return d_time_internal_walk(_parse,
+                                        "%H:%M");
+        case 'T':
+        case 'X':
+            return d_time_internal_walk(_parse,
+                                        "%H:%M:%S");
+        case 'n':
+        case 't':
+            d_time_internal_skip_space(_parse);
+
+            return true;
+        case '%':
+            // a percent sign matches only itself
+            if (*_parse->input != '%')
+            {
+                return false;
+            }
+
+            ++_parse->input;
+
+            return true;
+        default:
+            return ( (d_time_internal_date(_parse,
+                                           _conversion)) ||
+                     (d_time_internal_time(_parse,
+                                           _conversion)) );
+    }
+}
+
+/**
+ * @brief Whether POSIX allows an E or O modifier before a conversion.
+ *
+ * @param[in] _modifier    'E' or 'O'.
+ * @param[in] _conversion  the conversion's character.
+ * @return true where POSIX defines the pair; the C locale reads it as the
+ *         plain conversion.
+ */
+static bool
+d_time_internal_modifies(
+    char _modifier,
+    char _conversion
+)
+{
+    const char* const allowed = (_modifier == 'E') ? "cCxXyY"
+                                                   : "deHImMSuUVwWy";
+
+    return ( (_conversion != '\0') &&
+             (strchr(allowed,
+                     _conversion) != NULL) );
+}
+
+/**
+ * @brief Walks a format over the parse's input.
+ *
+ * @param[in,out] _parse   the parse.
+ * @param[in]     _format  the format.
+ * @return true when the whole format was matched.
+ *
+ * White space in the format matches any run of white space in the input, or
+ * none; any other character outside a conversion matches only itself.
+ */
+static bool
+d_time_internal_walk(
+    struct d_time_internal_parse* _parse,
+    const char*                   _format
+)
+{
+    const char* format = _format;
+
+    // each element of the format, in order
+    while (*format != '\0')
+    {
+        // white space, then an ordinary character, then a conversion
+        if (d_time_internal_is_space(*format))
+        {
+            d_time_internal_skip_space(_parse);
+        }
+        else if (*format != '%')
+        {
+            // an ordinary character matches only itself
+            if (*_parse->input != *format)
+            {
+                return false;
+            }
+
+            ++_parse->input;
         }
         else
         {
-            // literal character match
-            if (*sp != *fp)
+            ++format;
+
+            // an E or O modifier POSIX allows reads as the plain conversion
+            if ( ( (*format == 'E') ||
+                   (*format == 'O') ) &&
+                 (d_time_internal_modifies(format[0],
+                                           format[1])) )
             {
-                return NULL;
+                ++format;
             }
 
-            sp++;
-            fp++;
+            // a conversion that does not read ends the parse
+            if ( (*format == '\0') ||
+                 (!d_time_internal_convert(_parse,
+                                           *format)) )
+            {
+                return false;
+            }
         }
+
+        ++format;
     }
 
-    return (char*)sp;
+    return true;
 }
 
-#endif
+/**
+ * @brief Settles the day of the year from %U or %W and a weekday.
+ *
+ * @param[in,out] _parse  the parse, whose year, week and weekday are known.
+ * @return false for a day the year does not have.
+ *
+ * Week 1 starts on the year's first Sunday (%U) or Monday (%W); the days
+ * before it are week 0.
+ */
+static bool
+d_time_internal_from_week(
+    struct d_time_internal_parse* _parse
+)
+{
+    struct tm* const tm      = _parse->tm;
+    const int        year    = tm->tm_year + 1900;
+    const int        january = d_time_internal_weekday(year,
+                                                       0,
+                                                       1);
+    const int        first   = (_parse->monday) ? ((8 - january) % 7)
+                                                : ((7 - january) % 7);
+    const int        offset  = (_parse->monday) ? ((tm->tm_wday + 6) % 7)
+                                                : tm->tm_wday;
+    const int        yday    = first + ((_parse->week - 1) * 7) + offset;
+
+    // a day outside the year
+    if ( (yday < 0) ||
+         (yday >= YEAR_DAYS[d_time_internal_leap(year)][12]) )
+    {
+        return false;
+    }
+
+    tm->tm_yday  = yday;
+    _parse->yday = true;
+
+    return true;
+}
+
+/**
+ * @brief Settles the month and the day of the month from the day of the
+ *        year.
+ *
+ * @param[in,out] _parse  the parse, whose year and day of the year are known.
+ * @return false for a day the year does not have, or a month or day the
+ *         input gave that the day of the year contradicts.
+ */
+static bool
+d_time_internal_from_yday(
+    struct d_time_internal_parse* _parse
+)
+{
+    struct tm* const tm    = _parse->tm;
+    const int        leap  = d_time_internal_leap(tm->tm_year + 1900);
+    int              month = 0;
+
+    // a day the year does not have
+    if (tm->tm_yday >= YEAR_DAYS[leap][12])
+    {
+        return false;
+    }
+
+    // the month whose days hold it
+    while (YEAR_DAYS[leap][month + 1] <= tm->tm_yday)
+    {
+        ++month;
+    }
+
+    const int mday = tm->tm_yday - YEAR_DAYS[leap][month] + 1;
+
+    // what the input gave must agree
+    if ( ( (_parse->month) &&
+           (tm->tm_mon != month) ) ||
+         ( (_parse->mday) &&
+           (tm->tm_mday != mday) ) )
+    {
+        return false;
+    }
+
+    tm->tm_mon    = month;
+    tm->tm_mday   = mday;
+    _parse->month = true;
+    _parse->mday  = true;
+
+    return true;
+}
+
+/**
+ * @brief Settles what the conversions read into the fields they imply.
+ *
+ * @param[in,out] _parse  the parse, its format walked.
+ * @return false where the fields read contradict each other or name a day
+ *         the year does not have.
+ *
+ * The year first: %Y's, else %C's century with %y's year in it, %y alone
+ * the 2000s below 69 and the 1900s from it, %C alone its first year. Then
+ * the hour of %I or %l, AM unless %p said PM. With the year known, a date
+ * the input did not give whole comes from %j, or from %U or %W with a
+ * weekday; and once the year, the month and the day are known, the day of
+ * the year and of the week follow, where the input gave neither.
+ */
+static bool
+d_time_internal_settle(
+    struct d_time_internal_parse* _parse
+)
+{
+    struct tm* const tm = _parse->tm;
+
+    // a year from %C and %y, where %Y gave none
+    if ( (!_parse->year) &&
+         ( (_parse->century >= 0) ||
+           (_parse->short_year >= 0) ) )
+    {
+        const int short_year = (_parse->short_year >= 0) ? _parse->short_year
+                                                         : 0;
+        const int century    = (_parse->century >= 0)
+                                   ? _parse->century
+                                   : ((short_year < 69) ? 20 : 19);
+
+        tm->tm_year  = (century * 100) + short_year - 1900;
+        _parse->year = true;
+    }
+
+    // the 12-hour clock, AM unless %p said PM
+    if (_parse->hour12 >= 0)
+    {
+        tm->tm_hour = (_parse->hour12 % 12) + ((_parse->pm == 1) ? 12 : 0);
+    }
+
+    // with the year known, a week and a weekday give a date not given
+    // whole its day of the year, and the day of the year gives the month
+    // and the day, or must agree with those the input gave
+    if ( (_parse->year) &&
+         ( ( (!_parse->yday)                  &&
+             (_parse->week >= 0)              &&
+             (_parse->wday)                   &&
+             ( (!_parse->month) ||
+               (!_parse->mday) )              &&
+             (!d_time_internal_from_week(_parse)) ) ||
+           ( (_parse->yday) &&
+             (!d_time_internal_from_yday(_parse)) ) ) )
+    {
+        return false;
+    }
+
+    // a whole date gives the day of the year and of the week
+    if ( (_parse->year)  &&
+         (_parse->month) &&
+         (_parse->mday) )
+    {
+        const int year = tm->tm_year + 1900;
+
+        tm->tm_yday = (_parse->yday)
+                          ? tm->tm_yday
+                          : (YEAR_DAYS[d_time_internal_leap(year)][tm->tm_mon] +
+                             tm->tm_mday - 1);
+        tm->tm_wday = (_parse->wday)
+                          ? tm->tm_wday
+                          : d_time_internal_weekday(year,
+                                                    tm->tm_mon,
+                                                    tm->tm_mday);
+    }
+
+    return true;
+}
+
+/*
+d_strptime
+  dtime's own parser, the same on every platform and C library (decision
+120 of the register, as the owner ruled it on 2026.10.18): it never calls
+the system's strptime. The format is walked once, each conversion reading
+into _tm or, where its meaning waits on others, into the parse; a last
+step settles the year, the hour, the date, and the days of the year and of
+the week.
+*/
+char*
+d_strptime(
+    const char* _s,
+    const char* _format,
+    struct tm*  _tm
+)
+{
+    // parameter validation
+    if ( (!_s)      ||
+         (!_format) ||
+         (!_tm) )
+    {
+        return NULL;
+    }
+
+    struct d_time_internal_parse parse = { .input      = _s,
+                                           .tm         = _tm,
+                                           .century    = -1,
+                                           .short_year = -1,
+                                           .week       = -1,
+                                           .hour12     = -1,
+                                           .pm         = -1 };
+
+    // the format, then what it leaves to settle
+    if ( (!d_time_internal_walk(&parse,
+                                _format)) ||
+         (!d_time_internal_settle(&parse)) )
+    {
+        return NULL;
+    }
+
+    return (char*)parse.input;
+}
 
 /*
 d_strftime_s

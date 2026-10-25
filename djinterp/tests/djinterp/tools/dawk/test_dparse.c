@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [dawk]                                                  test_dparse.c
+* djinterp [tools]                                                 test_dparse.c
 *
 *   Unit tests for the scanner and parser.
 *     Each case is a program and the shape its tree should have, written in a
@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/tools/dawk/test_dparse.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dparse.h"  // corresponding header
 // std
@@ -41,7 +41,7 @@ d_tests_emit(
 );
 
 
-#include <stdarg.h>
+#include <stdarg.h>  // va_list, va_start, va_end
 
 static void
 d_tests_emit(
@@ -540,11 +540,22 @@ d_tests_statements
   - a redirection on print is captured rather than dropped
   - delete of one element and of a whole array
   - functions, whose extra parameters are awk's locals
+  - a semicolon after a control header is the body, the empty statement,
+    and not a terminator before it
 */
 static void
 d_tests_statements(void)
 {
     printf("statements\n");
+
+    d_tests_expect("{ while (i<3) ; i++ }",
+                   "*{while((< i 3)){}; (post++ i)}");
+    d_tests_expect("{ for (;;)\n ;\n n++ }",
+                   "*{for(_;_;_){}; (post++ n)}");
+    d_tests_expect("{ if (x) ; else y = 1 }",
+                   "*{if(x){}else(= y 1)}");
+    d_tests_expect("{ for (k in a) ; n++ }",
+                   "*{forin(k in a){}; (post++ n)}");
 
     d_tests_expect("{ if ($1 > 2) print \"b\"; else print \"s\" }",
                    "*{if((> $(1) 2))print(\"b\")elseprint(\"s\")}");
@@ -660,6 +671,12 @@ d_tests_lexical(void)
                    "BEGIN{(= x 1); (= y 2)}");
     d_tests_expect("BEGIN { x = 1 + \\\n 2 }",
                    "BEGIN{(= x (+ 1 2))}");
+
+    // a backslash before a newline continues a string literal too
+    d_tests_expect("BEGIN { x = \"a\\\nb\" }",
+                   "BEGIN{(= x \"ab\")}");
+    d_tests_expect("BEGIN { x = \"\\101\\tB\" }",
+                   "BEGIN{(= x \"A\tB\")}");
     d_tests_expect("{ n = split($0, a, /,/) }",
                    "*{(= n @split($(0),a,/,/))}");
 
@@ -670,6 +687,38 @@ d_tests_lexical(void)
     d_tests_expect("$0 ~ /[a/ { print }", NULL);
     d_tests_expect("{ 1 +* 2 }", NULL);
     d_tests_expect("{ print \"unterminated }", NULL);
+
+    return;
+}
+
+
+/*
+d_tests_builtins
+  brief description
+  Tests the following:
+  - a builtin called with too few or too many arguments is a syntax error
+  - split's second argument must be an array name
+  - the target sub and gsub write back to must be a variable, field or
+    element, and a string constant is refused rather than crashing the run
+*/
+static void
+d_tests_builtins(void)
+{
+    printf("builtin calls\n");
+
+    d_tests_expect("BEGIN { x = atan2(1) }", NULL);
+    d_tests_expect("BEGIN { x = substr(\"a\", 1, 2, 3) }", NULL);
+    d_tests_expect("BEGIN { x = rand(1) }", NULL);
+    d_tests_expect("BEGIN { x = index(\"a\") }", NULL);
+    d_tests_expect("BEGIN { n = split(\"a b\", 1) }", NULL);
+    d_tests_expect("BEGIN { gsub(/a/, \"b\", \"banana\") }", NULL);
+    d_tests_expect("BEGIN { sub(/a/, \"b\", x y) }", NULL);
+    d_tests_expect("{ sub(/a/, \"b\", $2) }",
+                   "*{@sub(/a/,\"b\",$(2))}");
+    d_tests_expect("{ n = gsub(/a/, \"b\", t[1]) }",
+                   "*{(= n @gsub(/a/,\"b\",t[1]))}");
+    d_tests_expect("{ print length, length(), length($1) }",
+                   "*{print(@length(),@length(),@length($(1)))}");
 
     return;
 }
@@ -692,6 +741,7 @@ main(void)
     d_tests_statements();
     d_tests_getline();
     d_tests_lexical();
+    d_tests_builtins();
 
     printf("\n%d checks, %d failed\n", g_checks, g_failed);
 

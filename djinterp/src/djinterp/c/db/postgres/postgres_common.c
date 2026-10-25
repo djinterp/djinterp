@@ -13,7 +13,7 @@
 * path:      /src/djinterp/c/db/postgres/postgres_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -167,7 +167,7 @@ d_internal_postgres_sqlstate_char(
 
 /*
 d_internal_postgres_own_message
-  The layer's words for the four SQLSTATEs it gives itself, the manual's for
+  The layer's words for the five SQLSTATEs it gives itself, the manual's for
 the other conditions its headers name, or NULL for any other result.
 */
 static const char*
@@ -188,6 +188,9 @@ d_internal_postgres_own_message(
 
         case D_POSTGRES_SQLSTATE_OUT_OF_MEMORY:
             return "out of memory";
+
+        case D_POSTGRES_SQLSTATE_IO_ERROR:
+            return "the file could not be read or written";
 
         default:
             break;
@@ -230,13 +233,43 @@ static const int d_internal_postgres_feature_releases[] =
     170000,  // JSON_TABLE
     180000,  // VIRTUAL_COLUMNS
     180000,  // UUIDV7
-    180000   // RETURNING_OLD_NEW
+    180000,  // RETURNING_OLD_NEW
+    120000   // JSONPATH
 };
 
 D_STATIC_ASSERT( (sizeof(d_internal_postgres_feature_releases) /
                   sizeof(d_internal_postgres_feature_releases[0])) ==
-                 ((size_t)D_POSTGRES_FEATURE_RETURNING_OLD_NEW + 1u),
+                 ((size_t)D_POSTGRES_FEATURE_JSONPATH + 1u),
                  "every d_postgres_feature has a release" );
+
+// d_internal_postgres_client_feature_releases
+//   table: the libpq version, as PQlibVersion numbers it, that brought each
+// d_postgres_client_feature, in the enum's order; 0 where the header the
+// layer was compiled against does not declare it, which no library loaded
+// can mend.
+static const int d_internal_postgres_client_feature_releases[] =
+{
+#if defined(LIBPQ_HAS_PIPELINING)
+    140000,  // PIPELINE
+#else
+    0,       // PIPELINE
+#endif
+#if defined(LIBPQ_HAS_CHUNK_MODE)
+    170000,  // CHUNKED_ROWS
+#else
+    0,       // CHUNKED_ROWS
+#endif
+#if defined(LIBPQ_HAS_CLOSE_PREPARED)
+    170000   // CLOSE_PREPARED
+#else
+    0        // CLOSE_PREPARED
+#endif
+};
+
+D_STATIC_ASSERT( (sizeof(d_internal_postgres_client_feature_releases) /
+                  sizeof(d_internal_postgres_client_feature_releases[0])) ==
+                 ((size_t)D_POSTGRES_CLIENT_CLOSE_PREPARED + 1u),
+                 "every d_postgres_client_feature has a release" );
 
 #endif  // D_INTERNAL_POSTGRES
 
@@ -328,7 +361,7 @@ d_postgres_result_from_sqlstate(
 /*
 d_postgres_result_message
   db_common.h's words for its own values -- save D_DB_UNSUPPORTED in a build
-without libpq, which the build explains -- the layer's for the four codes it
+without libpq, which the build explains -- the layer's for the five codes it
 gives itself, the manual's for the conditions the headers name and for any
 other code's class; a value that is none of these is "unknown result".
 */
@@ -398,6 +431,32 @@ d_postgres_client_version_number(
 )
 {
     return PQlibVersion();
+}
+
+/*
+d_postgres_client_supports
+  The header compiled against must declare the feature, and the library loaded
+be of its release or later: a shared libpq older than the header lacks the
+calls the layer makes.
+*/
+bool
+d_postgres_client_supports(
+    enum d_postgres_client_feature _feature
+)
+{
+    const size_t count =
+        sizeof(d_internal_postgres_client_feature_releases) /
+        sizeof(d_internal_postgres_client_feature_releases[0]);
+
+    // a feature there is, in this build
+    if ( ((size_t)_feature >= count) ||
+         (d_internal_postgres_client_feature_releases[_feature] == 0) )
+    {
+        return false;
+    }
+
+    return (PQlibVersion() >=
+            d_internal_postgres_client_feature_releases[_feature]);
 }
 
 //==============================================================================
@@ -532,6 +591,24 @@ d_postgres_error_message(
     return (_db) ? PQerrorMessage(_db) : "";
 }
 
+/*
+d_postgres_result_is_own
+  Memory the layer could not have is its own to report, as any negative
+result is; the other six codes are its own when the layer marked them so
+on this connection, on this thread, and libpq has not been heard since
+(d_internal_postgres_answered).
+*/
+bool
+d_postgres_result_is_own(
+    const struct pg_conn* _db,
+    int                   _result
+)
+{
+    return ( (_result <= 0)                                 ||
+             (_result == D_POSTGRES_SQLSTATE_OUT_OF_MEMORY) ||
+             (d_internal_postgres_answered(_db, _result)) );
+}
+
 #else
 
 //==============================================================================
@@ -551,6 +628,20 @@ d_postgres_client_version_number(
 )
 {
     return 0;
+}
+
+/*
+d_postgres_client_supports
+  Without libpq, false.
+*/
+bool
+d_postgres_client_supports(
+    enum d_postgres_client_feature _feature
+)
+{
+    (void)_feature;
+
+    return false;
 }
 
 /*
@@ -643,6 +734,22 @@ d_postgres_error_message(
     (void)_db;
 
     return "";
+}
+
+/*
+d_postgres_result_is_own
+  Without libpq every result is the layer's own.
+*/
+bool
+d_postgres_result_is_own(
+    const struct pg_conn* _db,
+    int                   _result
+)
+{
+    (void)_db;
+    (void)_result;
+
+    return true;
 }
 
 #endif  // D_INTERNAL_POSTGRES

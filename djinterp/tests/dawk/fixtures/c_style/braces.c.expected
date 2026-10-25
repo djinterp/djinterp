@@ -10,3 +10,4 @@ tests/dawk/fixtures/c_style/braces.c:46:17: an opening brace is on its own line
 tests/dawk/fixtures/c_style/braces.c:57:1: a definition carries a comment opening with its name
 tests/dawk/fixtures/c_style/braces.c:71:1: a conditional inside a function body
 tests/dawk/fixtures/c_style/braces.c:71:1: a definition carries a comment opening with its name
+tests/dawk/fixtures/c_style/braces.c:82:9: start-column

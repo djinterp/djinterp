@@ -37,7 +37,7 @@
 * path:      /inc/djinterp/net/ssl/ssl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.26
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 /*
@@ -167,10 +167,10 @@ TABLE OF CONTENTS
                                               // uint32_t, uint64_t
 
 // 64-bit floor: this header needs a 64-bit integer type, and compiles to
-// nothing where the build has none -- ISO strict C++98 on a 32-bit target
-// (the owner's ruling of 2026.10.03 on round 3's question 1, (a)). The
-// answer is net_common.h's, taken once per translation unit, so that net's
-// gated headers agree.
+// nothing where the build has none -- ISO strict C++98 wherever int64_t is
+// `long long`: a 32-bit target, 64-bit Windows or macOS (the owner's ruling of
+// 2026.10.03 on round 3's question 1, (a)). The answer is net_common.h's, taken
+// once per translation unit, so that net's gated headers agree.
 #if (D_INTERNAL_NET_HAS_INT64 == 1)
 
 #if !defined(D_EXTERN_C_BEGIN) || !defined(D_EXTERN_C_END)

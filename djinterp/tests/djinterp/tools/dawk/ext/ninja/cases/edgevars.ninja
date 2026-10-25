@@ -1,0 +1,6 @@
+v = top
+rule r
+  command = $v $w
+build a: r
+  v = edge $v
+  w = $v

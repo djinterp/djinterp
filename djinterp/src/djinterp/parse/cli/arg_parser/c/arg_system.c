@@ -4,22 +4,23 @@
 * What the parser asks of the operating system, declared in arg_internal.h
 * (9.1 to 9.3 and 9.5), and the terminal's width, declared in arg_formatter.h
 * (5.2.1).
-*   The one source of the module that includes a system header. Each
-* question is answered by the implementation env_arg_parser.h's facts select,
-* chosen whole, a function at a time: a file's status through _wstat64 on
-* Windows, through stat where <sys/stat.h> is, and by opening the file
-* elsewhere; a file opened through the Microsoft runtime's secure functions
-* where it deprecates the others; a variable through _dupenv_s or getenv; the
-* command line through GetCommandLineW; the terminal through the console API
-* or TIOCGWINSZ. On Windows a path is UTF-8, as CLI11 widens one, unless it
-* is not valid UTF-8, when the runtime reads it in the ANSI code page, as
-* `argv` holds it. The text encodings those conversions need come first.
+*   The one source of the module that includes a system header. Each question is
+* answered by the implementation env_arg_parser.h's facts select, chosen whole,
+* a function at a time: a file's status through _wstat64 on Windows -- a
+* directory named with a separator after it stated again without it, which the
+* older runtime, msvcrt, needs -- through stat where <sys/stat.h> is, and by
+* opening the file elsewhere; a file opened through the Microsoft runtime's
+* secure functions where it deprecates the others; a variable through _dupenv_s
+* or getenv; the command line through GetCommandLineW; the terminal through the
+* console API or TIOCGWINSZ. On Windows a path is UTF-8, as CLI11 widens one,
+* unless it is not valid UTF-8, when the runtime reads it in the ANSI code page,
+* as `argv` holds it. The text encodings those conversions need come first.
 *
 *
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_system.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.15
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -74,13 +75,19 @@ static const uint32_t REPLACEMENT = 0xFFFDu;
 // point, by the length of its sequence.
 static const unsigned int UTF8_LEADS[5] = { 0x00u, 0x00u, 0xC0u, 0xE0u, 0xF0u };
 
-/*
-d_arg_internal_utf8_shape
-  The length of the UTF-8 sequence a lead byte starts, by RFC 3629, and the
-range its second byte must lie in -- narrower after E0, ED, F0 and F4, which
-is what refuses overlong forms, surrogates and values past U+10FFFF; 0 for a
-byte that cannot lead.
-*/
+/**
+ * @brief Reads the shape of the UTF-8 sequence a lead byte starts.
+ *
+ * @param[in]  _lead  the byte.
+ * @param[out] _low   receives the least the second byte may be.
+ * @param[out] _high  receives the greatest the second byte may be.
+ * @return the sequence's length, 1 to 4; 0 for a byte that cannot lead.
+ *
+ * The length of the UTF-8 sequence a lead byte starts, by RFC 3629, and the
+ * range its second byte must lie in -- narrower after E0, ED, F0 and F4, which
+ * is what refuses overlong forms, surrogates and values past U+10FFFF; 0 for a
+ * byte that cannot lead.
+ */
 D_STATIC size_t
 d_arg_internal_utf8_shape(
     unsigned int  _lead,
@@ -128,10 +135,11 @@ d_arg_internal_utf8_shape(
 
 /*
 d_arg_internal_utf8_next
-  The code point of the well-formed UTF-8 sequence at `*_at`, which `*_at`
-then moves past; false, `*_at` left, for an ill-formed or truncated one.
+  The lead byte's shape, then each continuation byte within its range, the
+code point gathered six bits at a time; `*_at` moved only once the whole
+sequence is read.
 */
-D_STATIC bool
+bool
 d_arg_internal_utf8_next(
     struct d_pack_text _text,
     size_t*            _at,
@@ -175,10 +183,14 @@ d_arg_internal_utf8_next(
     return true;
 }
 
-/*
-d_arg_internal_utf8_valid
-  Whether NUL-terminated text is well-formed UTF-8.
-*/
+/**
+ * @brief Tells whether text is well-formed UTF-8.
+ *
+ * @param[in] _text  the text, NUL-terminated.
+ * @return `true` for well-formed UTF-8; `false` otherwise.
+ *
+ * Whether NUL-terminated text is well-formed UTF-8.
+ */
 D_STATIC bool
 d_arg_internal_utf8_valid(
     const char* _text
@@ -202,11 +214,16 @@ d_arg_internal_utf8_valid(
     return true;
 }
 
-/*
-d_arg_internal_utf16_units
-  How many UTF-16 units well-formed UTF-8 text needs: one for each code
-point, two past U+FFFF.
-*/
+/**
+ * @brief Counts the UTF-16 units UTF-8 text needs.
+ *
+ * @param[in] _text  the text.
+ * @pre    `_text` is well-formed UTF-8.
+ * @return the count.
+ *
+ * How many UTF-16 units well-formed UTF-8 text needs: one for each code
+ * point, two past U+FFFF.
+ */
 D_STATIC size_t
 d_arg_internal_utf16_units(
     struct d_pack_text _text
@@ -247,7 +264,7 @@ d_arg_internal_wide_from_utf8(
     const struct d_pack_text text  = d_arg_internal_text_of(_text);
     const size_t             units = d_arg_internal_utf16_units(text);
     uint16_t* const          wide  = (units < (((size_t)-1 /
-                                                 sizeof(uint16_t)) - 1u))
+                                                sizeof(uint16_t)) - 1u))
                                      ? (uint16_t*)malloc((units + 1u) *
                                                          sizeof(uint16_t))
                                      : NULL;
@@ -413,11 +430,76 @@ enum
 
 #if (D_ENV_ARG_PARSER_STAT == D_ENV_ARG_PARSER_STAT_WINDOWS)
 
-/*
-d_arg_internal_system_stat
-  The Microsoft runtime's status of a path: a UTF-8 path widened for
-_wstat64, any other given to _stat64 in the ANSI code page.
-*/
+/**
+ * @brief Gets the status of a directory named with separators after it,
+ *        which the older Microsoft runtime, msvcrt, does not find: the path
+ *        stated again without them.
+ *
+ * @param[in,out] _wide    the path, UTF-16, which loses the separators that
+ *                         end it.
+ * @param[out]    _status  receives the status.
+ * @return 0 for a directory found so; -1 otherwise -- no separator to drop,
+ *         one that ends a root (`/`, `C:\\`), or a path that is not a
+ *         directory.
+ *
+ * A separator after a name asks for a directory, as POSIX's stat reads one,
+ * so a file found without it is not found. The Universal C Runtime finds
+ * such a directory itself, and never gets here for one.
+ */
+D_STATIC int
+d_arg_internal_system_stat_directory(
+    uint16_t*       _wide,
+    struct _stat64* _status
+)
+{
+    size_t length = 0u;
+
+    // the path's length
+    while (_wide[length] != 0u)
+    {
+        ++length;
+    }
+
+    size_t kept = length;
+
+    // the separators that end it
+    while ( (kept > 0u) &&
+            ( (_wide[kept - 1u] == (uint16_t)'/') ||
+              (_wide[kept - 1u] == (uint16_t)'\\') ) )
+    {
+        --kept;
+    }
+
+    // nothing to drop, a root, or a drive's root
+    if ( (kept == length) ||
+         (kept == 0u)     ||
+         (_wide[kept - 1u] == (uint16_t)':') )
+    {
+        return -1;
+    }
+
+    _wide[kept] = 0u;
+
+    return ( (_wstat64((const wchar_t*)_wide,
+                       _status) == 0) &&
+             ((_status->st_mode & _S_IFDIR) != 0) )
+           ? 0
+           : -1;
+}
+
+/**
+ * @brief Gets a path's status from the Microsoft runtime.
+ *
+ * @param[in]  _path    the path.
+ * @param[out] _status  receives the status.
+ * @return 0 on success; -1 on failure, as _stat64's.
+ *
+ * The Microsoft runtime's status of a path: a UTF-8 path widened for
+ * _wstat64 -- and, where that finds nothing and the path ends in a
+ * separator, stated again as a directory without it, for msvcrt -- any
+ * other given to _stat64 in the ANSI code page, whose answer it keeps: a
+ * separator's byte there can end a character of two.
+ */
 D_STATIC int
 d_arg_internal_system_stat(
     const char*     _path,
@@ -432,10 +514,18 @@ d_arg_internal_system_stat(
     }
 
     uint16_t* const wide   = d_arg_internal_wide_from_utf8(_path);
-    const int       result = (wide != NULL)
+    int             result = (wide != NULL)
                              ? _wstat64((const wchar_t*)wide,
                                         _status)
                              : -1;
+
+    // a directory named with a separator after it, which msvcrt misses
+    if ( (result != 0) &&
+         (wide != NULL) )
+    {
+        result = d_arg_internal_system_stat_directory(wide,
+                                                      _status);
+    }
 
     free(wide);
 
@@ -597,12 +687,18 @@ d_arg_internal_path_kind(
 #if ( (D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)) &&                                    \
       (D_ENV_ARG_PARSER_FOPEN == D_ENV_ARG_PARSER_FOPEN_SECURE) )
 
-/*
-d_arg_internal_system_open
-  A file opened for reading, in text mode or binary, by the runtime's secure
-functions: a UTF-8 path widened for _wfopen_s, any other given to fopen_s
-in the ANSI code page.
-*/
+/**
+ * @brief Opens a file for reading.
+ *
+ * @param[in] _path  the path.
+ * @param[in] _text  whether in text mode, not binary.
+ * @return the stream, which the caller closes; NULL when the file could not be
+ *         opened.
+ *
+ * A file opened for reading, in text mode or binary, by the runtime's secure
+ * functions: a UTF-8 path widened for _wfopen_s, any other given to fopen_s
+ * in the ANSI code page.
+ */
 D_STATIC FILE*
 d_arg_internal_system_open(
     const char* _path,
@@ -639,11 +735,17 @@ d_arg_internal_system_open(
 
 #elif D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
 
-/*
-d_arg_internal_system_open
-  A file opened for reading, in text mode or binary: a UTF-8 path widened
-for _wfopen, any other given to fopen in the ANSI code page.
-*/
+/**
+ * @brief Opens a file for reading.
+ *
+ * @param[in] _path  the path.
+ * @param[in] _text  whether in text mode, not binary.
+ * @return the stream, which the caller closes; NULL when the file could not be
+ *         opened.
+ *
+ * A file opened for reading, in text mode or binary: a UTF-8 path widened
+ * for _wfopen, any other given to fopen in the ANSI code page.
+ */
 D_STATIC FILE*
 d_arg_internal_system_open(
     const char* _path,
@@ -670,11 +772,17 @@ d_arg_internal_system_open(
 
 #else
 
-/*
-d_arg_internal_system_open
-  A file opened for reading, its path the bytes the system takes, in text
-mode or binary, which elsewhere read alike.
-*/
+/**
+ * @brief Opens a file for reading.
+ *
+ * @param[in] _path  the path.
+ * @param[in] _text  whether in text mode, not binary.
+ * @return the stream, which the caller closes; NULL when the file could not be
+ *         opened.
+ *
+ * A file opened for reading, its path the bytes the system takes, in text
+ * mode or binary, which elsewhere read alike.
+ */
 D_STATIC FILE*
 d_arg_internal_system_open(
     const char* _path,
@@ -687,11 +795,17 @@ d_arg_internal_system_open(
 
 #endif  // D_ENV_IS_OS_WINDOWS, D_ENV_ARG_PARSER_FOPEN
 
-/*
-d_arg_internal_read_stream
-  An open stream read to its end, a chunk at a time, into a buffer; a read
-that fails is D_ARG_ERROR_FILE.
-*/
+/**
+ * @brief Reads an open stream to its end into a buffer.
+ *
+ * @param[in,out] _stream  the stream.
+ * @param[in,out] _out     the buffer that gains its bytes.
+ * @return D_ARG_OK; D_ARG_ERROR_FILE when a read failed; or the buffer's
+ *         status.
+ *
+ * An open stream read to its end, a chunk at a time, into a buffer; a read
+ * that fails is D_ARG_ERROR_FILE.
+ */
 D_STATIC int
 d_arg_internal_read_stream(
     FILE*                _stream,
@@ -925,11 +1039,15 @@ enum
 
 #if (D_ENV_ARG_PARSER_TERMINAL == D_ENV_ARG_PARSER_TERMINAL_WINDOWS)
 
-/*
-d_arg_internal_terminal_measure
-  The width of the console window standard output is shown in; 0 when
-standard output is not a console.
-*/
+/**
+ * @brief Measures the terminal standard output is shown in.
+ *
+ * @return its width in columns; 0 when standard output is not a terminal, or
+ *         cannot be measured.
+ *
+ * The width of the console window standard output is shown in; 0 when
+ * standard output is not a console.
+ */
 D_STATIC size_t
 d_arg_internal_terminal_measure(void)
 {
@@ -953,11 +1071,15 @@ d_arg_internal_terminal_measure(void)
 #elif ( (D_ENV_ARG_PARSER_TERMINAL == D_ENV_ARG_PARSER_TERMINAL_POSIX) &&     \
         (defined(TIOCGWINSZ)) )
 
-/*
-d_arg_internal_terminal_measure
-  The width TIOCGWINSZ reports for the terminal standard output is; 0 when
-standard output is not a terminal.
-*/
+/**
+ * @brief Measures the terminal standard output is shown in.
+ *
+ * @return its width in columns; 0 when standard output is not a terminal, or
+ *         cannot be measured.
+ *
+ * The width TIOCGWINSZ reports for the terminal standard output is; 0 when
+ * standard output is not a terminal.
+ */
 D_STATIC size_t
 d_arg_internal_terminal_measure(void)
 {
@@ -977,11 +1099,15 @@ d_arg_internal_terminal_measure(void)
 
 #else
 
-/*
-d_arg_internal_terminal_measure
-  Without a way to ask -- or with a system that hides TIOCGWINSZ from the
-build's feature macros -- nothing is measured.
-*/
+/**
+ * @brief Measures the terminal standard output is shown in.
+ *
+ * @return its width in columns; 0 when standard output is not a terminal, or
+ *         cannot be measured.
+ *
+ * Without a way to ask -- or with a system that hides TIOCGWINSZ from the
+ * build's feature macros -- nothing is measured.
+ */
 D_STATIC size_t
 d_arg_internal_terminal_measure(void)
 {
@@ -990,11 +1116,15 @@ d_arg_internal_terminal_measure(void)
 
 #endif  // D_ENV_ARG_PARSER_TERMINAL
 
-/*
-d_arg_internal_terminal_columns
-  The COLUMNS variable's width: digits alone, from 1 to COLUMNS_MAX; 0 for
-anything else.
-*/
+/**
+ * @brief Reads the COLUMNS variable as a width.
+ *
+ * @return the width, 1 to COLUMNS_MAX; 0 for no variable, or anything but such
+ *         digits.
+ *
+ * The COLUMNS variable's width: digits alone, from 1 to COLUMNS_MAX; 0 for
+ * anything else.
+ */
 D_STATIC size_t
 d_arg_internal_terminal_columns(void)
 {

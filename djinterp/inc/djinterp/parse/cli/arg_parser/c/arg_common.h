@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/parse/cli/arg_parser/c/arg_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.14
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 
 /*
@@ -34,7 +34,8 @@ TABLE OF CONTENTS
          2.  d_arg_exit_code
     2.  Status queries
          1.  d_arg_status_is_error
-         2.  d_arg_status_name / d_arg_status_exit_code
+         2.  d_arg_status_name / d_arg_status_message /
+             d_arg_status_exit_code
 2.  VOCABULARY
     ----------
     1.  Options
@@ -202,23 +203,32 @@ D_EXTERN_C_BEGIN
  * @brief Determines whether a status reports an error rather than success or
  *        a completed request.
  *
- * @param[in] _status  a d_arg_status value.
- * @return `true` for D_ARG_RUNTIME_ERROR and every D_ARG_ERROR_* status;
- *         `false` for D_ARG_OK and the completed requests.
+ * @param[in] _status  a d_arg_status value, or any other int.
+ * @return `false` for D_ARG_OK and the completed requests, D_ARG_SUCCESS
+ *         among them; `true` for D_ARG_RUNTIME_ERROR, every D_ARG_ERROR_*
+ *         status, and a value outside the enum, which
+ *         d_arg_status_name names "Error" and d_arg_status_exit_code exits
+ *         with D_ARG_EXIT_BASE_CLASS.
  */
 D_INLINE bool
 d_arg_status_is_error(
     int _status
 )
 {
-    return (_status >= (int)D_ARG_RUNTIME_ERROR);
+    // no cast: an enumerator compares as an int in C and C++ alike, and C++
+    // callers building with -Wold-style-cast compile this too
+    return ( (_status < D_ARG_OK) ||
+             (_status >= D_ARG_RUNTIME_ERROR) );
 }
 
 // 1.2.2
-// d_arg_status_name / d_arg_status_exit_code
-//   pure lookups; neither allocates nor fails. A status outside the enum is
-// named "Error" and exits with D_ARG_EXIT_BASE_CLASS.
+// d_arg_status_name / d_arg_status_message / d_arg_status_exit_code
+//   pure lookups; none allocates or fails. The message is the one a status
+// carries when none was recorded -- CLI11's default where CLI11 has one --
+// as d_arg_error_message reads it. A status outside the enum is named and
+// described "Error" and exits with D_ARG_EXIT_BASE_CLASS.
 const char* d_arg_status_name(int _status);
+const char* d_arg_status_message(int _status);
 int         d_arg_status_exit_code(int _status);
 
 D_EXTERN_C_END
@@ -517,7 +527,7 @@ typedef int (*d_arg_results_fn)(struct d_arg_option*      _option,
 // d_arg_each_fn
 //   type: a function run on each value of an option as the option is
 // validated; CLI11's each(). D_ARG_ERROR_VALIDATION rejects the value, with
-// the message d_arg_option_fail recorded or else the status's own, as
+// the message d_arg_option_fail recorded or else d_arg_status_message's, as
 // CLI11's option catches a ValidationError; any other status but D_ARG_OK
 // ends the parse with it, as any other error an each() function throws.
 typedef int (*d_arg_each_fn)(const struct d_arg_option* _option,
@@ -844,9 +854,9 @@ int         d_arg_error_setf(struct d_arg_error* _error,
 
 // 4.3.3
 // d_arg_error_message / d_arg_error_exit_code
-//   reading: message is never NULL -- the recorded text, or the status's own
-// when none was recorded -- and exit_code is the code to end the process
-// with. Both accept NULL, which reads as D_ARG_OK.
+//   reading: message is never NULL -- the recorded text, or the status's own,
+// d_arg_status_message's, when none was recorded -- and exit_code is the
+// code to end the process with. Both accept NULL, which reads as D_ARG_OK.
 const char* d_arg_error_message(const struct d_arg_error* _error);
 int         d_arg_error_exit_code(const struct d_arg_error* _error);
 

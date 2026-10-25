@@ -7,19 +7,17 @@
 * written with; D_ARG_PARSE, CLI11_PARSE; parsing a vector of arguments and
 * a command line held in one string; the root's name taken from the
 * program's; what one parse leaves for the next; the endings given a
-* status rather than an error; the endings and the parses given nothing to
-* end or to parse; and `--name=` read as getopt_long reads it, where the
-* parser is told to.
+* status rather than an error; and the endings and the parses given
+* nothing to end or to parse.
 *   Every expected transcript is CLI11's, from the parser suite's reference
 * program, but DEPARTED_FAILURE's, the module's own where it departs from
-* CLI11; the statuses' and the nulls' sections', which no CLI11 call can be
-* given; and the empty values', the module's own where its switch is on.
+* CLI11, and the last two sections', which no CLI11 call can be given.
 *
 *
 * path:      /tests/djinterp/parse/cli/arg_parser/c/arg_parser_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.10.16
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_CLI_ARG_PARSER_C_ARG_PARSER_TESTS_H
@@ -67,9 +65,6 @@ bool d_tests_arg_parser_statuses(void);
 
 // 12. NULLS
 bool d_tests_arg_parser_nulls(void);
-
-// 13. EMPTY VALUES
-bool d_tests_arg_parser_empty_values(void);
 
 // the suite's sections, in the order they run
 extern const struct d_tests_section d_tests_arg_parser[];

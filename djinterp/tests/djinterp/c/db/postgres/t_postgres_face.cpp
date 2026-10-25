@@ -29,7 +29,7 @@
 * path:      /tests/djinterp/c/db/postgres/t_postgres_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 // std
 #include <cstdio>   // std::printf
@@ -396,8 +396,10 @@ d_tests_postgres_face_conversions(
     static const struct d_db_column people[] =
     {
         { "id",   D_DB_TYPE_BIG_INTEGER,
-          D_DB_COLUMN_PRIMARY_KEY | D_DB_COLUMN_AUTO_INCREMENT, 0, 0u, 0u, 0 },
-        { "name", D_DB_TYPE_STRING, D_DB_COLUMN_NOT_NULL, "'?'", 40u, 0u, 0 }
+          D_DB_COLUMN_PRIMARY_KEY | D_DB_COLUMN_AUTO_INCREMENT,
+          0, 0u, 0u, 0, 0u },
+        { "name", D_DB_TYPE_STRING, D_DB_COLUMN_NOT_NULL,
+          "'?'", 40u, 0u, 0, 0u }
     };
     face::name_list          names;
     std::vector<std::string> copied;
@@ -556,7 +558,8 @@ d_tests_postgres_face_cpp20(
 {
     static const struct d_db_column columns[] =
     {
-        { "id", D_DB_TYPE_BIG_INTEGER, D_DB_COLUMN_PRIMARY_KEY, 0, 0u, 0u, 0 }
+        { "id", D_DB_TYPE_BIG_INTEGER, D_DB_COLUMN_PRIMARY_KEY,
+          0, 0u, 0u, 0, 0u }
     };
     re_std::int64_t count = -1;
 
@@ -870,6 +873,66 @@ d_tests_postgres_face_statements(
 }
 
 /*
+d_tests_postgres_face_cursors
+  Rows a few at a time through the statement face: pages no longer than asked
+for, and a short one ending the run; the connection the run's until then, and a
+fetch after the end refused; a run closed part-way; from C++23 a page returned.
+*/
+void
+d_tests_postgres_face_cursors(
+    face::postgres& _db
+)
+{
+    face::postgres_statement select;
+    face::rows               page;
+
+    std::printf("rows a few at a time\n");
+
+    D_TESTS_POSTGRES_FACE_CHECK(
+        _db.prepare(select,
+                    "SELECT i FROM generate_series(1, 3) AS i") == 0);
+    D_TESTS_POSTGRES_FACE_CHECK(select.open_cursor() == 0);
+    D_TESTS_POSTGRES_FACE_CHECK(select.fetch_rows(2u, page) == 0);
+    D_TESTS_POSTGRES_FACE_CHECK( (page.row_count() == 2u) &&
+                                 (page.column_count() == 1u) );
+    D_TESTS_POSTGRES_FACE_CHECK(_db.exec("SELECT 1") ==
+                                D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    D_TESTS_POSTGRES_FACE_CHECK(select.fetch_rows(2u, page) == 0);
+    D_TESTS_POSTGRES_FACE_CHECK( (page.row_count() == 1u) &&
+                                 (page.value(0u, 0u)->as.integer == 3) );
+    D_TESTS_POSTGRES_FACE_CHECK(select.fetch_rows(2u, page) ==
+                                D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_FACE_CHECK(_db.exec("SELECT 1") == 0);
+
+    // closed part-way, and again
+    D_TESTS_POSTGRES_FACE_CHECK(select.open_cursor() == 0);
+    D_TESTS_POSTGRES_FACE_CHECK(select.fetch_rows(1u, page) == 0);
+    D_TESTS_POSTGRES_FACE_CHECK(select.close_cursor() == 0);
+    D_TESTS_POSTGRES_FACE_CHECK(_db.exec("SELECT 1") == 0);
+    D_TESTS_POSTGRES_FACE_CHECK(select.close_cursor() == 0);
+
+#if D_INTERNAL_DB_FACE_EXPECTED
+    // a page returned: three rows fill the first exactly, and the next is
+    // empty, its columns still described
+    D_TESTS_POSTGRES_FACE_CHECK(select.open_cursor() == 0);
+    {
+        const auto full = select.fetch_rows(3u);
+        const auto rest = select.fetch_rows(3u);
+
+        D_TESTS_POSTGRES_FACE_CHECK( (full.has_value()) &&
+                                     (full->row_count() == 3u) );
+        D_TESTS_POSTGRES_FACE_CHECK( (rest.has_value())           &&
+                                     (rest->row_count() == 0u)    &&
+                                     (rest->column_count() == 1u) );
+    }
+#endif  // D_INTERNAL_DB_FACE_EXPECTED
+
+    D_TESTS_POSTGRES_FACE_CHECK(select.finalize() == 0);
+
+    return;
+}
+
+/*
 d_tests_postgres_face_modules
   A member or two of each module beyond the ones above: servers and
 errors, databases and schemas, schema objects, settings and maintenance.
@@ -961,7 +1024,56 @@ d_tests_postgres_face_modules(
                                     D_DB_NOT_FOUND);
         D_TESTS_POSTGRES_FACE_CHECK(!_db.is_busy());
         D_TESTS_POSTGRES_FACE_CHECK(_db.consume_input() == 0);
+
+        // a row a result, then the statement's end
+        D_TESTS_POSTGRES_FACE_CHECK(_db.send_query("SELECT 6") == 0);
+        D_TESTS_POSTGRES_FACE_CHECK(_db.set_chunked_rows(1) == 0);
+        D_TESTS_POSTGRES_FACE_CHECK( (_db.next_result(sent, number) == 0) &&
+                                     (sent.row_count() == 1u) );
+        D_TESTS_POSTGRES_FACE_CHECK( (_db.next_result(sent, number) == 0) &&
+                                     (sent.row_count() == 0u) &&
+                                     (number == 1) );
+        D_TESTS_POSTGRES_FACE_CHECK(_db.next_result(sent, number) ==
+                                    D_DB_NOT_FOUND);
     }
+
+    // a pipeline, where libpq has them
+    {
+        face::rows sent;
+
+        D_TESTS_POSTGRES_FACE_CHECK(_db.pipeline_status() ==
+                                    D_POSTGRES_PIPELINE_OFF);
+
+        if (face::postgres::client_supports(D_POSTGRES_CLIENT_PIPELINE))
+        {
+            D_TESTS_POSTGRES_FACE_CHECK(_db.enter_pipeline() == 0);
+            D_TESTS_POSTGRES_FACE_CHECK(_db.send_query("SELECT 8") == 0);
+            D_TESTS_POSTGRES_FACE_CHECK(_db.pipeline_flush() == 0);
+            D_TESTS_POSTGRES_FACE_CHECK(
+                (_db.next_result(sent, number) == 0) &&
+                (face::value_int64(sent.value(0u, 0u), number) == 0) &&
+                (number == 8));
+            D_TESTS_POSTGRES_FACE_CHECK(_db.pipeline_sync() == 0);
+            D_TESTS_POSTGRES_FACE_CHECK(_db.next_result(sent, number) ==
+                                        D_DB_NOT_FOUND);
+            D_TESTS_POSTGRES_FACE_CHECK(_db.exit_pipeline() == 0);
+        }
+        else
+        {
+            D_TESTS_POSTGRES_FACE_CHECK(_db.enter_pipeline() ==
+                                        D_DB_UNSUPPORTED);
+        }
+
+        D_TESTS_POSTGRES_FACE_CHECK(_db.pipeline_status() ==
+                                    D_POSTGRES_PIPELINE_OFF);
+    }
+
+    // a statement PREPARE made, closed by its name
+    D_TESTS_POSTGRES_FACE_CHECK(
+        _db.exec("PREPARE face_named AS SELECT 1") == 0);
+    D_TESTS_POSTGRES_FACE_CHECK(_db.close_prepared("face_named") == 0);
+    D_TESTS_POSTGRES_FACE_CHECK(_db.exec("EXECUTE face_named") ==
+                                D_POSTGRES_SQLSTATE('2', '6', '0', '0', '0'));
 
     return;
 }
@@ -1163,6 +1275,7 @@ d_tests_postgres_face_session(
     d_tests_postgres_face_cpp23(db, schema);
 #endif  // D_INTERNAL_DB_FACE_EXPECTED
     d_tests_postgres_face_statements(db);
+    d_tests_postgres_face_cursors(db);
     d_tests_postgres_face_modules(db, schema);
     d_tests_postgres_face_guards(db);
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -1212,6 +1325,10 @@ d_tests_postgres_face_stubs(
     D_TESTS_POSTGRES_FACE_CHECK(db.prepare(statement, "SELECT 1") ==
                                 D_DB_UNSUPPORTED);
     D_TESTS_POSTGRES_FACE_CHECK(!statement.is_prepared());
+    D_TESTS_POSTGRES_FACE_CHECK(statement.open_cursor() == D_DB_UNSUPPORTED);
+    D_TESTS_POSTGRES_FACE_CHECK(statement.fetch_rows(1u, found) ==
+                                D_DB_UNSUPPORTED);
+    D_TESTS_POSTGRES_FACE_CHECK(statement.close_cursor() == D_DB_UNSUPPORTED);
     D_TESTS_POSTGRES_FACE_CHECK(db.query_rows(found, "SELECT 1") ==
                                 D_DB_UNSUPPORTED);
     D_TESTS_POSTGRES_FACE_CHECK(found.empty());

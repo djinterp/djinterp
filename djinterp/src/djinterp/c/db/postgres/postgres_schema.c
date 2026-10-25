@@ -19,7 +19,7 @@
 * path:      /src/djinterp/c/db/postgres/postgres_schema.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -229,7 +229,8 @@ d_internal_postgres_append_column(
  * @param[in]  _count    how many.
  * @param[out] _keys     receives the number of primary-key columns.
  * @return `true`, or `false` for AUTO_INCREMENT on a column that is not the
- *         sole primary key.
+ *         sole primary key, or key places that are not sound
+ *         (d_internal_db_key_places_ok).
  */
 static bool
 d_internal_postgres_count_keys(
@@ -260,9 +261,10 @@ d_internal_postgres_count_keys(
 
     *_keys = keys;
 
-    // and on a composite key
-    return ( (!auto_increment) ||
-             (keys == 1u) );
+    // and on a composite key; the key's places sound
+    return ( ( (!auto_increment) ||
+               (keys == 1u) ) &&
+             (d_internal_db_key_places_ok(_columns, _count)) );
 }
 
 /**
@@ -312,21 +314,21 @@ d_internal_postgres_build_definition(
         }
     }
 
-    // a composite key, as a constraint naming its columns in order
-    for (size_t i = 0u; (status == D_INTERNAL_DB_FORMAT_OK) &&
-                        (keys > 1u) &&
-                        (i < _count);
-         ++i)
+    // a composite key, as a constraint naming its columns in the key's
+    // order
+    for (size_t place = 1u; (status == D_INTERNAL_DB_FORMAT_OK) &&
+                            (keys > 1u) &&
+                            (place <= keys);
+         ++place)
     {
-        if ((_columns[i].flags & D_DB_COLUMN_PRIMARY_KEY) != 0u)
-        {
-            status    = d_internal_db_format(_sql,
-                                             &quoting,
-                                             "%s%I",
-                                             separator,
-                                             _columns[i].name);
-            separator = ", ";
-        }
+        const size_t i = d_internal_db_key_column(_columns, _count, place);
+
+        status    = d_internal_db_format(_sql,
+                                         &quoting,
+                                         "%s%I",
+                                         separator,
+                                         _columns[i].name);
+        separator = ", ";
     }
 
     return ( (status == D_INTERNAL_DB_FORMAT_OK) &&
@@ -1984,7 +1986,9 @@ d_postgres_last_value(
     // nothing runs in a failed transaction
     if (state == PQTRANS_INERROR)
     {
-        return D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION;
+        return d_internal_postgres_answer(
+                   _db,
+                   D_POSTGRES_SQLSTATE_IN_FAILED_SQL_TRANSACTION);
     }
 
     int result = (guarded)

@@ -51,7 +51,7 @@
 * path:      /inc/djinterp/core/util/metadata/metadata_concepts.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.10.23
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_METADATA_METADATA_CONCEPTS_HPP
@@ -106,11 +106,13 @@ concept has_metadata_method = requires(const Type& _t)
 
 // has_metadata_nested_type
 //   concept: satisfied when `Type` exposes a nested type
-// alias named `metadata`.
+// alias named `metadata`, seen through any reference and
+// cv-qualifier, as the trait sees it -- a reference has no
+// nested types of its own.
 template<typename Type>
 concept has_metadata_nested_type = requires
 {
-    typename Type::metadata;
+    typename std::remove_cvref_t<Type>::metadata;
 };
 
 // has_metadata
@@ -155,7 +157,7 @@ concept has_metadata_type_method = requires(const Type& _t)
 template<typename Type>
 concept has_metadata_type_nested_type = requires
 {
-    typename Type::metadata_type;
+    typename std::remove_cvref_t<Type>::metadata_type;
 };
 
 // has_metadata_type
@@ -198,7 +200,7 @@ concept has_metadata_container_type_method = requires(const Type& _t)
 template<typename Type>
 concept has_metadata_container_type_nested_type = requires
 {
-    typename Type::metadata_container_type;
+    typename std::remove_cvref_t<Type>::metadata_container_type;
 };
 
 // has_metadata_container_type

@@ -15,7 +15,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_validator_path.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.12
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/parse/cli/arg_parser/c/arg_validator_path.h"  // corresponding header
 // std
@@ -62,12 +62,19 @@ static const struct d_arg_internal_path_info PATH_INFO_NONE =
 D_STATIC_ASSERT( (sizeof(uint64_t) <= sizeof(union d_arg_validator_value)),
                  "a file size's limits are kept in a validator's numbers" );
 
-/*
-d_arg_internal_path_examine
-  One status query of the value, through a NUL-terminated copy of it, the
-answer in `*_info`; the kind is 0 for a path that does not exist or cannot
-be examined. Only the copy can fail.
-*/
+/**
+ * @brief Queries the status of the path a value names.
+ *
+ * @param[in]  _value  the value.
+ * @param[out] _info   receives the answer; its kind 0 for a path that does not
+ *                     exist or cannot be examined.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY when the value could not be
+ *         copied, `*_info` then unwritten.
+ *
+ * One status query of the value, through a NUL-terminated copy of it, the
+ * answer in `*_info`; the kind is 0 for a path that does not exist or cannot
+ * be examined. Only the copy can fail.
+ */
 D_STATIC int
 d_arg_internal_path_examine(
     struct d_pack_text               _value,
@@ -90,10 +97,15 @@ d_arg_internal_path_examine(
     return status;
 }
 
-/*
-d_arg_internal_path_describe
-  The description a path validator keeps as its parameter, a literal.
-*/
+/**
+ * @brief Describes a path validator.
+ *
+ * @param[in]     _validator  the validator, whose parameter is its description.
+ * @param[in,out] _out        the buffer that gains the description.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * The description a path validator keeps as its parameter, a literal.
+ */
 D_STATIC int
 d_arg_internal_path_describe(
     const struct d_arg_validator* _validator,
@@ -104,11 +116,19 @@ d_arg_internal_path_describe(
                                     (const char*)_validator->parameter);
 }
 
-/*
-d_arg_internal_path_validator
-  A path validator: the function, the description it keeps as its
-parameter, and the completion it offers; it holds nothing else.
-*/
+/**
+ * @brief Makes a path validator.
+ *
+ * @param[in] _validate     the function.
+ * @param[in] _description  the description, a literal it keeps as its
+ *                          parameter.
+ * @param[in] _kind         the completion it offers: D_ARG_VALIDATOR_PATH or
+ *                          D_ARG_VALIDATOR_DIRECTORY.
+ * @return the validator.
+ *
+ * A path validator: the function, the description it keeps as its
+ * parameter, and the completion it offers; it holds nothing else.
+ */
 D_STATIC struct d_arg_validator
 d_arg_internal_path_validator(
     d_arg_validate_fn _validate,
@@ -132,12 +152,19 @@ d_arg_internal_path_validator(
 // 2.  EXISTENCE
 //==============================================================================
 
-/*
-d_arg_internal_path_file_validate
-  CLI11's ExistingFile: an empty value is "File name is missing.", a path
-that does not exist "File does not exist: <path>", and a directory "File is
-actually a directory: <path>".
-*/
+/**
+ * @brief Judges whether a value names a file, as CLI11's ExistingFile.
+ *
+ * @param[in]     _validator   the validator; unused.
+ * @param[in,out] _validation  the validation, rejected for an empty value, a
+ *                             path that does not exist, or a directory.
+ * @return D_ARG_OK once a verdict is reached; D_ARG_ERROR_OUT_OF_MEMORY when
+ *         the value could not be copied or the rejection kept.
+ *
+ * CLI11's ExistingFile: an empty value is "File name is missing.", a path
+ * that does not exist "File does not exist: <path>", and a directory "File is
+ * actually a directory: <path>".
+ */
 D_STATIC int
 d_arg_internal_path_file_validate(
     const struct d_arg_validator* _validator,
@@ -173,12 +200,20 @@ d_arg_internal_path_file_validate(
                "");
 }
 
-/*
-d_arg_internal_path_directory_validate
-  CLI11's ExistingDirectory: a path that does not exist is "Directory does
-not exist: <path>", and one that is not a directory "Directory is actually
-a file: <path>".
-*/
+/**
+ * @brief Judges whether a value names a directory, as CLI11's
+ *        ExistingDirectory.
+ *
+ * @param[in]     _validator   the validator; unused.
+ * @param[in,out] _validation  the validation, rejected for a path that does not
+ *                             exist, or one that is not a directory.
+ * @return D_ARG_OK once a verdict is reached; D_ARG_ERROR_OUT_OF_MEMORY when
+ *         the value could not be copied or the rejection kept.
+ *
+ * CLI11's ExistingDirectory: a path that does not exist is "Directory does
+ * not exist: <path>", and one that is not a directory "Directory is actually
+ * a file: <path>".
+ */
 D_STATIC int
 d_arg_internal_path_directory_validate(
     const struct d_arg_validator* _validator,
@@ -207,11 +242,18 @@ d_arg_internal_path_directory_validate(
                "");
 }
 
-/*
-d_arg_internal_path_existing_validate
-  CLI11's ExistingPath: a path that does not exist is "Path does not exist:
-<path>".
-*/
+/**
+ * @brief Judges whether a value names anything, as CLI11's ExistingPath.
+ *
+ * @param[in]     _validator   the validator; unused.
+ * @param[in,out] _validation  the validation, rejected for a path that does not
+ *                             exist.
+ * @return D_ARG_OK once a verdict is reached; D_ARG_ERROR_OUT_OF_MEMORY when
+ *         the value could not be copied or the rejection kept.
+ *
+ * CLI11's ExistingPath: a path that does not exist is "Path does not exist:
+ * <path>".
+ */
 D_STATIC int
 d_arg_internal_path_existing_validate(
     const struct d_arg_validator* _validator,
@@ -238,11 +280,17 @@ d_arg_internal_path_existing_validate(
                                            "");
 }
 
-/*
-d_arg_internal_path_nonexistent_validate
-  CLI11's NonexistentPath: a path that exists is "Path already exists:
-<path>".
-*/
+/**
+ * @brief Judges whether a value names nothing, as CLI11's NonexistentPath.
+ *
+ * @param[in]     _validator   the validator; unused.
+ * @param[in,out] _validation  the validation, rejected for a path that exists.
+ * @return D_ARG_OK once a verdict is reached; D_ARG_ERROR_OUT_OF_MEMORY when
+ *         the value could not be copied or the rejection kept.
+ *
+ * CLI11's NonexistentPath: a path that exists is "Path already exists:
+ * <path>".
+ */
 D_STATIC int
 d_arg_internal_path_nonexistent_validate(
     const struct d_arg_validator* _validator,
@@ -324,11 +372,17 @@ d_arg_validator_nonexistent_path(void)
 // 3.  SEARCH
 //==============================================================================
 
-/*
-d_arg_internal_path_join
-  CLI11's test path: the default path, then `/` unless the path is empty or
-ends in `/` or `\`, then the value.
-*/
+/**
+ * @brief Joins a value to a default path, as CLI11's test path.
+ *
+ * @param[in]     _directory  the default path.
+ * @param[in]     _value      the value.
+ * @param[in,out] _out        the buffer that gains the joined path.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's test path: the default path, then `/` unless the path is empty or
+ * ends in `/` or `\`, then the value.
+ */
 D_STATIC int
 d_arg_internal_path_join(
     const char*          _directory,
@@ -351,13 +405,23 @@ d_arg_internal_path_join(
                                     _value);
 }
 
-/*
-d_arg_internal_path_default_validate
-  CLI11's FileOnDefaultPath: a value naming anything stands; one naming
-nothing is tried under the default path and, naming a file there, replaced
-by the joined path; otherwise it is rejected with "File does not exist:
-<value>" when errors are returned, and stands when they are not.
-*/
+/**
+ * @brief Looks for a file under a default path, as CLI11's FileOnDefaultPath.
+ *
+ * @param[in]     _validator   the validator: the default path in its data, and
+ *                             in `low` whether errors are returned.
+ * @param[in,out] _validation  the validation, whose value is replaced by the
+ *                             joined path naming a file, or rejected when
+ *                             errors are returned and it names nothing.
+ * @return D_ARG_OK once a verdict is reached; D_ARG_ERROR_OUT_OF_MEMORY when a
+ *         copy, the joined path, the replacement, or the rejection could not be
+ *         made.
+ *
+ * CLI11's FileOnDefaultPath: a value naming anything stands; one naming
+ * nothing is tried under the default path and, naming a file there, replaced
+ * by the joined path; otherwise it is rejected with "File does not exist:
+ * <value>" when errors are returned, and stands when they are not.
+ */
 D_STATIC int
 d_arg_internal_path_default_validate(
     const struct d_arg_validator* _validator,
@@ -403,10 +467,15 @@ d_arg_internal_path_default_validate(
     return status;
 }
 
-/*
-d_arg_internal_path_default_copy
-  The validator's copy function: a copy of the default path, or NULL.
-*/
+/**
+ * @brief Copies a default path, as FileOnDefaultPath's copy function.
+ *
+ * @param[in] _context  the default path; NULL for none.
+ * @return the copy, which the caller frees; NULL for none, or when it could not
+ *         be allocated.
+ *
+ * The validator's copy function: a copy of the default path, or NULL.
+ */
 D_STATIC void*
 d_arg_internal_path_default_copy(
     const void* _context
@@ -465,13 +534,22 @@ d_arg_validator_file_on_default_path(
 // 4.  PERMISSIONS
 //==============================================================================
 
-/*
-d_arg_internal_path_permission_validate
-  CLI11's permission validators: a path that does not exist is "Path does
-not exist: <path>", and one whose permission bits grant the access to no one
-"Path does not have required permissions: <path>". The access asked for is
-kept in `low`.
-*/
+/**
+ * @brief Judges whether a path grants an access, as CLI11's permission
+ *        validators.
+ *
+ * @param[in]     _validator   the validator, the access asked for in its `low`.
+ * @param[in,out] _validation  the validation, rejected for a path that does not
+ *                             exist, or one whose permission bits grant the
+ *                             access to no one.
+ * @return D_ARG_OK once a verdict is reached; D_ARG_ERROR_OUT_OF_MEMORY when
+ *         the value could not be copied or the rejection kept.
+ *
+ * CLI11's permission validators: a path that does not exist is "Path does
+ * not exist: <path>", and one whose permission bits grant the access to no one
+ * "Path does not have required permissions: <path>". The access asked for is
+ * kept in `low`.
+ */
 D_STATIC int
 d_arg_internal_path_permission_validate(
     const struct d_arg_validator* _validator,
@@ -514,10 +592,16 @@ d_arg_internal_path_permission_validate(
                  "");
 }
 
-/*
-d_arg_internal_path_permission
-  A permission validator for one access, described as CLI11 describes it.
-*/
+/**
+ * @brief Makes a permission validator for one access.
+ *
+ * @param[in] _access       the access: ACCESS_READ, ACCESS_WRITE or
+ *                          ACCESS_EXEC.
+ * @param[in] _description  the description, as CLI11 gives it.
+ * @return the validator.
+ *
+ * A permission validator for one access, described as CLI11 describes it.
+ */
 D_STATIC struct d_arg_validator
 d_arg_internal_path_permission(
     long        _access,
@@ -571,11 +655,16 @@ d_arg_validator_exec_permissions(void)
 // 5.  SIZE
 //==============================================================================
 
-/*
-d_arg_internal_path_limits
-  A file-size validator's limits, kept as 64-bit integers in `low` and
-`high`, read back by copying their bytes.
-*/
+/**
+ * @brief Reads a file-size validator's limits.
+ *
+ * @param[in]  _validator  the validator, its limits in `low` and `high`.
+ * @param[out] _minimum    receives the least size.
+ * @param[out] _maximum    receives the greatest size; 0 for no maximum.
+ *
+ * A file-size validator's limits, kept as 64-bit integers in `low` and
+ * `high`, read back by copying their bytes.
+ */
 D_STATIC void
 d_arg_internal_path_limits(
     const struct d_arg_validator* _validator,
@@ -598,10 +687,16 @@ d_arg_internal_path_limits(
     return;
 }
 
-/*
-d_arg_internal_path_bytes
-  A number of bytes, in decimal, after `_before`.
-*/
+/**
+ * @brief Appends words and a number of bytes in decimal.
+ *
+ * @param[in,out] _out     the buffer that gains them.
+ * @param[in]     _before  the words.
+ * @param[in]     _bytes   the number.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * A number of bytes, in decimal, after `_before`.
+ */
 D_STATIC int
 d_arg_internal_path_bytes(
     struct d_arg_buffer* _out,
@@ -621,12 +716,20 @@ d_arg_internal_path_bytes(
                                text.length);
 }
 
-/*
-d_arg_internal_path_size_check
-  A file's size against the limits, 0 standing for no maximum: "File size
-<size> bytes is less than minimum <min> bytes", or "File size <size> bytes
-exceeds maximum <max> bytes".
-*/
+/**
+ * @brief Checks a file's size against a validator's limits.
+ *
+ * @param[in]     _validator   the validator, its limits in `low` and `high`.
+ * @param[in]     _size        the size.
+ * @param[in,out] _validation  the validation, rejected for a size outside the
+ *                             limits.
+ * @return D_ARG_OK once a verdict is reached; D_ARG_ERROR_OUT_OF_MEMORY when
+ *         the rejection could not be kept.
+ *
+ * A file's size against the limits, 0 standing for no maximum: "File size
+ * <size> bytes is less than minimum <min> bytes", or "File size <size> bytes
+ * exceeds maximum <max> bytes".
+ */
 D_STATIC int
 d_arg_internal_path_size_check(
     const struct d_arg_validator* _validator,
@@ -665,14 +768,22 @@ d_arg_internal_path_size_check(
                                     " bytes");
 }
 
-/*
-d_arg_internal_path_size_validate
-  CLI11's FileSizeValidator: a path that does not exist is "File does not
-exist: <path>"; one that is not a regular file has no size to give, refused
-as libstdc++ and libc++ refuse it -- "Error getting file size: Is a
-directory" for a directory, "Error getting file size: Operation not
-supported" for anything else; then the size is checked against the limits.
-*/
+/**
+ * @brief Judges a file's size, as CLI11's FileSizeValidator.
+ *
+ * @param[in]     _validator   the validator, its limits in `low` and `high`.
+ * @param[in,out] _validation  the validation, rejected for a path that does not
+ *                             exist, one that is not a regular file, or a size
+ *                             outside the limits.
+ * @return D_ARG_OK once a verdict is reached; D_ARG_ERROR_OUT_OF_MEMORY when
+ *         the value could not be copied or the rejection kept.
+ *
+ * CLI11's FileSizeValidator: a path that does not exist is "File does not
+ * exist: <path>"; one that is not a regular file has no size to give, refused
+ * as libstdc++ and libc++ refuse it -- "Error getting file size: Is a
+ * directory" for a directory, "Error getting file size: Operation not
+ * supported" for anything else; then the size is checked against the limits.
+ */
 D_STATIC int
 d_arg_internal_path_size_validate(
     const struct d_arg_validator* _validator,
@@ -714,11 +825,16 @@ d_arg_internal_path_size_validate(
                                           _validation);
 }
 
-/*
-d_arg_internal_path_size_describe
-  CLI11's FileSizeValidator description: "File size at least <min> bytes",
-or "File size between <min> and <max> bytes" when there is a maximum.
-*/
+/**
+ * @brief Describes a FileSizeValidator, as CLI11 does.
+ *
+ * @param[in]     _validator  the validator, its limits in `low` and `high`.
+ * @param[in,out] _out        the buffer that gains the description.
+ * @return D_ARG_OK, or the buffer's status.
+ *
+ * CLI11's FileSizeValidator description: "File size at least <min> bytes",
+ * or "File size between <min> and <max> bytes" when there is a maximum.
+ */
 D_STATIC int
 d_arg_internal_path_size_describe(
     const struct d_arg_validator* _validator,

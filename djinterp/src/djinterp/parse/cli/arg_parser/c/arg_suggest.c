@@ -23,7 +23,7 @@
 * path:      /src/djinterp/parse/cli/arg_parser/c/arg_suggest.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.20
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
@@ -66,10 +66,15 @@ struct d_arg_internal_suggest_band
     size_t cells[3][D_INTERNAL_ARG_SUGGEST_BAND];
 };
 
-/*
-d_arg_internal_suggest_least
-  The smaller of two counts.
-*/
+/**
+ * @brief Gives the smaller of two counts.
+ *
+ * @param[in] _a  one count.
+ * @param[in] _b  the other.
+ * @return the smaller.
+ *
+ * The smaller of two counts.
+ */
 D_STATIC size_t
 d_arg_internal_suggest_least(
     size_t _a,
@@ -79,14 +84,23 @@ d_arg_internal_suggest_least(
     return (_a < _b) ? _a : _b;
 }
 
-/*
-d_arg_internal_suggest_cell
-  d[i][j], at column `_t` of row `_i` (j = i + t - reach, at least 1), as
-the optimal string alignment recurrence takes it: a substitution from the
-cell before above, a deletion from the cell above, an insertion from the
-cell before, and the swap of two neighbours from two rows up; every
-distance past the limit is the limit plus one.
-*/
+/**
+ * @brief Computes one cell of the band of the optimal string alignment
+ *        distance.
+ *
+ * @param[in] _band  the band, its earlier rows filled.
+ * @param[in] _a     the name down the rows.
+ * @param[in] _b     the name across the columns.
+ * @param[in] _i     the row.
+ * @param[in] _t     the column within the band.
+ * @return the distance d[i][j], at most the limit plus one.
+ *
+ * d[i][j], at column `_t` of row `_i` (j = i + t - reach, at least 1), as
+ * the optimal string alignment recurrence takes it: a substitution from the
+ * cell before above, a deletion from the cell above, an insertion from the
+ * cell before, and the swap of two neighbours from two rows up; every
+ * distance past the limit is the limit plus one.
+ */
 D_STATIC size_t
 d_arg_internal_suggest_cell(
     const struct d_arg_internal_suggest_band* _band,
@@ -132,12 +146,19 @@ d_arg_internal_suggest_cell(
                                         reach + 1u);
 }
 
-/*
-d_arg_internal_suggest_row
-  Row `_i` of the band: a cell outside the table is past the limit, and
-d[i][0] is i -- in the band only for a row within the reach; returns the
-row's least cell, which the caller stops on when it passes the limit.
-*/
+/**
+ * @brief Fills one row of the band.
+ *
+ * @param[in,out] _band  the band, whose row `_i` is filled.
+ * @param[in]     _a     the name down the rows.
+ * @param[in]     _b     the name across the columns.
+ * @param[in]     _i     the row.
+ * @return the row's least cell.
+ *
+ * Row `_i` of the band: a cell outside the table is past the limit, and
+ * d[i][0] is i -- in the band only for a row within the reach; returns the
+ * row's least cell, which the caller stops on when it passes the limit.
+ */
 D_STATIC size_t
 d_arg_internal_suggest_row(
     struct d_arg_internal_suggest_band* _band,
@@ -269,12 +290,20 @@ struct d_arg_internal_suggestion
     struct d_arg_buffer                  right;
 };
 
-/*
-d_arg_internal_suggest_fold
-  A name as a command or option compares it: ASCII case folded when it
-ignores case, underscores dropped when it ignores them; written into
-`_out`, which is cleared first.
-*/
+/**
+ * @brief Folds a name as a command or an option compares it.
+ *
+ * @param[in]     _name        the name.
+ * @param[in]     _case        whether case is ignored.
+ * @param[in]     _underscore  whether underscores are ignored.
+ * @param[in,out] _out         the buffer that receives the folded name, cleared
+ *                             first.
+ * @return a span of `_out`'s text.
+ *
+ * A name as a command or option compares it: ASCII case folded when it
+ * ignores case, underscores dropped when it ignores them; written into
+ * `_out`, which is cleared first.
+ */
 D_STATIC struct d_pack_text
 d_arg_internal_suggest_fold(
     struct d_pack_text   _name,
@@ -303,12 +332,20 @@ d_arg_internal_suggest_fold(
     return d_arg_buffer_text(_out);
 }
 
-/*
-d_arg_internal_suggest_write
-  A candidate as the user would type it: after the slash for a
-Windows-style argument; else after its dashes -- one for a short name, two
-for a long one, none for a subcommand's.
-*/
+/**
+ * @brief Writes a candidate as the user would type it.
+ *
+ * @param[in,out] _search     the search, whose `written` buffer receives the
+ *                            text.
+ * @param[in]     _candidate  the candidate's name.
+ * @param[in]     _dashes     how many dashes go before it: 1 for a short name,
+ *                            2 for a long one, 0 for a subcommand's.
+ * @return a span of the text written.
+ *
+ * A candidate as the user would type it: after the slash for a
+ * Windows-style argument; else after its dashes -- one for a short name, two
+ * for a long one, none for a subcommand's.
+ */
 D_STATIC struct d_pack_text
 d_arg_internal_suggest_write(
     struct d_arg_internal_suggestion* _search,
@@ -337,15 +374,23 @@ d_arg_internal_suggest_write(
     return d_arg_buffer_text(&_search->written);
 }
 
-/*
-d_arg_internal_suggest_consider
-  One candidate name: its distance from the argument's, both compared as
-the candidate's command or option compares them; the nearest kept, and a
-tie noted when another name, written differently, is as near. Not a
-suggestion: a candidate written exactly as the argument was given, or one
-whose distance is more than half the longer name -- so that "u" never
-suggests "s", nor "ab" "cd", while "strat" suggests "start".
-*/
+/**
+ * @brief Weighs one candidate name.
+ *
+ * @param[in,out] _search     the search, which keeps the nearest name and notes
+ *                            a tie.
+ * @param[in]     _candidate  the name.
+ * @param[in]     _dashes     how many dashes it is written with.
+ * @param[in]     _folding    how its record compares names, as
+ *                            d_arg_internal_suggest_folding gives it.
+ *
+ * One candidate name: its distance from the argument's, both compared as
+ * the candidate's command or option compares them; the nearest kept, and a
+ * tie noted when another name, written differently, is as near. Not a
+ * suggestion: a candidate written exactly as the argument was given, or one
+ * whose distance is more than half the longer name -- so that "u" never
+ * suggests "s", nor "ab" "cd", while "strat" suggests "start".
+ */
 D_STATIC void
 d_arg_internal_suggest_consider(
     struct d_arg_internal_suggestion* _search,
@@ -407,11 +452,16 @@ d_arg_internal_suggest_consider(
     return;
 }
 
-/*
-d_arg_internal_suggest_folding
-  The way a record compares names, as the bits consider takes: 1 for case
-ignored, 2 for underscores ignored.
-*/
+/**
+ * @brief Encodes how a record compares names.
+ *
+ * @param[in] _case        whether case is ignored.
+ * @param[in] _underscore  whether underscores are ignored.
+ * @return 1 for case ignored, plus 2 for underscores ignored.
+ *
+ * The way a record compares names, as the bits consider takes: 1 for case
+ * ignored, 2 for underscores ignored.
+ */
 D_STATIC uint32_t
 d_arg_internal_suggest_folding(
     bool _case,
@@ -422,10 +472,14 @@ d_arg_internal_suggest_folding(
            ((_underscore) ? 2u : 0u);
 }
 
-/*
-d_arg_internal_suggest_option
-  One option's short and long names; none of a hidden option's.
-*/
+/**
+ * @brief Weighs an option's short and long names.
+ *
+ * @param[in,out] _search  the search.
+ * @param[in]     _option  the option; a hidden one offers none.
+ *
+ * One option's short and long names; none of a hidden option's.
+ */
 D_STATIC void
 d_arg_internal_suggest_option(
     struct d_arg_internal_suggestion* _search,
@@ -469,13 +523,17 @@ d_arg_internal_suggest_option(
     return;
 }
 
-/*
-d_arg_internal_suggest_options
-  The options a command matches: its own, and its enabled option groups' --
-not their parents again. Never its parents': a command that falls through
-hands an option it does not know to its fallthrough parent, so the command
-an option is reported by never falls through.
-*/
+/**
+ * @brief Weighs the names of the options a command matches.
+ *
+ * @param[in,out] _search   the search.
+ * @param[in]     _command  the command.
+ *
+ * The options a command matches: its own, and its enabled option groups' --
+ * not their parents again. Never its parents': a command that falls through
+ * hands an option it does not know to its fallthrough parent, so the command
+ * an option is reported by never falls through.
+ */
 D_STATIC void
 d_arg_internal_suggest_options(
     struct d_arg_internal_suggestion* _search,
@@ -507,10 +565,14 @@ d_arg_internal_suggest_options(
     return;
 }
 
-/*
-d_arg_internal_suggest_command
-  One subcommand's name and aliases, unless it is disabled or hidden.
-*/
+/**
+ * @brief Weighs a subcommand's name and aliases.
+ *
+ * @param[in,out] _search  the search.
+ * @param[in]     _sub     the subcommand; a disabled or hidden one offers none.
+ *
+ * One subcommand's name and aliases, unless it is disabled or hidden.
+ */
 D_STATIC void
 d_arg_internal_suggest_command(
     struct d_arg_internal_suggestion* _search,
@@ -552,11 +614,15 @@ d_arg_internal_suggest_command(
     return;
 }
 
-/*
-d_arg_internal_suggest_commands
-  The subcommands a command takes itself: its own named ones, and those of
-its option groups -- not their parents again.
-*/
+/**
+ * @brief Weighs the subcommands a command takes itself.
+ *
+ * @param[in,out] _search   the search.
+ * @param[in]     _command  the command.
+ *
+ * The subcommands a command takes itself: its own named ones, and those of
+ * its option groups -- not their parents again.
+ */
 D_STATIC void
 d_arg_internal_suggest_commands(
     struct d_arg_internal_suggestion* _search,
@@ -584,11 +650,16 @@ d_arg_internal_suggest_commands(
     return;
 }
 
-/*
-d_arg_internal_suggest_climb
-  The subcommands a command takes, then, while subcommands fall through,
-its parent's, and so on up, as CLI11's _valid_subcommand climbs to them.
-*/
+/**
+ * @brief Weighs the subcommands a command takes and, while they fall through,
+ *        its parents'.
+ *
+ * @param[in,out] _search   the search.
+ * @param[in]     _command  the command.
+ *
+ * The subcommands a command takes, then, while subcommands fall through,
+ * its parent's, and so on up, as CLI11's _valid_subcommand climbs to them.
+ */
 D_STATIC void
 d_arg_internal_suggest_climb(
     struct d_arg_internal_suggestion* _search,
@@ -611,12 +682,16 @@ d_arg_internal_suggest_climb(
     return;
 }
 
-/*
-d_arg_internal_suggest_reached
-  The commands the last parse used under this one, and under them in turn:
-an argument they did not take can end up with a command above them -- one
-that falls through, say -- while the user meant one of theirs.
-*/
+/**
+ * @brief Weighs the names of the commands the last parse used under a command.
+ *
+ * @param[in,out] _search   the search.
+ * @param[in]     _command  the command.
+ *
+ * The commands the last parse used under this one, and under them in turn:
+ * an argument they did not take can end up with a command above them -- one
+ * that falls through, say -- while the user meant one of theirs.
+ */
 D_STATIC void
 d_arg_internal_suggest_reached(
     struct d_arg_internal_suggestion* _search,
@@ -652,15 +727,20 @@ d_arg_internal_suggest_reached(
 // 3.  THE SUGGESTION
 //==============================================================================
 
-/*
-d_arg_internal_suggest_target
-  What an argument names: for `-x`, `--name` or `/name`, an option, by its
-name without the dashes or slash and without the value after `=` -- or,
-for a Windows-style one, `:` -- written after a slash for a slash; for
-anything else, a subcommand, by the whole argument, unless the argument is
-empty or starts with a dash, as `--` and a negative number do, when it
-names nothing.
-*/
+/**
+ * @brief Reads what an argument names.
+ *
+ * @param[in] _extra  the unexpected argument and its classification.
+ * @return the name, whether it is an option's, whether it is written after a
+ *         slash, and whether it names anything.
+ *
+ * What an argument names: for `-x`, `--name` or `/name`, an option, by its
+ * name without the dashes or slash and without the value after `=` -- or,
+ * for a Windows-style one, `:` -- written after a slash for a slash; for
+ * anything else, a subcommand, by the whole argument, unless the argument is
+ * empty or starts with a dash, as `--` and a negative number do, when it
+ * names nothing.
+ */
 D_STATIC struct d_arg_internal_suggest_target
 d_arg_internal_suggest_target(
     const struct d_arg_extra* _extra
@@ -713,12 +793,16 @@ d_arg_internal_suggest_target(
     return option;
 }
 
-/*
-d_arg_internal_suggest_search
-  Every candidate the argument calls for: the options the command matches,
-or the subcommands it takes; then those of the commands the parse went on
-to under it.
-*/
+/**
+ * @brief Weighs every candidate the argument calls for.
+ *
+ * @param[in,out] _search   the search.
+ * @param[in]     _command  the command the argument was reported by.
+ *
+ * Every candidate the argument calls for: the options the command matches,
+ * or the subcommands it takes; then those of the commands the parse went on
+ * to under it.
+ */
 D_STATIC void
 d_arg_internal_suggest_search(
     struct d_arg_internal_suggestion* _search,
@@ -813,12 +897,19 @@ d_arg_internal_suggest(
     return found;
 }
 
-/*
-d_arg_internal_suggest_line
-  One argument's line, when it has a suggestion: "Did you mean '<name>'?",
-with " for '<argument>'" before the question mark among several. `_name`
-is scratch, cleared first.
-*/
+/**
+ * @brief Appends an argument's "Did you mean" line, when it has a suggestion.
+ *
+ * @param[in]     _command  the command the argument was reported by.
+ * @param[in]     _extra    the argument.
+ * @param[in]     _several  whether it is one of several.
+ * @param[in,out] _name     scratch, cleared first.
+ * @param[in,out] _text     the buffer that gains the line.
+ *
+ * One argument's line, when it has a suggestion: "Did you mean '<name>'?",
+ * with " for '<argument>'" before the question mark among several. `_name`
+ * is scratch, cleared first.
+ */
 D_STATIC void
 d_arg_internal_suggest_line(
     const struct d_arg_command* _command,

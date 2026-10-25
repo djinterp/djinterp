@@ -28,7 +28,7 @@
 * path:      /tests/djinterp/core/filesys/file_tests_pipe.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.10.21
 *******************************************************************************/
 
 // std
@@ -75,7 +75,7 @@ tests_fs_pipe(suite_type& _suite)
           .assert_([]() -> bool
           {
               error   ec;
-              process source("printf moved", "r");
+              process source(T_PRINT("moved"), "r");
               process sink(static_cast<process&&>(source));
               bool    ok;
 
@@ -96,7 +96,7 @@ tests_fs_pipe(suite_type& _suite)
           .assert_([]() -> bool
           {
               error   ec;
-              process p("printf hello", "r");
+              process p(T_PRINT("hello"), "r");
               char    buf[16];
               bool    ok;
 
@@ -119,7 +119,7 @@ tests_fs_pipe(suite_type& _suite)
           .assert_([]() -> bool
           {
               error   ec;
-              process p("cat > /dev/null", "w");
+              process p(T_SINK, "w");
               bool    ok;
 
               if (!p.is_open())
@@ -139,7 +139,7 @@ tests_fs_pipe(suite_type& _suite)
           .assert_([]() -> bool
           {
               error   ec(EIO);
-              process p("printf hi", "r");
+              process p(T_PRINT("hi"), "r");
               char    buf[32];
               bool    ok;
 
@@ -198,7 +198,7 @@ tests_fs_pipe(suite_type& _suite)
           .assert_([]() -> bool
           {
               error   ec(EIO);
-              process p("printf done", "r");
+              process p(T_PRINT("done"), "r");
 
               if (!p.is_open())
               {
@@ -274,7 +274,7 @@ tests_fs_pipe(suite_type& _suite)
           .assert_([]() -> bool
           {
               error   ec;
-              process p("printf x", "r");
+              process p(T_PRINT("x"), "r");
 
               p.close(ec);
 
@@ -296,7 +296,7 @@ tests_fs_pipe(suite_type& _suite)
           .assert_([]() -> bool
           {
               {
-                  process p("printf destructed", "r");
+                  process p(T_PRINT("destructed"), "r");
 
                   if (!p.is_open())
                   {
@@ -313,7 +313,7 @@ tests_fs_pipe(suite_type& _suite)
     _suite.test("a bad mode fails to open")
           .assert_([]() -> bool
           {
-              process p("printf hi", "q");
+              process p(T_PRINT("hi"), "q");
 
               return (!p.is_open());
           });
