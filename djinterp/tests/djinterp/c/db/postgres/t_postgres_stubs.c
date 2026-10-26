@@ -18,11 +18,11 @@
 * path:      /tests/djinterp/c/db/postgres/t_postgres_stubs.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 // std
 #include <stdio.h>   // printf
-#include <string.h>  // strcmp, strstr
+#include <string.h>  // memset, strcmp, strstr
 // djinterp
 #include "../../../../../inc/djinterp/c/db/postgres/postgres.h"  // under test
 // re_std
@@ -195,6 +195,192 @@ d_tests_postgres_stubs_connection(
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_close(marker));
     D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_ping(marker));
     D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_backend_pid(marker) == 0);
+
+    return;
+}
+
+/*
+d_tests_postgres_stubs_pending
+  Whether a pending call was left as a finished one leaves it.
+*/
+static bool
+d_tests_postgres_stubs_pending(
+    const struct d_db_pending* _pending
+)
+{
+    return ( (_pending->socket == D_DB_SOCKET_NONE) &&
+             (_pending->events == 0u)               &&
+             (_pending->timeout_ms == 0u)           &&
+             (_pending->deadline == 0.0)            &&
+             (_pending->state == 0u) );
+}
+
+/*
+d_tests_postgres_stubs_nonblocking
+  Connecting, resetting and cancelling without blocking, and the blocking
+reset and cancel.
+  Tests the following:
+  - every start and continuation is D_DB_UNSUPPORTED, nothing pending, the
+    connection, the request and the reason NULL where a start makes them
+  - reset and cancel are D_DB_UNSUPPORTED; a cancel finishes NULL as always,
+    and anything else is no request
+*/
+static void
+d_tests_postgres_stubs_nonblocking(
+    void
+)
+{
+    struct pg_conn* const        marker  = (struct pg_conn*)(void*)&g_marker;
+    struct pg_cancel_conn* const request =
+        (struct pg_cancel_conn*)(void*)&g_marker;
+    struct pg_conn*              db      = marker;
+    struct pg_cancel_conn*       cancel  = request;
+    char*                        reason  = (char*)(void*)&g_marker;
+    struct d_db_pending          pending;
+    const char* const            keywords[1] = { "application_name" };
+    const char* const            values[1]   = { "d_tests" };
+
+    printf("postgres_connection: without blocking\n");
+
+    memset(&pending, 0x5a, sizeof(pending));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_connect_start(NULL,
+                                                                &db,
+                                                                &pending,
+                                                                &reason));
+    D_TESTS_POSTGRES_STUBS_CHECK( (db == NULL)     &&
+                                  (reason == NULL) &&
+                                  (d_tests_postgres_stubs_pending(&pending)) );
+    db = marker;
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_connect_string_start(
+                                           "host=x",
+                                           &db,
+                                           &pending,
+                                           NULL));
+    D_TESTS_POSTGRES_STUBS_CHECK(db == NULL);
+    db = marker;
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_connect_with_start(
+                                           "host=x",
+                                           keywords,
+                                           values,
+                                           1u,
+                                           &db,
+                                           &pending,
+                                           NULL));
+    D_TESTS_POSTGRES_STUBS_CHECK(db == NULL);
+    db = marker;
+    memset(&pending, 0x5a, sizeof(pending));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_connect_continue(
+                                           &db,
+                                           D_DB_WAIT_READ,
+                                           &pending,
+                                           NULL));
+    D_TESTS_POSTGRES_STUBS_CHECK( (db == marker) &&
+                                  (d_tests_postgres_stubs_pending(&pending)) );
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_reconnect(marker));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_reconnect_start(marker,
+                                                              &pending));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_reconnect_continue(marker,
+                                                                 0u,
+                                                                 &pending));
+    D_TESTS_POSTGRES_STUBS_CHECK(d_tests_postgres_stubs_pending(&pending));
+    reason = (char*)(void*)&g_marker;
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_cancel(marker, &reason));
+    D_TESTS_POSTGRES_STUBS_CHECK(reason == NULL);
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_cancel_start(marker,
+                                                               &cancel,
+                                                               &pending,
+                                                               NULL));
+    D_TESTS_POSTGRES_STUBS_CHECK(cancel == NULL);
+    cancel = request;
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_cancel_continue(&cancel,
+                                                                  0u,
+                                                                  &pending,
+                                                                  NULL));
+    D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_cancel_finish(NULL) == D_DB_OK);
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_cancel_finish(request));
+
+    return;
+}
+
+/*
+d_tests_postgres_stubs_sent_and_statements
+  Statements sent, results read, and prepared statements, without blocking.
+  Tests the following:
+  - every start and continuation is D_DB_UNSUPPORTED, nothing pending, and
+    the statement a prepare's start would make NULL
+*/
+static void
+d_tests_postgres_stubs_sent_and_statements(
+    void
+)
+{
+    struct pg_conn* const              marker    =
+        (struct pg_conn*)(void*)&g_marker;
+    struct d_postgres_statement* const fake      =
+        (struct d_postgres_statement*)(void*)&g_marker;
+    struct d_postgres_statement*       statement = fake;
+    struct d_db_rows                   rows      = { 0u, 0u, NULL, NULL };
+    struct d_db_pending                pending;
+    int64_t                            changes   = 7;
+
+    printf("postgres_protocol, postgres_statement: without blocking\n");
+
+    memset(&pending, 0x5a, sizeof(pending));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_send_query_start(marker,
+                                                                   "SELECT 1",
+                                                                   &pending));
+    D_TESTS_POSTGRES_STUBS_CHECK(d_tests_postgres_stubs_pending(&pending));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_send_query_continue(
+                                           marker,
+                                           0u,
+                                           &pending));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_next_result_start(marker,
+                                                                    &pending,
+                                                                    &rows,
+                                                                    &changes));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_next_result_continue(
+                                           marker,
+                                           0u,
+                                           &pending,
+                                           &rows,
+                                           &changes));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_prepare_start(marker,
+                                                                &statement,
+                                                                "SELECT 1",
+                                                                &pending));
+    D_TESTS_POSTGRES_STUBS_CHECK(statement == NULL);
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_prepare_continue(fake,
+                                                                   0u,
+                                                                   &pending));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_execute_start(fake,
+                                                                &pending));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_execute_update_continue(
+                                           fake,
+                                           0u,
+                                           &pending,
+                                           &changes));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_execute_query_continue(
+                                           fake,
+                                           0u,
+                                           &pending,
+                                           &rows));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_open_cursor_start(fake,
+                                                                    &pending));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_open_cursor_continue(
+                                           fake,
+                                           0u,
+                                           &pending));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_fetch_rows_start(fake,
+                                                                   1u,
+                                                                   &pending,
+                                                                   &rows));
+    D_TESTS_POSTGRES_STUBS_UNSUPPORTED(d_postgres_fetch_rows_continue(
+                                           fake,
+                                           0u,
+                                           &pending,
+                                           &rows));
+    D_TESTS_POSTGRES_STUBS_CHECK( (d_tests_postgres_stubs_pending(&pending)) &&
+                                  (changes == 7) );
 
     return;
 }
@@ -691,6 +877,8 @@ main(
 {
     d_tests_postgres_stubs_common();
     d_tests_postgres_stubs_connection();
+    d_tests_postgres_stubs_nonblocking();
+    d_tests_postgres_stubs_sent_and_statements();
     d_tests_postgres_stubs_query();
     d_tests_postgres_stubs_statement();
     d_tests_postgres_stubs_database();

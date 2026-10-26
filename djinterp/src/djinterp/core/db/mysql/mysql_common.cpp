@@ -12,7 +12,7 @@
 * path:      /src/djinterp/core/db/mysql/mysql_common.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 #include "../../../../../inc/djinterp/core/db/mysql/mysql_common.hpp"  // corresponding header
 
@@ -187,6 +187,35 @@ mariadb_layer::raise(
                                   (d_mariadb_ping(_db) != 0) );
 
     raise_as((closed) ? failure_kind::connection : _kind, message, _result);
+}
+
+/*
+mariadb_layer::cancel
+  The request's own connection is gone by the time it fails, so its reason
+is the only word on the failure.
+*/
+void
+mariadb_layer::cancel(
+    handle_type _db
+)
+{
+    char*     reason = nullptr;
+    const int result = d_mariadb_cancel(_db, &reason);
+
+    // made, or not, and why
+    if (result != 0)
+    {
+        const std::string message =
+            std::string(server_name(_db)) + " cancel: " +
+            ((reason) ? reason : d_mariadb_result_message(result)) + " (" +
+            std::to_string(result) + ")";
+
+        d_db_free(reason);
+
+        throw query_exception(message, result);
+    }
+
+    return;
 }
 
 template class prepared_statement<mariadb_layer>;

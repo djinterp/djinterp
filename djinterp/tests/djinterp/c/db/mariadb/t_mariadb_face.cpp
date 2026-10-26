@@ -30,14 +30,41 @@
 * path:      /tests/djinterp/c/db/mariadb/t_mariadb_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
+// _WIN32_WINNT
+//   knob (Windows'): Vista's API at least, for WSAPoll, where nothing asked
+// for more; it precedes every include.
+#if ( (defined(_WIN32)) &&                                                    \
+      (!defined(_WIN32_WINNT)) )
+    #define _WIN32_WINNT 0x0600
+#endif  // _WIN32
+// WIN32_LEAN_AND_MEAN, NOMINMAX
+//   knobs (Windows'): <windows.h>, which <winsock2.h> and the clients' own
+// headers include, without its rarer headers -- rpcndr.h among them, which
+// makes `small` a macro -- and without its min and max macros.
+#if defined(_WIN32)
+    #if !defined(WIN32_LEAN_AND_MEAN)
+        #define WIN32_LEAN_AND_MEAN 1
+    #endif  // WIN32_LEAN_AND_MEAN
+    #if !defined(NOMINMAX)
+        #define NOMINMAX 1
+    #endif  // NOMINMAX
+#endif  // _WIN32
 // std
 #include <cstdio>   // std::printf
 #include <cstdlib>  // std::getenv, std::strtoul
-#include <cstring>  // std::strcmp
+#include <cstring>  // std::memset, std::strcmp
 #include <string>   // std::string
 #include <vector>   // std::vector
+#if defined(_WIN32)
+    #include <winsock2.h>  // WSAPoll, struct pollfd
+    #if defined(_MSC_VER)
+        #pragma comment(lib, "ws2_32.lib")  // WSAPoll
+    #endif  // _MSC_VER
+#else
+    #include <poll.h>      // poll, struct pollfd
+#endif
 // djinterp
 #include "../../../../../inc/djinterp/c/db/mariadb/mariadb_face.hpp"  // under
                                                                        // test
@@ -214,6 +241,10 @@ d_tests_mariadb_face_static(
         (std::strcmp(face::mariadb::client_version(), "") == 0) == _stubs);
     D_TESTS_MARIADB_FACE_CHECK(
         (face::mariadb::client_version_number() == 0ul) == _stubs);
+    D_TESTS_MARIADB_FACE_CHECK(face::mariadb::client_nonblocking_tls() ==
+                               d_mariadb_client_nonblocking_tls());
+    D_TESTS_MARIADB_FACE_CHECK( (!_stubs) ||
+                                (!face::mariadb::client_nonblocking_tls()) );
     D_TESTS_MARIADB_FACE_CHECK(
         face::mariadb::quote_identifier("a`b") ==
         std::string((_stubs) ? "" : "`a``b`"));
@@ -1166,6 +1197,348 @@ d_tests_mariadb_face_session(
 }
 
 /*
+d_tests_mariadb_face_wait
+  Waits as a pending call says, with poll(2) or WSAPoll, and answers what
+came, as d_db_wait; trouble on the socket reads as ready, for the call to
+find, and no socket as everything having come.
+*/
+unsigned
+d_tests_mariadb_face_wait(
+    const d_db_pending& _pending
+)
+{
+    const unsigned ready = static_cast<unsigned>(D_DB_WAIT_READ) |
+                           static_cast<unsigned>(D_DB_WAIT_WRITE);
+    struct pollfd  fd;
+
+    // no socket to wait on
+    if (_pending.socket == D_DB_SOCKET_NONE)
+    {
+        return _pending.events & ready;
+    }
+
+    std::memset(&fd, 0, sizeof(fd));
+#if defined(_WIN32)
+    fd.fd     = static_cast<SOCKET>(_pending.socket);
+#else
+    fd.fd     = static_cast<int>(_pending.socket);
+#endif
+    fd.events = static_cast<short>(
+                    ( ((_pending.events & D_DB_WAIT_READ) != 0u)
+                          ? POLLIN
+                          : 0 ) |
+                    ( ((_pending.events & D_DB_WAIT_WRITE) != 0u)
+                          ? POLLOUT
+                          : 0 ));
+
+    const int timeout = ((_pending.events & D_DB_WAIT_TIMEOUT) != 0u)
+                            ? static_cast<int>(_pending.timeout_ms)
+                            : -1;
+#if defined(_WIN32)
+    const int came    = WSAPoll(&fd, 1u, timeout);
+#else
+    const int came    = poll(&fd, 1u, timeout);
+#endif
+
+    // the deadline first; trouble, for the call to find
+    if (came == 0)
+    {
+        return static_cast<unsigned>(D_DB_WAIT_TIMEOUT);
+    }
+
+    if ( (came < 0) ||
+         ((fd.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0) )
+    {
+        return _pending.events & ready;
+    }
+
+    const unsigned read  = static_cast<unsigned>(D_DB_WAIT_READ);
+    const unsigned write = static_cast<unsigned>(D_DB_WAIT_WRITE);
+
+    return ( ((fd.revents & POLLIN) != 0)  ? read  : 0u ) |
+           ( ((fd.revents & POLLOUT) != 0) ? write : 0u );
+}
+
+/*
+d_tests_mariadb_face_under_tls
+  Whether a connection runs under TLS: the session's Ssl_cipher, which both
+servers report, not empty.
+*/
+bool
+d_tests_mariadb_face_under_tls(
+    face::mariadb& _db
+)
+{
+    face::rows found;
+
+    // the status, or no TLS to speak of
+    if (_db.query_rows(found, "SHOW SESSION STATUS LIKE 'Ssl_cipher'") != 0)
+    {
+        return false;
+    }
+
+    const struct d_db_value* const cipher = found.value(0u, 1u);
+
+    return ( (cipher)                           &&
+             (cipher->type == D_DB_VALUE_TEXT)  &&
+             (cipher->size != 0u) );
+}
+
+/*
+d_tests_mariadb_face_tls_refused
+  Where the client cannot carry TLS without blocking: a connect's start
+that would ask for it refused at once, the face as it was, the reason given;
+and on a connection under TLS, the starts refused, a cancel's face empty.
+*/
+void
+d_tests_mariadb_face_tls_refused(
+    const struct d_mariadb_options& _where
+)
+{
+    face::mariadb tls;
+    face::mariadb canceller;
+    face::text    why;
+    d_db_pending  pending;
+
+    D_TESTS_MARIADB_FACE_CHECK(tls.connect(&_where) == 0);
+
+    struct d_mariadb* const held = tls.handle();
+
+    D_TESTS_MARIADB_FACE_CHECK(
+        (tls.connect_with_start(&_where, D_NULLPTR, 0u, pending, why) ==
+         D_DB_UNSUPPORTED) &&
+        (tls.handle() == held) &&
+        (!why.is_null()) );
+
+    // a connection under TLS, where the server offers it
+    if (d_tests_mariadb_face_under_tls(tls))
+    {
+        D_TESTS_MARIADB_FACE_CHECK(tls.ping_start(pending) ==
+                                   D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_FACE_CHECK(tls.send_query_start("SELECT 1", pending) ==
+                                   D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_FACE_CHECK(
+            (tls.cancel_start(canceller, pending, why) == D_DB_UNSUPPORTED) &&
+            (!canceller.is_open()) &&
+            (!why.is_null()) );
+    }
+
+    D_TESTS_MARIADB_FACE_CHECK(tls.ping() == 0);
+
+    return;
+}
+
+/*
+d_tests_mariadb_face_nonblocking
+  The forms that do not block: a start replaces the connection held with the
+one being made, or made at once, and one failed at once leaves the face as
+it was; the continuation goes on with the connection held, which a failure
+leaves the face without; a cancel's request lives in a face of its own until
+it is done; SQL sent and, with MariaDB's client, statements, generated, as
+the layer has them. Where the client cannot carry TLS so, a start under TLS
+is refused, and the rest goes without TLS.
+*/
+void
+d_tests_mariadb_face_nonblocking(
+    const struct d_mariadb_options& _where
+)
+{
+    struct d_mariadb_options             wrong   = _where;
+    face::mariadb                        db;
+    face::mariadb                        canceller;
+    face::text                           why;
+    face::rows                           found;
+    d_db_pending                         pending;
+    re_std::int64_t                      changes = 0;
+    int                                  result  = 0;
+    const bool                           all     =
+        face::mariadb::client_is_mariadb();
+    const struct d_mariadb_setting       plain   =
+    {
+        D_MARIADB_SETTING_SSL_MODE,
+        static_cast<unsigned long>(D_MARIADB_SSL_DISABLED),
+        D_NULLPTR,
+        D_NULLPTR
+    };
+    const struct d_mariadb_setting* const settings =
+        ( (all) &&
+          (!face::mariadb::client_nonblocking_tls()) ) ? &plain : D_NULLPTR;
+    const std::size_t                    count   = (settings) ? 1u : 0u;
+
+    std::printf("without blocking%s\n",
+                (settings) ? " (TLS refused; the rest without it)" : "");
+
+    if (settings)
+    {
+        d_tests_mariadb_face_tls_refused(_where);
+    }
+
+    wrong.password = "certainly not the password";
+    D_TESTS_MARIADB_FACE_CHECK(db.connect_with(&_where, settings, count) == 0);
+
+    struct d_mariadb* const first = db.handle();
+
+    result = db.connect_with_start(&_where, settings, count, pending, why);
+    D_TESTS_MARIADB_FACE_CHECK( ( (result == D_DB_WAIT) ||
+                                  (result == 0) ) &&
+                                (db.is_open())        &&
+                                (db.handle() != first) );
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 100000); ++i)
+    {
+        result = db.connect_continue(d_tests_mariadb_face_wait(pending),
+                                     pending,
+                                     why);
+    }
+
+    D_TESTS_MARIADB_FACE_CHECK( (result == 0) && (why.is_null()) );
+    D_TESTS_MARIADB_FACE_CHECK(db.ping() == 0);
+
+    // a failure: found while continuing, the face then without one; or at
+    // once, the face as it was
+    result = db.connect_with_start(&wrong, settings, count, pending, why);
+
+    if (result == D_DB_WAIT)
+    {
+        for (int i = 0; (result == D_DB_WAIT) && (i < 100000); ++i)
+        {
+            result = db.connect_continue(d_tests_mariadb_face_wait(pending),
+                                         pending,
+                                         why);
+        }
+
+        D_TESTS_MARIADB_FACE_CHECK(!db.is_open());
+    }
+    else
+    {
+        D_TESTS_MARIADB_FACE_CHECK(db.is_open());
+    }
+
+    D_TESTS_MARIADB_FACE_CHECK( (result == 1045) && (!why.is_null()) );
+    D_TESTS_MARIADB_FACE_CHECK(db.connect_continue(D_DB_WAIT_READ, pending) ==
+                               D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_FACE_CHECK(db.connect_with(&_where, settings, count) == 0);
+
+    // a ping, with MariaDB's client
+    result = db.ping_start(pending);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 100000); ++i)
+    {
+        result = db.ping_continue(d_tests_mariadb_face_wait(pending), pending);
+    }
+
+    D_TESTS_MARIADB_FACE_CHECK(result == ((all) ? 0 : D_DB_UNSUPPORTED));
+
+    // a cancel with nothing running: delivered, the request's face emptied
+    result = db.cancel_start(canceller, pending, why);
+    D_TESTS_MARIADB_FACE_CHECK( (result != D_DB_WAIT) ||
+                                (canceller.is_open()) );
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 100000); ++i)
+    {
+        result = canceller.cancel_continue(d_tests_mariadb_face_wait(pending),
+                                           pending,
+                                           why);
+    }
+
+    D_TESTS_MARIADB_FACE_CHECK( (result == 0)          &&
+                                (why.is_null())        &&
+                                (!canceller.is_open()) );
+    D_TESTS_MARIADB_FACE_CHECK(canceller.cancel_continue(0u, pending) ==
+                               D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_FACE_CHECK(db.exec("SELECT 1") == 0);
+
+    // SQL sent, and its results read
+    result = db.send_query_start("SELECT 6 AS six", pending);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 100000); ++i)
+    {
+        result = db.send_query_continue(d_tests_mariadb_face_wait(pending),
+                                        pending);
+    }
+
+    D_TESTS_MARIADB_FACE_CHECK(result == 0);
+    result = db.next_result_start(pending, found, changes);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 100000); ++i)
+    {
+        result = db.next_result_continue(d_tests_mariadb_face_wait(pending),
+                                         pending,
+                                         found,
+                                         changes);
+    }
+
+    D_TESTS_MARIADB_FACE_CHECK( (result == 0) && (found.row_count() == 1u) );
+    D_TESTS_MARIADB_FACE_CHECK(db.next_result_start(pending, found, changes) ==
+                               D_DB_NOT_FOUND);
+
+    // a statement prepared, run, and read a page at a time
+    face::mariadb_statement series;
+
+    result = db.prepare_start(series,
+                              "SELECT ? AS n UNION ALL SELECT 2 UNION ALL "
+                              "SELECT 3",
+                              pending);
+
+    // libmysqlclient has none of it
+    if (!all)
+    {
+        D_TESTS_MARIADB_FACE_CHECK( (result == D_DB_UNSUPPORTED) &&
+                                    (!series.is_prepared()) );
+
+        return;
+    }
+
+    D_TESTS_MARIADB_FACE_CHECK(series.is_prepared());
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 100000); ++i)
+    {
+        result = series.prepare_continue(d_tests_mariadb_face_wait(pending),
+                                         pending);
+    }
+
+    D_TESTS_MARIADB_FACE_CHECK( (result == 0) &&
+                                (series.parameter_count() == 1u) );
+    D_TESTS_MARIADB_FACE_CHECK(series.bind_int64(1, 1) == 0);
+    result = series.execute_start(pending);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 100000); ++i)
+    {
+        result = series.execute_query_continue(
+                     d_tests_mariadb_face_wait(pending),
+                     pending,
+                     found);
+    }
+
+    D_TESTS_MARIADB_FACE_CHECK( (result == 0) && (found.row_count() == 3u) );
+    result = series.open_cursor_start(pending);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 100000); ++i)
+    {
+        result = series.open_cursor_continue(
+                     d_tests_mariadb_face_wait(pending),
+                     pending);
+    }
+
+    D_TESTS_MARIADB_FACE_CHECK(result == 0);
+    result = series.fetch_rows_start(2u, pending, found);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 100000); ++i)
+    {
+        result = series.fetch_rows_continue(
+                     d_tests_mariadb_face_wait(pending),
+                     pending,
+                     found);
+    }
+
+    D_TESTS_MARIADB_FACE_CHECK( (result == 0) && (found.row_count() == 2u) );
+    D_TESTS_MARIADB_FACE_CHECK(series.close_cursor() == 0);
+    D_TESTS_MARIADB_FACE_CHECK(series.finalize() == 0);
+
+    return;
+}
+
+/*
 d_tests_mariadb_face_stubs
   The face over the stubs: nothing connects, nothing is listed, no guard
 begins, no text, statement or rows come, in any level's forms.
@@ -1206,6 +1579,28 @@ d_tests_mariadb_face_stubs(
     D_TESTS_MARIADB_FACE_CHECK(db.query_rows(found, "SELECT 1") ==
                                D_DB_UNSUPPORTED);
     D_TESTS_MARIADB_FACE_CHECK(found.empty());
+
+    // the forms that do not block: nothing started, the faces empty
+    {
+        face::mariadb canceller;
+        d_db_pending  pending;
+
+        D_TESTS_MARIADB_FACE_CHECK(db.connect_start(&_where, pending) ==
+                                   D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_FACE_CHECK(
+            db.connect_with_start(&_where, D_NULLPTR, 0u, pending, value) ==
+            D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_FACE_CHECK( (!db.is_open()) && (value.is_null()) );
+        D_TESTS_MARIADB_FACE_CHECK(db.cancel_start(canceller, pending) ==
+                                   D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_FACE_CHECK(!canceller.is_open());
+        D_TESTS_MARIADB_FACE_CHECK(db.prepare_start(statement,
+                                                    "SELECT 1",
+                                                    pending) ==
+                                   D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_FACE_CHECK( (!statement.is_prepared()) &&
+                                    (pending.socket == D_DB_SOCKET_NONE) );
+    }
 
 #if D_INTERNAL_DB_FACE_OPTIONAL
     std::optional<std::string> maybe(std::string("kept?"));
@@ -1282,6 +1677,7 @@ main(
             probe.close();
             d_tests_mariadb_face_ownership(where);
             d_tests_mariadb_face_session(where);
+            d_tests_mariadb_face_nonblocking(where);
         }
         else
         {

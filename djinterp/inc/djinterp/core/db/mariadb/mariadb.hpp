@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/core/db/mariadb/mariadb.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 
 /*
@@ -926,8 +926,9 @@ struct mariadb_version_info
 // causal reads, and the session's default storage engine. With either Galera
 // switch on, the session sets wsrep_sync_wait to 1, so that each read waits
 // for the writes the cluster has committed; the default storage engine,
-// where named, is set for the session. Both are applied when the connection
-// opens.
+// where named -- an engine's name, an identifier -- is set for the session.
+// Both are init commands, which the client runs within the connect and a
+// reset runs again.
 struct mariadb_connect_config
 {
     mysql_connect_config mysql_config;
@@ -1122,9 +1123,10 @@ public:
     void set_mariadb_config(const mariadb_connect_config& _config);
 
     // hooks (mariadb.cpp), for mysql_common_connection's connect: MariaDB
-    // adds no client settings of its own, and once connected sets
-    // wsrep_sync_wait and the default storage engine where configured,
-    // throwing connection_exception when the server refuses either
+    // adds wsrep_sync_wait and the default storage engine, where configured,
+    // as init commands -- a connect the server refuses either of throws
+    // connection_exception, as does an engine's name that is no identifier --
+    // and has nothing to run once connected
     void add_settings_impl(internal::mariadb_settings& _settings) const;
     void on_connected_impl(face::mariadb& _db);
 

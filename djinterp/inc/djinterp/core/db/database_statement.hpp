@@ -43,6 +43,16 @@
 *                       layer's result for a call the run would refuse --
 *                       2014 for MariaDB and MySQL, 08000 packed for
 *                       PostgreSQL
+*     cancel            static, where holds_connection: asks the server to
+*                       stop what a connection runs, throwing
+*                       query_exception when it cannot -- for the
+*                       operations that do not block
+*   prepared_statement's execute_query_async, execute_update_async and
+* execute_async are its operations that do not block (database_async.hpp):
+* over the face's execute_start and its continuations where it has them --
+* MariaDB's client and libpq; libmysqlclient answers D_DB_UNSUPPORTED -- and
+* done as they start where it does not, as SQLite's. Each holds the
+* connection while under way, and the statement's values with it.
 *   Neither class is thread-safe: a connection, its statements and its result
 * sets belong to one thread at a time, as each client's own do.
 *
@@ -50,7 +60,7 @@
 * path:      /inc/djinterp/core/db/database_statement.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 
 /*
@@ -76,6 +86,8 @@ TABLE OF CONTENTS
          1.  prepared_statement
     2.  Definitions
     3.  Streams' definitions
+    4.  Operations that do not block
+         1.  internal::statement_steps
 */
 
 #ifndef DJINTERP_DB_DATABASE_STATEMENT_HPP
@@ -97,9 +109,11 @@ TABLE OF CONTENTS
 #include <vector>       // std::vector
 // djinterp
 #include "../../djinterp.hpp"       // framework root
+#include "../meta/type_traits.hpp"  // is_detected_v
 #include "../../c/db/db_face.hpp"   // face::rows, face::string_arg, d_db_*
 #include "./database.hpp"           // value, result_set, statement, the
                                     // exceptions
+#include "./database_async.hpp"     // async_operation
 // re_std
 #include "../../../re_std/cstdint/cstdint.hpp"  // re_std::int32_t, int64_t,
                                                 // uint8_t
@@ -334,6 +348,16 @@ private:
 // prepared_statement, declared for the streams that run over it (4.1.1)
 template<typename Layer>
 class prepared_statement;
+
+// internal::statement_steps, declared for the statements whose operations
+// it makes (4.4.1)
+NS_INTERNAL
+
+    template<typename Layer,
+             typename Result>
+    class statement_steps;
+
+NS_END  // internal
 
 // stream_page_size
 //   constant: the rows a stream reads a page at a time where a program names
@@ -668,6 +692,29 @@ public:
     bool execute();
 
     /**
+     * @brief Runs the statement, and returns its rows, as execute_query
+     *        does, without waiting: an operation to drive
+     *        (database_async.hpp).
+     *
+     * @note The statement must outlive the operation. While it is under
+     *       way, binding and clearing throw query_exception with
+     *       Layer::busy_code, as everything else on the connection does.
+     *
+     * @return the operation; its result() is execute_query's, or throws
+     *         what execute_query throws -- D_DB_UNSUPPORTED with
+     *         libmysqlclient.
+     */
+    async_operation<std::unique_ptr<buffered_result_set>>
+        execute_query_async();
+
+    // the counts that do not block -- execute_update_async and
+    // execute_async run the statement as execute_update and execute do,
+    // as execute_query_async runs it: operations whose result() is the
+    // count, and true
+    async_operation<re_std::int64_t> execute_update_async();
+    async_operation<bool>            execute_async();
+
+    /**
      * @brief Runs the statement, its rows to be read a page at a time as the
      *        stream's cursor reaches them (streaming_result_set).
      *
@@ -728,13 +775,19 @@ public:
 private:
     friend class streaming_result_set<Layer>;
 
+    template<typename Type,
+             typename Result>
+    friend class internal::statement_steps;
+
     // m_require_open -- query_exception for a closed statement
     void m_require_open(const char* _operation) const;
 
     // m_require_free -- query_exception, Layer's busy_code, while another
-    // statement's stream holds the connection; m_require_unstreamed --
-    // query_exception, D_DB_INVALID_ARGUMENT, while the statement's own
-    // stream's run is open, for a call that would change its values
+    // statement's stream, or an operation that does not block, holds the
+    // connection; m_require_unstreamed -- query_exception,
+    // D_DB_INVALID_ARGUMENT, while the statement's own stream's run is open,
+    // and Layer's busy_code while an operation of its own is under way, for
+    // a call that would change its values
     void m_require_free(const char* _operation) const;
     void m_require_unstreamed(const char* _operation) const;
 
@@ -753,6 +806,7 @@ private:
     std::shared_ptr<internal::session> m_session;
     statement_face                     m_statement;
     streaming_result_set<Layer>*       m_stream;
+    const void*                        m_operation;
 };
 
 // 4.2    Definitions
@@ -773,7 +827,8 @@ prepared_statement<Layer>::prepared_statement(
 )
     : m_session(std::move(_session)),
       m_statement(std::move(_statement)),
-      m_stream(nullptr)
+      m_stream(nullptr),
+      m_operation(nullptr)
 {
     m_session->enroll(this, &prepared_statement::m_close_from_session);
 }
@@ -1347,13 +1402,13 @@ prepared_statement<Layer>::m_require_free(
     const char* _operation
 ) const
 {
-    // another statement's run holds the connection
+    // another statement's run, or an operation, holds the connection
     if ( (m_session->holder() != nullptr) &&
          (m_session->holder() != m_stream) )
     {
         throw query_exception(std::string(_operation) +
-                              ": a stream's run holds the connection until "
-                              "it is read to its end or closed",
+                              ": a stream's run, or an operation not yet "
+                              "done, holds the connection",
                               m_session->busy_code());
     }
 
@@ -1374,6 +1429,19 @@ prepared_statement<Layer>::m_require_unstreamed(
                               ": the statement's stream is open; its values "
                               "cannot change until the run ends",
                               D_DB_INVALID_ARGUMENT);
+    }
+
+    // and an operation of its own sends them, where the layer has any
+    if constexpr (Layer::holds_connection)
+    {
+        if (m_operation != nullptr)
+        {
+            throw query_exception(std::string(_operation) +
+                                  ": an operation of the statement's is "
+                                  "under way; its values cannot change "
+                                  "until it is done",
+                                  Layer::busy_code);
+        }
     }
 
     return;
@@ -1934,6 +2002,282 @@ streaming_result_set<Layer>::m_backward(
                           D_DB_UNSUPPORTED);
 }
 
+
+// 4.4    Operations that do not block
+//------------------------------------------------------------------------------
+NS_INTERNAL
+
+    // execute_start_t -- a statement face that runs without waiting, as the
+    // call; its absence makes the operation done as it starts
+    template<typename Face>
+    using execute_start_t =
+        decltype(std::declval<Face&>().execute_start(
+            std::declval<d_db_pending&>()));
+
+    // 4.4.1
+    // statement_steps
+    //   class template: a statement run without waiting -- its values sent
+    // by the face's execute_start, its results read by the continuation for
+    // what Result is: the rows of the first, for execute_query_async; the
+    // count, for execute_update_async; true, for execute_async. A failure is
+    // the statement's m_check's, which marks a lost connection.
+    template<typename Layer,
+             typename Result>
+    class statement_steps final : public async_steps<Result>
+    {
+    private:
+        using statement_type = prepared_statement<Layer>;
+
+    public:
+        statement_steps(
+            statement_type& _statement,
+            const char*     _operation
+        ) noexcept
+            : m_statement(&_statement),
+              m_operation(_operation),
+              m_rows(),
+              m_changes(0)
+        {}
+
+        bool   begin(d_db_pending& _pending) override;
+        bool   advance(unsigned      _events,
+                       d_db_pending& _pending) override;
+        Result take() override;
+        void   ended() noexcept override;
+        void   cancel() override;
+        void   abandon() noexcept override;
+
+    private:
+        // m_answer -- a continuation's answer: false while waiting, true once
+        // read, a failure thrown
+        bool m_answer(int _result);
+
+        statement_type* m_statement;
+        const char*     m_operation;
+        face::rows      m_rows;
+        re_std::int64_t m_changes;
+    };
+
+    /*
+    statement_steps::begin
+      As the blocking runs begin: open, its own stream ended, the connection
+    free; held from here until the operation ends. A start that answered 0
+    -- none does -- would still leave the results to read.
+    */
+    template<typename Layer,
+             typename Result>
+    bool
+    statement_steps<Layer, Result>::begin(
+        d_db_pending& _pending
+    )
+    {
+        statement_type& statement = *m_statement;
+
+        statement.m_require_open(m_operation);
+        statement.m_end_stream();
+        statement.m_require_free(m_operation);
+        statement.m_session->hold(this, Layer::busy_code);
+        statement.m_operation = this;
+
+        const int started = statement.m_statement.execute_start(_pending);
+
+        // waiting for the results, or a failure before anything was sent
+        if (started == D_DB_WAIT)
+        {
+            return false;
+        }
+
+        statement.m_check(started, m_operation);
+
+        return advance(0u, _pending);
+    }
+
+    template<typename Layer,
+             typename Result>
+    bool
+    statement_steps<Layer, Result>::advance(
+        unsigned      _events,
+        d_db_pending& _pending
+    )
+    {
+        auto& face = m_statement->m_statement;
+
+        // the rows, or the count
+        if constexpr (std::is_same_v<Result,
+                                     std::unique_ptr<buffered_result_set>>)
+        {
+            return m_answer(face.execute_query_continue(_events,
+                                                        _pending,
+                                                        m_rows));
+        }
+        else
+        {
+            return m_answer(face.execute_update_continue(_events,
+                                                         _pending,
+                                                         m_changes));
+        }
+    }
+
+    /*
+    statement_steps::take
+      The count goes to the session, as the blocking runs record theirs.
+    */
+    template<typename Layer,
+             typename Result>
+    Result
+    statement_steps<Layer, Result>::take()
+    {
+        // the rows, or the count, or true
+        if constexpr (std::is_same_v<Result,
+                                     std::unique_ptr<buffered_result_set>>)
+        {
+            return std::make_unique<buffered_result_set>(std::move(m_rows));
+        }
+        else
+        {
+            m_statement->m_session->record(m_changes);
+
+            if constexpr (std::is_same_v<Result, bool>)
+            {
+                return true;
+            }
+            else
+            {
+                return m_changes;
+            }
+        }
+    }
+
+    template<typename Layer,
+             typename Result>
+    void
+    statement_steps<Layer, Result>::ended() noexcept
+    {
+        m_statement->m_session->release(this);
+        m_statement->m_operation = nullptr;
+
+        return;
+    }
+
+    template<typename Layer,
+             typename Result>
+    void
+    statement_steps<Layer, Result>::cancel()
+    {
+        Layer::cancel(m_statement->m_statement.statement_connection());
+
+        return;
+    }
+
+    /*
+    statement_steps::abandon
+      The run is left in the middle, which nothing can take up again: the
+    connection is lost, for reconnect() to replace.
+    */
+    template<typename Layer,
+             typename Result>
+    void
+    statement_steps<Layer, Result>::abandon() noexcept
+    {
+        m_statement->m_session->release(this);
+        m_statement->m_session->mark_lost();
+        m_statement->m_operation = nullptr;
+
+        return;
+    }
+
+    template<typename Layer,
+             typename Result>
+    bool
+    statement_steps<Layer, Result>::m_answer(
+        int _result
+    )
+    {
+        // waiting still
+        if (_result == D_DB_WAIT)
+        {
+            return false;
+        }
+
+        m_statement->m_check(_result, m_operation);
+
+        return true;
+    }
+
+NS_END  // internal
+
+// prepared_statement's members that do not block, over the steps
+template<typename Layer>
+async_operation<std::unique_ptr<buffered_result_set>>
+prepared_statement<Layer>::execute_query_async()
+{
+    using result_type = std::unique_ptr<buffered_result_set>;
+
+    // the face's run without waiting, or the run made as it starts
+    if constexpr (is_detected_v<internal::execute_start_t, statement_face>)
+    {
+        return async_operation<result_type>(
+            std::make_unique<internal::statement_steps<Layer, result_type>>(
+                *this,
+                "execute_query"));
+    }
+    else
+    {
+        return async_operation<result_type>(
+            std::make_unique<internal::at_once_steps<result_type>>(
+                [this]() -> result_type
+                {
+                    return execute_query();
+                }));
+    }
+}
+
+template<typename Layer>
+async_operation<re_std::int64_t>
+prepared_statement<Layer>::execute_update_async()
+{
+    // the face's run without waiting, or the run made as it starts
+    if constexpr (is_detected_v<internal::execute_start_t, statement_face>)
+    {
+        return async_operation<re_std::int64_t>(
+            std::make_unique<internal::statement_steps<Layer,
+                                                       re_std::int64_t>>(
+                *this,
+                "execute_update"));
+    }
+    else
+    {
+        return async_operation<re_std::int64_t>(
+            std::make_unique<internal::at_once_steps<re_std::int64_t>>(
+                [this]() -> re_std::int64_t
+                {
+                    return execute_update();
+                }));
+    }
+}
+
+template<typename Layer>
+async_operation<bool>
+prepared_statement<Layer>::execute_async()
+{
+    // the face's run without waiting, or the run made as it starts
+    if constexpr (is_detected_v<internal::execute_start_t, statement_face>)
+    {
+        return async_operation<bool>(
+            std::make_unique<internal::statement_steps<Layer, bool>>(
+                *this,
+                "execute"));
+    }
+    else
+    {
+        return async_operation<bool>(
+            std::make_unique<internal::at_once_steps<bool>>(
+                [this]() -> bool
+                {
+                    return execute();
+                }));
+    }
+}
 
 NS_END  // djinterp
 

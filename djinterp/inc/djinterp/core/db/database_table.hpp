@@ -34,7 +34,7 @@
 * path:      /inc/djinterp/core/db/database_table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.18
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 
 /*
@@ -605,7 +605,8 @@ NS_INTERNAL
         unsigned           _key_place = 0u
     )
     {
-        const std::size_t most = std::numeric_limits<unsigned>::max();
+        // parenthesized, against <windows.h>'s max macro
+        const std::size_t most = (std::numeric_limits<unsigned>::max)();
         unsigned          flags = 0u;
 
         // a column the database computes, which no layer makes

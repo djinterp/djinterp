@@ -20,7 +20,7 @@
 * path:      /tests/djinterp/core/db/sqlite/t_sqlite_core.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 // djinterp
 #include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -47,6 +47,11 @@ namespace
 
 namespace db = djinterp;
 
+// the operations that do not block, as a trait from C++17 (database_
+// connection.hpp, section 2): SQLite's, done as they start
+static_assert(db::has_async_operations<db::sqlite_connection>::value);
+static_assert(!db::has_async_operations<int>::value);
+
 // the concepts (C++20) -- djinterp::concepts' own, every one of which the
 // class satisfies, none of which int does; and a former name, which
 // forwards to its concept for one release
@@ -55,6 +60,8 @@ using concepts_tested = db::sqlite_connection;
 
 static_assert(db::concepts::sqlite_connection<concepts_tested>);
 static_assert(!db::concepts::sqlite_connection<int>);
+static_assert(db::concepts::async_connection<concepts_tested>);
+static_assert(!db::concepts::async_connection<int>);
 static_assert(db::concepts::sqlite_openable_connection<concepts_tested>);
 static_assert(!db::concepts::sqlite_openable_connection<int>);
 static_assert(db::concepts::sqlite_flag_openable_connection<concepts_tested>);
@@ -170,7 +177,10 @@ const d_tests_db_core::dialect g_dialect =
     db::field_type::big_integer,
     db::field_type::big_integer,
     RESULT_ERROR,
-    &unique_violation
+    &unique_violation,
+    nullptr,
+    nullptr,
+    nullptr
 };
 
 /*
@@ -932,6 +942,18 @@ main(
     d_tests_db_core::transactions(memory);
     d_tests_db_core::errors(memory, g_dialect);
     d_tests_db_core::streams(memory, g_dialect);
+    d_tests_db_core::async_operations(
+        memory,
+        g_dialect,
+        []() -> db::sqlite_connection
+        {
+            return db::sqlite_connection(":memory:");
+        },
+        []() -> db::sqlite_connection
+        {
+            return db::sqlite_connection("/d_tests_no_such_directory/x.db");
+        },
+        true);
     d_tests_db_core::lifetimes<db::sqlite_connection>(
         []() { return db::sqlite_connection(":memory:"); });
     d_tests_db_core::tables<db::database_table<db::sqlite_connection>>(

@@ -29,8 +29,27 @@
 * path:      /tests/djinterp/core/db/postgres/t_postgres_core.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
+// _WIN32_WINNT
+//   knob (Windows'): Vista's API at least, for WSAPoll, where nothing asked
+// for more; it precedes every include.
+#if ( (defined(_WIN32)) &&                                                    \
+      (!defined(_WIN32_WINNT)) )
+    #define _WIN32_WINNT 0x0600
+#endif  // _WIN32
+// WIN32_LEAN_AND_MEAN, NOMINMAX
+//   knobs (Windows'): <windows.h>, which <winsock2.h> and the clients' own
+// headers include, without its rarer headers -- rpcndr.h among them, which
+// makes `small` a macro -- and without its min and max macros.
+#if defined(_WIN32)
+    #if !defined(WIN32_LEAN_AND_MEAN)
+        #define WIN32_LEAN_AND_MEAN 1
+    #endif  // WIN32_LEAN_AND_MEAN
+    #if !defined(NOMINMAX)
+        #define NOMINMAX 1
+    #endif  // NOMINMAX
+#endif  // _WIN32
 // djinterp
 #include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 // std
@@ -52,6 +71,10 @@
 #include "../../../../../inc/djinterp/core/db/postgres/postgres.hpp"  // under
                                                                        // test
 #include "../../../../../inc/djinterp/core/db/postgres/postgres_table.hpp"
+// D_TESTS_DB_CORE_SOCKETS
+//   switch: the shared checks wait on the server's socket, for the
+// operations that do not block.
+#define D_TESTS_DB_CORE_SOCKETS 1
 #include "../t_db_core.hpp"  // the shared checks
 
 
@@ -61,9 +84,17 @@ namespace
 namespace db   = djinterp;
 namespace core = d_tests_db_core;
 
+// the operations that do not block, as a trait from C++17 (database_
+// connection.hpp, section 2)
+static_assert(db::has_async_operations<db::pg_connection>::value);
+static_assert(!db::has_async_operations<int>::value);
+
 // the concepts (C++20) -- djinterp::concepts' own, the class's among them,
 // and a former name, which forwards to its concept for one release
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+static_assert(db::concepts::async_connection<db::pg_connection>);
+static_assert(db::concepts::async_connection<db::pg_connection&>);
+static_assert(!db::concepts::async_connection<int>);
 static_assert(db::concepts::pg_connection<db::pg_connection>);
 static_assert(db::concepts::pg_connection<db::pg_connection&>);
 static_assert(!db::concepts::pg_connection<int>);
@@ -147,6 +178,18 @@ unique_violation(
 }
 
 /*
+cancelled
+  PostgreSQL's statement stopped by a cancel request, 57014.
+*/
+bool
+cancelled(
+    int _code
+)
+{
+    return (_code == D_POSTGRES_SQLSTATE_QUERY_CANCELED);
+}
+
+/*
 sqlstate
   A failure's SQLSTATE, spelled.
 */
@@ -178,7 +221,10 @@ const core::dialect g_dialect =
     db::field_type::big_integer,
     db::field_type::integer,
     D_POSTGRES_SQLSTATE_SYNTAX_ERROR,
-    &unique_violation
+    &unique_violation,
+    "SELECT 0 FROM pg_sleep(0.3)",
+    "SELECT 0 FROM pg_sleep(5)",
+    &cancelled
 };
 
 /*
@@ -241,7 +287,8 @@ settings.
     a list of hosts with their ports is split into libpq's lists
   - the search path, the statement timeout, the client encoding and the
     application name, as the configuration names them; base.schema holding
-    a comma, a search path
+    a comma, a search path; the same through connect_async, whose setup
+    does not wait either; a search path holding a NUL refused by both
   - a keyword libpq does not know, D_DB_INVALID_ARGUMENT in libpq's words;
     one it knows passes; a wrong password, 08001 in libpq's words
   - get_pg_config's base is the generic configuration connect(config) put
@@ -321,6 +368,42 @@ d_tests_postgres_core_configuring(
     searching.connect();
     D_TESTS_DB_CORE_CHECK(std::get<std::string>(*searching.execute_scalar(
                               "SELECT current_schema()")) == _schema);
+
+    // the same connected without waiting, the setup sent and read without
+    // waiting too
+    db::pg_connection settled_async(session);
+    db::pg_connection searching_async(listed_schema);
+    auto              opening = settled_async.connect_async();
+    auto              looking = searching_async.connect_async();
+
+    core::drive(opening);
+    core::drive(looking);
+    D_TESTS_DB_CORE_CHECK(std::get<std::string>(*settled_async.execute_scalar(
+                              "SELECT current_schema()")) == _schema);
+    D_TESTS_DB_CORE_CHECK(std::get<std::string>(*settled_async.execute_scalar(
+                              "SHOW statement_timeout")) == "1min");
+    D_TESTS_DB_CORE_CHECK(
+        settled_async.get_parameter_status("client_encoding") == "LATIN1");
+    D_TESTS_DB_CORE_CHECK(
+        std::get<std::string>(*searching_async.execute_scalar(
+            "SELECT current_schema()")) == _schema);
+
+    // a search path holding a NUL, refused there as connect() refuses it,
+    // the connection in error
+    db::pg_connect_config nul_path = server_config("");
+
+    nul_path.search_path = std::string("public\0x", 8u);
+
+    db::pg_connection nul_async(nul_path);
+    auto              refusing = nul_async.connect_async();
+
+    D_TESTS_DB_CORE_THROWS_ANY(core::drive(refusing),
+                               db::connection_exception);
+    D_TESTS_DB_CORE_CHECK( (!nul_async.is_connected()) &&
+                           (nul_async.get_state() ==
+                            db::connection_state::error) );
+    D_TESTS_DB_CORE_THROWS_ANY(db::pg_connection(nul_path).connect(),
+                               db::connection_exception);
 
     // what is refused
     db::pg_connect_config unknown = server_config("");
@@ -1219,6 +1302,22 @@ main(
         core::transactions(db);
         core::errors(db, g_dialect);
         core::streams(db, g_dialect);
+        core::async_operations(
+            db,
+            g_dialect,
+            [&schema]() -> db::pg_connection
+            {
+                return db::pg_connection(server_config(schema));
+            },
+            [&schema]() -> db::pg_connection
+            {
+                db::pg_connect_config wrong = server_config(schema);
+
+                wrong.base.password = "certainly not the password";
+
+                return db::pg_connection(wrong);
+            },
+            true);
         core::lifetimes<db::pg_connection>(
             [&schema]() { return db::pg_connection(server_config(schema)); });
         core::tables<db::database_table<db::pg_connection>>(

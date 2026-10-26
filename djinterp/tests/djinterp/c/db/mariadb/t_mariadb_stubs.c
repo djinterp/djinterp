@@ -17,11 +17,11 @@
 * path:      /tests/djinterp/c/db/mariadb/t_mariadb_stubs.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 // std
 #include <stdio.h>   // printf
-#include <string.h>  // strcmp, strstr
+#include <string.h>  // memset, strcmp, strstr
 // djinterp
 #include "../../../../../inc/djinterp/c/db/mariadb/mariadb.h"  // unit under test
 // re_std
@@ -87,7 +87,8 @@ d_tests_mariadb_stubs_expect(
 d_tests_mariadb_stubs_common
   The library and server queries.
   Tests the following:
-  - no client: the empty string, 0, not MariaDB's
+  - no client: the empty string, 0, not MariaDB's, no calls that do not
+    block over TLS
   - no server: UNKNOWN, NULL, 0; no version reached; no feature supported
   - no native handle; no error; the layer's own results keep their messages,
     D_DB_UNSUPPORTED saying why
@@ -104,6 +105,7 @@ d_tests_mariadb_stubs_common(
     D_TESTS_MARIADB_STUBS_CHECK(strcmp(d_mariadb_client_version(), "") == 0);
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_client_version_number() == 0ul);
     D_TESTS_MARIADB_STUBS_CHECK(!d_mariadb_client_is_mariadb());
+    D_TESTS_MARIADB_STUBS_CHECK(!d_mariadb_client_nonblocking_tls());
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_server_flavor(db) ==
                                 D_MARIADB_FLAVOR_UNKNOWN);
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_server_version(db) == NULL);
@@ -196,6 +198,203 @@ d_tests_mariadb_stubs_connection(
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_changes(db) == 0);
     D_TESTS_MARIADB_STUBS_CHECK(d_mariadb_warning_count(db) == 0u);
     D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_get_option(db, 0, &number));
+
+    return;
+}
+
+/*
+d_tests_mariadb_stubs_pending
+  Whether a pending call was left as a finished one leaves it.
+*/
+static bool
+d_tests_mariadb_stubs_pending(
+    const struct d_db_pending* _pending
+)
+{
+    return ( (_pending->socket == D_DB_SOCKET_NONE) &&
+             (_pending->events == 0u)               &&
+             (_pending->timeout_ms == 0u)           &&
+             (_pending->deadline == 0.0)            &&
+             (_pending->state == 0u) );
+}
+
+/*
+d_tests_mariadb_stubs_nonblocking
+  Connecting, the session, SQL sent, statements and cancelling without
+blocking, and the blocking cancel.
+  Tests the following:
+  - every start and continuation is D_DB_UNSUPPORTED, nothing pending; a
+    connect's or a cancel's start leaves no handle and no reason, and a
+    continuation leaves the handle it was given
+  - a result's or a page's read leaves the rows and the count alone; a
+    prepare's start leaves no statement
+  - the blocking cancel is D_DB_UNSUPPORTED, no reason
+*/
+static void
+d_tests_mariadb_stubs_nonblocking(
+    void
+)
+{
+    struct d_mariadb* const        marker   =
+        (struct d_mariadb*)(void*)&g_marker;
+    struct d_mariadb*              db       = marker;
+    char*                          reason   = (char*)(void*)&g_marker;
+    struct d_db_pending            pending;
+    struct d_db_rows               rows     = { 7u, 7u, NULL, NULL };
+    int64_t                        changes  = 7;
+    const struct d_mariadb_setting brief[1] =
+    {
+        { D_MARIADB_SETTING_CONNECT_TIMEOUT, 2ul, NULL, NULL }
+    };
+
+    printf("mariadb_connection, _query, _statement: without blocking\n");
+
+    memset(&pending, 0x5a, sizeof(pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_connect_start(NULL,
+                                                              &db,
+                                                              &pending));
+    D_TESTS_MARIADB_STUBS_CHECK( (db == NULL) &&
+                                 (d_tests_mariadb_stubs_pending(&pending)) );
+    db = marker;
+    memset(&pending, 0x5a, sizeof(pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_connect_with_start(NULL,
+                                                                   brief,
+                                                                   1u,
+                                                                   &db,
+                                                                   &pending,
+                                                                   &reason));
+    D_TESTS_MARIADB_STUBS_CHECK( (db == NULL)     &&
+                                 (reason == NULL) &&
+                                 (d_tests_mariadb_stubs_pending(&pending)) );
+    db     = marker;
+    reason = (char*)(void*)&g_marker;
+    memset(&pending, 0x5a, sizeof(pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_connect_continue(
+                                          &db,
+                                          D_DB_WAIT_READ,
+                                          &pending,
+                                          &reason));
+    D_TESTS_MARIADB_STUBS_CHECK( (db == marker)   &&
+                                 (reason == NULL) &&
+                                 (d_tests_mariadb_stubs_pending(&pending)) );
+
+    // the session
+    memset(&pending, 0x5a, sizeof(pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_ping_start(marker, &pending));
+    D_TESTS_MARIADB_STUBS_CHECK(d_tests_mariadb_stubs_pending(&pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_ping_continue(marker,
+                                                              0u,
+                                                              &pending));
+    memset(&pending, 0x5a, sizeof(pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+        d_mariadb_reset_connection_start(marker, &pending));
+    D_TESTS_MARIADB_STUBS_CHECK(d_tests_mariadb_stubs_pending(&pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+        d_mariadb_reset_connection_continue(marker, 0u, &pending));
+    memset(&pending, 0x5a, sizeof(pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_change_user_start(marker,
+                                                                  "u",
+                                                                  "p",
+                                                                  NULL,
+                                                                  &pending));
+    D_TESTS_MARIADB_STUBS_CHECK(d_tests_mariadb_stubs_pending(&pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+        d_mariadb_change_user_continue(marker, 0u, &pending));
+
+    // SQL sent
+    memset(&pending, 0x5a, sizeof(pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_send_query_start(marker,
+                                                                 "SELECT 1",
+                                                                 &pending));
+    D_TESTS_MARIADB_STUBS_CHECK(d_tests_mariadb_stubs_pending(&pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_send_query_continue(marker,
+                                                                    0u,
+                                                                    &pending));
+    memset(&pending, 0x5a, sizeof(pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_next_result_start(marker,
+                                                                  &pending,
+                                                                  &rows,
+                                                                  &changes));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_next_result_continue(
+                                          marker,
+                                          0u,
+                                          &pending,
+                                          &rows,
+                                          &changes));
+    D_TESTS_MARIADB_STUBS_CHECK( (d_tests_mariadb_stubs_pending(&pending)) &&
+                                 (rows.column_count == 7u)                 &&
+                                 (rows.row_count == 7u)                    &&
+                                 (changes == 7) );
+
+    // statements
+    {
+        struct d_mariadb_statement* const statement =
+            (struct d_mariadb_statement*)(void*)&g_marker;
+        struct d_mariadb_statement*       made      = statement;
+
+        memset(&pending, 0x5a, sizeof(pending));
+        D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_prepare_start(marker,
+                                                                  &made,
+                                                                  "SELECT 1",
+                                                                  &pending));
+        D_TESTS_MARIADB_STUBS_CHECK( (made == NULL) &&
+                                     (d_tests_mariadb_stubs_pending(
+                                         &pending)) );
+        memset(&pending, 0x5a, sizeof(pending));
+        D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+            d_mariadb_prepare_continue(statement, 0u, &pending));
+        D_TESTS_MARIADB_STUBS_CHECK(d_tests_mariadb_stubs_pending(&pending));
+        memset(&pending, 0x5a, sizeof(pending));
+        D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+            d_mariadb_execute_start(statement, &pending));
+        D_TESTS_MARIADB_STUBS_CHECK(d_tests_mariadb_stubs_pending(&pending));
+        D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+            d_mariadb_execute_update_continue(statement,
+                                              0u,
+                                              &pending,
+                                              &changes));
+        D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+            d_mariadb_execute_query_continue(statement, 0u, &pending, &rows));
+        memset(&pending, 0x5a, sizeof(pending));
+        D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+            d_mariadb_open_cursor_start(statement, &pending));
+        D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+            d_mariadb_open_cursor_continue(statement, 0u, &pending));
+        D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+            d_mariadb_fetch_rows_start(statement, 3u, &pending, &rows));
+        D_TESTS_MARIADB_STUBS_UNSUPPORTED(
+            d_mariadb_fetch_rows_continue(statement, 0u, &pending, &rows));
+        D_TESTS_MARIADB_STUBS_CHECK( (d_tests_mariadb_stubs_pending(
+                                          &pending))  &&
+                                     (rows.column_count == 7u) &&
+                                     (rows.row_count == 7u)    &&
+                                     (changes == 7) );
+    }
+
+    // cancelling
+    reason = (char*)(void*)&g_marker;
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_cancel(marker, &reason));
+    D_TESTS_MARIADB_STUBS_CHECK(reason == NULL);
+    db     = marker;
+    reason = (char*)(void*)&g_marker;
+    memset(&pending, 0x5a, sizeof(pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_cancel_start(marker,
+                                                             &db,
+                                                             &pending,
+                                                             &reason));
+    D_TESTS_MARIADB_STUBS_CHECK( (db == NULL)     &&
+                                 (reason == NULL) &&
+                                 (d_tests_mariadb_stubs_pending(&pending)) );
+    db     = marker;
+    reason = (char*)(void*)&g_marker;
+    memset(&pending, 0x5a, sizeof(pending));
+    D_TESTS_MARIADB_STUBS_UNSUPPORTED(d_mariadb_cancel_continue(&db,
+                                                                0u,
+                                                                &pending,
+                                                                &reason));
+    D_TESTS_MARIADB_STUBS_CHECK( (db == marker)   &&
+                                 (reason == NULL) &&
+                                 (d_tests_mariadb_stubs_pending(&pending)) );
 
     return;
 }
@@ -605,6 +804,7 @@ main(
 {
     d_tests_mariadb_stubs_common();
     d_tests_mariadb_stubs_connection();
+    d_tests_mariadb_stubs_nonblocking();
     d_tests_mariadb_stubs_query();
     d_tests_mariadb_stubs_statement();
     d_tests_mariadb_stubs_database();

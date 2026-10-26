@@ -47,7 +47,7 @@
 * path:      /inc/djinterp/c/db/mariadb/mariadb_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 
 /*
@@ -191,6 +191,15 @@ enum d_mariadb_feature
 const char*    d_mariadb_client_version(void) D_NOTHROW;
 unsigned long  d_mariadb_client_version_number(void) D_NOTHROW;
 bool           d_mariadb_client_is_mariadb(void) D_NOTHROW;
+// nonblocking tls -- whether the client's calls that do not block
+// (mariadb_connection.h 1.8) can go over TLS: false for Connector/C before
+// 3.4.10 whose TLS is Schannel, Windows' own, and before 3.0.4 whatever its
+// TLS, since their calls that do not block pass TLS by; false for a client
+// with no such calls (libmysqlclient before 8.0.16), and in a build without
+// one; true otherwise. Where it is false, every start refuses a connection
+// under TLS with D_DB_UNSUPPORTED, and a connect's start one that would ask
+// for it: connect without blocking with D_MARIADB_SSL_DISABLED, or block
+bool           d_mariadb_client_nonblocking_tls(void) D_NOTHROW;
 
 // 2.2    Result messages
 //------------------------------------------------------------------------------

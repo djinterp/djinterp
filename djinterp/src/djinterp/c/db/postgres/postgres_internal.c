@@ -15,7 +15,7 @@
 * path:      /src/djinterp/c/db/postgres/postgres_internal.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -24,11 +24,13 @@
 
 #include "./postgres_internal.h"  // corresponding header
 // std
+#include <limits.h>  // UINT_MAX
 #include <math.h>    // INFINITY, NAN
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stddef.h>  // size_t, NULL
 #include <stdlib.h>  // malloc, free
 #include <string.h>  // memcpy, strchr, strcmp, strlen
+#include <time.h>    // time: the clock before libpq 17
 // djinterp
 #include "../../../../../inc/djinterp/c/db/db_common.h"  // D_DB_*, the lists
 #include "../../../../../inc/djinterp/env/c/env_vendor_attributes.h"  // D_THREAD_LOCAL
@@ -886,6 +888,189 @@ d_internal_postgres_ready(
     }
 
     return 0;
+}
+
+// 2.4    Waiting
+//------------------------------------------------------------------------------
+/*
+d_internal_postgres_now
+  libpq 17's own clock, where the header and the library loaded both have
+it; time() before.
+*/
+double
+d_internal_postgres_now(
+    void
+)
+{
+#if defined(LIBPQ_HAS_SOCKET_POLL)
+    // libpq 17's own clock, where the library loaded has it too
+    if (PQlibVersion() >= 170000)
+    {
+        return (double)PQgetCurrentTimeUSec() / 1000000.0;
+    }
+#endif  // LIBPQ_HAS_SOCKET_POLL
+
+    return (double)time(NULL);
+}
+
+/*
+d_internal_postgres_pend
+  The time left is rounded up to the millisecond, and held at what an
+unsigned can count; a deadline already passed is 0, a wait that ends at
+once.
+*/
+int
+d_internal_postgres_pend(
+    int                  _socket,
+    unsigned             _events,
+    struct d_db_pending* _pending
+)
+{
+    _pending->socket     = (_socket >= 0) ? (d_db_socket)_socket
+                                          : D_DB_SOCKET_NONE;
+    _pending->events     = _events;
+    _pending->timeout_ms = 0u;
+
+    // the time left, where there is a deadline
+    if (_pending->deadline > 0.0)
+    {
+        const double left = (_pending->deadline - d_internal_postgres_now()) *
+                            1000.0;
+
+        _pending->events |= D_DB_WAIT_TIMEOUT;
+
+        if (left >= (double)UINT_MAX)
+        {
+            _pending->timeout_ms = UINT_MAX;
+        }
+        else if (left > 0.0)
+        {
+            _pending->timeout_ms = (unsigned)left;
+
+            if ((double)_pending->timeout_ms < left)
+            {
+                ++_pending->timeout_ms;
+            }
+        }
+    }
+
+    return D_DB_WAIT;
+}
+
+/*
+d_internal_postgres_settled
+  Every field as a finished call leaves it.
+*/
+void
+d_internal_postgres_settled(
+    struct d_db_pending* _pending
+)
+{
+    _pending->socket     = D_DB_SOCKET_NONE;
+    _pending->events     = 0u;
+    _pending->timeout_ms = 0u;
+    _pending->deadline   = 0.0;
+    _pending->state      = 0u;
+
+    return;
+}
+
+/*
+d_internal_postgres_nonblocking_on
+  PQsetnonblocking flushes what is queued before it changes the mode, which
+nothing is when a send begins; it refuses a lost connection, which the send
+then finds for itself.
+*/
+bool
+d_internal_postgres_nonblocking_on(
+    PGconn* _db
+)
+{
+    return ( (PQisnonblocking(_db) == 0) &&
+             (PQsetnonblocking(_db, 1) == 0) );
+}
+
+/*
+d_internal_postgres_flush
+  PQflush answers 0 once its buffer is empty, 1 while some is left, and -1
+for trouble. libpq's mode goes back to blocking only once everything is
+written, while the command still waits for its results, so that libpq
+clears no failure's message in turning it.
+*/
+int
+d_internal_postgres_flush(
+    PGconn*              _db,
+    unsigned             _events,
+    bool                 _turned_on,
+    struct d_db_pending* _pending
+)
+{
+    // the server's own writing, read first, so that it can go on reading
+    if ( ((_events & D_DB_WAIT_READ) != 0u) &&
+         (PQconsumeInput(_db) != 1) )
+    {
+        if (_turned_on)
+        {
+            (void)PQsetnonblocking(_db, 0);
+        }
+
+        return (PQstatus(_db) == CONNECTION_BAD)
+                   ? D_POSTGRES_SQLSTATE_CONNECTION_FAILURE
+                   : D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION;
+    }
+
+    const int flushed = PQflush(_db);
+
+    // some left: wait for room, reading meanwhile
+    if (flushed > 0)
+    {
+        return d_internal_postgres_pend(PQsocket(_db),
+                                        (unsigned)D_DB_WAIT_READ |
+                                        (unsigned)D_DB_WAIT_WRITE,
+                                        _pending);
+    }
+
+    if (_turned_on)
+    {
+        (void)PQsetnonblocking(_db, 0);
+    }
+
+    if (flushed < 0)
+    {
+        return (PQstatus(_db) == CONNECTION_BAD)
+                   ? D_POSTGRES_SQLSTATE_CONNECTION_FAILURE
+                   : D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION;
+    }
+
+    return 0;
+}
+
+/*
+d_internal_postgres_arrived
+  PQconsumeInput reads whatever the socket holds and never waits; PQisBusy
+then says whether PQgetResult would. libpq reads the end of the results too
+-- its ReadyForQuery -- before it answers NULL, so the end can be waited for
+as a result is.
+*/
+int
+d_internal_postgres_arrived(
+    PGconn*              _db,
+    struct d_db_pending* _pending
+)
+{
+    // what the server has sent
+    if (PQconsumeInput(_db) != 1)
+    {
+        return (PQstatus(_db) == CONNECTION_BAD)
+                   ? D_POSTGRES_SQLSTATE_CONNECTION_FAILURE
+                   : D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION;
+    }
+
+    return (PQisBusy(_db))
+               ? d_internal_postgres_pend(PQsocket(_db),
+                                          (unsigned)D_DB_WAIT_READ,
+                                          _pending)
+               : 0;
 }
 
 

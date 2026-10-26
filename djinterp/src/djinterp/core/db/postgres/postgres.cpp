@@ -16,7 +16,7 @@
 * path:      /src/djinterp/core/db/postgres/postgres.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 #include "../../../../../inc/djinterp/core/db/postgres/postgres.hpp"  // corresponding header
 
@@ -464,6 +464,103 @@ connect_failure(
     return message;
 }
 
+/*
+fill_keywords
+  The fields go to libpq as keywords, base's first, then the PostgreSQL
+ones, then base.custom_options and extra_params, each where it holds a
+value; the connection string follows them, and overrides them, in
+d_postgres_connect_with.
+*/
+void
+fill_keywords(
+    const pg_connect_config& _pg_config,
+    connect_keywords&        _keywords
+)
+{
+    const connection_config& config = _pg_config.base;
+
+    std::string hosts;
+    std::string ports;
+
+    // where -- a list of hosts with their ports, as a URI writes one, split
+    // into libpq's two lists -- and as whom
+    if (split_hosts(config.host, hosts, ports))
+    {
+        _keywords.add("host", hosts);
+        _keywords.add("port",
+                      (!ports.empty())
+                          ? ports
+                          : ( (config.port != 0u) ? std::to_string(config.port)
+                                                  : std::string() ));
+    }
+    else
+    {
+        _keywords.add("host", config.host);
+        _keywords.add("port",
+                      (config.port != 0u) ? std::to_string(config.port)
+                                          : std::string());
+    }
+
+    _keywords.add("user", config.username);
+    _keywords.add("password", config.password);
+    _keywords.add("dbname", config.database);
+
+    // TLS: PostgreSQL's mode where named, else the generic switches
+    if (_pg_config.ssl_mode != pg_ssl_mode::prefer)
+    {
+        _keywords.add("sslmode", ssl_mode_name(_pg_config.ssl_mode));
+    }
+    else if (config.enable_ssl)
+    {
+        _keywords.add("sslmode",
+                      (config.verify_ssl) ? "verify-full"
+                                          : "require");
+    }
+
+    _keywords.add("sslcert", config.ssl_cert.value_or(std::string()));
+    _keywords.add("sslkey", config.ssl_key.value_or(std::string()));
+    _keywords.add("sslrootcert", config.ssl_ca.value_or(std::string()));
+
+    // the connect timeout, in whole seconds, rounded up
+    if (_pg_config.connect_timeout_seconds > 0)
+    {
+        _keywords.add("connect_timeout",
+                      std::to_string(_pg_config.connect_timeout_seconds));
+    }
+    else if (config.connect_timeout.count() > 0)
+    {
+        _keywords.add("connect_timeout",
+                      std::to_string(
+                          std::chrono::ceil<std::chrono::seconds>(
+                              config.connect_timeout).count()));
+    }
+
+    _keywords.add("application_name", _pg_config.application_name);
+    _keywords.add("client_encoding",
+                 (!_pg_config.client_encoding.empty())
+                      ? _pg_config.client_encoding
+                      : config.charset.value_or(std::string()));
+    _keywords.add("options", _pg_config.options);
+
+    // any other keyword, by its name; a URI's scheme is no keyword
+    for (const std::pair<const std::string, std::string>& option :
+         config.custom_options)
+    {
+        if (option.first != "scheme")
+        {
+            _keywords.add(option.first, option.second);
+        }
+    }
+
+    for (const std::pair<const std::string, std::string>& option :
+         _pg_config.extra_params)
+    {
+        _keywords.add(option.first, option.second);
+    }
+
+    return;
+}
+
 }  // namespace
 
 //==============================================================================
@@ -572,13 +669,43 @@ postgres_layer::raise(
     raise_as(_kind, describe(_db, _operation, _result), _result);
 }
 
+/*
+postgres_layer::cancel
+  libpq's reason is the only word on a request that failed.
+*/
+void
+postgres_layer::cancel(
+    handle_type _db
+)
+{
+    char*     reason = nullptr;
+    const int result = d_postgres_cancel(_db, &reason);
+
+    // made, or not, and why
+    if (result != 0)
+    {
+        const std::string message =
+            std::string("PostgreSQL cancel: ") +
+            ((reason) ? reason : d_postgres_result_message(result)) + " (" +
+            std::to_string(result) + ")";
+
+        d_db_free(reason);
+
+        throw query_exception(message, result);
+    }
+
+    return;
+}
+
 template class prepared_statement<postgres_layer>;
 template class streaming_result_set<postgres_layer>;
 
 pg_connection::pg_connection()
     : base_type(pg_connect_config().base),
       m_pg_config(),
-      m_db()
+      m_db(),
+      m_opening(),
+      m_opening_stage(0)
 {}
 
 pg_connection::pg_connection(
@@ -586,7 +713,9 @@ pg_connection::pg_connection(
 )
     : base_type(_config),
       m_pg_config(_config),
-      m_db()
+      m_db(),
+      m_opening(),
+      m_opening_stage(0)
 {}
 
 pg_connection::pg_connection(
@@ -594,7 +723,9 @@ pg_connection::pg_connection(
 )
     : base_type(_config.base),
       m_pg_config(_config),
-      m_db()
+      m_db(),
+      m_opening(),
+      m_opening_stage(0)
 {}
 
 pg_connection::pg_connection(
@@ -602,7 +733,9 @@ pg_connection::pg_connection(
 )
     : base_type(pg_connect_config(_conn_string).base),
       m_pg_config(_conn_string),
-      m_db()
+      m_db(),
+      m_opening(),
+      m_opening_stage(0)
 {
     // the string alone says where: no default port stands in for its own
     this->m_config.port = 0;
@@ -1280,101 +1413,18 @@ pg_connection::get_face() const noexcept
 
 /*
 pg_connection::connect_impl
-  The fields go to libpq as keywords, base's first, then the PostgreSQL
-ones, then base.custom_options and extra_params, each where it holds a
-value; the connection string follows them, and overrides them, in
-d_postgres_connect_with. The connection opens into a face of its own, the
-search path and statement timeout are set there, and only then does the
-object take it, so that a failure at any step leaves the old state and the
-new connection closed.
+  The keywords (fill_keywords) and the connection string open a connection
+into a face of its own; the search path and statement timeout are set there
+(m_finish_connect), and only then does the object take it, so that a
+failure at any step leaves the old state and the new connection closed.
 */
 void
 pg_connection::connect_impl()
 {
-    const connection_config& config = this->m_config;
-    connect_keywords         keywords;
+    connect_keywords keywords;
 
-    m_pg_config.base = config;
-
-    std::string hosts;
-    std::string ports;
-
-    // where -- a list of hosts with their ports, as a URI writes one, split
-    // into libpq's two lists -- and as whom
-    if (split_hosts(config.host, hosts, ports))
-    {
-        keywords.add("host", hosts);
-        keywords.add("port",
-                     (!ports.empty())
-                         ? ports
-                         : ( (config.port != 0u) ? std::to_string(config.port)
-                                                 : std::string() ));
-    }
-    else
-    {
-        keywords.add("host", config.host);
-        keywords.add("port",
-                     (config.port != 0u) ? std::to_string(config.port)
-                                         : std::string());
-    }
-
-    keywords.add("user", config.username);
-    keywords.add("password", config.password);
-    keywords.add("dbname", config.database);
-
-    // TLS: PostgreSQL's mode where named, else the generic switches
-    if (m_pg_config.ssl_mode != pg_ssl_mode::prefer)
-    {
-        keywords.add("sslmode", ssl_mode_name(m_pg_config.ssl_mode));
-    }
-    else if (config.enable_ssl)
-    {
-        keywords.add("sslmode",
-                     (config.verify_ssl) ? "verify-full"
-                                         : "require");
-    }
-
-    keywords.add("sslcert", config.ssl_cert.value_or(std::string()));
-    keywords.add("sslkey", config.ssl_key.value_or(std::string()));
-    keywords.add("sslrootcert", config.ssl_ca.value_or(std::string()));
-
-    // the connect timeout, in whole seconds, rounded up
-    if (m_pg_config.connect_timeout_seconds > 0)
-    {
-        keywords.add("connect_timeout",
-                     std::to_string(m_pg_config.connect_timeout_seconds));
-    }
-    else if (config.connect_timeout.count() > 0)
-    {
-        keywords.add("connect_timeout",
-                     std::to_string(
-                         std::chrono::ceil<std::chrono::seconds>(
-                             config.connect_timeout).count()));
-    }
-
-    keywords.add("application_name", m_pg_config.application_name);
-    keywords.add("client_encoding",
-                 (!m_pg_config.client_encoding.empty())
-                     ? m_pg_config.client_encoding
-                     : config.charset.value_or(std::string()));
-    keywords.add("options", m_pg_config.options);
-
-    // any other keyword, by its name; a URI's scheme is no keyword
-    for (const std::pair<const std::string, std::string>& option :
-         config.custom_options)
-    {
-        if (option.first != "scheme")
-        {
-            keywords.add(option.first, option.second);
-        }
-    }
-
-    for (const std::pair<const std::string, std::string>& option :
-         m_pg_config.extra_params)
-    {
-        keywords.add(option.first, option.second);
-    }
-
+    m_pg_config.base = this->m_config;
+    fill_keywords(m_pg_config, keywords);
     internal::refuse_nul_setting(m_pg_config.connection_string,
                                  "PostgreSQL connect",
                                  "the connection string");
@@ -1392,6 +1442,287 @@ pg_connection::connect_impl()
     {
         throw connection_exception(connect_failure(reason, result), result);
     }
+
+    m_finish_connect(opened);
+
+    return;
+}
+
+/*
+pg_connection::connect_start_impl
+  As connect_impl begins, into the face kept for a connection being made;
+libpq copies the keywords before the start returns. A handshake done at
+once goes on to the setup (m_setup_step).
+*/
+int
+pg_connection::connect_start_impl(
+    d_db_pending& _pending
+)
+{
+    connect_keywords keywords;
+
+    m_pg_config.base = this->m_config;
+    fill_keywords(m_pg_config, keywords);
+    internal::refuse_nul_setting(m_pg_config.connection_string,
+                                 "PostgreSQL connect",
+                                 "the connection string");
+
+    face::text reason;
+    const int  result = m_opening.connect_with_start(
+                            m_pg_config.connection_string,
+                            keywords.keywords(),
+                            keywords.values(),
+                            keywords.size(),
+                            _pending,
+                            reason);
+
+    m_opening_stage = 0;
+
+    // under way, or failed in libpq's words
+    if ( (result != 0) &&
+         (result != D_DB_WAIT) )
+    {
+        throw connection_exception(connect_failure(reason, result), result);
+    }
+
+    return (result == D_DB_WAIT) ? result
+                                 : m_setup_step(0u, _pending);
+}
+
+/*
+pg_connection::connect_continue_impl
+  The handshake, then the setup (m_setup_step).
+*/
+int
+pg_connection::connect_continue_impl(
+    unsigned      _events,
+    d_db_pending& _pending
+)
+{
+    // past the handshake: the setup
+    if (m_opening_stage != 0)
+    {
+        return m_setup_step(_events, _pending);
+    }
+
+    face::text reason;
+    const int  result = m_opening.connect_continue(_events,
+                                                   _pending,
+                                                   reason);
+
+    // under way, made, or failed in libpq's words
+    if ( (result != 0) &&
+         (result != D_DB_WAIT) )
+    {
+        throw connection_exception(connect_failure(reason, result), result);
+    }
+
+    return (result == D_DB_WAIT) ? result
+                                 : m_setup_step(0u, _pending);
+}
+
+/*
+pg_connection::connect_finish_impl
+  As connect_impl ends, the setup already made without waiting
+(m_setup_step): the object takes the connection.
+*/
+void
+pg_connection::connect_finish_impl()
+{
+    m_db.swap(m_opening);
+    (void)m_opening.close();
+    m_opening_stage = 0;
+
+    return;
+}
+
+void
+pg_connection::connect_abandon_impl() noexcept
+{
+    (void)m_opening.close();
+    m_opening_stage = 0;
+
+    return;
+}
+
+/*
+pg_connection::m_session_setup
+  set_config for each, as set_search_path and set_statement_timeout run it,
+in one statement: the search path as m_finish_connect chooses it, quoted as
+a literal on the connection made; the timeout in milliseconds.
+*/
+std::string
+pg_connection::m_session_setup(
+    face::postgres& _opened
+) const
+{
+    const connection_config& config = this->m_config;
+    std::string              setup;
+
+    const std::string search_path =
+        (!m_pg_config.search_path.empty())
+            ? m_pg_config.search_path
+            : ( (!config.schema)
+                    ? std::string()
+                    : ( (config.schema->find(',') != std::string::npos)
+                            ? *config.schema
+                            : face::postgres::quote_identifier(
+                                  *config.schema) ) );
+
+    // the session's search path, where named
+    if (!search_path.empty())
+    {
+        internal::refuse_nul_setting(search_path,
+                                     "PostgreSQL connect",
+                                     "the search path");
+
+        face::text quoted;
+
+        _opened.quote_literal(search_path, quoted);
+
+        // libpq quotes on the connection, which may fail
+        if (quoted.is_null())
+        {
+            postgres_layer::raise(_opened.handle(),
+                                  failure_kind::connection,
+                                  "set_search_path",
+                                  D_POSTGRES_SQLSTATE_OUT_OF_MEMORY);
+        }
+
+        setup = "pg_catalog.set_config('search_path', " +
+                std::string(quoted.c_str()) + ", false)";
+    }
+
+    // and its statement timeout
+    if (m_pg_config.statement_timeout_ms > 0)
+    {
+        setup += (setup.empty()) ? "" : ", ";
+        setup += "pg_catalog.set_config('statement_timeout', '" +
+                 std::to_string(static_cast<unsigned>(
+                     m_pg_config.statement_timeout_ms)) +
+                 "', false)";
+    }
+
+    return (setup.empty()) ? setup
+                           : "SELECT " + setup;
+}
+
+/*
+pg_connection::m_setup_step
+  1, the statement sent; 2, its results read to their end, a read under way
+continued and each next one started. A failure closes the connection being
+made and throws, as m_finish_connect's would.
+*/
+int
+pg_connection::m_setup_step(
+    unsigned      _events,
+    d_db_pending& _pending
+)
+{
+    try
+    {
+        int  result    = 0;
+        bool under_way = (m_opening_stage == 2);
+
+        // the handshake just done: the statement, if there is one, sent
+        if (m_opening_stage == 0)
+        {
+            const std::string setup = m_session_setup(m_opening);
+
+            if (setup.empty())
+            {
+                m_opening_stage = 3;
+
+                return 0;
+            }
+
+            m_opening_stage = 1;
+            result          = m_opening.send_query_start(setup, _pending);
+        }
+        else if (m_opening_stage == 1)
+        {
+            result = m_opening.send_query_continue(_events, _pending);
+        }
+
+        // sending
+        if (m_opening_stage == 1)
+        {
+            if (result == D_DB_WAIT)
+            {
+                return result;
+            }
+
+            if (result != 0)
+            {
+                postgres_layer::raise(m_opening.handle(),
+                                      failure_kind::connection,
+                                      "the session's settings",
+                                      result);
+            }
+
+            m_opening_stage = 2;
+        }
+
+        // the results, each read, to their end
+        for (;; under_way = false)
+        {
+            face::rows      rows;
+            re_std::int64_t changes = 0;
+
+            result = (under_way) ? m_opening.next_result_continue(_events,
+                                                                  _pending,
+                                                                  rows,
+                                                                  changes)
+                                 : m_opening.next_result_start(_pending,
+                                                               rows,
+                                                               changes);
+
+            if ( (result == D_DB_WAIT) ||
+                 (result == D_DB_NOT_FOUND) )
+            {
+                break;
+            }
+
+            if (result != 0)
+            {
+                postgres_layer::raise(m_opening.handle(),
+                                      failure_kind::connection,
+                                      "the session's settings",
+                                      result);
+            }
+        }
+
+        if (result == D_DB_WAIT)
+        {
+            return result;
+        }
+
+        m_opening_stage = 3;
+
+        return 0;
+    }
+    catch (...)
+    {
+        (void)m_opening.close();
+        m_opening_stage = 0;
+
+        throw;
+    }
+}
+
+/*
+pg_connection::m_finish_connect
+  The search path: PostgreSQL's own; else base.schema, one schema's name,
+quoted -- or, holding a comma, a list as SQL writes it, as
+parse_connection_string reads search_path into it. Then the statement
+timeout; then the object takes the connection.
+*/
+void
+pg_connection::m_finish_connect(
+    face::postgres& _opened
+)
+{
+    const connection_config& config = this->m_config;
 
     // the search path: PostgreSQL's own; else base.schema, one schema's
     // name, quoted -- or, holding a comma, a list as SQL writes it, as
@@ -1413,11 +1744,11 @@ pg_connection::connect_impl()
                                      "PostgreSQL connect",
                                      "the search path");
 
-        const int set = opened.set_search_path(search_path);
+        const int set = _opened.set_search_path(search_path);
 
         if (set != 0)
         {
-            postgres_layer::raise(opened.handle(),
+            postgres_layer::raise(_opened.handle(),
                                   failure_kind::connection,
                                   "set_search_path",
                                   set);
@@ -1427,20 +1758,20 @@ pg_connection::connect_impl()
     // and its statement timeout
     if (m_pg_config.statement_timeout_ms > 0)
     {
-        const int set = opened.set_statement_timeout(
+        const int set = _opened.set_statement_timeout(
                             static_cast<unsigned>(
                                 m_pg_config.statement_timeout_ms));
 
         if (set != 0)
         {
-            postgres_layer::raise(opened.handle(),
+            postgres_layer::raise(_opened.handle(),
                                   failure_kind::connection,
                                   "set_statement_timeout",
                                   set);
         }
     }
 
-    m_db.swap(opened);
+    m_db.swap(_opened);
 
     return;
 }

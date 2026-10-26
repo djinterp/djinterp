@@ -17,7 +17,7 @@
 * path:      /src/djinterp/c/db/mariadb/mariadb_query.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 // D_INTERNAL_MARIADB_SOURCE
 //   macro: this file is one of the MariaDB layer's own sources, for which
@@ -757,6 +757,525 @@ d_mariadb_clear_query_attributes(
     return 0;
 }
 
+//==============================================================================
+// 3.  STATEMENTS SENT
+//==============================================================================
+
+// 3.1    Without blocking
+//------------------------------------------------------------------------------
+/*
+d_internal_mariadb_send_advance
+  0, the multi-statement mode off where a failed script left it on, and
+MariaDB's client can turn it off as a step (stages 0 and 1); 2, the query
+begun; 3, its answer. MariaDB's client sends alone, as PostgreSQL's layer
+does, and the first statement's answer is the first result's to read.
+libmysqlclient, whose calls read a reply only with its query, reads the
+first statement's answer with the send: its failure is the server's answer
+to the SQL, given by the first result. A failure of the client's own -- the
+connection lost, a command out of sync -- is the send's.
+*/
+static int
+d_internal_mariadb_send_advance(
+    struct d_mariadb*    _db,
+    struct d_db_pending* _pending
+)
+{
+    struct d_internal_mariadb_async* const async  = _db->async;
+    MYSQL* const                           native = _db->native;
+
+    // the mode, off first
+    if ( (async->stage < 2) &&
+         (_db->multi_statements) )
+    {
+        if (async->stage == 0)
+        {
+            async->stage = 1;
+
+            const int stepped = d_internal_mariadb_step(
+                                    _db,
+                                    D_INTERNAL_MARIADB_STEP_OPTION,
+                                    _pending);
+
+            if (stepped != 0)
+            {
+                return stepped;
+            }
+        }
+
+        d_internal_mariadb_replied(_db, false);
+
+        if (async->ret != 0)
+        {
+            return (mysql_errno(native) != 0u)
+                       ? (int)mysql_errno(native)
+                       : D_INTERNAL_MARIADB_UNKNOWN_ERROR;
+        }
+
+        _db->multi_statements = false;
+    }
+
+    // the query begun
+    if (async->stage < 3)
+    {
+        async->stage = 3;
+
+#if (D_INTERNAL_MARIADB_ASYNC == 2)
+        const int stepped = d_internal_mariadb_step(
+                                _db,
+                                D_INTERNAL_MARIADB_STEP_SEND,
+                                _pending);
+#else
+        const int stepped = d_internal_mariadb_step(
+                                _db,
+                                D_INTERNAL_MARIADB_STEP_QUERY,
+                                _pending);
+#endif  // D_INTERNAL_MARIADB_ASYNC
+
+        if (stepped != 0)
+        {
+            return stepped;
+        }
+    }
+
+    d_internal_mariadb_attributes_sent(_db);
+
+#if (D_INTERNAL_MARIADB_ASYNC == 2)
+    // sent, or the client's own failure
+    if (async->ret != 0)
+    {
+        d_internal_mariadb_replied(_db, false);
+
+        return (mysql_errno(native) != 0u) ? (int)mysql_errno(native)
+                                           : D_INTERNAL_MARIADB_UNKNOWN_ERROR;
+    }
+
+    async->results  = true;
+    async->given    = true;
+    async->unread   = true;
+    async->deferred = 0;
+
+    return 0;
+#else
+    const unsigned error = (async->ret == 0) ? 0u : mysql_errno(native);
+
+    // the client's own failure is the send's
+    if ( (error >= 2000u) ||
+         ( (async->ret != 0) &&
+           (error == 0u) ) )
+    {
+        d_internal_mariadb_replied(_db, false);
+
+        return (error != 0u) ? (int)error : D_INTERNAL_MARIADB_UNKNOWN_ERROR;
+    }
+
+    async->results  = true;
+    async->given    = false;
+    async->unread   = false;
+    async->deferred = (int)error;
+
+    return 0;
+#endif  // D_INTERNAL_MARIADB_ASYNC
+}
+
+/*
+d_internal_mariadb_give_rows
+  The current result, given: its rows, read from what the client stored, or
+the empty rows of a result without any, and the count it reports. A
+failure to store gives the client's error, and ends the results.
+*/
+static int
+d_internal_mariadb_give_rows(
+    struct d_mariadb* _db,
+    MYSQL_RES*        _stored
+)
+{
+    struct d_internal_mariadb_async* const async  = _db->async;
+    MYSQL* const                           native = _db->native;
+
+    // rows that should have come and did not
+    if ( (!_stored) &&
+         (mysql_field_count(native) != 0u) )
+    {
+        async->results = false;
+        d_internal_mariadb_replied(_db, false);
+
+        return (mysql_errno(native) != 0u) ? (int)mysql_errno(native)
+                                           : D_INTERNAL_MARIADB_UNKNOWN_ERROR;
+    }
+
+    const int64_t count = (int64_t)mysql_affected_rows(native);
+    const int     built = d_internal_mariadb_collect_rows(_stored,
+                                                          async->rows);
+
+    async->given = true;
+
+    // written only on success
+    if ( (built == 0) &&
+         (async->changes) )
+    {
+        *async->changes = count;
+    }
+
+    return built;
+}
+
+/*
+d_internal_mariadb_next_advance
+  0, the first statement's answer begun where the send left it unread (stage
+6 its answer: a failure ends the results); a failure deferred from the send
+given, which ends the results; the current result given, if it has not
+been; or the next result begun, where there is one, and none left is
+D_DB_NOT_FOUND, the reply's end then saying what it carried. 2, the next
+result's answer: a failure ends the results. 3, the current result's rows
+stored (stage 5 their answer), where it has rows.
+*/
+static int
+d_internal_mariadb_next_advance(
+    struct d_mariadb*    _db,
+    struct d_db_pending* _pending
+)
+{
+    struct d_internal_mariadb_async* const async  = _db->async;
+    MYSQL* const                           native = _db->native;
+
+    for (;;)
+    {
+        switch (async->stage)
+        {
+            case 0:
+                // the first statement's answer, still to read
+                if (async->unread)
+                {
+                    async->stage = 6;
+
+                    const int reading = d_internal_mariadb_step(
+                                            _db,
+                                            D_INTERNAL_MARIADB_STEP_READ,
+                                            _pending);
+
+                    if (reading != 0)
+                    {
+                        return reading;
+                    }
+
+                    continue;
+                }
+
+                // the first statement's failure, read with the send
+                if (async->deferred != 0)
+                {
+                    const int failure = async->deferred;
+
+                    async->deferred = 0;
+                    async->results  = false;
+                    d_internal_mariadb_replied(_db, false);
+
+                    return failure;
+                }
+
+                // the current result, still to give
+                if (!async->given)
+                {
+                    async->stage = 3;
+
+                    continue;
+                }
+
+                // none left
+                if (!mysql_more_results(native))
+                {
+                    async->results = false;
+                    d_internal_mariadb_replied(
+                        _db,
+                        ( (mysql_field_count(native) == 0u) ||
+                          (d_internal_mariadb_rows_end_ok(_db)) ));
+
+                    return D_DB_NOT_FOUND;
+                }
+
+                async->stage = 2;
+
+                const int stepped = d_internal_mariadb_step(
+                                        _db,
+                                        D_INTERNAL_MARIADB_STEP_NEXT,
+                                        _pending);
+
+                if (stepped != 0)
+                {
+                    return stepped;
+                }
+
+                continue;
+
+            case 2:
+                // a failure, none after all, or the next result
+                if (async->ret > 0)
+                {
+                    async->results = false;
+                    d_internal_mariadb_replied(_db, false);
+
+                    return (mysql_errno(native) != 0u)
+                               ? (int)mysql_errno(native)
+                               : D_INTERNAL_MARIADB_UNKNOWN_ERROR;
+                }
+
+                if (async->ret < 0)
+                {
+                    async->results = false;
+
+                    return D_DB_NOT_FOUND;
+                }
+
+                async->given = false;
+                async->stage = 3;
+
+                continue;
+
+            case 3:
+                // a result without rows is given at once
+                if (mysql_field_count(native) == 0u)
+                {
+                    return d_internal_mariadb_give_rows(_db, NULL);
+                }
+
+                async->stage = 5;
+
+                const int storing = d_internal_mariadb_step(
+                                        _db,
+                                        D_INTERNAL_MARIADB_STEP_STORE,
+                                        _pending);
+
+                if (storing != 0)
+                {
+                    return storing;
+                }
+
+                continue;
+
+            case 6:
+                // the first statement's answer: a failure ends the results
+                async->unread = false;
+
+                if (async->flag)
+                {
+                    async->results = false;
+                    d_internal_mariadb_replied(_db, false);
+
+                    return (mysql_errno(native) != 0u)
+                               ? (int)mysql_errno(native)
+                               : D_INTERNAL_MARIADB_UNKNOWN_ERROR;
+                }
+
+                async->given = false;
+                async->stage = 3;
+
+                continue;
+
+            default:
+            {
+                MYSQL_RES* const stored = async->result;
+
+                async->result = NULL;
+
+                return d_internal_mariadb_give_rows(_db, stored);
+            }
+        }
+    }
+}
+
+/*
+d_mariadb_send_query_start
+  The text copied, which the client reads while it waits; the connection
+tidied as before any statement (d_internal_mariadb_ready), but for the
+multi-statement mode, which the operation turns off as a step.
+*/
+int
+d_mariadb_send_query_start(
+    struct d_mariadb*    _db,
+    const char*          _sql,
+    struct d_db_pending* _pending
+)
+{
+    // nothing pending yet, whatever follows
+    if (_pending)
+    {
+        d_internal_mariadb_unpend(_pending);
+    }
+
+    // parameter validation
+    if ( (!_db)  ||
+         (!_sql) ||
+         (!_pending) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    const size_t length = strlen(_sql);
+
+    // a client without calls that do not block, or TLS it cannot carry so;
+    // a length it cannot carry
+    if ( (D_INTERNAL_MARIADB_ASYNC == 0) ||
+         (d_internal_mariadb_tls_blocks(_db)) )
+    {
+        return D_DB_UNSUPPORTED;
+    }
+
+    if (length > D_INTERNAL_MARIADB_LENGTH_MAX)
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    // a run, or a call under way, holds the connection
+    if (d_internal_mariadb_idle(_db) != 0)
+    {
+        return D_INTERNAL_MARIADB_OUT_OF_SYNC;
+    }
+
+    if (_db->failed)
+    {
+        (void)mysql_stmt_close(_db->failed);
+        _db->failed = NULL;
+    }
+
+    d_internal_mariadb_close_retired(_db);
+
+#if (D_INTERNAL_MARIADB_ASYNC != 2)
+    // libmysqlclient turns the mode off only by waiting
+    if (_db->multi_statements)
+    {
+        const int ready = d_internal_mariadb_ready(_db);
+
+        if (ready != 0)
+        {
+            return ready;
+        }
+    }
+#endif  // D_INTERNAL_MARIADB_ASYNC
+
+    struct d_internal_mariadb_async* const async =
+        d_internal_mariadb_async_get(_db);
+
+    // the record, and the copy
+    if ( (!async) ||
+         (!d_internal_mariadb_keep_text(&async->text, _sql)) )
+    {
+        return D_INTERNAL_MARIADB_OUT_OF_MEMORY;
+    }
+
+    async->length = (unsigned long)length;
+
+    return d_internal_mariadb_begin(_db,
+                                    d_internal_mariadb_send_advance,
+                                    _pending);
+}
+
+/*
+d_mariadb_send_query_continue
+  The send driven.
+*/
+int
+d_mariadb_send_query_continue(
+    struct d_mariadb*    _db,
+    unsigned             _events,
+    struct d_db_pending* _pending
+)
+{
+    // parameter validation: a send under way
+    if ( (!_db)        ||
+         (!_pending)   ||
+         (!_db->async) ||
+         (_db->async->advance != d_internal_mariadb_send_advance) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    return d_internal_mariadb_drive(_db, _events, _pending);
+}
+
+/*
+d_mariadb_next_result_start
+  Nothing sent, or every result read: D_DB_NOT_FOUND at once. Otherwise
+the read begun, giving into the rows and count this call was given.
+*/
+int
+d_mariadb_next_result_start(
+    struct d_mariadb*    _db,
+    struct d_db_pending* _pending,
+    struct d_db_rows*    _rows,
+    int64_t*             _changes
+)
+{
+    // nothing pending yet, whatever follows
+    if (_pending)
+    {
+        d_internal_mariadb_unpend(_pending);
+    }
+
+    // parameter validation
+    if ( (!_db)      ||
+         (!_pending) ||
+         (!_rows) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    if ( (D_INTERNAL_MARIADB_ASYNC == 0) ||
+         (d_internal_mariadb_tls_blocks(_db)) )
+    {
+        return D_DB_UNSUPPORTED;
+    }
+
+    struct d_internal_mariadb_async* const async = _db->async;
+
+    // nothing sent, or read to the end; or another call under way
+    if ( (!async) ||
+         (!async->results) )
+    {
+        return D_DB_NOT_FOUND;
+    }
+
+    if (async->advance)
+    {
+        return D_INTERNAL_MARIADB_OUT_OF_SYNC;
+    }
+
+    async->rows    = _rows;
+    async->changes = _changes;
+
+    return d_internal_mariadb_begin(_db,
+                                    d_internal_mariadb_next_advance,
+                                    _pending);
+}
+
+/*
+d_mariadb_next_result_continue
+  The read driven, giving into the rows and count this call was given.
+*/
+int
+d_mariadb_next_result_continue(
+    struct d_mariadb*    _db,
+    unsigned             _events,
+    struct d_db_pending* _pending,
+    struct d_db_rows*    _rows,
+    int64_t*             _changes
+)
+{
+    // parameter validation: a read under way
+    if ( (!_db)        ||
+         (!_pending)   ||
+         (!_rows)      ||
+         (!_db->async) ||
+         (_db->async->advance != d_internal_mariadb_next_advance) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    _db->async->rows    = _rows;
+    _db->async->changes = _changes;
+
+    return d_internal_mariadb_drive(_db, _events, _pending);
+}
+
 #else
 
 //==============================================================================
@@ -1060,6 +1579,102 @@ d_mariadb_clear_query_attributes(
     (void)_db;
 
     return D_DB_UNSUPPORTED;
+}
+
+/*
+d_internal_mariadb_nothing_pending
+  What a start or continuation leaves without a client: nothing pending.
+D_DB_UNSUPPORTED.
+*/
+static int
+d_internal_mariadb_nothing_pending(
+    struct d_db_pending* _pending
+)
+{
+    if (_pending)
+    {
+        _pending->socket     = D_DB_SOCKET_NONE;
+        _pending->events     = 0u;
+        _pending->timeout_ms = 0u;
+        _pending->deadline   = 0.0;
+        _pending->state      = 0u;
+    }
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_mariadb_send_query_start
+  Without a client, D_DB_UNSUPPORTED.
+*/
+int
+d_mariadb_send_query_start(
+    struct d_mariadb*    _db,
+    const char*          _sql,
+    struct d_db_pending* _pending
+)
+{
+    (void)_db;
+    (void)_sql;
+
+    return d_internal_mariadb_nothing_pending(_pending);
+}
+
+/*
+d_mariadb_send_query_continue
+  Without a client, D_DB_UNSUPPORTED.
+*/
+int
+d_mariadb_send_query_continue(
+    struct d_mariadb*    _db,
+    unsigned             _events,
+    struct d_db_pending* _pending
+)
+{
+    (void)_db;
+    (void)_events;
+
+    return d_internal_mariadb_nothing_pending(_pending);
+}
+
+/*
+d_mariadb_next_result_start
+  Without a client, D_DB_UNSUPPORTED, and no rows.
+*/
+int
+d_mariadb_next_result_start(
+    struct d_mariadb*    _db,
+    struct d_db_pending* _pending,
+    struct d_db_rows*    _rows,
+    int64_t*             _changes
+)
+{
+    (void)_db;
+    (void)_rows;
+    (void)_changes;
+
+    return d_internal_mariadb_nothing_pending(_pending);
+}
+
+/*
+d_mariadb_next_result_continue
+  Without a client, D_DB_UNSUPPORTED, and no rows.
+*/
+int
+d_mariadb_next_result_continue(
+    struct d_mariadb*    _db,
+    unsigned             _events,
+    struct d_db_pending* _pending,
+    struct d_db_rows*    _rows,
+    int64_t*             _changes
+)
+{
+    (void)_db;
+    (void)_events;
+    (void)_rows;
+    (void)_changes;
+
+    return d_internal_mariadb_nothing_pending(_pending);
 }
 
 #endif  // D_INTERNAL_MARIADB

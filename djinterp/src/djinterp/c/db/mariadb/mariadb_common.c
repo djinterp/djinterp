@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/db/mariadb/mariadb_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 // D_INTERNAL_MARIADB_SOURCE
 //   macro: this file is one of the MariaDB layer's own sources, for which
@@ -21,6 +21,7 @@
 #include "../../../../../inc/djinterp/c/db/mariadb/mariadb_common.h"  // corresponding header
 // std
 #include <stddef.h>  // size_t, NULL
+#include <string.h>  // strcmp, strncmp
 // djinterp
 #include "../../../../../inc/djinterp/c/db/db_common.h"  // d_db_status_message
 #include "../../../../../inc/djinterp/config/c/db/mariadb/cfg_mariadb_common.h"  // D_INTERNAL_MARIADB
@@ -146,6 +147,59 @@ d_mariadb_client_is_mariadb(
 {
     return (D_ENV_MYSQL_COMMON_IS_MARIADB != 0);
 }
+
+#if (D_INTERNAL_MARIADB_TLS_LIBRARY == 1)
+
+/*
+d_mariadb_client_nonblocking_tls
+  Both answers are the library's at run time, which need not be the one the
+layer was compiled against: its number, then its TLS library's name, which
+Schannel's build gives as "Schannel" (schannel.c's tls_library_version) and
+a build without TLS as "Off", which has no TLS to pass by.
+*/
+bool
+d_mariadb_client_nonblocking_tls(
+    void
+)
+{
+    const unsigned long version = mysql_get_client_version();
+    const char*         library = NULL;
+
+    // one path for both, from 3.4.10
+    if (version >= D_INTERNAL_MARIADB_ASYNC_TLS_SINCE)
+    {
+        return true;
+    }
+
+    // a library the client cannot name: as one without Schannel
+    if ( (mariadb_get_infov(NULL, MARIADB_TLS_LIBRARY, &library) != 0) ||
+         (!library) )
+    {
+        return (version >= D_INTERNAL_MARIADB_ASYNC_ANY_TLS_SINCE);
+    }
+
+    // Schannel before 3.4.10, any TLS before 3.0.4
+    return ( (strcmp(library, "Off") == 0) ||
+             ( (strncmp(library, "Schannel", 8u) != 0) &&
+               (version >= D_INTERNAL_MARIADB_ASYNC_ANY_TLS_SINCE) ) );
+}
+
+#else
+
+/*
+d_mariadb_client_nonblocking_tls
+  A client without Schannel carries TLS as it carries anything else, where
+it has calls that do not block at all.
+*/
+bool
+d_mariadb_client_nonblocking_tls(
+    void
+)
+{
+    return (D_INTERNAL_MARIADB_ASYNC != 0);
+}
+
+#endif  // D_INTERNAL_MARIADB_TLS_LIBRARY
 
 // 2.2    Result messages
 //------------------------------------------------------------------------------
@@ -416,6 +470,18 @@ d_mariadb_client_is_mariadb
 */
 bool
 d_mariadb_client_is_mariadb(
+    void
+)
+{
+    return false;
+}
+
+/*
+d_mariadb_client_nonblocking_tls
+  Without a client, false.
+*/
+bool
+d_mariadb_client_nonblocking_tls(
     void
 )
 {

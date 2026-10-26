@@ -44,12 +44,16 @@
 * values beside its text, which the server's query_attributes component
 * reads with mysql_query_attribute_string() -- set here for the next query
 * the connection sends.
+*   STATEMENTS SENT. d_mariadb_send_query_start sends SQL -- one statement,
+* or several where the multi-statement mode allows -- and
+* d_mariadb_next_result_start reads its results one at a time, each without
+* blocking (db_common.h 1.3), as PostgreSQL's layer's do.
 *
 *
 * path:      /inc/djinterp/c/db/mariadb/mariadb_query.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 
 /*
@@ -65,6 +69,9 @@ TABLE OF CONTENTS
 2.  QUERY ATTRIBUTES
     ----------------
     1.  Setting and clearing
+3.  STATEMENTS SENT
+    ---------------
+    1.  Without blocking
 */
 
 #ifndef DJINTERP_C_DB_MARIADB_MARIADB_QUERY_H
@@ -256,6 +263,90 @@ int    d_mariadb_set_query_attribute(struct d_mariadb* _db,
 // drops the attributes set and not yet sent: 0, whether any were, and
 // wherever there can be none; D_DB_INVALID_ARGUMENT for a NULL handle
 int    d_mariadb_clear_query_attributes(struct d_mariadb* _db) D_NOTHROW;
+
+
+//==============================================================================
+// 3.  STATEMENTS SENT
+//==============================================================================
+
+
+// 3.1    Without blocking
+//------------------------------------------------------------------------------
+// d_mariadb_send_query_start sends SQL as d_mariadb_exec would, never
+// waiting: it answers D_DB_WAIT until the client has sent it,
+// d_mariadb_send_query_continue going on each time -- and, with
+// libmysqlclient, whose calls read a reply only with its query, until the
+// first statement has run and its answer has come. MariaDB's client sends
+// alone, as PostgreSQL's layer does. d_mariadb_next_result_start then gives
+// the results one a call, each once it has arrived -- a statement's rows,
+// typed as 1.4 describes, or empty rows for one that returns none, and its
+// count -- and D_DB_NOT_FOUND once every result is read, continued by
+// d_mariadb_next_result_continue meanwhile. The first statement's failure
+// comes as the first result, as every failure does, and ends the results; a
+// failure of the client's own while sending -- the connection lost -- is the
+// send's. Until the last result is read the connection is held: every other
+// command on it is 2014, a send among them. MariaDB's client and
+// libmysqlclient from 8.0.16 can do both (D_DB_UNSUPPORTED otherwise, and
+// over TLS a client cannot carry so), as mariadb_connection.h 1.8 describes.
+// The SQL is copied: the caller's text need not outlive the start.
+/**
+ * @brief Sends SQL without blocking.
+ *
+ * @param[in]  _db       the connection.
+ * @param[in]  _sql      one statement, or several where the multi-statement
+ *                       mode is on.
+ * @param[out] _pending  receives what to wait for while it is being sent.
+ * @return 0, sent, its results to read; D_DB_WAIT; the client's error
+ *         number for a failure of its own; 2014 while the connection is
+ *         held; D_DB_UNSUPPORTED for a client that cannot send without
+ *         blocking, or not over the connection's TLS;
+ *         D_DB_INVALID_ARGUMENT for a `NULL` argument, or SQL longer than
+ *         the client's lengths carry.
+ * @post On 0 the results are read with d_mariadb_next_result_start until it
+ *       answers D_DB_NOT_FOUND, or a failure.
+ */
+int    d_mariadb_send_query_start(struct d_mariadb*    _db,
+                                  const char*          _sql,
+                                  struct d_db_pending* _pending) D_NOTHROW;
+/**
+ * @brief Gives the next result of the SQL sent once it has arrived, without
+ *        waiting for it.
+ *
+ * @param[in]  _db       the connection.
+ * @param[out] _pending  receives what to wait for while it has yet to
+ *                       arrive.
+ * @param[out] _rows     receives the statement's rows, or empty rows for
+ *                       one that returns none; written only on success.
+ * @param[out] _changes  receives, on success, the rows it changed or
+ *                       returned, as d_mariadb_changes counts them; may be
+ *                       `NULL`.
+ * @return 0; D_DB_WAIT; D_DB_NOT_FOUND when every result has been read, or
+ *         nothing was sent; the client's error number for the statement that
+ *         failed, after which only D_DB_NOT_FOUND follows; CR_OUT_OF_MEMORY
+ *         (2008) when the rows could not be built; 2014 while another call
+ *         holds the connection; D_DB_UNSUPPORTED as for
+ *         d_mariadb_send_query_start; D_DB_INVALID_ARGUMENT for a `NULL`
+ *         connection, pending call or rows.
+ * @post On success the caller releases `_rows` with d_db_rows_free.
+ */
+int    d_mariadb_next_result_start(struct d_mariadb*    _db,
+                                   struct d_db_pending* _pending,
+                                   struct d_db_rows*    _rows,
+                                   int64_t*             _changes) D_NOTHROW;
+// continuing -- _send_query_continue goes on with a send, and
+// _next_result_continue with a result's read, given what came, as d_db_wait,
+// and what the start or the last continuation wrote, which receives what to
+// wait for next; each answers as its start does, and D_DB_INVALID_ARGUMENT
+// for a NULL argument or no such call under way
+int    d_mariadb_send_query_continue(struct d_mariadb*    _db,
+                                     unsigned             _events,
+                                     struct d_db_pending* _pending) D_NOTHROW;
+int    d_mariadb_next_result_continue(struct d_mariadb*    _db,
+                                      unsigned             _events,
+                                      struct d_db_pending* _pending,
+                                      struct d_db_rows*    _rows,
+                                      int64_t*             _changes)
+                                      D_NOTHROW;
 
 
 D_EXTERN_C_END

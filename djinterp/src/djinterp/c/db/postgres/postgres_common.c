@@ -13,7 +13,7 @@
 * path:      /src/djinterp/c/db/postgres/postgres_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -260,15 +260,20 @@ static const int d_internal_postgres_client_feature_releases[] =
     0,       // CHUNKED_ROWS
 #endif
 #if defined(LIBPQ_HAS_CLOSE_PREPARED)
-    170000   // CLOSE_PREPARED
+    170000,  // CLOSE_PREPARED
 #else
-    0        // CLOSE_PREPARED
+    0,       // CLOSE_PREPARED
+#endif
+#if defined(LIBPQ_HAS_ASYNC_CANCEL)
+    170000   // ASYNC_CANCEL
+#else
+    0        // ASYNC_CANCEL
 #endif
 };
 
 D_STATIC_ASSERT( (sizeof(d_internal_postgres_client_feature_releases) /
                   sizeof(d_internal_postgres_client_feature_releases[0])) ==
-                 ((size_t)D_POSTGRES_CLIENT_CLOSE_PREPARED + 1u),
+                 ((size_t)D_POSTGRES_CLIENT_ASYNC_CANCEL + 1u),
                  "every d_postgres_client_feature has a release" );
 
 #endif  // D_INTERNAL_POSTGRES

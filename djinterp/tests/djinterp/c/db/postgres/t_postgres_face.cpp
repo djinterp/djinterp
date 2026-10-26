@@ -29,14 +29,41 @@
 * path:      /tests/djinterp/c/db/postgres/t_postgres_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
+// _WIN32_WINNT
+//   knob (Windows'): Vista's API at least, for WSAPoll, where nothing asked
+// for more; it precedes every include.
+#if ( (defined(_WIN32)) &&                                                    \
+      (!defined(_WIN32_WINNT)) )
+    #define _WIN32_WINNT 0x0600
+#endif  // _WIN32
+// WIN32_LEAN_AND_MEAN, NOMINMAX
+//   knobs (Windows'): <windows.h>, which <winsock2.h> and the clients' own
+// headers include, without its rarer headers -- rpcndr.h among them, which
+// makes `small` a macro -- and without its min and max macros.
+#if defined(_WIN32)
+    #if !defined(WIN32_LEAN_AND_MEAN)
+        #define WIN32_LEAN_AND_MEAN 1
+    #endif  // WIN32_LEAN_AND_MEAN
+    #if !defined(NOMINMAX)
+        #define NOMINMAX 1
+    #endif  // NOMINMAX
+#endif  // _WIN32
 // std
 #include <cstdio>   // std::printf
 #include <cstdlib>  // std::getenv, std::strtoul
-#include <cstring>  // std::strcmp, std::strlen, std::strstr
+#include <cstring>  // std::memset, std::strcmp, std::strlen, std::strstr
 #include <string>   // std::string
 #include <vector>   // std::vector
+#if defined(_WIN32)
+    #include <winsock2.h>  // WSAPoll, struct pollfd
+    #if defined(_MSC_VER)
+        #pragma comment(lib, "ws2_32.lib")  // WSAPoll
+    #endif  // _MSC_VER
+#else
+    #include <poll.h>      // poll, struct pollfd
+#endif
 // djinterp
 #include "../../../../../inc/djinterp/c/db/postgres/postgres_face.hpp"  // under
                                                                          // test
@@ -377,6 +404,254 @@ d_tests_postgres_face_ownership(
     D_TESTS_POSTGRES_FACE_CHECK(adopted.exec("SELECT 1") ==
                                 D_DB_INVALID_ARGUMENT);
     D_TESTS_POSTGRES_FACE_CHECK(!adopted.has_table(0, "anything"));
+
+    return;
+}
+
+/*
+d_tests_postgres_face_wait
+  Waits as a pending call says, with poll(2) or WSAPoll, and answers what
+came, as d_db_wait; trouble on the socket reads as ready, for the call to
+find.
+*/
+unsigned
+d_tests_postgres_face_wait(
+    const d_db_pending& _pending
+)
+{
+    struct pollfd fd;
+
+    std::memset(&fd, 0, sizeof(fd));
+    fd.fd     = static_cast<int>(_pending.socket);
+    fd.events = static_cast<short>(
+                    ( ((_pending.events & D_DB_WAIT_READ) != 0u)
+                          ? POLLIN
+                          : 0 ) |
+                    ( ((_pending.events & D_DB_WAIT_WRITE) != 0u)
+                          ? POLLOUT
+                          : 0 ));
+
+    const int timeout = ((_pending.events & D_DB_WAIT_TIMEOUT) != 0u)
+                            ? static_cast<int>(_pending.timeout_ms)
+                            : -1;
+#if defined(_WIN32)
+    const int came    = WSAPoll(&fd, 1u, timeout);
+#else
+    const int came    = poll(&fd, 1u, timeout);
+#endif
+
+    // the deadline first; trouble, for the call to find
+    if (came == 0)
+    {
+        return static_cast<unsigned>(D_DB_WAIT_TIMEOUT);
+    }
+
+    if ( (came < 0) ||
+         ((fd.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0) )
+    {
+        return _pending.events & ( static_cast<unsigned>(D_DB_WAIT_READ) |
+                                   static_cast<unsigned>(D_DB_WAIT_WRITE) );
+    }
+
+    const unsigned read  = static_cast<unsigned>(D_DB_WAIT_READ);
+    const unsigned write = static_cast<unsigned>(D_DB_WAIT_WRITE);
+
+    return ( ((fd.revents & POLLIN) != 0)  ? read  : 0u ) |
+           ( ((fd.revents & POLLOUT) != 0) ? write : 0u );
+}
+
+/*
+d_tests_postgres_face_nonblocking
+  The forms that do not block: a start replaces the connection held with the
+one being made, and a failed one leaves the face as it was; the continuation
+goes on with the connection held, which a failure leaves the face without;
+reconnecting and cancelling, generated, as the layer has them.
+*/
+void
+d_tests_postgres_face_nonblocking(
+    const struct d_postgres_options& _where
+)
+{
+    struct d_postgres_options wrong = _where;
+    face::postgres            db;
+    face::text                why;
+    d_db_pending              pending;
+    int                       result = 0;
+
+    std::printf("without blocking\n");
+
+    wrong.password = "certainly not the password";
+    D_TESTS_POSTGRES_FACE_CHECK(db.connect(&_where) == 0);
+
+    struct pg_conn* const first = db.handle();
+
+    D_TESTS_POSTGRES_FACE_CHECK(
+        db.connect_string_start("a=b=c", pending, why) ==
+        D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_FACE_CHECK( (db.handle() == first) &&
+                                 (!why.is_null()) );
+    result = db.connect_start(&_where, pending);
+    D_TESTS_POSTGRES_FACE_CHECK( (result == D_DB_WAIT) &&
+                                 (db.is_open())        &&
+                                 (db.handle() != first) );
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 10000); ++i)
+    {
+        result = db.connect_continue(d_tests_postgres_face_wait(pending),
+                                     pending,
+                                     why);
+    }
+
+    D_TESTS_POSTGRES_FACE_CHECK( (result == 0) && (why.is_null()) );
+    D_TESTS_POSTGRES_FACE_CHECK(db.ping() == 0);
+
+    // a failure found while continuing leaves the face without one
+    result = db.connect_start(&wrong, pending);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 10000); ++i)
+    {
+        result = db.connect_continue(d_tests_postgres_face_wait(pending),
+                                     pending,
+                                     why);
+    }
+
+    D_TESTS_POSTGRES_FACE_CHECK(result == D_POSTGRES_SQLSTATE_CANNOT_CONNECT);
+    D_TESTS_POSTGRES_FACE_CHECK( (!db.is_open()) && (!why.is_null()) );
+    D_TESTS_POSTGRES_FACE_CHECK(db.connect_continue(D_DB_WAIT_READ, pending) ==
+                                D_DB_INVALID_ARGUMENT);
+
+    // reconnecting, both ways
+    D_TESTS_POSTGRES_FACE_CHECK(db.connect(&_where) == 0);
+
+    const int pid = db.backend_pid();
+
+    D_TESTS_POSTGRES_FACE_CHECK(db.reconnect() == 0);
+    D_TESTS_POSTGRES_FACE_CHECK(db.backend_pid() != pid);
+    result = db.reconnect_start(pending);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 10000); ++i)
+    {
+        result = db.reconnect_continue(d_tests_postgres_face_wait(pending),
+                                       pending);
+    }
+
+    D_TESTS_POSTGRES_FACE_CHECK( (result == 0) && (db.ping() == 0) );
+
+    // cancelling: with nothing running, delivered and nothing changed
+    struct pg_cancel_conn* request = D_NULLPTR;
+
+    D_TESTS_POSTGRES_FACE_CHECK( (db.cancel(why) == 0) && (why.is_null()) );
+    result = db.cancel_start(request, pending, why);
+
+    if (face::postgres::client_supports(D_POSTGRES_CLIENT_ASYNC_CANCEL))
+    {
+        for (int i = 0; (result == D_DB_WAIT) && (i < 10000); ++i)
+        {
+            result = face::postgres::cancel_continue(
+                         request,
+                         d_tests_postgres_face_wait(pending),
+                         pending,
+                         why);
+        }
+
+        D_TESTS_POSTGRES_FACE_CHECK( (result == 0) && (request == D_NULLPTR) );
+    }
+    else
+    {
+        D_TESTS_POSTGRES_FACE_CHECK( (result == D_DB_UNSUPPORTED) &&
+                                     (request == D_NULLPTR) );
+    }
+
+    D_TESTS_POSTGRES_FACE_CHECK(face::postgres::cancel_finish(D_NULLPTR) == 0);
+    D_TESTS_POSTGRES_FACE_CHECK(db.exec("SELECT 1") == 0);
+
+    // SQL sent, and its results read, without blocking
+    face::rows      found;
+    re_std::int64_t changes = 0;
+
+    result = db.send_query_start("SELECT 6 AS six", pending);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 10000); ++i)
+    {
+        result = db.send_query_continue(d_tests_postgres_face_wait(pending),
+                                        pending);
+    }
+
+    D_TESTS_POSTGRES_FACE_CHECK(result == 0);
+    result = db.next_result_start(pending, found, changes);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 10000); ++i)
+    {
+        result = db.next_result_continue(d_tests_postgres_face_wait(pending),
+                                         pending,
+                                         found,
+                                         changes);
+    }
+
+    D_TESTS_POSTGRES_FACE_CHECK( (result == 0) && (found.row_count() == 1u) );
+    result = db.next_result_start(pending, found, changes);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 10000); ++i)
+    {
+        result = db.next_result_continue(d_tests_postgres_face_wait(pending),
+                                         pending,
+                                         found,
+                                         changes);
+    }
+
+    D_TESTS_POSTGRES_FACE_CHECK(result == D_DB_NOT_FOUND);
+
+    // a statement prepared, run, and read a page at a time
+    face::postgres_statement series;
+
+    result = db.prepare_start(series,
+                              "SELECT g FROM generate_series(1, $1::int) g",
+                              pending);
+    D_TESTS_POSTGRES_FACE_CHECK(series.is_prepared());
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 10000); ++i)
+    {
+        result = series.prepare_continue(d_tests_postgres_face_wait(pending),
+                                         pending);
+    }
+
+    D_TESTS_POSTGRES_FACE_CHECK( (result == 0) &&
+                                 (series.parameter_count() == 1u) );
+    D_TESTS_POSTGRES_FACE_CHECK(series.bind_int64(1, 3) == 0);
+    result = series.execute_start(pending);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 10000); ++i)
+    {
+        result = series.execute_query_continue(
+                     d_tests_postgres_face_wait(pending),
+                     pending,
+                     found);
+    }
+
+    D_TESTS_POSTGRES_FACE_CHECK( (result == 0) && (found.row_count() == 3u) );
+    result = series.open_cursor_start(pending);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 10000); ++i)
+    {
+        result = series.open_cursor_continue(
+                     d_tests_postgres_face_wait(pending),
+                     pending);
+    }
+
+    D_TESTS_POSTGRES_FACE_CHECK(result == 0);
+    result = series.fetch_rows_start(2u, pending, found);
+
+    for (int i = 0; (result == D_DB_WAIT) && (i < 10000); ++i)
+    {
+        result = series.fetch_rows_continue(
+                     d_tests_postgres_face_wait(pending),
+                     pending,
+                     found);
+    }
+
+    D_TESTS_POSTGRES_FACE_CHECK( (result == 0) && (found.row_count() == 2u) );
+    D_TESTS_POSTGRES_FACE_CHECK(series.close_cursor() == 0);
+    D_TESTS_POSTGRES_FACE_CHECK(series.finalize() == 0);
 
     return;
 }
@@ -1319,6 +1594,21 @@ d_tests_postgres_face_stubs(
                                     D_DB_UNSUPPORTED);
     }
     D_TESTS_POSTGRES_FACE_CHECK( (!db.is_open()) && (value.is_null()) );
+    {
+        d_db_pending           pending;
+        struct pg_cancel_conn* request = D_NULLPTR;
+
+        D_TESTS_POSTGRES_FACE_CHECK(db.connect_start(&_where, pending, value) ==
+                                    D_DB_UNSUPPORTED);
+        D_TESTS_POSTGRES_FACE_CHECK( (!db.is_open()) && (value.is_null()) &&
+                                     (pending.socket == D_DB_SOCKET_NONE) );
+        D_TESTS_POSTGRES_FACE_CHECK(db.connect_continue(0u, pending) ==
+                                    D_DB_UNSUPPORTED);
+        D_TESTS_POSTGRES_FACE_CHECK(db.reconnect() == D_DB_UNSUPPORTED);
+        D_TESTS_POSTGRES_FACE_CHECK(db.cancel_start(request, pending, value) ==
+                                    D_DB_UNSUPPORTED);
+        D_TESTS_POSTGRES_FACE_CHECK(request == D_NULLPTR);
+    }
     D_TESTS_POSTGRES_FACE_CHECK(db.list_databases(names) ==
                                 D_DB_UNSUPPORTED);
     D_TESTS_POSTGRES_FACE_CHECK(names.empty());
@@ -1416,6 +1706,7 @@ main(
         {
             probe.close();
             d_tests_postgres_face_ownership(where);
+            d_tests_postgres_face_nonblocking(where);
             d_tests_postgres_face_session(where);
         }
         else

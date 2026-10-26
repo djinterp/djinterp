@@ -1,0 +1,2 @@
+PlatformToolSet=ClangCL:VCToolArchitecture=Native64Bit:VCToolsVersion=14.51.36231:VCServicingVersionATL=14.51.36244:VCServicingVersionCrtHeaders=14.51.36244:VCServicingVersionCompilers=14.51.36252:TargetPlatformVersion=10.0.26100.0:VcpkgTriplet=x64-windows:
+D:\sam\code\tools\llvm\llvm-21.1.8|21|Debug|x64|D:\sam\code\projects\frameworks\djinterp\release\build\cmake\msvs\|

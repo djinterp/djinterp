@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/core/db/postgres/postgres.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.26
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 
 /*
@@ -1180,6 +1180,17 @@ struct postgres_layer
                                    failure_kind _kind,
                                    const char*  _operation,
                                    int          _result);
+
+    /**
+     * @brief Asks the server to stop what a connection runs, as libpq's
+     *        cancel request does (d_postgres_cancel), waiting for it: an
+     *        operation's cancel().
+     *
+     * @param[in] _db  the connection whose statement is to stop.
+     * @throws query_exception, with the layer's result and libpq's reason,
+     *         when the request cannot be made.
+     */
+    static void cancel(handle_type _db);
 };
 
 // 7.3.2
@@ -1681,6 +1692,11 @@ public:
     // hooks (postgres.cpp) -- database_connection calls these, programs the
     // operations they implement, whose contracts they keep
     void            connect_impl();
+    int             connect_start_impl(d_db_pending& _pending);
+    int             connect_continue_impl(unsigned      _events,
+                                          d_db_pending& _pending);
+    void            connect_finish_impl();
+    void            connect_abandon_impl() noexcept;
     void            disconnect_impl() noexcept;
     bool            is_connected_impl() const noexcept;
     bool            ping_impl() const noexcept;
@@ -1738,8 +1754,26 @@ private:
         const std::string&              _query,
         const std::vector<const char*>& _values);
 
+    // m_finish_connect -- the search path and the statement timeout set on
+    // a connection made, which the object then takes
+    void m_finish_connect(face::postgres& _opened);
+
+    // m_session_setup -- the same two as one statement, for a connection
+    // made without waiting; empty where neither is configured
+    std::string m_session_setup(face::postgres& _opened) const;
+
+    // m_setup_step -- connect_async's setup on the connection being made,
+    // after the handshake: the statement sent, then its results read, each
+    // without waiting; the layer's result, D_DB_WAIT while waiting
+    int m_setup_step(unsigned      _events,
+                     d_db_pending& _pending);
+
     pg_connect_config m_pg_config;
     face::postgres    m_db;
+    face::postgres    m_opening;
+    int               m_opening_stage;  // connect_async: 0 the handshake, 1
+                                        // the setup being sent, 2 its
+                                        // results being read, 3 done
 };
 
 

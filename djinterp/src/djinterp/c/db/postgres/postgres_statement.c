@@ -25,12 +25,19 @@
 * statement later prepared at the same address would take: from then on a
 * prepare inside a transaction looks the name up first, as one before libpq
 * 17 always does (d_internal_postgres_clear_stale).
+*   A call that does not block is the same exchanges, one at a time: the
+* statement remembers which it is in (its phase), sends the next once the
+* last one's results are read, and keeps what it needs between them -- the
+* last result that succeeded, the first failure, the text a second prepare
+* needs, a page as it fills -- so that each continuation does what the socket
+* allows and returns. A blocking call of the statement's own ends such a call
+* first, reading its results away, as it ends the statement's run.
 *
 *
 * path:      /src/djinterp/c/db/postgres/postgres_statement.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -44,8 +51,9 @@
 #include <signal.h>  // sig_atomic_t
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stddef.h>  // size_t, NULL
+#include <stdio.h>   // snprintf
 #include <stdlib.h>  // malloc, free
-#include <string.h>  // memcpy, strlen
+#include <string.h>  // memcpy, memset, strcmp, strlen
 // djinterp
 #include "../../../../../inc/djinterp/c/db/db_common.h"  // D_DB_*, d_db_rows
 #include "../db_internal.h"  // the rows builder, formatting, numbers
@@ -80,22 +88,66 @@ struct d_internal_postgres_value
     size_t               size;   // their length
 };
 
+// d_internal_postgres_phase
+//   enum: which exchange a statement's call that does not block is in.
+enum d_internal_postgres_phase
+{
+    D_INTERNAL_POSTGRES_IDLE = 0,    // no such call under way
+    D_INTERNAL_POSTGRES_LOOKING,     // a prepare's lookup of a stale name
+    D_INTERNAL_POSTGRES_CLEARING,    // a prepare's drop of a stale name
+    D_INTERNAL_POSTGRES_PREPARING,   // the prepare itself
+    D_INTERNAL_POSTGRES_DESCRIBING,  // the parameters described
+    D_INTERNAL_POSTGRES_UNDOING,     // the drop of a statement the layer
+                                     // cannot hold, a failure to report after
+    D_INTERNAL_POSTGRES_EXECUTING,   // a run whose result is read whole
+    D_INTERNAL_POSTGRES_OPENING,     // a cursor's run, being sent
+    D_INTERNAL_POSTGRES_FETCHING,    // a page of a cursor's run, filling
+    D_INTERNAL_POSTGRES_ENDING       // the end of a run, read past its last
+                                     // result for a page
+};
+
 // d_postgres_statement
 //   struct: the definition postgres_common.h declares.
 struct d_postgres_statement
 {
-    PGconn*                           db;       // the connection it is on
+    PGconn*                           db;         // the connection it is on
     char                              name[D_INTERNAL_POSTGRES_NAME_ROOM];
-                                                // its name on the server
-    size_t                            count;    // its parameters
-    struct d_internal_postgres_value* values;   // count of them
-    const char**                      texts;    // count, pointed at the
-                                                // values to run
-    int*                              lengths;  // count: the bytes' lengths
-    int*                              formats;  // count: 1 for bytes, 0 for
-                                                // text
-    bool                              running;  // its cursor's run is open:
-                                                // rows still to fetch
+                                                  // its name on the server
+    size_t                            count;      // its parameters
+    struct d_internal_postgres_value* values;     // count of them
+    const char**                      texts;      // count, pointed at the
+                                                  // values to run
+    int*                              lengths;    // count: the bytes'
+                                                  // lengths
+    int*                              formats;    // count: 1 for bytes, 0
+                                                  // for text
+    bool                              running;    // its cursor's run is
+                                                  // open: rows still to
+                                                  // fetch
+    bool                              prepared;   // the server holds it
+                                                  // under its name
+    // a call that does not block, under way
+    enum d_internal_postgres_phase    phase;      // its exchange, or IDLE
+    bool                              sending;    // some of the exchange's
+                                                  // send left to write
+    bool                              turned_on;  // the send turned libpq's
+                                                  // non-blocking mode on
+    bool                              retried;    // a prepare trying again,
+                                                  // a stale name dropped
+    int                               failure;    // the exchange's first
+                                                  // failure, or 0
+    int                               undone;     // the failure an undoing
+                                                  // reports once done
+    PGresult*                         held;       // the exchange's last
+                                                  // result that succeeded
+    char*                             sql;        // the text being
+                                                  // prepared, for a second
+                                                  // try
+    size_t                            max;        // the rows a page being
+                                                  // read may hold
+    size_t                            gathered;   // the rows it holds
+    bool                              described;  // its columns described
+    struct d_internal_db_rows         page;       // the page, as it fills
 };
 
 // d_internal_postgres_left_behind
@@ -447,6 +499,72 @@ d_internal_postgres_point(
 }
 
 /**
+ * @brief Ends a statement's call that does not block, if one is under way,
+ *        waiting for what is left of it.
+ *
+ * @param[in,out] _statement  the statement.
+ * @post No call is under way. A run the call was part of -- a cursor's,
+ *       being opened or read -- is over too, read to its end, and a page
+ *       being filled is dropped.
+ *
+ * Whatever the exchange still had to send is written, and its results read
+ * to libpq's NULL, as PQgetResult does in blocking; a prepare the server
+ * made meanwhile is a statement the server holds.
+ */
+static void
+d_internal_postgres_end_call(
+    struct d_postgres_statement* _statement
+)
+{
+    PGconn* const db = _statement->db;
+
+    // nothing under way
+    if (_statement->phase == D_INTERNAL_POSTGRES_IDLE)
+    {
+        return;
+    }
+
+    bool failed = (_statement->failure != 0);
+
+    // the rest of the exchange's results, to libpq's NULL
+    for (PGresult* next = PQgetResult(db); next; next = PQgetResult(db))
+    {
+        failed = ( (failed) ||
+                   (d_internal_postgres_result(db, next) != 0) );
+        PQclear(next);
+    }
+
+    if ( (_statement->phase == D_INTERNAL_POSTGRES_PREPARING) &&
+         (!failed) )
+    {
+        _statement->prepared = true;
+    }
+
+    if (_statement->turned_on)
+    {
+        (void)PQsetnonblocking(db, 0);
+    }
+
+    if (_statement->held)
+    {
+        PQclear(_statement->held);
+    }
+
+    free(_statement->sql);
+    d_internal_db_rows_release(&_statement->page);
+    memset(&_statement->page, 0, sizeof(_statement->page));
+    _statement->phase     = D_INTERNAL_POSTGRES_IDLE;
+    _statement->sending   = false;
+    _statement->turned_on = false;
+    _statement->held      = NULL;
+    _statement->sql       = NULL;
+    _statement->failure   = 0;
+    _statement->running   = false;
+
+    return;
+}
+
+/**
  * @brief Ends a statement's open run, reading away every result left.
  *
  * @param[in,out] _statement  the statement, its run open.
@@ -513,7 +631,9 @@ d_internal_postgres_execute_prepared(
     PGresult**                   _result
 )
 {
-    // its own run, read away
+    // its own call, waited for; its own run, read away
+    d_internal_postgres_end_call(_statement);
+
     if (_statement->running)
     {
         (void)d_internal_postgres_end_run(_statement);
@@ -568,9 +688,102 @@ d_internal_postgres_free(
     free((void*)_statement->texts);
     free(_statement->lengths);
     free(_statement->formats);
+    free(_statement->sql);
+    d_internal_db_rows_release(&_statement->page);
+
+    if (_statement->held)
+    {
+        PQclear(_statement->held);
+    }
+
     free(_statement);
 
     return;
+}
+
+/**
+ * @brief Makes a statement's record, named, holding nothing yet.
+ *
+ * @param[in] _db  the connection it is to be on.
+ * @return the record, or `NULL` when memory ran out.
+ */
+static struct d_postgres_statement*
+d_internal_postgres_made(
+    PGconn* _db
+)
+{
+    struct d_postgres_statement* const made =
+        (struct d_postgres_statement*)malloc(sizeof(*made));
+
+    // allocation failure
+    if (!made)
+    {
+        return NULL;
+    }
+
+    memset(made, 0, sizeof(*made));
+    made->db    = _db;
+    made->phase = D_INTERNAL_POSTGRES_IDLE;
+    d_internal_postgres_name(made);
+
+    return made;
+}
+
+/**
+ * @brief Makes room for a statement's parameters' values, each NULL.
+ *
+ * @param[in,out] _statement  the statement, with no room yet.
+ * @param[in]     _count      how many parameters the server says it has.
+ * @return 0, or 53200 when memory ran out, the statement then with none.
+ */
+static int
+d_internal_postgres_room(
+    struct d_postgres_statement* _statement,
+    int                          _count
+)
+{
+    _statement->count = (_count > 0) ? (size_t)_count : 0u;
+
+    // nothing to bind
+    if (_statement->count == 0u)
+    {
+        return 0;
+    }
+
+    _statement->values  = (struct d_internal_postgres_value*)malloc(
+                              _statement->count *
+                              sizeof(struct d_internal_postgres_value));
+    _statement->texts   = (const char**)malloc(_statement->count *
+                                               sizeof(const char*));
+    _statement->lengths = (int*)malloc(_statement->count * sizeof(int));
+    _statement->formats = (int*)malloc(_statement->count * sizeof(int));
+
+    if ( (!_statement->values)  ||
+         (!_statement->texts)   ||
+         (!_statement->lengths) ||
+         (!_statement->formats) )
+    {
+        free(_statement->values);
+        free((void*)_statement->texts);
+        free(_statement->lengths);
+        free(_statement->formats);
+        _statement->values  = NULL;
+        _statement->texts   = NULL;
+        _statement->lengths = NULL;
+        _statement->formats = NULL;
+        _statement->count   = 0u;
+
+        return D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
+    }
+
+    for (size_t i = 0u; i < _statement->count; ++i)
+    {
+        _statement->values[i].bytes = NULL;
+
+        d_internal_postgres_value_clear(&_statement->values[i]);
+    }
+
+    return 0;
 }
 
 /**
@@ -604,23 +817,13 @@ d_internal_postgres_prepare_text(
         return ready;
     }
 
-    struct d_postgres_statement* const made =
-        (struct d_postgres_statement*)malloc(sizeof(*made));
+    struct d_postgres_statement* const made = d_internal_postgres_made(_db);
 
     // allocation failure
     if (!made)
     {
         return D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
     }
-
-    made->db      = _db;
-    made->count   = 0u;
-    made->values  = NULL;
-    made->texts   = NULL;
-    made->lengths = NULL;
-    made->formats = NULL;
-    made->running = false;
-    d_internal_postgres_name(made);
 
     int result = d_internal_postgres_clear_stale(_db, made->name);
 
@@ -656,9 +859,11 @@ d_internal_postgres_prepare_text(
 
     PGresult* description = NULL;
 
-    result = d_internal_postgres_take(_db,
-                                      PQdescribePrepared(_db, made->name),
-                                      &description);
+    made->prepared = true;
+    result         = d_internal_postgres_take(
+                         _db,
+                         PQdescribePrepared(_db, made->name),
+                         &description);
 
     // the parameters, counted, and room for their values
     if (result == 0)
@@ -666,39 +871,7 @@ d_internal_postgres_prepare_text(
         const int count = PQnparams(description);
 
         PQclear(description);
-
-        made->count = (count > 0) ? (size_t)count : 0u;
-
-        if (made->count > 0u)
-        {
-            made->values  = (struct d_internal_postgres_value*)malloc(
-                                made->count *
-                                sizeof(struct d_internal_postgres_value));
-            made->texts   = (const char**)malloc(made->count *
-                                                 sizeof(const char*));
-            made->lengths = (int*)malloc(made->count * sizeof(int));
-            made->formats = (int*)malloc(made->count * sizeof(int));
-
-            if ( (!made->values)  ||
-                 (!made->texts)   ||
-                 (!made->lengths) ||
-                 (!made->formats) )
-            {
-                free(made->values);
-
-                made->values = NULL;
-                result       = D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
-            }
-            else
-            {
-                for (size_t i = 0u; i < made->count; ++i)
-                {
-                    made->values[i].bytes = NULL;
-
-                    d_internal_postgres_value_clear(&made->values[i]);
-                }
-            }
-        }
+        result = d_internal_postgres_room(made, count);
     }
 
     // a statement the layer cannot hold is dropped again
@@ -713,6 +886,672 @@ d_internal_postgres_prepare_text(
     *_statement = made;
 
     return 0;
+}
+
+
+// D_INTERNAL_POSTGRES_LOOKUP
+//   constant: the lookup of a stale name, its name a parameter.
+#define D_INTERNAL_POSTGRES_LOOKUP                                            \
+    "SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_prepared_statements "       \
+    "WHERE name = $1)"
+
+/**
+ * @brief Ends a statement's call that does not block with its result.
+ *
+ * @param[in,out] _statement  the statement.
+ * @param[in]     _result     the call's result.
+ * @return `_result`.
+ *
+ * A run's result is kept for the continuation that reads it, when it
+ * succeeded; everything else the call held goes.
+ */
+static int
+d_internal_postgres_finish(
+    struct d_postgres_statement* _statement,
+    int                          _result
+)
+{
+    // the result a run's continuation reads, or nothing
+    if ( (_statement->held) &&
+         ( (_result != 0) ||
+           (_statement->phase != D_INTERNAL_POSTGRES_EXECUTING) ) )
+    {
+        PQclear(_statement->held);
+        _statement->held = NULL;
+    }
+
+    free(_statement->sql);
+    _statement->sql     = NULL;
+    _statement->phase   = D_INTERNAL_POSTGRES_IDLE;
+    _statement->sending = false;
+    _statement->failure = 0;
+
+    return _result;
+}
+
+/**
+ * @brief Sends the message of a statement's next exchange, in libpq's
+ *        non-blocking mode.
+ *
+ * @param[in,out] _statement  the statement.
+ * @param[in]     _phase      the exchange.
+ * @return D_DB_WAIT, the message queued and its writing begun by the
+ *         caller; or the call finished with libpq's trouble: 08006 when
+ *         the connection is lost, 08000 when it is not.
+ *
+ * A cursor's run is libpq's single-row mode, which libpq takes only
+ * straight after the send.
+ */
+static int
+d_internal_postgres_send_phase(
+    struct d_postgres_statement*   _statement,
+    enum d_internal_postgres_phase _phase
+)
+{
+    PGconn* const db   = _statement->db;
+    int           sent = 0;
+
+    _statement->phase   = _phase;
+    _statement->failure = 0;
+
+    if (_statement->held)
+    {
+        PQclear(_statement->held);
+        _statement->held = NULL;
+    }
+
+    if (!_statement->turned_on)
+    {
+        _statement->turned_on = d_internal_postgres_nonblocking_on(db);
+    }
+
+    switch (_phase)
+    {
+        case D_INTERNAL_POSTGRES_LOOKING:
+        {
+            const char* const name[1] = { _statement->name };
+
+            sent = PQsendQueryParams(db,
+                                     D_INTERNAL_POSTGRES_LOOKUP,
+                                     1,
+                                     NULL,
+                                     name,
+                                     NULL,
+                                     NULL,
+                                     0);
+
+            break;
+        }
+
+        case D_INTERNAL_POSTGRES_CLEARING:
+        case D_INTERNAL_POSTGRES_UNDOING:
+        {
+#if defined(LIBPQ_HAS_CLOSE_PREPARED)
+            if (d_internal_postgres_closes())
+            {
+                sent = PQsendClosePrepared(db, _statement->name);
+
+                break;
+            }
+#endif  // LIBPQ_HAS_CLOSE_PREPARED
+
+            // the layer's names are letters, digits and underscores, which
+            // need no quoting but take it
+            char deallocate[16u + D_INTERNAL_POSTGRES_NAME_ROOM] = "";
+
+            (void)snprintf(deallocate,
+                           sizeof(deallocate),
+                           "DEALLOCATE \"%s\"",
+                           _statement->name);
+            sent = PQsendQuery(db, deallocate);
+
+            break;
+        }
+
+        case D_INTERNAL_POSTGRES_PREPARING:
+            sent = PQsendPrepare(db, _statement->name, _statement->sql, 0,
+                                 NULL);
+
+            break;
+
+        case D_INTERNAL_POSTGRES_DESCRIBING:
+            sent = PQsendDescribePrepared(db, _statement->name);
+
+            break;
+
+        default:
+            d_internal_postgres_point(_statement);
+            sent = PQsendQueryPrepared(db,
+                                       _statement->name,
+                                       (int)_statement->count,
+                                       _statement->texts,
+                                       _statement->lengths,
+                                       _statement->formats,
+                                       0);
+
+            // a cursor's rows a result each, set at the only moment libpq
+            // takes it
+            if ( (sent == 1) &&
+                 (_phase == D_INTERNAL_POSTGRES_OPENING) )
+            {
+                _statement->running = true;
+                (void)PQsetSingleRowMode(db);
+            }
+
+            break;
+    }
+
+    // libpq has answered, by its return value and its message
+    d_internal_postgres_heard(db);
+
+    // refused before anything was sent, or the connection lost
+    if (sent != 1)
+    {
+        if (_statement->turned_on)
+        {
+            (void)PQsetnonblocking(db, 0);
+            _statement->turned_on = false;
+        }
+
+        return d_internal_postgres_finish(
+                   _statement,
+                   (PQstatus(db) == CONNECTION_BAD)
+                       ? D_POSTGRES_SQLSTATE_CONNECTION_FAILURE
+                       : D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    }
+
+    _statement->sending = true;
+
+    return D_DB_WAIT;
+}
+
+/**
+ * @brief Keeps what one result of an exchange says: the first failure, or
+ *        the result itself, the last that succeeded.
+ *
+ * @param[in,out] _statement  the statement.
+ * @param[in]     _result     the result; freed, or kept.
+ *
+ * No exchange of a statement's can start a COPY -- PREPARE takes none --
+ * but a COPY would hold the connection, so one is ended as everywhere.
+ */
+static void
+d_internal_postgres_absorb(
+    struct d_postgres_statement* _statement,
+    PGresult*                    _result
+)
+{
+    PGconn* const        db     = _statement->db;
+    const ExecStatusType status = PQresultStatus(_result);
+
+    // a COPY, ended
+    if (d_internal_postgres_copying(status))
+    {
+        PQclear(_result);
+        d_internal_postgres_end_copy(db, status);
+
+        if (_statement->failure == 0)
+        {
+            _statement->failure = D_DB_UNSUPPORTED;
+        }
+
+        return;
+    }
+
+    const int code = d_internal_postgres_result(db, _result);
+
+    // the first failure is the exchange's
+    if (code != 0)
+    {
+        if (_statement->failure == 0)
+        {
+            _statement->failure = code;
+        }
+
+        PQclear(_result);
+
+        return;
+    }
+
+    if (_statement->held)
+    {
+        PQclear(_statement->held);
+    }
+
+    _statement->held = _result;
+
+    return;
+}
+
+/**
+ * @brief Goes on from an exchange whose results are all read: the next
+ *        exchange, or the call's end.
+ *
+ * @param[in,out] _statement  the statement.
+ * @return D_DB_WAIT, the next exchange sent; or the call's result.
+ */
+static int
+d_internal_postgres_advance(
+    struct d_postgres_statement* _statement
+)
+{
+    const int failure = _statement->failure;
+
+    switch (_statement->phase)
+    {
+        case D_INTERNAL_POSTGRES_LOOKING:
+        {
+            // the lookup's answer: a stale name to drop, or none
+            const bool stale = ( (failure == 0)                       &&
+                                 (_statement->held)                   &&
+                                 (PQntuples(_statement->held) > 0)    &&
+                                 (strcmp(PQgetvalue(_statement->held,
+                                                    0,
+                                                    0),
+                                         "t") == 0) );
+
+            if (failure != 0)
+            {
+                return d_internal_postgres_finish(_statement, failure);
+            }
+
+            return d_internal_postgres_send_phase(
+                       _statement,
+                       (stale) ? D_INTERNAL_POSTGRES_CLEARING
+                               : D_INTERNAL_POSTGRES_PREPARING);
+        }
+
+        case D_INTERNAL_POSTGRES_CLEARING:
+            return (failure != 0)
+                       ? d_internal_postgres_finish(_statement, failure)
+                       : d_internal_postgres_send_phase(
+                             _statement,
+                             D_INTERNAL_POSTGRES_PREPARING);
+
+        case D_INTERNAL_POSTGRES_PREPARING:
+            // a stale statement of the same name: dropped, and once more
+            if ( (failure ==
+                  D_POSTGRES_SQLSTATE_DUPLICATE_PREPARED_STATEMENT) &&
+                 (!_statement->retried) )
+            {
+                _statement->retried = true;
+
+                return d_internal_postgres_send_phase(
+                           _statement,
+                           D_INTERNAL_POSTGRES_CLEARING);
+            }
+
+            if (failure != 0)
+            {
+                return d_internal_postgres_finish(_statement, failure);
+            }
+
+            _statement->prepared = true;
+
+            return d_internal_postgres_send_phase(
+                       _statement,
+                       D_INTERNAL_POSTGRES_DESCRIBING);
+
+        case D_INTERNAL_POSTGRES_DESCRIBING:
+        {
+            // the parameters, counted, and room for their values; a
+            // statement the layer cannot hold is dropped again
+            _statement->undone =
+                (failure != 0)
+                    ? failure
+                    : d_internal_postgres_room(
+                          _statement,
+                          (_statement->held)
+                              ? PQnparams(_statement->held)
+                              : 0);
+
+            return (_statement->undone == 0)
+                       ? d_internal_postgres_finish(_statement, 0)
+                       : d_internal_postgres_send_phase(
+                             _statement,
+                             D_INTERNAL_POSTGRES_UNDOING);
+        }
+
+        case D_INTERNAL_POSTGRES_UNDOING:
+            _statement->prepared = (failure != 0);
+
+            return d_internal_postgres_finish(_statement,
+                                              _statement->undone);
+
+        default:
+            return d_internal_postgres_finish(_statement, failure);
+    }
+}
+
+/**
+ * @brief Does what the socket allows of a statement's call that does not
+ *        block: writes its send, reads its results, and goes on to the next
+ *        exchange, until it must wait or the call is done.
+ *
+ * @param[in,out] _statement  the statement, a call under way, not a page.
+ * @param[in]     _events     what came, as d_db_wait.
+ * @param[in,out] _pending    receives what to wait for.
+ * @return D_DB_WAIT, or the call's result.
+ */
+static int
+d_internal_postgres_drive(
+    struct d_postgres_statement* _statement,
+    unsigned                     _events,
+    struct d_db_pending*         _pending
+)
+{
+    PGconn* const db     = _statement->db;
+    unsigned      events = _events;
+
+    for (;;)
+    {
+        // the exchange's send, written as far as the socket takes it
+        if (_statement->sending)
+        {
+            const int written = d_internal_postgres_flush(
+                                    db,
+                                    events,
+                                    _statement->turned_on,
+                                    _pending);
+
+            if (written == D_DB_WAIT)
+            {
+                return D_DB_WAIT;
+            }
+
+            _statement->sending   = false;
+            _statement->turned_on = false;
+            events                = 0u;
+
+            // trouble; or a cursor's run, open, its rows the pages'
+            if (written != 0)
+            {
+                _statement->running = false;
+
+                return d_internal_postgres_finish(_statement, written);
+            }
+
+            if (_statement->phase == D_INTERNAL_POSTGRES_OPENING)
+            {
+                return d_internal_postgres_finish(_statement, 0);
+            }
+        }
+
+        const int arrived = d_internal_postgres_arrived(db, _pending);
+
+        // a result still to come; or trouble
+        if (arrived == D_DB_WAIT)
+        {
+            return D_DB_WAIT;
+        }
+
+        if (arrived != 0)
+        {
+            return d_internal_postgres_finish(_statement, arrived);
+        }
+
+        PGresult* const next = PQgetResult(db);
+
+        // a result, kept or counted; or the exchange's end
+        if (next)
+        {
+            d_internal_postgres_absorb(_statement, next);
+
+            continue;
+        }
+
+        const int advanced = d_internal_postgres_advance(_statement);
+
+        if ( (advanced != D_DB_WAIT) ||
+             (!_statement->sending) )
+        {
+            return advanced;
+        }
+    }
+}
+
+/**
+ * @brief Adds what one result of a cursor's run holds to the page being
+ *        filled, as d_postgres_fetch_rows does.
+ *
+ * @param[in,out] _statement  the statement, a page filling.
+ * @param[in]     _result     the result; freed.
+ * @return true while the run goes on; false once this result ends it --
+ *         the end of its rows, a command's result, a failure, memory, or a
+ *         COPY -- the outcome then in `_statement->failure`.
+ */
+static bool
+d_internal_postgres_page_add(
+    struct d_postgres_statement* _statement,
+    PGresult*                    _result
+)
+{
+    PGconn* const        db     = _statement->db;
+    const ExecStatusType status = PQresultStatus(_result);
+
+    // a COPY, which the layer ends everywhere
+    if (d_internal_postgres_copying(status))
+    {
+        PQclear(_result);
+        d_internal_postgres_end_copy(db, status);
+        _statement->failure = D_DB_UNSUPPORTED;
+
+        return false;
+    }
+
+    const int code = d_internal_postgres_result(db, _result);
+    bool      kept = true;
+
+    // the columns once, from the first result; then any row
+    if (code == 0)
+    {
+        kept = ( ( (_statement->described) ||
+                   (d_internal_postgres_describe_columns(
+                        _result,
+                        &_statement->page)) ) &&
+                 (d_internal_postgres_keep_rows(_result,
+                                                &_statement->page)) );
+        _statement->described  = true;
+        _statement->gathered  += (size_t)PQntuples(_result);
+    }
+
+    PQclear(_result);
+
+    if ( (code != 0) &&
+         (_statement->failure == 0) )
+    {
+        _statement->failure = code;
+    }
+
+    if ( (!kept) &&
+         (_statement->failure == 0) )
+    {
+        _statement->failure = D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
+    }
+
+    return ( (kept)      &&
+             (code == 0) &&
+             (status == PGRES_SINGLE_TUPLE) );
+}
+
+/**
+ * @brief Gives the page being filled, or its failure, and ends the call.
+ *
+ * @param[in,out] _statement  the statement.
+ * @param[in]     _result     the call's result so far.
+ * @param[out]    _rows       receives the page, on success.
+ * @return `_result`, or 53200 when the page could not be finished.
+ */
+static int
+d_internal_postgres_page_give(
+    struct d_postgres_statement* _statement,
+    int                          _result,
+    struct d_db_rows*            _rows
+)
+{
+    int result = _result;
+
+    // the page built, or memory ran out for its last step
+    if ( (result == 0) &&
+         (!d_internal_db_rows_finish(&_statement->page, _rows)) )
+    {
+        result = D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
+    }
+
+    // a failure gives no rows; a page given is the caller's now
+    if (result != 0)
+    {
+        d_internal_db_rows_release(&_statement->page);
+    }
+
+    memset(&_statement->page, 0, sizeof(_statement->page));
+    _statement->described = false;
+    _statement->gathered  = 0u;
+
+    return d_internal_postgres_finish(_statement, result);
+}
+
+/**
+ * @brief Does what the socket allows of a page being filled: reads the
+ *        run's results until the page is full or the run ends -- read then
+ *        to libpq's NULL -- or it must wait.
+ *
+ * @param[in,out] _statement  the statement, a page filling.
+ * @param[in,out] _pending    receives what to wait for.
+ * @param[out]    _rows       receives the page once it is given.
+ * @return D_DB_WAIT; or as d_postgres_fetch_rows.
+ */
+static int
+d_internal_postgres_page_drive(
+    struct d_postgres_statement* _statement,
+    struct d_db_pending*         _pending,
+    struct d_db_rows*            _rows
+)
+{
+    PGconn* const db = _statement->db;
+
+    for (;;)
+    {
+        // the page full, its run going on
+        if ( (_statement->phase == D_INTERNAL_POSTGRES_FETCHING) &&
+             (_statement->gathered >= _statement->max) )
+        {
+            return d_internal_postgres_page_give(_statement, 0, _rows);
+        }
+
+        const int arrived = d_internal_postgres_arrived(db, _pending);
+
+        // a result still to come; or trouble, which ends the run
+        if (arrived == D_DB_WAIT)
+        {
+            return D_DB_WAIT;
+        }
+
+        if (arrived != 0)
+        {
+            _statement->running = false;
+
+            return d_internal_postgres_page_give(_statement, arrived, _rows);
+        }
+
+        PGresult* const next = PQgetResult(db);
+
+        // libpq has nothing more: the run is over, or the connection lost
+        if (!next)
+        {
+            const int failure = _statement->failure;
+
+            _statement->running = false;
+
+            return d_internal_postgres_page_give(
+                       _statement,
+                       (failure != 0)
+                           ? failure
+                           : (PQstatus(db) == CONNECTION_BAD)
+                                 ? D_POSTGRES_SQLSTATE_CONNECTION_FAILURE
+                                 : 0,
+                       _rows);
+        }
+
+        // a row; or the run's end, its own end read for after
+        if (_statement->phase == D_INTERNAL_POSTGRES_ENDING)
+        {
+            PQclear(next);
+        }
+        else if (!d_internal_postgres_page_add(_statement, next))
+        {
+            _statement->phase = D_INTERNAL_POSTGRES_ENDING;
+        }
+    }
+}
+
+/**
+ * @brief Whether a statement may start a call that does not block: no run
+ *        or call of its own under way, no other run holding the connection,
+ *        and no pipeline.
+ *
+ * @param[in] _statement  the statement.
+ * @return 0, or 08000 as the layer's own answer.
+ */
+static int
+d_internal_postgres_may_start(
+    const struct d_postgres_statement* _statement
+)
+{
+    // its own run or call, which the start would have to wait for
+    if ( (_statement->running) ||
+         (_statement->phase != D_INTERNAL_POSTGRES_IDLE) ||
+         (d_internal_postgres_pipelined(_statement->db)) )
+    {
+        return d_internal_postgres_answer(
+                   _statement->db,
+                   D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    }
+
+    return d_internal_postgres_ready(_statement->db);
+}
+
+/**
+ * @brief Continues a statement's call that does not block, of the phases
+ *        given, and leaves nothing pending once it is done.
+ *
+ * @param[in,out] _statement  the statement.
+ * @param[in]     _events     what came, as d_db_wait.
+ * @param[in,out] _pending    receives what to wait for.
+ * @param[in]     _first      the first phase the call may be in.
+ * @param[in]     _last       the last.
+ * @return D_DB_WAIT; the call's result; or D_DB_INVALID_ARGUMENT for a
+ *         `NULL` argument, or a statement with no such call under way.
+ */
+static int
+d_internal_postgres_continue(
+    struct d_postgres_statement*   _statement,
+    unsigned                       _events,
+    struct d_db_pending*           _pending,
+    enum d_internal_postgres_phase _first,
+    enum d_internal_postgres_phase _last
+)
+{
+    // parameter validation
+    if ( (!_statement) ||
+         (!_pending)   ||
+         (_statement->phase < _first) ||
+         (_statement->phase > _last) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    const int result = d_internal_postgres_drive(_statement,
+                                                 _events,
+                                                 _pending);
+
+    // done: nothing pending
+    if (result != D_DB_WAIT)
+    {
+        d_internal_postgres_settled(_pending);
+    }
+
+    return result;
 }
 
 //==============================================================================
@@ -823,14 +1662,18 @@ d_postgres_finalize(
         return 0;
     }
 
-    // its own run, read away
+    // its own call, waited for; its own run, read away
+    d_internal_postgres_end_call(_statement);
+
     if (_statement->running)
     {
         (void)d_internal_postgres_end_run(_statement);
     }
 
-    const int result = d_internal_postgres_drop(_statement->db,
-                                                _statement->name);
+    const int result = (_statement->prepared)
+                           ? d_internal_postgres_drop(_statement->db,
+                                                      _statement->name)
+                           : 0;
 
     // the server's copy kept: its name may come round again
     if (result != 0)
@@ -903,6 +1746,119 @@ d_postgres_statement_connection(
 )
 {
     return (_statement) ? _statement->db : NULL;
+}
+
+// 1.4    Preparing without blocking
+//------------------------------------------------------------------------------
+/*
+d_postgres_prepare_start
+  The record made, the text kept for a second try, and the first exchange
+sent: the lookup of a stale name where d_internal_postgres_clear_stale would
+make it -- inside a transaction, unless libpq's Close has left no name
+behind -- and otherwise the prepare.
+*/
+int
+d_postgres_prepare_start(
+    struct pg_conn*               _db,
+    struct d_postgres_statement** _statement,
+    const char*                   _sql,
+    struct d_db_pending*          _pending
+)
+{
+    // nothing yet, whatever follows
+    if (_statement)
+    {
+        *_statement = NULL;
+    }
+
+    if (_pending)
+    {
+        d_internal_postgres_settled(_pending);
+    }
+
+    // parameter validation
+    if ( (!_db)        ||
+         (!_statement) ||
+         (!_sql)       ||
+         (!_pending) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    // pipeline mode, or a run holding the connection
+    if (d_internal_postgres_pipelined(_db))
+    {
+        return d_internal_postgres_answer(
+                   _db,
+                   D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    }
+
+    const int ready = d_internal_postgres_ready(_db);
+
+    if (ready != 0)
+    {
+        return ready;
+    }
+
+    struct d_postgres_statement* const made   = d_internal_postgres_made(_db);
+    const size_t                       length = strlen(_sql);
+    char* const                        text   = (made)
+                                                    ? (char*)malloc(length +
+                                                                    1u)
+                                                    : NULL;
+
+    // allocation failure
+    if (!text)
+    {
+        d_internal_postgres_free(made);
+
+        return D_POSTGRES_SQLSTATE_OUT_OF_MEMORY;
+    }
+
+    memcpy(text, _sql, length + 1u);
+    made->sql = text;
+
+    const bool look = ( ( (!d_internal_postgres_closes()) ||
+                          (d_internal_postgres_left_behind != 0) ) &&
+                        (PQtransactionStatus(_db) == PQTRANS_INTRANS) );
+    const int  sent = d_internal_postgres_send_phase(
+                          made,
+                          (look) ? D_INTERNAL_POSTGRES_LOOKING
+                                 : D_INTERNAL_POSTGRES_PREPARING);
+
+    // refused before anything was sent
+    if (sent != D_DB_WAIT)
+    {
+        d_internal_postgres_free(made);
+
+        return sent;
+    }
+
+    *_statement = made;
+
+    return d_internal_postgres_continue(made,
+                                        0u,
+                                        _pending,
+                                        D_INTERNAL_POSTGRES_LOOKING,
+                                        D_INTERNAL_POSTGRES_UNDOING);
+}
+
+/*
+d_postgres_prepare_continue
+  The exchanges, one after another (d_internal_postgres_drive).
+*/
+int
+d_postgres_prepare_continue(
+    struct d_postgres_statement* _statement,
+    unsigned                     _events,
+    struct d_db_pending*         _pending
+)
+{
+    return d_internal_postgres_continue(_statement,
+                                        _events,
+                                        _pending,
+                                        D_INTERNAL_POSTGRES_LOOKING,
+                                        D_INTERNAL_POSTGRES_UNDOING);
 }
 
 //==============================================================================
@@ -1169,7 +2125,9 @@ d_postgres_open_cursor(
 
     PGconn* const db = _statement->db;
 
-    // its own run, read away
+    // its own call, waited for; its own run, read away
+    d_internal_postgres_end_call(_statement);
+
     if (_statement->running)
     {
         (void)d_internal_postgres_end_run(_statement);
@@ -1246,6 +2204,12 @@ d_postgres_fetch_rows(
     {
         { NULL, 0u, 0u }, { NULL, 0u, 0u }, { NULL, 0u, 0u }, 0u, 0u
     };
+
+    // its own call, waited for, which ends a run it was part of
+    if (_statement)
+    {
+        d_internal_postgres_end_call(_statement);
+    }
 
     // parameter validation
     if ( (!_statement)          ||
@@ -1363,6 +2327,9 @@ d_postgres_close_cursor(
         return D_DB_INVALID_ARGUMENT;
     }
 
+    // its own call, waited for, which ends a run it was part of
+    d_internal_postgres_end_call(_statement);
+
     // no run open
     if (!_statement->running)
     {
@@ -1370,6 +2337,329 @@ d_postgres_close_cursor(
     }
 
     return d_internal_postgres_end_run(_statement);
+}
+
+// 3.4    Running without blocking
+//------------------------------------------------------------------------------
+/*
+d_postgres_execute_start
+  The run's message, sent in non-blocking mode; the start never reads, so
+that the result is read by a continuation, which gives it.
+*/
+int
+d_postgres_execute_start(
+    struct d_postgres_statement* _statement,
+    struct d_db_pending*         _pending
+)
+{
+    // nothing pending yet, whatever follows
+    if (_pending)
+    {
+        d_internal_postgres_settled(_pending);
+    }
+
+    // parameter validation
+    if ( (!_statement) ||
+         (!_pending) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    const int ready = d_internal_postgres_may_start(_statement);
+
+    // its own run or call, another's run, or a pipeline
+    if (ready != 0)
+    {
+        return ready;
+    }
+
+    const int sent = d_internal_postgres_send_phase(
+                         _statement,
+                         D_INTERNAL_POSTGRES_EXECUTING);
+
+    // refused before anything was sent
+    if (sent != D_DB_WAIT)
+    {
+        return sent;
+    }
+
+    const int written = d_internal_postgres_flush(_statement->db,
+                                                  0u,
+                                                  _statement->turned_on,
+                                                  _pending);
+
+    // some left to write: the continuations write it
+    if (written == D_DB_WAIT)
+    {
+        return D_DB_WAIT;
+    }
+
+    _statement->sending   = false;
+    _statement->turned_on = false;
+
+    // trouble
+    if (written != 0)
+    {
+        d_internal_postgres_settled(_pending);
+
+        return d_internal_postgres_finish(_statement, written);
+    }
+
+    // written: the result is read by a continuation, which has somewhere
+    // to give it
+    return d_internal_postgres_pend(PQsocket(_statement->db),
+                                    (unsigned)D_DB_WAIT_READ,
+                                    _pending);
+}
+
+/*
+d_postgres_execute_update_continue
+  The run's result, once read, counted as d_postgres_execute_update counts
+it: its command tag's count.
+*/
+int
+d_postgres_execute_update_continue(
+    struct d_postgres_statement* _statement,
+    unsigned                     _events,
+    struct d_db_pending*         _pending,
+    int64_t*                     _changes
+)
+{
+    const int result = d_internal_postgres_continue(
+                           _statement,
+                           _events,
+                           _pending,
+                           D_INTERNAL_POSTGRES_EXECUTING,
+                           D_INTERNAL_POSTGRES_EXECUTING);
+
+    // still to come, or a failure
+    if (result != 0)
+    {
+        return result;
+    }
+
+    const char* const tuples = (_statement->held)
+                                   ? PQcmdTuples(_statement->held)
+                                   : "";
+    int64_t           count  = 0;
+
+    // the tag's count; "" for a command that counts nothing
+    const int counted = ( (tuples[0] == '\0') ||
+                          (d_internal_db_parse_integer(tuples, &count)) )
+                            ? 0
+                            : D_DB_INVALID_ARGUMENT;
+
+    if (_statement->held)
+    {
+        PQclear(_statement->held);
+        _statement->held = NULL;
+    }
+
+    // written only on success
+    if ( (counted == 0) &&
+         (_changes) )
+    {
+        *_changes = count;
+    }
+
+    return counted;
+}
+
+/*
+d_postgres_execute_query_continue
+  The run's result, once read, its rows read as a query's.
+*/
+int
+d_postgres_execute_query_continue(
+    struct d_postgres_statement* _statement,
+    unsigned                     _events,
+    struct d_db_pending*         _pending,
+    struct d_db_rows*            _rows
+)
+{
+    // somewhere to put the rows
+    if (!_rows)
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    const int result = d_internal_postgres_continue(
+                           _statement,
+                           _events,
+                           _pending,
+                           D_INTERNAL_POSTGRES_EXECUTING,
+                           D_INTERNAL_POSTGRES_EXECUTING);
+
+    // still to come, or a failure
+    if (result != 0)
+    {
+        return result;
+    }
+
+    PGresult* const held = _statement->held;
+
+    _statement->held = NULL;
+
+    return (held) ? d_internal_postgres_collect_rows(held, _rows)
+                  : D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION;
+}
+
+/*
+d_postgres_open_cursor_start
+  PQsendQueryPrepared and single-row mode, as d_postgres_open_cursor; the
+run is open from the send, its message written as the socket takes it.
+*/
+int
+d_postgres_open_cursor_start(
+    struct d_postgres_statement* _statement,
+    struct d_db_pending*         _pending
+)
+{
+    // nothing pending yet, whatever follows
+    if (_pending)
+    {
+        d_internal_postgres_settled(_pending);
+    }
+
+    // parameter validation
+    if ( (!_statement) ||
+         (!_pending) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    const int ready = d_internal_postgres_may_start(_statement);
+
+    // its own run or call, another's run, or a pipeline
+    if (ready != 0)
+    {
+        return ready;
+    }
+
+    const int sent = d_internal_postgres_send_phase(
+                         _statement,
+                         D_INTERNAL_POSTGRES_OPENING);
+
+    return (sent == D_DB_WAIT)
+               ? d_internal_postgres_continue(_statement,
+                                              0u,
+                                              _pending,
+                                              D_INTERNAL_POSTGRES_OPENING,
+                                              D_INTERNAL_POSTGRES_OPENING)
+               : sent;
+}
+
+/*
+d_postgres_open_cursor_continue
+  The rest of the run's message (d_internal_postgres_drive).
+*/
+int
+d_postgres_open_cursor_continue(
+    struct d_postgres_statement* _statement,
+    unsigned                     _events,
+    struct d_db_pending*         _pending
+)
+{
+    return d_internal_postgres_continue(_statement,
+                                        _events,
+                                        _pending,
+                                        D_INTERNAL_POSTGRES_OPENING,
+                                        D_INTERNAL_POSTGRES_OPENING);
+}
+
+/*
+d_postgres_fetch_rows_start
+  A page begun, filled from whatever has arrived (d_internal_postgres_page_
+drive), the statement keeping it between continuations.
+*/
+int
+d_postgres_fetch_rows_start(
+    struct d_postgres_statement* _statement,
+    size_t                       _max,
+    struct d_db_pending*         _pending,
+    struct d_db_rows*            _rows
+)
+{
+    // nothing pending yet, whatever follows
+    if (_pending)
+    {
+        d_internal_postgres_settled(_pending);
+    }
+
+    // parameter validation
+    if ( (!_statement)          ||
+         (!_pending)            ||
+         (!_rows)               ||
+         (_max == 0u)           ||
+         (!_statement->running) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    // a call of its own under way
+    if (_statement->phase != D_INTERNAL_POSTGRES_IDLE)
+    {
+        return d_internal_postgres_answer(
+                   _statement->db,
+                   D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    }
+
+    _statement->phase     = D_INTERNAL_POSTGRES_FETCHING;
+    _statement->failure   = 0;
+    _statement->max       = _max;
+    _statement->gathered  = 0u;
+    _statement->described = false;
+    memset(&_statement->page, 0, sizeof(_statement->page));
+
+    const int result = d_internal_postgres_page_drive(_statement,
+                                                      _pending,
+                                                      _rows);
+
+    // done: nothing pending
+    if (result != D_DB_WAIT)
+    {
+        d_internal_postgres_settled(_pending);
+    }
+
+    return result;
+}
+
+/*
+d_postgres_fetch_rows_continue
+  More of the page (d_internal_postgres_page_drive); what came is read
+whatever the program says came, PQconsumeInput never waiting.
+*/
+int
+d_postgres_fetch_rows_continue(
+    struct d_postgres_statement* _statement,
+    unsigned                     _events,
+    struct d_db_pending*         _pending,
+    struct d_db_rows*            _rows
+)
+{
+    (void)_events;
+
+    // parameter validation
+    if ( (!_statement) ||
+         (!_pending)   ||
+         (!_rows)      ||
+         ( (_statement->phase != D_INTERNAL_POSTGRES_FETCHING) &&
+           (_statement->phase != D_INTERNAL_POSTGRES_ENDING) ) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    const int result = d_internal_postgres_page_drive(_statement,
+                                                      _pending,
+                                                      _rows);
+
+    // done: nothing pending
+    if (result != D_DB_WAIT)
+    {
+        d_internal_postgres_settled(_pending);
+    }
+
+    return result;
 }
 
 #else
@@ -1686,6 +2976,192 @@ d_postgres_close_cursor(
     (void)_statement;
 
     return D_DB_UNSUPPORTED;
+}
+
+/*
+d_internal_postgres_nothing_pending
+  What a start or continuation leaves without libpq: nothing pending.
+D_DB_UNSUPPORTED.
+*/
+static int
+d_internal_postgres_nothing_pending(
+    struct d_db_pending* _pending
+)
+{
+    if (_pending)
+    {
+        _pending->socket     = D_DB_SOCKET_NONE;
+        _pending->events     = 0u;
+        _pending->timeout_ms = 0u;
+        _pending->deadline   = 0.0;
+        _pending->state      = 0u;
+    }
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_postgres_prepare_start
+  Without libpq there is nothing to prepare: D_DB_UNSUPPORTED, the
+statement NULL, nothing pending.
+*/
+int
+d_postgres_prepare_start(
+    struct pg_conn*               _db,
+    struct d_postgres_statement** _statement,
+    const char*                   _sql,
+    struct d_db_pending*          _pending
+)
+{
+    (void)_db;
+    (void)_sql;
+
+    if (_statement)
+    {
+        *_statement = NULL;
+    }
+
+    return d_internal_postgres_nothing_pending(_pending);
+}
+
+/*
+d_postgres_prepare_continue
+  Without libpq, D_DB_UNSUPPORTED, nothing pending.
+*/
+int
+d_postgres_prepare_continue(
+    struct d_postgres_statement* _statement,
+    unsigned                     _events,
+    struct d_db_pending*         _pending
+)
+{
+    (void)_statement;
+    (void)_events;
+
+    return d_internal_postgres_nothing_pending(_pending);
+}
+
+/*
+d_postgres_execute_start
+  Without libpq, D_DB_UNSUPPORTED, nothing pending.
+*/
+int
+d_postgres_execute_start(
+    struct d_postgres_statement* _statement,
+    struct d_db_pending*         _pending
+)
+{
+    (void)_statement;
+
+    return d_internal_postgres_nothing_pending(_pending);
+}
+
+/*
+d_postgres_execute_update_continue
+  Without libpq, D_DB_UNSUPPORTED, nothing pending, nothing counted.
+*/
+int
+d_postgres_execute_update_continue(
+    struct d_postgres_statement* _statement,
+    unsigned                     _events,
+    struct d_db_pending*         _pending,
+    int64_t*                     _changes
+)
+{
+    (void)_statement;
+    (void)_events;
+    (void)_changes;
+
+    return d_internal_postgres_nothing_pending(_pending);
+}
+
+/*
+d_postgres_execute_query_continue
+  Without libpq, D_DB_UNSUPPORTED, nothing pending, no rows.
+*/
+int
+d_postgres_execute_query_continue(
+    struct d_postgres_statement* _statement,
+    unsigned                     _events,
+    struct d_db_pending*         _pending,
+    struct d_db_rows*            _rows
+)
+{
+    (void)_statement;
+    (void)_events;
+    (void)_rows;
+
+    return d_internal_postgres_nothing_pending(_pending);
+}
+
+/*
+d_postgres_open_cursor_start
+  Without libpq, D_DB_UNSUPPORTED, nothing pending.
+*/
+int
+d_postgres_open_cursor_start(
+    struct d_postgres_statement* _statement,
+    struct d_db_pending*         _pending
+)
+{
+    (void)_statement;
+
+    return d_internal_postgres_nothing_pending(_pending);
+}
+
+/*
+d_postgres_open_cursor_continue
+  Without libpq, D_DB_UNSUPPORTED, nothing pending.
+*/
+int
+d_postgres_open_cursor_continue(
+    struct d_postgres_statement* _statement,
+    unsigned                     _events,
+    struct d_db_pending*         _pending
+)
+{
+    (void)_statement;
+    (void)_events;
+
+    return d_internal_postgres_nothing_pending(_pending);
+}
+
+/*
+d_postgres_fetch_rows_start
+  Without libpq, D_DB_UNSUPPORTED, nothing pending, no rows.
+*/
+int
+d_postgres_fetch_rows_start(
+    struct d_postgres_statement* _statement,
+    size_t                       _max,
+    struct d_db_pending*         _pending,
+    struct d_db_rows*            _rows
+)
+{
+    (void)_statement;
+    (void)_max;
+    (void)_rows;
+
+    return d_internal_postgres_nothing_pending(_pending);
+}
+
+/*
+d_postgres_fetch_rows_continue
+  Without libpq, D_DB_UNSUPPORTED, nothing pending, no rows.
+*/
+int
+d_postgres_fetch_rows_continue(
+    struct d_postgres_statement* _statement,
+    unsigned                     _events,
+    struct d_db_pending*         _pending,
+    struct d_db_rows*            _rows
+)
+{
+    (void)_statement;
+    (void)_events;
+    (void)_rows;
+
+    return d_internal_postgres_nothing_pending(_pending);
 }
 
 #endif  // D_INTERNAL_POSTGRES

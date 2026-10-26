@@ -29,8 +29,27 @@
 * path:      /tests/djinterp/core/db/mariadb/t_mariadb_core.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
+// _WIN32_WINNT
+//   knob (Windows'): Vista's API at least, for WSAPoll, where nothing asked
+// for more; it precedes every include.
+#if ( (defined(_WIN32)) &&                                                    \
+      (!defined(_WIN32_WINNT)) )
+    #define _WIN32_WINNT 0x0600
+#endif  // _WIN32
+// WIN32_LEAN_AND_MEAN, NOMINMAX
+//   knobs (Windows'): <windows.h>, which <winsock2.h> and the clients' own
+// headers include, without its rarer headers -- rpcndr.h among them, which
+// makes `small` a macro -- and without its min and max macros.
+#if defined(_WIN32)
+    #if !defined(WIN32_LEAN_AND_MEAN)
+        #define WIN32_LEAN_AND_MEAN 1
+    #endif  // WIN32_LEAN_AND_MEAN
+    #if !defined(NOMINMAX)
+        #define NOMINMAX 1
+    #endif  // NOMINMAX
+#endif  // _WIN32
 // djinterp
 #include "../../../../../inc/djinterp/env/env.h"  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 // std
@@ -49,6 +68,10 @@
 #include "../../../../../inc/djinterp/core/db/mysql/mysql.hpp"      // test
 #include "../../../../../inc/djinterp/core/db/mariadb/mariadb_table.hpp"
 #include "../../../../../inc/djinterp/core/db/mysql/mysql_table.hpp"
+// D_TESTS_DB_CORE_SOCKETS
+//   switch: the shared checks wait on the server's socket, for the
+// operations that do not block.
+#define D_TESTS_DB_CORE_SOCKETS 1
 #include "../t_db_core.hpp"  // the shared checks
 
 
@@ -57,6 +80,12 @@ namespace
 
 namespace db   = djinterp;
 namespace core = d_tests_db_core;
+
+// the operations that do not block, as a trait from C++17 (database_
+// connection.hpp, section 2)
+static_assert(db::has_async_operations<db::mariadb_connection>::value);
+static_assert(db::has_async_operations<db::mysql_connection>::value);
+static_assert(!db::has_async_operations<int>::value);
 
 // the concepts (C++20) -- djinterp::concepts' own: the family's, which both
 // leaves satisfy, and each leaf's; and the former names, which forward to
@@ -103,6 +132,11 @@ static_assert(
 static_assert(
     !db::concepts::mysql_ora_query_attribute_settable<db::mariadb_connection>);
 static_assert(!db::concepts::mariadb_resettable_connection<int>);
+
+// the operations that do not block, on both leaves
+static_assert(db::concepts::async_connection<db::mariadb_connection>);
+static_assert(db::concepts::async_connection<db::mysql_connection>);
+static_assert(!db::concepts::async_connection<int>);
 
 // every concept of the family, against the class (C8): one the class
 // failed would name a member it does not have; the non_ concepts fail it
@@ -203,6 +237,7 @@ static_assert(db::concepts::mysql_full_connection<db::mysql_connection>);
 // them
 const int ER_ACCESS_DENIED           = 1045;
 const int ER_DUP_ENTRY               = 1062;
+const int ER_QUERY_INTERRUPTED       = 1317;
 const int ER_PARSE_ERROR             = 1064;
 const int ER_UNKNOWN_SYSTEM_VARIABLE = 1193;
 
@@ -216,6 +251,18 @@ unique_violation(
 )
 {
     return (_code == ER_DUP_ENTRY);
+}
+
+/*
+cancelled
+  Both servers' statement stopped by KILL QUERY.
+*/
+bool
+cancelled(
+    int _code
+)
+{
+    return (_code == ER_QUERY_INTERRUPTED);
 }
 
 // make_dialect
@@ -244,7 +291,10 @@ make_dialect(
         db::field_type::big_integer,
         db::field_type::integer,
         ER_PARSE_ERROR,
-        &unique_violation
+        &unique_violation,
+        "SELECT SLEEP(0.3)",
+        "SELECT SLEEP(5)",
+        &cancelled
     };
 }
 
@@ -286,6 +336,67 @@ family_config(
     config.unix_socket = core::setting("DJINTERP_TEST_MARIADB_SOCKET", "");
 
     return config;
+}
+
+/*
+d_tests_mariadb_core_carried
+  Whether the client carries TLS without blocking (d_mariadb_client_
+nonblocking_tls), where it has calls that do not block at all: false only
+for Connector/C before 3.4.10 with Schannel.
+*/
+bool
+d_tests_mariadb_core_carried(
+    void
+)
+{
+    return ( (!db::face::mariadb::client_is_mariadb()) ||
+             (db::face::mariadb::client_nonblocking_tls()) );
+}
+
+// d_tests_mariadb_core_off
+//   value: Connector/C's false, a my_bool (a char), for the switches
+// d_tests_mariadb_core_untls sets, which the client reads as the connect
+// begins.
+const char d_tests_mariadb_core_off = 0;
+
+/*
+d_tests_mariadb_core_untls
+  A connection, not yet made, told not to use TLS, through Connector/C's own
+switches, set last so that they stand over the layer's PREFERRED:
+MYSQL_OPT_SSL_ENFORCE (38) and MYSQL_OPT_SSL_VERIFY_SERVER_CERT (21), the
+same numbers in mysql.h from 3.0 to 3.4.11, which the core leaves out of
+view.
+*/
+template<typename Connection>
+Connection
+d_tests_mariadb_core_untls(
+    Connection _db
+)
+{
+    const int SSL_VERIFY_SERVER_CERT = 21;
+    const int SSL_ENFORCE            = 38;
+
+    _db.set_option(SSL_VERIFY_SERVER_CERT, &d_tests_mariadb_core_off);
+    _db.set_option(SSL_ENFORCE, &d_tests_mariadb_core_off);
+
+    return _db;
+}
+
+/*
+d_tests_mariadb_core_under_tls
+  Whether a connection runs under TLS: the session's Ssl_cipher, which both
+servers report, not empty.
+*/
+template<typename Connection>
+bool
+d_tests_mariadb_core_under_tls(
+    Connection& _db
+)
+{
+    auto status = _db.execute_query("SHOW SESSION STATUS LIKE 'Ssl_cipher'");
+
+    return ( (status->next()) &&
+             (!status->get_string(1u).value_or("").empty()) );
 }
 
 /*
@@ -636,11 +747,11 @@ d_tests_mariadb_core_lost(
 
         limited.base.max_packet_size = 1024u * 1024u;
 
-        Connection small(limited);
+        Connection cramped(limited);
 
-        small.connect();
+        cramped.connect();
 
-        auto measured = small.prepare("SELECT LENGTH(?)");
+        auto measured = cramped.prepare("SELECT LENGTH(?)");
 
         measured->bind_string(1u, big);
 
@@ -649,8 +760,8 @@ d_tests_mariadb_core_lost(
             D_TESTS_DB_CORE_THROWS((void)measured->execute_query(),
                                    db::query_exception,
                                    2020);
-            D_TESTS_DB_CORE_CHECK( (small.is_connected()) &&
-                                   (small.ping()) );
+            D_TESTS_DB_CORE_CHECK( (cramped.is_connected()) &&
+                                   (cramped.ping()) );
         }
         else
         {
@@ -664,7 +775,7 @@ d_tests_mariadb_core_lost(
 
         try
         {
-            (void)small.execute_scalar("SELECT REPEAT('x', 2097152)");
+            (void)cramped.execute_scalar("SELECT REPEAT('x', 2097152)");
             D_TESTS_DB_CORE_CHECK(false);
         }
         catch (const db::connection_exception& e)
@@ -676,9 +787,9 @@ d_tests_mariadb_core_lost(
                                    (e.error_code() == 2026) );
         }
 
-        D_TESTS_DB_CORE_CHECK( (small.get_state() ==
+        D_TESTS_DB_CORE_CHECK( (cramped.get_state() ==
                                 db::connection_state::error) &&
-                               (!small.is_connected()) );
+                               (!cramped.is_connected()) );
         D_TESTS_DB_CORE_THROWS_ANY((void)measured->execute_query(),
                                    db::exception);
 
@@ -728,10 +839,15 @@ d_tests_mariadb_core_lost(
 d_tests_mariadb_core_leaf_mariadb
   mariadb_connection's configuration.
   Tests the following:
-  - the default storage engine set once connected; one the server lacks
-    leaves the connection unopened, connection_exception
+  - the default storage engine set within the connect; one the server lacks
+    leaves the connection unopened, connection_exception, as does a name no
+    identifier, refused before connecting (D_DB_INVALID_ARGUMENT)
+  - the same through connect_async, which waits for none of it -- without
+    TLS where the client cannot carry it so; a character set other than the
+    layer's, carried by the handshake, the session's with both connects and
+    every pairing
   - Galera's causal reads, where the server has the variable: wsrep_sync_wait
-    is 1
+    is 1, after a reset too
   - the configuration read back
 */
 void
@@ -752,12 +868,59 @@ d_tests_mariadb_core_leaf_mariadb(
     D_TESTS_DB_CORE_CHECK(engined.get_engine() == "MyISAM");
     D_TESTS_DB_CORE_CHECK(engined.get_mariadb_config().default_storage_engine ==
                           "MyISAM");
-    config.default_storage_engine = "No'Such";
+    // connected without waiting, a character set other than the layer's
+    // with it
+    {
+        db::mariadb_connect_config latin1 = config;
+
+        latin1.mysql_config.default_charset = "latin1";
+
+        db::mariadb_connection blocking(latin1);
+        db::mariadb_connection waiting =
+            (d_tests_mariadb_core_carried())
+                ? db::mariadb_connection(latin1)
+                : d_tests_mariadb_core_untls(db::mariadb_connection(latin1));
+        auto                   opening = waiting.connect_async();
+
+        blocking.connect();
+        core::drive(opening);
+
+        for (db::mariadb_connection* each : { &blocking, &waiting })
+        {
+            D_TESTS_DB_CORE_CHECK( (each->is_connected()) &&
+                                   (each->get_engine() == "MyISAM") );
+            D_TESTS_DB_CORE_CHECK(std::get<std::string>(*each->execute_scalar(
+                                      "SELECT @@character_set_client")) ==
+                                  "latin1");
+            D_TESTS_DB_CORE_CHECK(each->get_charset() == "latin1");
+        }
+    }
+
+    config.default_storage_engine = "NoSuchEngine";
 
     db::mariadb_connection refused(config);
+    db::mariadb_connection refused_async =
+        (d_tests_mariadb_core_carried())
+            ? db::mariadb_connection(config)
+            : d_tests_mariadb_core_untls(db::mariadb_connection(config));
+    auto                   refusing = refused_async.connect_async();
 
     D_TESTS_DB_CORE_THROWS_ANY(refused.connect(), db::connection_exception);
     D_TESTS_DB_CORE_CHECK(!refused.is_connected());
+    D_TESTS_DB_CORE_THROWS_ANY(core::drive(refusing),
+                               db::connection_exception);
+    D_TESTS_DB_CORE_CHECK( (!refused_async.is_connected()) &&
+                           (refused_async.get_state() ==
+                            db::connection_state::error) );
+
+    config.default_storage_engine = "No'Such";
+
+    db::mariadb_connection unnamed(config);
+
+    D_TESTS_DB_CORE_THROWS(unnamed.connect(),
+                           db::connection_exception,
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_DB_CORE_CHECK(!unnamed.is_connected());
 
     // Galera's variable, which MariaDB's builds with wsrep have
     if ( (_mariadb) &&
@@ -770,6 +933,9 @@ d_tests_mariadb_core_leaf_mariadb(
         db::mariadb_connection causal(config);
 
         causal.connect();
+        D_TESTS_DB_CORE_CHECK(std::get<re_std::int64_t>(*causal.execute_scalar(
+                                  "SELECT @@wsrep_sync_wait")) == 1);
+        causal.reset_connection();
         D_TESTS_DB_CORE_CHECK(std::get<re_std::int64_t>(*causal.execute_scalar(
                                   "SELECT @@wsrep_sync_wait")) == 1);
     }
@@ -1464,8 +1630,56 @@ d_tests_mariadb_core_mariadb_table(
 }
 
 /*
+d_tests_mariadb_core_tls_refused
+  Where the client cannot carry TLS without blocking.
+  Tests the following:
+  - connect_async that would ask for TLS -- the layer's default -- throws
+    connection_exception with D_DB_UNSUPPORTED, the connection in error;
+    told not to use TLS, it connects
+  - over a connection under TLS, an operation throws query_exception with
+    D_DB_UNSUPPORTED, and the connection carries on by blocking
+*/
+template<typename Connection>
+void
+d_tests_mariadb_core_tls_refused(
+    Connection&        _db,
+    const std::string& _database
+)
+{
+    std::printf("operations over TLS: refused, the rest without it\n");
+
+    Connection asking(family_config(_database));
+    Connection plain = d_tests_mariadb_core_untls(
+                           Connection(family_config(_database)));
+    auto       refused = asking.connect_async();
+    auto       opening = plain.connect_async();
+
+    D_TESTS_DB_CORE_THROWS(core::drive(refused),
+                           db::connection_exception,
+                           D_DB_UNSUPPORTED);
+    D_TESTS_DB_CORE_CHECK(asking.get_state() == db::connection_state::error);
+    core::drive(opening);
+    D_TESTS_DB_CORE_CHECK( (plain.is_connected()) &&
+                           (!d_tests_mariadb_core_under_tls(plain)) );
+
+    // under TLS, where the server offers it
+    if (d_tests_mariadb_core_under_tls(_db))
+    {
+        auto select = _db.execute_query_async("SELECT 1");
+
+        D_TESTS_DB_CORE_THROWS((void)core::drive(select),
+                               db::query_exception,
+                               D_DB_UNSUPPORTED);
+        D_TESTS_DB_CORE_CHECK(_db.execute("SELECT 1"));
+    }
+
+    return;
+}
+
+/*
 d_tests_mariadb_core_leaf
-  One leaf, start to end, in a database of its own.
+  One leaf, start to end, in a database of its own; the operations that do
+not block without TLS where the client cannot carry it so.
 */
 template<typename Connection>
 void
@@ -1487,6 +1701,40 @@ d_tests_mariadb_core_leaf(
     core::transactions(db);
     core::errors(db, dialect);
     core::streams(db, dialect);
+
+    // the operations that do not block: over the leaf's connection, or,
+    // where the client cannot carry TLS so, over one without it
+    const bool carried = d_tests_mariadb_core_carried();
+    Connection untls   = (carried)
+                             ? Connection(family_config(_database))
+                             : d_tests_mariadb_core_untls(
+                                   Connection(family_config(_database)));
+
+    if (!carried)
+    {
+        d_tests_mariadb_core_tls_refused(db, _database);
+        untls.connect();
+    }
+
+    core::async_operations(
+        (carried) ? db : untls,
+        dialect,
+        [&_database, carried]() -> Connection
+        {
+            return (carried) ? Connection(family_config(_database))
+                             : d_tests_mariadb_core_untls(
+                                   Connection(family_config(_database)));
+        },
+        [&_database, carried]() -> Connection
+        {
+            db::mysql_connect_config wrong = family_config(_database);
+
+            wrong.base.password = "certainly not the password";
+
+            return (carried) ? Connection(wrong)
+                             : d_tests_mariadb_core_untls(Connection(wrong));
+        },
+        db::face::mariadb::client_is_mariadb());
 
     // the client's names for the two ways of reading rows
     {

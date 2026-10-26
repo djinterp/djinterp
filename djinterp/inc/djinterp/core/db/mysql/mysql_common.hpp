@@ -30,7 +30,7 @@
 * path:      /inc/djinterp/core/db/mysql/mysql_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 
 /*
@@ -368,6 +368,17 @@ struct mariadb_layer
                                    failure_kind _kind,
                                    const char*  _operation,
                                    int          _result);
+
+    /**
+     * @brief Asks the server to stop what a connection runs, from a
+     *        connection of the layer's own (d_mariadb_cancel), waiting for
+     *        it: an operation's cancel().
+     *
+     * @param[in] _db  the connection whose statement is to stop.
+     * @throws query_exception, with the layer's result and the reason it
+     *         gave, when the request cannot be made.
+     */
+    static void cancel(handle_type _db);
 };
 
 // 3.1.2
@@ -540,19 +551,30 @@ enum class mysql_session_track : re_std::uint8_t
 // database_type; each adds its own settings and session set-up through two
 // hooks, add_settings_impl(internal::mariadb_settings&), which may also
 // refuse what the layer cannot apply, and on_connected_impl(face::mariadb&),
-// run on the new connection before the object takes it.
+// run on the new connection before the object takes it. A set-up the
+// client can run as an init command is better added as one: the client runs
+// those within the connect, so connect_async never waits for them, and a
+// reset runs them again.
 //   Connecting applies connection_config and mysql_connect_config: where and
 // as whom; the timeouts, in seconds rounded up, 0 leaving the client's; TLS,
 // REQUIRED with enable_ssl, VERIFY_IDENTITY with verify_ssl too; the files;
-// compression; LOAD DATA LOCAL; an init command; connect attributes; client
-// flags beyond those the other settings stand for; native options
-// (set_option); and, once connected, a character set other than the
-// layer's. max_packet_size is the largest packet the client takes from the
-// server, 0 leaving the client's own, 1 GiB: connection_config's 16 MiB is
-// below MySQL 8's 64 MiB, and a row past it loses the connection
-// (connection_exception, 2013 or 2020). reset_connection gives the
-// connection a fresh session, set up as connect set it up. Parameters are
-// written `?`. Each statement reads every result it produces, so
+// compression; LOAD DATA LOCAL; an init command, the leaf's after it;
+// connect attributes; client flags beyond those the other settings stand
+// for; a character set other than the layer's, which the handshake carries
+// and the layer sets again where the handshake loses it; and native options
+// (set_option), which come last and so win. max_packet_size is the largest
+// packet the client takes from the server, 0 leaving the client's own,
+// 1 GiB: connection_config's 16 MiB is below MySQL 8's 64 MiB, and a row
+// past it loses the connection (connection_exception, 2013 or 2020).
+// reset_connection gives the connection a fresh session, set up as connect
+// set it up. The operations that do not block are the layer's
+// (mariadb_connection.h 1.8): where the client cannot carry TLS so
+// (Connector/C before 3.4.10 with Schannel; face::mariadb::
+// client_nonblocking_tls), they throw with D_DB_UNSUPPORTED over a connection
+// under TLS, and connect_async for one that would ask for it, the layer's
+// PREFERRED among them; mysql_connection's ssl_mode, or Connector/C's own
+// switches through set_option, make one without. Parameters are written
+// `?`. Each statement reads every result it produces, so
 // next_result has no result left to read. Each member the connection adds
 // throws as the operations do (database_connection.hpp):
 // connection_exception when the connection is not open, or a failure lost
@@ -873,8 +895,15 @@ public:
     const face::mariadb& get_face() const noexcept;
 
     // hooks -- database_connection calls these, programs the operations
-    // they implement, whose contracts they keep
+    // they implement, whose contracts they keep; connect_start_impl to
+    // connect_abandon_impl are connect_async's (database_connection.hpp,
+    // internal::connect_steps), into a face of their own until connected
     void            connect_impl();
+    int             connect_start_impl(d_db_pending& _pending);
+    int             connect_continue_impl(unsigned      _events,
+                                          d_db_pending& _pending);
+    void            connect_finish_impl();
+    void            connect_abandon_impl() noexcept;
     void            disconnect_impl() noexcept;
     bool            is_connected_impl() const noexcept;
     bool            ping_impl() const noexcept;
@@ -951,7 +980,20 @@ private:
     // m_derived -- the leaf, for its two hooks
     Derived& m_derived() noexcept;
 
+    // m_prepare_connect -- the settings and the options a connect passes,
+    // the configuration's refusals thrown first; m_finish_connect -- the
+    // set-up on a connection made, which the object then takes;
+    // m_refuse_connect -- the connection_exception for a connect that
+    // failed, in the client's words where it gave some
+    struct d_mariadb_options
+                m_prepare_connect(internal::mariadb_settings& _settings);
+    void        m_finish_connect(face::mariadb& _opened);
+    [[noreturn]] void
+                m_refuse_connect(const face::text& _reason,
+                                 int               _result) const;
+
     face::mariadb                            m_db;
+    face::mariadb                            m_opening;
     std::vector<std::pair<int, const void*>> m_native_options;
 };
 
@@ -1056,6 +1098,7 @@ mysql_common_connection<Derived, DbType>::mysql_common_connection()
     : base_type(),
       m_mysql_config(),
       m_db(),
+      m_opening(),
       m_native_options()
 {
     m_mysql_config.base = this->m_config;
@@ -1069,6 +1112,7 @@ mysql_common_connection<Derived, DbType>::mysql_common_connection(
     : base_type(_config),
       m_mysql_config(_config),
       m_db(),
+      m_opening(),
       m_native_options()
 {
     m_mysql_config.base = this->m_config;
@@ -1082,6 +1126,7 @@ mysql_common_connection<Derived, DbType>::mysql_common_connection(
     : base_type(_config.base),
       m_mysql_config(_config),
       m_db(),
+      m_opening(),
       m_native_options()
 {
     m_mysql_config.base = this->m_config;
@@ -1690,26 +1735,150 @@ mysql_common_connection<Derived, DbType>::get_face() const noexcept
 /*
 mysql_common_connection::connect_impl
   The leaf's settings go first, so that a TLS mode of its own stands in for
-enable_ssl's; the connection opens into a face of its own, is set up there --
-the character set, the leaf's session settings -- and only then does the
-object take it, so that a failure at any step leaves the old state and the
-new connection closed. A failed connect is described by the client's own
-words, which the layer copies before it closes what failed.
+enable_ssl's (m_prepare_connect); the connection opens into a face of its
+own -- the character set and the init commands applied within the connect
+-- the leaf's on_connected_impl runs there, and only then does the object
+take it (m_finish_connect), so that a failure at any step leaves the old
+state and the new connection closed. A failed
+connect is described by the client's own words, which the layer copies
+before it closes what failed.
 */
 template<typename      Derived,
          database_type DbType>
 void
 mysql_common_connection<Derived, DbType>::connect_impl()
 {
-    const connection_config&   config = this->m_config;
-    internal::mariadb_settings settings;
-    const unsigned long        handled =
+    internal::mariadb_settings     settings;
+    const struct d_mariadb_options options = m_prepare_connect(settings);
+    face::mariadb                  opened;
+    face::text                     reason;
+    const int                      result = opened.connect_with(
+                                                &options,
+                                                settings.data(),
+                                                settings.size(),
+                                                reason);
+
+    // a failure, in the client's words where it gave some
+    if (result != 0)
+    {
+        m_refuse_connect(reason, result);
+    }
+
+    m_finish_connect(opened);
+
+    return;
+}
+
+/*
+mysql_common_connection::connect_start_impl
+  As connect_impl begins, into the face kept for a connection being made; the
+settings are the client's by the time the start returns.
+*/
+template<typename      Derived,
+         database_type DbType>
+int
+mysql_common_connection<Derived, DbType>::connect_start_impl(
+    d_db_pending& _pending
+)
+{
+    internal::mariadb_settings     settings;
+    const struct d_mariadb_options options = m_prepare_connect(settings);
+    face::text                     reason;
+    const int                      result = m_opening.connect_with_start(
+                                                &options,
+                                                settings.data(),
+                                                settings.size(),
+                                                _pending,
+                                                reason);
+
+    // under way, made, or failed in the client's words
+    if ( (result != 0) &&
+         (result != D_DB_WAIT) )
+    {
+        m_refuse_connect(reason, result);
+    }
+
+    return result;
+}
+
+template<typename      Derived,
+         database_type DbType>
+int
+mysql_common_connection<Derived, DbType>::connect_continue_impl(
+    unsigned      _events,
+    d_db_pending& _pending
+)
+{
+    face::text reason;
+    const int  result = m_opening.connect_continue(_events,
+                                                   _pending,
+                                                   reason);
+
+    // under way, made, or failed in the client's words
+    if ( (result != 0) &&
+         (result != D_DB_WAIT) )
+    {
+        m_refuse_connect(reason, result);
+    }
+
+    return result;
+}
+
+/*
+mysql_common_connection::connect_finish_impl
+  As connect_impl ends; a setup that fails closes the connection made.
+*/
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::connect_finish_impl()
+{
+    try
+    {
+        m_finish_connect(m_opening);
+    }
+    catch (...)
+    {
+        (void)m_opening.close();
+
+        throw;
+    }
+
+    (void)m_opening.close();
+
+    return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::connect_abandon_impl() noexcept
+{
+    (void)m_opening.close();
+
+    return;
+}
+
+/*
+mysql_common_connection::m_prepare_connect
+  The family's refusals, then every setting a connect passes on, the leaf's
+first; the options point into the configuration.
+*/
+template<typename      Derived,
+         database_type DbType>
+struct d_mariadb_options
+mysql_common_connection<Derived, DbType>::m_prepare_connect(
+    internal::mariadb_settings& _settings
+)
+{
+    const connection_config& config  = this->m_config;
+    const unsigned long      handled =
         static_cast<unsigned long>(mysql_client_flag::compress        |
                                    mysql_client_flag::ssl             |
                                    mysql_client_flag::connect_with_db |
                                    mysql_client_flag::local_files     |
                                    mysql_client_flag::multi_results);
-    const unsigned long        flags =
+    const unsigned long      flags   =
         static_cast<unsigned long>(m_mysql_config.client_flags) & ~handled;
 
     // several statements a call are execute_script's, for that call alone
@@ -1746,34 +1915,44 @@ mysql_common_connection<Derived, DbType>::connect_impl()
     internal::refuse_nul_setting(m_mysql_config.default_charset,
                                  "connect",
                                  "default_charset");
-    m_derived().add_settings_impl(settings);
+
+    // the configuration's init command, ahead of the leaf's, which the
+    // configuration's own fields make and which so win
+    if (!m_mysql_config.init_command.empty())
+    {
+        _settings.add_text(D_MARIADB_SETTING_INIT_COMMAND,
+                          m_mysql_config.init_command);
+    }
+
+    m_derived().add_settings_impl(_settings);
 
     // the timeouts the configuration gives
     if (config.connect_timeout.count() > 0)
     {
-        settings.add_number(D_MARIADB_SETTING_CONNECT_TIMEOUT,
+        _settings.add_number(D_MARIADB_SETTING_CONNECT_TIMEOUT,
                             internal::mysql_seconds(config.connect_timeout));
     }
 
     if (config.read_timeout.count() > 0)
     {
-        settings.add_number(D_MARIADB_SETTING_READ_TIMEOUT,
+        _settings.add_number(D_MARIADB_SETTING_READ_TIMEOUT,
                             internal::mysql_seconds(config.read_timeout));
     }
 
     if (config.write_timeout.count() > 0)
     {
-        settings.add_number(D_MARIADB_SETTING_WRITE_TIMEOUT,
+        _settings.add_number(D_MARIADB_SETTING_WRITE_TIMEOUT,
                             internal::mysql_seconds(config.write_timeout));
     }
 
     // the largest packet the client takes, as many bytes as the client's
-    // unsigned long holds; 0 leaves the client's own
+    // unsigned long holds (max parenthesized, against <windows.h>'s macro);
+    // 0 leaves the client's own
     if (config.max_packet_size > 0u)
     {
         if (config.max_packet_size >
             static_cast<std::size_t>(
-                std::numeric_limits<unsigned long>::max()))
+                (std::numeric_limits<unsigned long>::max)()))
         {
             throw connection_exception(std::string(traits_type::display_name) +
                                        " connect: max_packet_size is past "
@@ -1781,15 +1960,15 @@ mysql_common_connection<Derived, DbType>::connect_impl()
                                        D_DB_INVALID_ARGUMENT);
         }
 
-        settings.add_number(D_MARIADB_SETTING_MAX_PACKET,
+        _settings.add_number(D_MARIADB_SETTING_MAX_PACKET,
                             static_cast<unsigned long>(config.max_packet_size));
     }
 
     // TLS, where the leaf named no mode of its own, and the files
     if ( (config.enable_ssl) &&
-         (!settings.has(D_MARIADB_SETTING_SSL_MODE)) )
+         (!_settings.has(D_MARIADB_SETTING_SSL_MODE)) )
     {
-        settings.add_number(
+        _settings.add_number(
             D_MARIADB_SETTING_SSL_MODE,
             static_cast<unsigned long>((config.verify_ssl)
                                            ? D_MARIADB_SSL_VERIFY_IDENTITY
@@ -1798,53 +1977,59 @@ mysql_common_connection<Derived, DbType>::connect_impl()
 
     if (config.ssl_key)
     {
-        settings.add_text(D_MARIADB_SETTING_SSL_KEY, *config.ssl_key);
+        _settings.add_text(D_MARIADB_SETTING_SSL_KEY, *config.ssl_key);
     }
 
     if (config.ssl_cert)
     {
-        settings.add_text(D_MARIADB_SETTING_SSL_CERT, *config.ssl_cert);
+        _settings.add_text(D_MARIADB_SETTING_SSL_CERT, *config.ssl_cert);
     }
 
     if (config.ssl_ca)
     {
-        settings.add_text(D_MARIADB_SETTING_SSL_CA, *config.ssl_ca);
+        _settings.add_text(D_MARIADB_SETTING_SSL_CA, *config.ssl_ca);
     }
 
     // the family's own settings
     if (m_mysql_config.use_compression)
     {
-        settings.add_number(D_MARIADB_SETTING_COMPRESS, 1ul);
+        _settings.add_number(D_MARIADB_SETTING_COMPRESS, 1ul);
     }
 
     if (m_mysql_config.use_local_infile)
     {
-        settings.add_number(D_MARIADB_SETTING_LOCAL_INFILE, 1ul);
-    }
-
-    if (!m_mysql_config.init_command.empty())
-    {
-        settings.add_text(D_MARIADB_SETTING_INIT_COMMAND,
-                          m_mysql_config.init_command);
+        _settings.add_number(D_MARIADB_SETTING_LOCAL_INFILE, 1ul);
     }
 
     for (const std::pair<const std::string, std::string>& attribute :
          m_mysql_config.connect_attributes)
     {
-        settings.add_attribute(attribute.first, attribute.second);
+        _settings.add_attribute(attribute.first, attribute.second);
     }
 
     if (flags != 0ul)
     {
-        settings.add_number(D_MARIADB_SETTING_CLIENT_FLAGS, flags);
+        _settings.add_number(D_MARIADB_SETTING_CLIENT_FLAGS, flags);
+    }
+
+    // a character set other than the one the layer asks for: the
+    // handshake's, so that nothing follows the connect
+    const std::string& charset = (config.charset)
+                                     ? *config.charset
+                                     : m_mysql_config.default_charset;
+
+    if ( (!charset.empty()) &&
+         (charset != D_CFG_MARIADB_CHARSET) )
+    {
+        _settings.add_text(D_MARIADB_SETTING_CHARSET, charset);
     }
 
     for (const std::pair<int, const void*>& option : m_native_options)
     {
-        settings.add_native(option.first, option.second);
+        _settings.add_native(option.first, option.second);
     }
 
-    const struct d_mariadb_options options =
+    return d_mariadb_options
     {
         internal::mysql_or_null(config.host),
         internal::mysql_or_null(config.username),
@@ -1853,47 +2038,41 @@ mysql_common_connection<Derived, DbType>::connect_impl()
         static_cast<unsigned>(config.port),
         internal::mysql_or_null(m_mysql_config.unix_socket)
     };
-    face::mariadb opened;
-    face::text    reason;
-    const int     result = opened.connect_with(&options,
-                                               settings.data(),
-                                               settings.size(),
-                                               reason);
+}
 
-    // a failure, in the client's words where it gave some
-    if (result != 0)
-    {
-        throw connection_exception(
-            std::string(traits_type::display_name) + " connect: " +
-                ((reason.is_null()) ? d_mariadb_result_message(result)
-                                    : reason.c_str()) +
-                " (" + std::to_string(result) + ")",
-            result);
-    }
-
-    const std::string charset = (config.charset)
-                                    ? *config.charset
-                                    : m_mysql_config.default_charset;
-
-    // a character set other than the one the layer asked for
-    if ( (!charset.empty()) &&
-         (charset != D_CFG_MARIADB_CHARSET) )
-    {
-        const int changed = opened.set_charset(charset);
-
-        if (changed != 0)
-        {
-            mariadb_layer::raise(opened.handle(),
-                                 failure_kind::connection,
-                                 "set_charset",
-                                 changed);
-        }
-    }
-
-    m_derived().on_connected_impl(opened);
-    m_db.swap(opened);
+/*
+mysql_common_connection::m_finish_connect
+  The leaf's set-up on the new connection, the character set and the init
+commands already applied within the connect (m_prepare_connect); then the
+object takes it.
+*/
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::m_finish_connect(
+    face::mariadb& _opened
+)
+{
+    m_derived().on_connected_impl(_opened);
+    m_db.swap(_opened);
 
     return;
+}
+
+template<typename      Derived,
+         database_type DbType>
+void
+mysql_common_connection<Derived, DbType>::m_refuse_connect(
+    const face::text& _reason,
+    int               _result
+) const
+{
+    throw connection_exception(
+        std::string(traits_type::display_name) + " connect: " +
+            ((_reason.is_null()) ? d_mariadb_result_message(_result)
+                                 : _reason.c_str()) +
+            " (" + std::to_string(_result) + ")",
+        _result);
 }
 
 template<typename      Derived,

@@ -1,0 +1,10 @@
+^D:\SAM\CODE\PROJECTS\FRAMEWORKS\DJINTERP\RELEASE\BUILD\CMAKE\CONFIG\TESTING\DJINTERP\CORE\CONTAINER\TRAITS\CONTAINER_MEMORY_STRATEGY\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/sam/code/projects/frameworks/djinterp/release/build/cmake/config -BD:/sam/code/projects/frameworks/djinterp/release/build/cmake/msvs --check-stamp-file D:/sam/code/projects/frameworks/djinterp/release/build/cmake/msvs/testing/djinterp/core/container/traits/container_memory_strategy/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
