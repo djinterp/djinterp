@@ -8,7 +8,9 @@
 * freely with libpq's own calls, and closes it with PQfinish or
 * d_postgres_close alike. Nothing is kept beside the connection: every
 * answer comes from libpq or the server. Every module includes this header:
-*     postgres_connection   connect, close, ping, the backend's process id
+*     postgres_connection   connect, close, reconnect, cancel, ping, the
+*                           backend's process id, each connect, reconnect
+*                           and cancel also without blocking
 *     postgres_query        exec, rows changed, scalar queries, rows,
 *                           quoting
 *     postgres_statement    prepared statements: bind, execute, finalize
@@ -55,7 +57,7 @@
 * path:      /inc/djinterp/c/db/postgres/postgres_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 
 /*
@@ -66,6 +68,7 @@ TABLE OF CONTENTS
     1.  Connections
          1.  pg_conn
          2.  d_postgres_statement
+         3.  pg_cancel_conn
     2.  Features
          1.  d_postgres_feature
          2.  d_postgres_client_feature
@@ -132,6 +135,13 @@ struct pg_conn;
 // postgres_statement.h's functions take a pointer.
 struct d_postgres_statement;
 
+// 1.1.3
+// pg_cancel_conn
+//   struct: libpq 17's connection that carries a cancel request, PGcancelConn,
+// by its struct tag, as pg_conn is declared; never defined here, and never
+// made with an older libpq (postgres_connection.h 1.5).
+struct pg_cancel_conn;
+
 // 1.2    Features
 //------------------------------------------------------------------------------
 // 1.2.1
@@ -176,8 +186,11 @@ enum d_postgres_client_feature
 {
     D_POSTGRES_CLIENT_PIPELINE = 0,   // pipeline mode                   [14]
     D_POSTGRES_CLIENT_CHUNKED_ROWS,   // results read in chunks of rows  [17]
-    D_POSTGRES_CLIENT_CLOSE_PREPARED  // a statement closed by the
+    D_POSTGRES_CLIENT_CLOSE_PREPARED, // a statement closed by the
                                       // protocol's own message          [17]
+    D_POSTGRES_CLIENT_ASYNC_CANCEL    // a cancel request sent without
+                                      // blocking, and encrypted as the
+                                      // connection is                   [17]
 };
 
 

@@ -25,9 +25,15 @@
 * from C++17 std::optional text, from C++20 formats checked at compile time
 * and std::span columns, from C++23 std::expected results.
 *   connect, connect_with and adopt replace the connection only when they
-* succeed; a failure leaves the face as it was. A member called on a face
-* with no connection passes NULL to the layer, which answers
-* D_DB_INVALID_ARGUMENT, or false, 0 or NULL.
+* succeed; a failure leaves the face as it was. Their forms that do not
+* block -- connect_start and connect_with_start -- replace it with the
+* connection being made when they answer D_DB_WAIT, or made when they answer
+* 0, and connect_continue goes on with the connection held, which the face
+* holds no more once it fails. cancel_start puts a cancel request's own
+* connection in another face, whose cancel_continue goes on with it until
+* the layer closes it. A member called on a face with no connection passes
+* NULL to the layer, which answers D_DB_INVALID_ARGUMENT, or false, 0 or
+* NULL.
 *   face::mariadb_statement owns a prepared statement, the layer's struct
 * d_mariadb_statement over the client's MYSQL_STMT, and finalizes it when it
 * goes; prepare and preparef fill one, and every function of
@@ -54,7 +60,7 @@
 * path:      /inc/djinterp/c/db/mariadb/mariadb_face.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 
 /*
@@ -316,6 +322,15 @@ public:
     }
 
     int
+    prepare_continue(
+        unsigned      _events,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_prepare_continue(m_statement, _events, &_pending);
+    }
+
+    int
     bind_null(
         std::size_t _index
     ) D_NOEXCEPT
@@ -463,6 +478,83 @@ public:
     close_cursor() D_NOEXCEPT
     {
         return d_mariadb_close_cursor(m_statement);
+    }
+
+    int
+    execute_start(
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_execute_start(m_statement, &_pending);
+    }
+
+    int
+    execute_update_continue(
+        unsigned         _events,
+        d_db_pending&    _pending,
+        re_std::int64_t& _changes
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_execute_update_continue(m_statement,
+                                                 _events,
+                                                 &_pending,
+                                                 &_changes);
+    }
+
+    int
+    execute_query_continue(
+        unsigned      _events,
+        d_db_pending& _pending,
+        rows&         _rows
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_execute_query_continue(m_statement,
+                                                _events,
+                                                &_pending,
+                                                _rows.out());
+    }
+
+    int
+    open_cursor_start(
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_open_cursor_start(m_statement, &_pending);
+    }
+
+    int
+    open_cursor_continue(
+        unsigned      _events,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_open_cursor_continue(m_statement, _events, &_pending);
+    }
+
+    int
+    fetch_rows_start(
+        std::size_t   _max,
+        d_db_pending& _pending,
+        rows&         _rows
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_fetch_rows_start(m_statement,
+                                          _max,
+                                          &_pending,
+                                          _rows.out());
+    }
+
+    int
+    fetch_rows_continue(
+        unsigned      _events,
+        d_db_pending& _pending,
+        rows&         _rows
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_fetch_rows_continue(m_statement,
+                                             _events,
+                                             &_pending,
+                                             _rows.out());
     }
 
 private:
@@ -655,6 +747,12 @@ public:
     client_is_mariadb() D_NOEXCEPT
     {
         return d_mariadb_client_is_mariadb();
+    }
+
+    D_NODISCARD static bool
+    client_nonblocking_tls() D_NOEXCEPT
+    {
+        return d_mariadb_client_nonblocking_tls();
     }
 
     D_NODISCARD static const char*
@@ -895,6 +993,335 @@ public:
         return d_mariadb_close(release());
     }
 
+    /**
+     * @brief Starts a connection, as d_mariadb_connect_start does, to
+     *        replace the connection held.
+     *
+     * @param[in]  _options  where and as whom; `NULL` connects with every
+     *                       field defaulted.
+     * @param[out] _pending  receives what to wait for before continuing.
+     * @return d_mariadb_connect_start's result.
+     * @post On D_DB_WAIT the face holds the connection being made, and on 0
+     *       the connection made, the one it held closed either way; on
+     *       failure the face is as it was.
+     */
+    int
+    connect_start(
+        const struct d_mariadb_options* _options,
+        d_db_pending&                   _pending
+    ) D_NOEXCEPT
+    {
+        struct d_mariadb* made   = D_NULLPTR;
+        const int         result = d_mariadb_connect_start(_options,
+                                                           &made,
+                                                           &_pending);
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Starts a connection with client settings applied first, as
+     *        d_mariadb_connect_with_start does, to replace the connection
+     *        held.
+     *
+     * @param[in]  _options   where and as whom; `NULL` connects with every
+     *                        field defaulted.
+     * @param[in]  _settings  the settings, applied in order.
+     * @param[in]  _count     how many there are.
+     * @param[out] _pending   receives what to wait for before continuing.
+     * @return d_mariadb_connect_with_start's result.
+     * @post As for connect_start.
+     */
+    int
+    connect_with_start(
+        const struct d_mariadb_options* _options,
+        const struct d_mariadb_setting* _settings,
+        std::size_t                     _count,
+        d_db_pending&                   _pending
+    ) D_NOEXCEPT
+    {
+        struct d_mariadb* made   = D_NULLPTR;
+        const int         result = d_mariadb_connect_with_start(_options,
+                                                                _settings,
+                                                                _count,
+                                                                &made,
+                                                                &_pending,
+                                                                D_NULLPTR);
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Starts a connection as connect_with_start does, and says why
+     *        one could not be.
+     *
+     * @param[in]  _options   where and as whom; `NULL` connects with every
+     *                        field defaulted.
+     * @param[in]  _settings  the settings, applied in order.
+     * @param[in]  _count     how many there are.
+     * @param[out] _pending   receives what to wait for before continuing.
+     * @param[out] _message   the reason when no connection was made, in the
+     *                        client's words or the layer's; null otherwise.
+     * @return d_mariadb_connect_with_start's result.
+     * @post As for connect_start.
+     */
+    int
+    connect_with_start(
+        const struct d_mariadb_options* _options,
+        const struct d_mariadb_setting* _settings,
+        std::size_t                     _count,
+        d_db_pending&                   _pending,
+        text&                           _message
+    ) D_NOEXCEPT
+    {
+        struct d_mariadb* made   = D_NULLPTR;
+        const int         result = d_mariadb_connect_with_start(
+                                       _options,
+                                       _settings,
+                                       _count,
+                                       &made,
+                                       &_pending,
+                                       _message.out());
+
+        return m_take_started(result, made);
+    }
+
+    // connect_with_start -- the settings as an array, its size the count;
+    // from C++20 as a std::span; each with the reason too
+    template<std::size_t Count>
+    int
+    connect_with_start(
+        const struct d_mariadb_options* _options,
+        const struct d_mariadb_setting  (&_settings)[Count],
+        d_db_pending&                   _pending
+    ) D_NOEXCEPT
+    {
+        return connect_with_start(_options, _settings, Count, _pending);
+    }
+
+    template<std::size_t Count>
+    int
+    connect_with_start(
+        const struct d_mariadb_options* _options,
+        const struct d_mariadb_setting  (&_settings)[Count],
+        d_db_pending&                   _pending,
+        text&                           _message
+    ) D_NOEXCEPT
+    {
+        return connect_with_start(_options,
+                                  _settings,
+                                  Count,
+                                  _pending,
+                                  _message);
+    }
+
+#if D_INTERNAL_DB_FACE_SPAN
+    int
+    connect_with_start(
+        const struct d_mariadb_options*           _options,
+        std::span<const struct d_mariadb_setting> _settings,
+        d_db_pending&                             _pending
+    ) noexcept
+    {
+        return connect_with_start(_options,
+                                  _settings.data(),
+                                  _settings.size(),
+                                  _pending);
+    }
+
+    int
+    connect_with_start(
+        const struct d_mariadb_options*           _options,
+        std::span<const struct d_mariadb_setting> _settings,
+        d_db_pending&                             _pending,
+        text&                                     _message
+    ) noexcept
+    {
+        return connect_with_start(_options,
+                                  _settings.data(),
+                                  _settings.size(),
+                                  _pending,
+                                  _message);
+    }
+#endif  // D_INTERNAL_DB_FACE_SPAN
+
+    /**
+     * @brief Continues the connection a start began, as
+     *        d_mariadb_connect_continue does.
+     *
+     * @param[in]     _events   what came, as d_db_wait.
+     * @param[in,out] _pending  what the start or the last continuation
+     *                          wrote; receives what to wait for next.
+     * @return d_mariadb_connect_continue's result.
+     * @post On a failure the face holds no connection: the layer closed the
+     *       one being made.
+     */
+    int
+    connect_continue(
+        unsigned      _events,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        struct d_mariadb* db     = m_db;
+        const int         result = d_mariadb_connect_continue(&db,
+                                                              _events,
+                                                              &_pending,
+                                                              D_NULLPTR);
+
+        m_db = db;
+
+        return result;
+    }
+
+    /**
+     * @brief Continues the connection as connect_continue does, and says
+     *        why it could not be made.
+     *
+     * @param[in]     _events   what came, as d_db_wait.
+     * @param[in,out] _pending  what the start or the last continuation
+     *                          wrote; receives what to wait for next.
+     * @param[out]    _message  the reason when the connection could not be
+     *                          made, in the client's words or the layer's;
+     *                          null otherwise.
+     * @return d_mariadb_connect_continue's result.
+     * @post As for connect_continue.
+     */
+    int
+    connect_continue(
+        unsigned      _events,
+        d_db_pending& _pending,
+        text&         _message
+    ) D_NOEXCEPT
+    {
+        struct d_mariadb* db     = m_db;
+        const int         result = d_mariadb_connect_continue(
+                                       &db,
+                                       _events,
+                                       &_pending,
+                                       _message.out());
+
+        m_db = db;
+
+        return result;
+    }
+
+    /**
+     * @brief Starts asking the server, from a connection of its own, to
+     *        stop what this connection runs, as d_mariadb_cancel_start
+     *        does.
+     *
+     * @param[out] _canceller  receives the request's connection, in place
+     *                         of the one it held, while the request is
+     *                         under way; it is continued by its own
+     *                         cancel_continue.
+     * @param[out] _pending    receives what to wait for before continuing.
+     * @return d_mariadb_cancel_start's result.
+     * @post On D_DB_WAIT `_canceller` holds the request under way, the
+     *       connection it held closed; otherwise it is as it was.
+     */
+    int
+    cancel_start(
+        mariadb&      _canceller,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        struct d_mariadb* made   = D_NULLPTR;
+        const int         result = d_mariadb_cancel_start(m_db,
+                                                          &made,
+                                                          &_pending,
+                                                          D_NULLPTR);
+
+        return _canceller.m_take_request(result, made);
+    }
+
+    /**
+     * @brief Starts a cancel as cancel_start does, and says why it could
+     *        not be made.
+     *
+     * @param[out] _canceller  as for cancel_start.
+     * @param[out] _pending    receives what to wait for before continuing.
+     * @param[out] _message    the reason when the request failed, in the
+     *                         client's words or the layer's; null
+     *                         otherwise.
+     * @return d_mariadb_cancel_start's result.
+     * @post As for cancel_start.
+     */
+    int
+    cancel_start(
+        mariadb&      _canceller,
+        d_db_pending& _pending,
+        text&         _message
+    ) D_NOEXCEPT
+    {
+        struct d_mariadb* made   = D_NULLPTR;
+        const int         result = d_mariadb_cancel_start(m_db,
+                                                          &made,
+                                                          &_pending,
+                                                          _message.out());
+
+        return _canceller.m_take_request(result, made);
+    }
+
+    /**
+     * @brief Continues the cancel request this face holds, as
+     *        d_mariadb_cancel_continue does.
+     *
+     * @param[in]     _events   what came, as d_db_wait.
+     * @param[in,out] _pending  what the start or the last continuation
+     *                          wrote; receives what to wait for next.
+     * @return d_mariadb_cancel_continue's result.
+     * @post Done, whatever the outcome, the face holds no connection: the
+     *       layer closed the request's. A request abandoned is closed with
+     *       the face.
+     */
+    int
+    cancel_continue(
+        unsigned      _events,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        struct d_mariadb* db     = m_db;
+        const int         result = d_mariadb_cancel_continue(&db,
+                                                             _events,
+                                                             &_pending,
+                                                             D_NULLPTR);
+
+        m_db = db;
+
+        return result;
+    }
+
+    /**
+     * @brief Continues the cancel request as cancel_continue does, and says
+     *        why it failed.
+     *
+     * @param[in]     _events   what came, as d_db_wait.
+     * @param[in,out] _pending  what the start or the last continuation
+     *                          wrote; receives what to wait for next.
+     * @param[out]    _message  the reason when the request failed; null
+     *                          otherwise.
+     * @return d_mariadb_cancel_continue's result.
+     * @post As for cancel_continue.
+     */
+    int
+    cancel_continue(
+        unsigned      _events,
+        d_db_pending& _pending,
+        text&         _message
+    ) D_NOEXCEPT
+    {
+        struct d_mariadb* db     = m_db;
+        const int         result = d_mariadb_cancel_continue(
+                                       &db,
+                                       _events,
+                                       &_pending,
+                                       _message.out());
+
+        m_db = db;
+
+        return result;
+    }
+
     int
     change_user(
         string_arg _user,
@@ -1013,6 +1440,108 @@ public:
     {
         return d_mariadb_get_option(m_db, _option, _value);
     }
+
+    int
+    change_user_start(
+        string_arg    _user,
+        string_arg    _password,
+        string_arg    _database,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_change_user_start(m_db,
+                                           _user.c_str(),
+                                           _password.c_str(),
+                                           _database.c_str(),
+                                           &_pending);
+    }
+
+    int
+    reset_connection_start(
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_reset_connection_start(m_db, &_pending);
+    }
+
+    int
+    ping_start(
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_ping_start(m_db, &_pending);
+    }
+
+    int
+    change_user_continue(
+        unsigned      _events,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_change_user_continue(m_db, _events, &_pending);
+    }
+
+    int
+    reset_connection_continue(
+        unsigned      _events,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_reset_connection_continue(m_db, _events, &_pending);
+    }
+
+    int
+    ping_continue(
+        unsigned      _events,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_ping_continue(m_db, _events, &_pending);
+    }
+
+    int
+    cancel(
+        text& _message
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_cancel(m_db, _message.out());
+    }
+
+    int
+    cancel(
+        std::string& _message
+    )
+    {
+        text      text_value;
+        const int result = d_mariadb_cancel(m_db, text_value.out());
+
+        _message = text_value.str();
+
+        return result;
+    }
+
+#if D_INTERNAL_DB_FACE_OPTIONAL
+    int
+    cancel(
+        std::optional<std::string>& _message
+    )
+    {
+        text      text_value;
+        const int result = d_mariadb_cancel(m_db, text_value.out());
+
+        // the text; nothing for SQL NULL, and for a failure
+        if (text_value.is_null())
+        {
+            _message.reset();
+        }
+        else
+        {
+            _message = text_value.str();
+        }
+
+        return result;
+    }
+#endif  // D_INTERNAL_DB_FACE_OPTIONAL
 
     // 1.2.1.5
     // Queries
@@ -1568,6 +2097,52 @@ public:
         return d_mariadb_clear_query_attributes(m_db);
     }
 
+    int
+    send_query_start(
+        string_arg    _sql,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_send_query_start(m_db, _sql.c_str(), &_pending);
+    }
+
+    int
+    next_result_start(
+        d_db_pending&    _pending,
+        rows&            _rows,
+        re_std::int64_t& _changes
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_next_result_start(m_db,
+                                           &_pending,
+                                           _rows.out(),
+                                           &_changes);
+    }
+
+    int
+    send_query_continue(
+        unsigned      _events,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_send_query_continue(m_db, _events, &_pending);
+    }
+
+    int
+    next_result_continue(
+        unsigned         _events,
+        d_db_pending&    _pending,
+        rows&            _rows,
+        re_std::int64_t& _changes
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_next_result_continue(m_db,
+                                              _events,
+                                              &_pending,
+                                              _rows.out(),
+                                              &_changes);
+    }
+
     // 1.2.1.6
     // Statements
     //   mariadb_statement.h's preparing, into a
@@ -1645,6 +2220,19 @@ public:
         return value;
     }
 #endif  // D_INTERNAL_DB_FACE_EXPECTED
+
+    int
+    prepare_start(
+        mariadb_statement& _statement,
+        string_arg         _sql,
+        d_db_pending&      _pending
+    ) D_NOEXCEPT
+    {
+        return d_mariadb_prepare_start(m_db,
+                                       _statement.out(),
+                                       _sql.c_str(),
+                                       &_pending);
+    }
 
     // 1.2.1.7
     // Databases
@@ -3191,6 +3779,42 @@ private:
     {
         // a failed connect made nothing to keep
         if (_result == 0)
+        {
+            reset(_made);
+        }
+
+        return _result;
+    }
+
+    // m_take_started -- a start's result; the connection being made, or
+    // made at once, replaces the face's when it answered D_DB_WAIT or 0
+    int
+    m_take_started(
+        int               _result,
+        struct d_mariadb* _made
+    ) D_NOEXCEPT
+    {
+        // a failed start made nothing to keep
+        if ( (_result == D_DB_WAIT) ||
+             (_result == 0) )
+        {
+            reset(_made);
+        }
+
+        return _result;
+    }
+
+    // m_take_request -- a cancel's start's result; the request's connection
+    // replaces the face's while it is under way, the layer having closed it
+    // otherwise
+    int
+    m_take_request(
+        int               _result,
+        struct d_mariadb* _made
+    ) D_NOEXCEPT
+    {
+        // a request done or failed at once left nothing to keep
+        if (_result == D_DB_WAIT)
         {
             reset(_made);
         }

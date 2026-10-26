@@ -25,9 +25,12 @@
 * results.
 *   connect, connect_string and connect_with replace the connection only when
 * they succeed; a failure leaves the face as it was, and puts libpq's reason
-* in the text, where one is given. A member called on a face with no
-* connection passes NULL to the layer, which answers D_DB_INVALID_ARGUMENT,
-* or false, 0 or NULL.
+* in the text, where one is given. Their forms that do not block --
+* connect_start and its kin -- replace it with the connection being made
+* when they answer D_DB_WAIT, and connect_continue goes on with the
+* connection held, which the face holds no more once it fails. A member
+* called on a face with no connection passes NULL to the layer, which
+* answers D_DB_INVALID_ARGUMENT, or false, 0 or NULL.
 *   face::postgres_statement owns a prepared statement, the layer's struct
 * d_postgres_statement, whose copy the server holds, and finalizes it when it
 * goes; prepare and preparef fill one, and every function of
@@ -54,7 +57,7 @@
 * path:      /inc/djinterp/c/db/postgres/postgres_face.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 
 /*
@@ -317,6 +320,15 @@ public:
     }
 
     int
+    prepare_continue(
+        unsigned      _events,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_postgres_prepare_continue(m_statement, _events, &_pending);
+    }
+
+    int
     bind_null(
         std::size_t _index
     ) D_NOEXCEPT
@@ -466,6 +478,83 @@ public:
     close_cursor() D_NOEXCEPT
     {
         return d_postgres_close_cursor(m_statement);
+    }
+
+    int
+    execute_start(
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_postgres_execute_start(m_statement, &_pending);
+    }
+
+    int
+    execute_update_continue(
+        unsigned         _events,
+        d_db_pending&    _pending,
+        re_std::int64_t& _changes
+    ) D_NOEXCEPT
+    {
+        return d_postgres_execute_update_continue(m_statement,
+                                                  _events,
+                                                  &_pending,
+                                                  &_changes);
+    }
+
+    int
+    execute_query_continue(
+        unsigned      _events,
+        d_db_pending& _pending,
+        rows&         _rows
+    ) D_NOEXCEPT
+    {
+        return d_postgres_execute_query_continue(m_statement,
+                                                 _events,
+                                                 &_pending,
+                                                 _rows.out());
+    }
+
+    int
+    open_cursor_start(
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_postgres_open_cursor_start(m_statement, &_pending);
+    }
+
+    int
+    open_cursor_continue(
+        unsigned      _events,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_postgres_open_cursor_continue(m_statement, _events, &_pending);
+    }
+
+    int
+    fetch_rows_start(
+        std::size_t   _max,
+        d_db_pending& _pending,
+        rows&         _rows
+    ) D_NOEXCEPT
+    {
+        return d_postgres_fetch_rows_start(m_statement,
+                                           _max,
+                                           &_pending,
+                                           _rows.out());
+    }
+
+    int
+    fetch_rows_continue(
+        unsigned      _events,
+        d_db_pending& _pending,
+        rows&         _rows
+    ) D_NOEXCEPT
+    {
+        return d_postgres_fetch_rows_continue(m_statement,
+                                              _events,
+                                              &_pending,
+                                              _rows.out());
     }
 
 private:
@@ -1017,6 +1106,263 @@ public:
         return d_postgres_close(release());
     }
 
+    /**
+     * @brief Starts a connection, as d_postgres_connect_start does, to
+     *        replace the connection held.
+     *
+     * @param[in]  _options  where and as whom; `NULL` leaves every field to
+     *                       libpq.
+     * @param[out] _pending  receives what to wait for before continuing.
+     * @return d_postgres_connect_start's result.
+     * @post On D_DB_WAIT the face holds the connection being made, and the
+     *       one it held is closed; on failure the face is as it was.
+     */
+    int
+    connect_start(
+        const struct d_postgres_options* _options,
+        d_db_pending&                    _pending
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_start(_options,
+                                                          &made,
+                                                          &_pending,
+                                                          D_NULLPTR);
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Starts a connection as connect_start does, and says why one
+     *        could not be.
+     *
+     * @param[in]  _options  where and as whom; `NULL` leaves every field to
+     *                       libpq.
+     * @param[out] _pending  receives what to wait for before continuing.
+     * @param[out] _message  libpq's reason when no connection could be
+     *                       started; null otherwise.
+     * @return d_postgres_connect_start's result.
+     * @post As for connect_start.
+     */
+    int
+    connect_start(
+        const struct d_postgres_options* _options,
+        d_db_pending&                    _pending,
+        text&                            _message
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_start(_options,
+                                                          &made,
+                                                          &_pending,
+                                                          _message.out());
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Starts a connection as a connection string says, as
+     *        d_postgres_connect_string_start does, to replace the
+     *        connection held.
+     *
+     * @param[in]  _conninfo  keywords and values, or a URI; `NULL` or ""
+     *                        leaves everything to libpq.
+     * @param[out] _pending   receives what to wait for before continuing.
+     * @return d_postgres_connect_string_start's result.
+     * @post As for connect_start.
+     */
+    int
+    connect_string_start(
+        string_arg    _conninfo,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_string_start(
+                                     _conninfo.c_str(),
+                                     &made,
+                                     &_pending,
+                                     D_NULLPTR);
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Starts a connection as connect_string_start does, and says why
+     *        one could not be.
+     *
+     * @param[in]  _conninfo  keywords and values, or a URI; `NULL` or ""
+     *                        leaves everything to libpq.
+     * @param[out] _pending   receives what to wait for before continuing.
+     * @param[out] _message   libpq's reason when no connection could be
+     *                        started, or the string could not be read; null
+     *                        otherwise.
+     * @return d_postgres_connect_string_start's result.
+     * @post As for connect_start.
+     */
+    int
+    connect_string_start(
+        string_arg    _conninfo,
+        d_db_pending& _pending,
+        text&         _message
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_string_start(
+                                     _conninfo.c_str(),
+                                     &made,
+                                     &_pending,
+                                     _message.out());
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Starts a connection with libpq's keywords and values and a
+     *        connection string, as d_postgres_connect_with_start does, to
+     *        replace the connection held.
+     *
+     * @param[in]  _conninfo  keywords and values, a URI, or a database's
+     *                        name; `NULL` or "" for none.
+     * @param[in]  _keywords  libpq's connection keywords.
+     * @param[in]  _values    their values, in the same order; a `NULL` or
+     *                        empty value is left out.
+     * @param[in]  _count     how many keywords there are.
+     * @param[out] _pending   receives what to wait for before continuing.
+     * @return d_postgres_connect_with_start's result.
+     * @post As for connect_start.
+     */
+    int
+    connect_with_start(
+        string_arg         _conninfo,
+        const char* const* _keywords,
+        const char* const* _values,
+        std::size_t        _count,
+        d_db_pending&      _pending
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_with_start(
+                                     _conninfo.c_str(),
+                                     _keywords,
+                                     _values,
+                                     _count,
+                                     &made,
+                                     &_pending,
+                                     D_NULLPTR);
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Starts a connection as connect_with_start does, and says why
+     *        one could not be.
+     *
+     * @param[in]  _conninfo  keywords and values, a URI, or a database's
+     *                        name; `NULL` or "" for none.
+     * @param[in]  _keywords  libpq's connection keywords.
+     * @param[in]  _values    their values, in the same order; a `NULL` or
+     *                        empty value is left out.
+     * @param[in]  _count     how many keywords there are.
+     * @param[out] _pending   receives what to wait for before continuing.
+     * @param[out] _message   libpq's reason when no connection could be
+     *                        started, the string could not be read, or a
+     *                        keyword is not libpq's; null otherwise.
+     * @return d_postgres_connect_with_start's result.
+     * @post As for connect_start.
+     */
+    int
+    connect_with_start(
+        string_arg         _conninfo,
+        const char* const* _keywords,
+        const char* const* _values,
+        std::size_t        _count,
+        d_db_pending&      _pending,
+        text&              _message
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* made   = D_NULLPTR;
+        const int       result = d_postgres_connect_with_start(
+                                     _conninfo.c_str(),
+                                     _keywords,
+                                     _values,
+                                     _count,
+                                     &made,
+                                     &_pending,
+                                     _message.out());
+
+        return m_take_started(result, made);
+    }
+
+    /**
+     * @brief Continues the connection a start began, as
+     *        d_postgres_connect_continue does.
+     *
+     * @param[in]     _events   what came, as d_db_wait.
+     * @param[in,out] _pending  what the start or the last continuation
+     *                          wrote; receives what to wait for next.
+     * @return d_postgres_connect_continue's result.
+     * @post On a failure the face holds no connection: the layer finished
+     *       the one being made.
+     */
+    int
+    connect_continue(
+        unsigned      _events,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* db     = m_db;
+        const int       result = d_postgres_connect_continue(&db,
+                                                             _events,
+                                                             &_pending,
+                                                             D_NULLPTR);
+
+        m_db = db;
+
+        return result;
+    }
+
+    /**
+     * @brief Continues the connection as connect_continue does, and says
+     *        why it could not be made.
+     *
+     * @param[in]     _events   what came, as d_db_wait.
+     * @param[in,out] _pending  what the start or the last continuation
+     *                          wrote; receives what to wait for next.
+     * @param[out]    _message  libpq's reason when the connection could not
+     *                          be made, "timeout expired" for its deadline;
+     *                          null otherwise.
+     * @return d_postgres_connect_continue's result.
+     * @post As for connect_continue.
+     */
+    int
+    connect_continue(
+        unsigned      _events,
+        d_db_pending& _pending,
+        text&         _message
+    ) D_NOEXCEPT
+    {
+        struct pg_conn* db     = m_db;
+        const int       result = d_postgres_connect_continue(&db,
+                                                             _events,
+                                                             &_pending,
+                                                             _message.out());
+
+        m_db = db;
+
+        return result;
+    }
+
+    // cancel_finish -- abandons a cancel request under way, as
+    // d_postgres_cancel_finish does; NULL is accepted. Returns 0
+    static int
+    cancel_finish(
+        struct pg_cancel_conn* _cancel
+    ) D_NOEXCEPT
+    {
+        return d_postgres_cancel_finish(_cancel);
+    }
+
     int
     ping() D_NOEXCEPT
     {
@@ -1028,6 +1374,194 @@ public:
     {
         return d_postgres_backend_pid(m_db);
     }
+
+    int
+    reconnect() D_NOEXCEPT
+    {
+        return d_postgres_reconnect(m_db);
+    }
+
+    int
+    reconnect_start(
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_postgres_reconnect_start(m_db, &_pending);
+    }
+
+    int
+    reconnect_continue(
+        unsigned      _events,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_postgres_reconnect_continue(m_db, _events, &_pending);
+    }
+
+    int
+    cancel(
+        text& _message
+    ) D_NOEXCEPT
+    {
+        return d_postgres_cancel(m_db, _message.out());
+    }
+
+    int
+    cancel(
+        std::string& _message
+    )
+    {
+        text      text_value;
+        const int result = d_postgres_cancel(m_db, text_value.out());
+
+        _message = text_value.str();
+
+        return result;
+    }
+
+#if D_INTERNAL_DB_FACE_OPTIONAL
+    int
+    cancel(
+        std::optional<std::string>& _message
+    )
+    {
+        text      text_value;
+        const int result = d_postgres_cancel(m_db, text_value.out());
+
+        // the text; nothing for SQL NULL, and for a failure
+        if (text_value.is_null())
+        {
+            _message.reset();
+        }
+        else
+        {
+            _message = text_value.str();
+        }
+
+        return result;
+    }
+#endif  // D_INTERNAL_DB_FACE_OPTIONAL
+
+    int
+    cancel_start(
+        pg_cancel_conn*& _cancel,
+        d_db_pending&    _pending,
+        text&            _message
+    ) D_NOEXCEPT
+    {
+        return d_postgres_cancel_start(m_db,
+                                       &_cancel,
+                                       &_pending,
+                                       _message.out());
+    }
+
+    int
+    cancel_start(
+        pg_cancel_conn*& _cancel,
+        d_db_pending&    _pending,
+        std::string&     _message
+    )
+    {
+        text      text_value;
+        const int result = d_postgres_cancel_start(m_db,
+                                                   &_cancel,
+                                                   &_pending,
+                                                   text_value.out());
+
+        _message = text_value.str();
+
+        return result;
+    }
+
+#if D_INTERNAL_DB_FACE_OPTIONAL
+    int
+    cancel_start(
+        pg_cancel_conn*&            _cancel,
+        d_db_pending&               _pending,
+        std::optional<std::string>& _message
+    )
+    {
+        text      text_value;
+        const int result = d_postgres_cancel_start(m_db,
+                                                   &_cancel,
+                                                   &_pending,
+                                                   text_value.out());
+
+        // the text; nothing for SQL NULL, and for a failure
+        if (text_value.is_null())
+        {
+            _message.reset();
+        }
+        else
+        {
+            _message = text_value.str();
+        }
+
+        return result;
+    }
+#endif  // D_INTERNAL_DB_FACE_OPTIONAL
+
+    static int
+    cancel_continue(
+        pg_cancel_conn*& _cancel,
+        unsigned         _events,
+        d_db_pending&    _pending,
+        text&            _message
+    ) D_NOEXCEPT
+    {
+        return d_postgres_cancel_continue(&_cancel,
+                                          _events,
+                                          &_pending,
+                                          _message.out());
+    }
+
+    int
+    cancel_continue(
+        pg_cancel_conn*& _cancel,
+        unsigned         _events,
+        d_db_pending&    _pending,
+        std::string&     _message
+    )
+    {
+        text      text_value;
+        const int result = d_postgres_cancel_continue(&_cancel,
+                                                      _events,
+                                                      &_pending,
+                                                      text_value.out());
+
+        _message = text_value.str();
+
+        return result;
+    }
+
+#if D_INTERNAL_DB_FACE_OPTIONAL
+    int
+    cancel_continue(
+        pg_cancel_conn*&            _cancel,
+        unsigned                    _events,
+        d_db_pending&               _pending,
+        std::optional<std::string>& _message
+    )
+    {
+        text      text_value;
+        const int result = d_postgres_cancel_continue(&_cancel,
+                                                      _events,
+                                                      &_pending,
+                                                      text_value.out());
+
+        // the text; nothing for SQL NULL, and for a failure
+        if (text_value.is_null())
+        {
+            _message.reset();
+        }
+        else
+        {
+            _message = text_value.str();
+        }
+
+        return result;
+    }
+#endif  // D_INTERNAL_DB_FACE_OPTIONAL
 
     // 1.2.1.5
     // Queries
@@ -1754,6 +2288,19 @@ public:
     ) D_NOEXCEPT
     {
         return d_postgres_close_prepared(m_db, _name.c_str());
+    }
+
+    int
+    prepare_start(
+        postgres_statement& _statement,
+        string_arg          _sql,
+        d_db_pending&       _pending
+    ) D_NOEXCEPT
+    {
+        return d_postgres_prepare_start(m_db,
+                                        _statement.out(),
+                                        _sql.c_str(),
+                                        &_pending);
     }
 
     // 1.2.1.7
@@ -3799,6 +4346,52 @@ public:
         return d_postgres_set_chunked_rows(m_db, _rows);
     }
 
+    int
+    send_query_start(
+        string_arg    _sql,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_postgres_send_query_start(m_db, _sql.c_str(), &_pending);
+    }
+
+    int
+    send_query_continue(
+        unsigned      _events,
+        d_db_pending& _pending
+    ) D_NOEXCEPT
+    {
+        return d_postgres_send_query_continue(m_db, _events, &_pending);
+    }
+
+    int
+    next_result_start(
+        d_db_pending&    _pending,
+        rows&            _rows,
+        re_std::int64_t& _changes
+    ) D_NOEXCEPT
+    {
+        return d_postgres_next_result_start(m_db,
+                                            &_pending,
+                                            _rows.out(),
+                                            &_changes);
+    }
+
+    int
+    next_result_continue(
+        unsigned         _events,
+        d_db_pending&    _pending,
+        rows&            _rows,
+        re_std::int64_t& _changes
+    ) D_NOEXCEPT
+    {
+        return d_postgres_next_result_continue(m_db,
+                                               _events,
+                                               &_pending,
+                                               _rows.out(),
+                                               &_changes);
+    }
+
     D_NODISCARD d_postgres_pipeline
     pipeline_status() const D_NOEXCEPT
     {
@@ -3884,6 +4477,23 @@ private:
     {
         // a failed connect made nothing to keep
         if (_result == 0)
+        {
+            reset(_made);
+        }
+
+        return _result;
+    }
+
+    // m_take_started -- a start's result; the connection being made replaces
+    // the face's when it answered D_DB_WAIT
+    int
+    m_take_started(
+        int             _result,
+        struct pg_conn* _made
+    ) D_NOEXCEPT
+    {
+        // a failed start made nothing to keep
+        if (_result == D_DB_WAIT)
         {
             reset(_made);
         }

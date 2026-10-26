@@ -27,7 +27,7 @@
 * path:      /src/djinterp/c/db/mariadb/mariadb_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 
 /*
@@ -51,22 +51,31 @@ TABLE OF CONTENTS
          12. D_INTERNAL_MARIADB_CLEARTEXT_SWITCH
          13. D_INTERNAL_MARIADB_GET_OPTION
          14. D_INTERNAL_MARIADB_PUBLIC_KEY_ASK
+         15. D_INTERNAL_MARIADB_ASYNC
+         16. D_INTERNAL_MARIADB_ASYNC_POLL_MS
+         17. D_INTERNAL_MARIADB_TLS_LIBRARY
+         18. D_INTERNAL_MARIADB_ASYNC_TLS_SINCE
+         19. D_INTERNAL_MARIADB_ASYNC_ANY_TLS_SINCE
 2.  HANDLES
     -------
     1.  The handle
          1.  D_INTERNAL_MARIADB_CHARSET_SIZE
          2.  d_internal_mariadb_attribute
-         3.  d_mariadb
+         3.  d_internal_mariadb_step
+         4.  d_internal_mariadb_async
+         5.  d_mariadb
     2.  Result codes
          1.  D_INTERNAL_MARIADB_UNKNOWN_ERROR
          2.  D_INTERNAL_MARIADB_OUT_OF_MEMORY
          3.  D_INTERNAL_MARIADB_INVALID_PARAMETER
          4.  D_INTERNAL_MARIADB_SSL_ERROR
          5.  D_INTERNAL_MARIADB_OUT_OF_SYNC
+         6.  D_INTERNAL_MARIADB_SERVER_LOST
     3.  Server facts
     4.  Replies
     5.  Query attributes
     6.  Statements
+    7.  Calls that do not block
 3.  NAMES
     -----
     1.  Checks
@@ -91,6 +100,7 @@ TABLE OF CONTENTS
 #include <limits.h>  // ULONG_MAX
 #include <stdarg.h>  // va_list
 #include <stddef.h>  // size_t
+#include <time.h>    // time_t
 // djinterp
 #include "../../../../../inc/djinterp/c/djinterp.h"  // framework root
 #include "../../../../../inc/djinterp/c/db/mariadb/mariadb_common.h"  // layer
@@ -321,6 +331,65 @@ TABLE OF CONTENTS
     #define D_INTERNAL_MARIADB_PUBLIC_KEY_ASK 0
 #endif
 
+// 1.2.15
+// D_INTERNAL_MARIADB_ASYNC
+//   brief: the client's calls that do not block (db_common.h 1.3): 2 for
+// MariaDB's, a _start and a _cont for each call, which say what they wait
+// for; 1 for libmysqlclient's _nonblocking calls, from 8.0.16, called again
+// with the same arguments until done, which say nothing of what they wait
+// for and cover connecting, queries and their results alone; 0 for none.
+#if (D_ENV_MYSQL_COMMON_IS_MARIADB)
+    #define D_INTERNAL_MARIADB_ASYNC 2
+#elif (MYSQL_VERSION_ID >= 80016)
+    #define D_INTERNAL_MARIADB_ASYNC 1
+#else
+    #define D_INTERNAL_MARIADB_ASYNC 0
+#endif
+
+// 1.2.16
+// D_INTERNAL_MARIADB_ASYNC_POLL_MS
+//   constant: how long a libmysqlclient call that does not block waits on its
+// socket for reading before it is called again regardless, in milliseconds.
+// The client never says it waits to write, and waiting for the socket to be
+// writable -- which it nearly always is -- would spin; the server answers
+// what it is sent, so a call waits to read, and a write the socket could not
+// take at once goes on at least this often.
+#define D_INTERNAL_MARIADB_ASYNC_POLL_MS 10u
+
+// 1.2.17
+// D_INTERNAL_MARIADB_TLS_LIBRARY
+//   brief: 1 where the client names its TLS library at run time
+// (mariadb_get_infov's MARIADB_TLS_LIBRARY) and reads its options back with
+// mysql_get_option: Connector/C from 3.0, the first with Schannel, Windows'
+// own TLS; 0 for every other client, none of which has Schannel.
+#if (D_ENV_MYSQL_COMMON_IS_MARIADB)
+    #if (MARIADB_PACKAGE_VERSION_ID >= 30000)
+        #define D_INTERNAL_MARIADB_TLS_LIBRARY 1
+    #else
+        #define D_INTERNAL_MARIADB_TLS_LIBRARY 0
+    #endif
+#else
+    #define D_INTERNAL_MARIADB_TLS_LIBRARY 0
+#endif
+
+// 1.2.18
+// D_INTERNAL_MARIADB_ASYNC_TLS_SINCE
+//   constant: the first Connector/C, as mysql_get_client_version numbers it,
+// whose calls that do not block go through Schannel: 3.4.10. Before it,
+// ma_pvio_read and ma_pvio_write pass a connection's TLS by when a call does
+// not block, where the library is Schannel (HAVE_SCHANNEL) -- 3.3 throughout,
+// to 3.3.21 -- and the first packet read under TLS, the server's answer to
+// the login, fails with 2013.
+#define D_INTERNAL_MARIADB_ASYNC_TLS_SINCE 30410ul
+
+// 1.2.19
+// D_INTERNAL_MARIADB_ASYNC_ANY_TLS_SINCE
+//   constant: the first Connector/C whose calls that do not block go through
+// any TLS library at all: 3.0.4, which added ma_tls_read_async and
+// ma_tls_write_async for OpenSSL and GnuTLS. From 3.0.0 to 3.0.3 every
+// such call passes TLS by.
+#define D_INTERNAL_MARIADB_ASYNC_ANY_TLS_SINCE 30004ul
+
 
 //==============================================================================
 // 2.  HANDLES
@@ -347,6 +416,104 @@ struct d_internal_mariadb_attribute
 };
 
 // 2.1.3
+// d_internal_mariadb_step
+//   enum: the client calls a call that does not block is made of, each
+// begun once and continued until done (2.7).
+enum d_internal_mariadb_step
+{
+    D_INTERNAL_MARIADB_STEP_NONE = 0,   // no client call under way
+    D_INTERNAL_MARIADB_STEP_CONNECT,    // mysql_real_connect
+    D_INTERNAL_MARIADB_STEP_QUERY,      // mysql_real_query
+    D_INTERNAL_MARIADB_STEP_SEND,       // mysql_send_query: MariaDB's
+                                        // client alone
+    D_INTERNAL_MARIADB_STEP_READ,       // mysql_read_query_result: MariaDB's
+                                        // client alone
+    D_INTERNAL_MARIADB_STEP_STORE,      // mysql_store_result
+    D_INTERNAL_MARIADB_STEP_NEXT,       // mysql_next_result
+    D_INTERNAL_MARIADB_STEP_OPTION,     // mysql_set_server_option, the
+                                        // multi-statement mode off
+    D_INTERNAL_MARIADB_STEP_PING,       // mysql_ping
+    D_INTERNAL_MARIADB_STEP_RESET,      // mysql_reset_connection
+    D_INTERNAL_MARIADB_STEP_USER,       // mysql_change_user
+    D_INTERNAL_MARIADB_STEP_CHARSET,    // mysql_set_character_set
+    D_INTERNAL_MARIADB_STEP_PREPARE,    // mysql_stmt_prepare
+    D_INTERNAL_MARIADB_STEP_EXECUTE,    // mysql_stmt_execute
+    D_INTERNAL_MARIADB_STEP_STMT_STORE, // mysql_stmt_store_result
+    D_INTERNAL_MARIADB_STEP_STMT_NEXT,  // mysql_stmt_next_result
+    D_INTERNAL_MARIADB_STEP_STMT_FREE,  // mysql_stmt_free_result
+    D_INTERNAL_MARIADB_STEP_FETCH       // mysql_stmt_fetch
+};
+
+// 2.1.4
+// d_internal_mariadb_async
+//   struct: a call that does not block, under way on a connection: the
+// operation the program began, where it is, the client call it waits on,
+// what that call answered, and the copies of whatever the client reads again
+// while it waits. Made the first time a connection needs one.
+struct d_internal_mariadb_async
+{
+    int                        (*advance)(struct d_mariadb*    _db,
+                                          struct d_db_pending* _pending);
+                                            // the operation's next stage,
+                                            // or NULL when none is under
+                                            // way
+    int                          stage;     // where the operation is
+    int                          sub;       // where a statement it runs to
+                                            // its end is (2.7)
+    int                          failure;   // its first failure, or 0
+    enum d_internal_mariadb_step step;      // the client call under way
+    int                          status;    // MariaDB's client: what that
+                                            // call waits for, MYSQL_WAIT_*
+    int                          ret;       // its answer, an int
+    d_internal_mariadb_flag      flag;      // its answer, a truth value
+    MYSQL*                       made;      // mysql_real_connect's answer
+    MYSQL_RES*                   result;    // mysql_store_result's answer
+    MYSQL_STMT*                  stmt;      // the client statement a
+                                            // statement's call is on
+    struct d_mariadb_statement*  statement; // the layer's statement whose
+                                            // call it is; NULL for none
+    char*                        text;      // SQL being sent, the layer's
+                                            // copy
+    unsigned long                length;    // its length
+    char*                        host;      // a connect's, or a change of
+    char*                        user;      // user's, arguments: copies,
+    char*                        password;  // which libmysqlclient reads
+    char*                        database;  // again each time it is called
+    char*                        socket;
+    unsigned                     port;
+    unsigned long                flags;     // a connect's client flags
+    bool                         tls;       // a connect insists on TLS
+    time_t                       deadline;  // libmysqlclient: when a
+                                            // connect's timeout expires,
+                                            // which the layer keeps; 0 for
+                                            // none
+    bool                         results;   // SQL sent whose results have
+                                            // still to be read to the end
+    bool                         given;     // the current result given
+    bool                         unread;    // the first statement's answer
+                                            // still to read: MariaDB's
+                                            // client sends alone
+    int                          deferred;  // the first statement's
+                                            // failure, read with the send
+                                            // by libmysqlclient, for the
+                                            // first result to give
+    struct d_db_rows*            rows;      // where the call under way
+                                            // gives rows
+    int64_t*                     changes;   // and the count
+    int                          mode;      // what a statement's run gives:
+                                            // mariadb_statement.c's
+    int64_t                      count;     // the count it read
+    size_t                       max;       // the most rows a page takes
+    size_t                       fetched;   // the rows it has
+    struct d_internal_db_rows    page;      // the rows a statement's call
+                                            // has read, kept between waits
+    size_t                       command;   // the init command a reset runs
+                                            // next
+    char                         charset[D_INTERNAL_MARIADB_CHARSET_SIZE];
+                                            // SET NAMES's argument
+};
+
+// 2.1.5
 // d_mariadb
 //   struct: the definition mariadb_common.h declares: the client's
 // connection, and what the layer has learned of the server it reached.
@@ -380,6 +547,13 @@ struct d_mariadb
                                              // which a reset returns to; ""
                                              // when the client named none,
                                              // or one too long to keep
+    bool                  charset_named;     // a character set named for the
+                                             // connect -- the layer's, or one
+                                             // a native setting of
+                                             // MYSQL_SET_CHARSET_NAME gave in
+                                             // its place -- which the session
+                                             // is given where the handshake
+                                             // loses it
     char*                 init_commands;     // the init commands the layer's
                                              // connect gave the client, each
                                              // terminated, one after another,
@@ -402,6 +576,10 @@ struct d_mariadb
                           retired;           // statements finalized while a
                                              // run held the connection, the
                                              // server told once it is free
+    struct d_internal_mariadb_async*
+                          async;             // the call that does not
+                                             // block, under way or last
+                                             // made; NULL until one is
 };
 
 // 2.2    Result codes
@@ -440,6 +618,13 @@ struct d_mariadb
 // connection, its rows still arriving (CR_COMMANDS_OUT_OF_SYNC, the client's
 // own number for a command sent while a result is unread).
 #define D_INTERNAL_MARIADB_OUT_OF_SYNC 2014
+
+// 2.2.6
+// D_INTERNAL_MARIADB_SERVER_LOST
+//   constant: a connect whose server did not answer within its timeout, as
+// the client's blocking connect reports it (CR_SERVER_LOST): the layer's to
+// report for libmysqlclient's calls that do not block, which keep no timeout.
+#define D_INTERNAL_MARIADB_SERVER_LOST 2013
 
 // 2.3    Server facts
 //------------------------------------------------------------------------------
@@ -497,6 +682,89 @@ int  d_internal_mariadb_idle(const struct d_mariadb* _db);
 void d_internal_mariadb_close_retired(struct d_mariadb* _db);
 void d_internal_mariadb_detach(struct d_mariadb* _db,
                                bool              _read_rest);
+
+// 2.7    Calls that do not block
+//------------------------------------------------------------------------------
+// A call that does not block is an operation -- a connect, SQL sent, its
+// results read, a statement prepared or run -- made of client calls that do
+// not block, steps, one after another. The operation keeps its place in the
+// handle's record (2.1.4), and its advance function, given the last step's
+// answers, begins the next step or ends the operation; d_internal_mariadb_
+// drive continues the step under way, as the socket allows, and advances,
+// until a step must wait or the operation is done. While one is under way
+// the connection is held: _idle and _ready answer D_INTERNAL_MARIADB_OUT_OF_
+// SYNC for every other command, as for a statement's run.
+//   _async_get gives the record, made on first use -- with MariaDB's client
+// its non-blocking context too, which a connection the layer connected
+// without one gains then -- or NULL when memory ran out; _async_free
+// releases it, for a close. _busy answers whether an operation is under
+// way, or SQL sent has results still to read. _begin starts an operation,
+// given its advance function, and drives it;
+// _drive continues one; both answer D_DB_WAIT, or the operation's result,
+// which leaves the record idle and `_pending` settled. _step begins a step:
+// D_DB_WAIT while it waits, `_pending` then saying for what; 0 when it
+// finished at once, its answers in the record; D_DB_UNSUPPORTED for a step
+// the client cannot make without blocking. _unpend leaves a pending call
+// as a finished one leaves it. _keep_text copies text into the record, NULL
+// kept as NULL; false when memory ran out.
+struct d_internal_mariadb_async*
+     d_internal_mariadb_async_get(struct d_mariadb* _db);
+void d_internal_mariadb_async_free(struct d_mariadb* _db);
+bool d_internal_mariadb_busy(const struct d_mariadb* _db);
+int  d_internal_mariadb_begin(struct d_mariadb*    _db,
+                              int                (*_advance)(
+                                                     struct d_mariadb*,
+                                                     struct d_db_pending*),
+                              struct d_db_pending* _pending);
+int  d_internal_mariadb_drive(struct d_mariadb*    _db,
+                              unsigned             _events,
+                              struct d_db_pending* _pending);
+int  d_internal_mariadb_step(struct d_mariadb*            _db,
+                             enum d_internal_mariadb_step _step,
+                             struct d_db_pending*         _pending);
+void d_internal_mariadb_unpend(struct d_db_pending* _pending);
+bool d_internal_mariadb_keep_text(char**      _to,
+                                  const char* _text);
+// TLS a client cannot carry without blocking (d_mariadb_client_
+// nonblocking_tls false) -- _tls_blocks answers whether the connection uses
+// TLS so, which every start but a connect's refuses with D_DB_UNSUPPORTED;
+// _tls_blocks_connect whether a connection set up, not yet made, would ask
+// the server for TLS so, which a connect's start refuses: Connector/C asks
+// with its switch on, the server's certificate to be checked, or a key, a
+// certificate, an authority, a cipher or a fingerprint given, and an option
+// it cannot report, or a defaults file it reads while connecting, counts as
+// asking. Neither fails; both are false with a client that can.
+bool d_internal_mariadb_tls_blocks(const struct d_mariadb* _db);
+bool d_internal_mariadb_tls_blocks_connect(MYSQL* _native);
+// before an operation (mariadb_connection.c) -- _tidy does what
+// d_internal_mariadb_ready does before a command, without blocking: 2014
+// while a run or an operation holds the connection, else 0, the statement
+// whose prepare failed and those retired closed, and with libmysqlclient
+// the multi-statement mode turned off, waiting, since it has no step for
+// it. _mode_off turns that mode off as a step where a failed script left it
+// on: stage `_stage` begins it and `_stage` + 1 reads its answer; it
+// answers D_DB_WAIT, 0 once off or never on, or the client's error number.
+int  d_internal_mariadb_tidy(struct d_mariadb* _db);
+int  d_internal_mariadb_mode_off(struct d_mariadb*    _db,
+                                 int                  _stage,
+                                 struct d_db_pending* _pending);
+/**
+ * @brief Runs SQL as d_internal_mariadb_send does, without blocking: the
+ *        record's text sent, then every result it produces read and freed.
+ *
+ * @param[in,out] _db       the connection, an operation under way, its
+ *                          record's text the SQL and `sub` 0 to begin.
+ * @param[in,out] _pending  receives what to wait for.
+ * @return D_DB_WAIT; 0, every result read; or the client's error number
+ *         for the statement that failed.
+ *
+ * An operation's stage calls it again until it answers anything but
+ * D_DB_WAIT; the query attributes set for the next query go with it, and
+ * its last result's end records whether the reply carried the session's
+ * changes, as for any statement the layer runs.
+ */
+int  d_internal_mariadb_run_async(struct d_mariadb*    _db,
+                                  struct d_db_pending* _pending);
 
 
 //==============================================================================

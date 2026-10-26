@@ -34,13 +34,23 @@
 * the server is told when the connection is next free.
 *   A statement belongs to its connection. Closing the connection leaves its
 * statements unable to run -- each run is then D_DB_INVALID_ARGUMENT -- and
-* only to be finalized; a run still open ends with it.
+* only to be finalized; a run still open ends with it. A prepare that did not
+* block and failed leaves its statement so too (1.4).
+*   WITHOUT BLOCKING (1.4, 3.4), with MariaDB's client alone -- libmysqlclient
+* has no statement calls that do not block (D_DB_UNSUPPORTED), nor has
+* MariaDB's over TLS it cannot carry so (mariadb_connection.h 1.8): each starts,
+* answers D_DB_WAIT with what to wait for, and is continued with what came,
+* as mariadb_connection.h 1.8 describes, until it answers as the blocking
+* form would. Meanwhile the connection is held -- every other command on it
+* is 2014, the statement's own blocking calls and binds among them -- and a
+* statement finalized meanwhile abandons its own call: the client's statement
+* stays with the connection, which nothing can use again but d_mariadb_close.
 *
 *
 * path:      /inc/djinterp/c/db/mariadb/mariadb_statement.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 
 /*
@@ -51,6 +61,7 @@ TABLE OF CONTENTS
     1.  Preparing
     2.  Finalizing
     3.  Describing
+    4.  Preparing without blocking
 2.  VALUES
     ------
     1.  Binding
@@ -60,6 +71,7 @@ TABLE OF CONTENTS
     1.  Rows changed
     2.  Rows
     3.  Rows a few at a time
+    4.  Running without blocking
 */
 
 #ifndef DJINTERP_C_DB_MARIADB_MARIADB_STATEMENT_H
@@ -135,9 +147,11 @@ int    d_mariadb_preparef(struct d_mariadb*            _db,
  * @brief Releases a statement, and the server's copy of it.
  *
  * @note A run of its own ends first, read to its end. While another
- *       statement's run holds the connection, the server is told once the
- *       connection is free -- before the layer's next command on it, or at
- *       its close.
+ *       statement's run, or a call that does not block, holds the
+ *       connection, the server is told once the connection is free --
+ *       before the layer's next command on it, or at its close. A call of
+ *       the statement's own that does not block is abandoned, never waited
+ *       for: the connection is then good only for d_mariadb_close.
  *
  * @param[in] _statement  the statement; may be `NULL`.
  * @return 0, or the client's error number when the server could not be told,
@@ -156,6 +170,55 @@ size_t d_mariadb_parameter_count(const struct d_mariadb_statement* _statement)
 struct d_mariadb*
        d_mariadb_statement_connection(
            const struct d_mariadb_statement* _statement) D_NOTHROW;
+
+// 1.4    Preparing without blocking
+//------------------------------------------------------------------------------
+// d_mariadb_prepare_start begins what d_mariadb_prepare does -- the
+// multi-statement mode a failed script left on turned off, then the prepare
+// -- as steps that never wait, each continued by d_mariadb_prepare_continue
+// as the socket allows. The statement exists from the start, and is the
+// caller's to finalize whatever the continuation answers: a prepare that
+// fails leaves it unprepared, good only for finalizing -- each run of it is
+// D_DB_INVALID_ARGUMENT, and it has no parameters.
+/**
+ * @brief Begins having the server compile one SQL statement, without
+ *        waiting.
+ *
+ * @param[in]  _db         the connection.
+ * @param[out] _statement  receives the statement being prepared; `NULL` on
+ *                         failure.
+ * @param[in]  _sql        as for d_mariadb_prepare.
+ * @param[out] _pending    receives what to wait for before continuing.
+ * @return D_DB_WAIT; 0 should every step finish at once; as
+ *         d_mariadb_prepare for a failure; D_DB_UNSUPPORTED with
+ *         libmysqlclient, and over TLS the client cannot carry so;
+ *         D_DB_INVALID_ARGUMENT for a `NULL` argument, or SQL longer than
+ *         the client's lengths carry.
+ * @post Unless it failed, the caller releases `*_statement` with
+ *       d_mariadb_finalize, and continues it with d_mariadb_prepare_continue
+ *       while the answer is D_DB_WAIT.
+ */
+int    d_mariadb_prepare_start(struct d_mariadb*            _db,
+                               struct d_mariadb_statement** _statement,
+                               const char*                  _sql,
+                               struct d_db_pending*         _pending)
+                               D_NOTHROW;
+/**
+ * @brief Continues the prepare d_mariadb_prepare_start began.
+ *
+ * @param[in]     _statement  the statement being prepared.
+ * @param[in]     _events     what came, as d_db_wait.
+ * @param[in,out] _pending    what the start or the last continuation wrote;
+ *                            receives what to wait for next.
+ * @return 0, the statement compiled and its parameters counted; D_DB_WAIT;
+ *         as d_mariadb_prepare for a failure, which leaves the statement
+ *         unprepared; D_DB_INVALID_ARGUMENT for a `NULL` argument, or a
+ *         statement with no prepare under way.
+ */
+int    d_mariadb_prepare_continue(struct d_mariadb_statement* _statement,
+                                  unsigned                    _events,
+                                  struct d_db_pending*        _pending)
+                                  D_NOTHROW;
 
 
 //==============================================================================
@@ -296,6 +359,147 @@ int    d_mariadb_fetch_rows(struct d_mariadb_statement* _statement,
 // with no run open; D_DB_INVALID_ARGUMENT for NULL
 int    d_mariadb_close_cursor(struct d_mariadb_statement* _statement)
        D_NOTHROW;
+
+// 3.4    Running without blocking
+//------------------------------------------------------------------------------
+// d_mariadb_execute_start sends the statement with its values; its results
+// are read by d_mariadb_execute_update_continue, which gives them as
+// d_mariadb_execute_update does, or by d_mariadb_execute_query_continue, as
+// d_mariadb_execute_query does -- whichever is called first, the other then
+// refused -- each answering D_DB_WAIT until every result has arrived. The
+// start answers D_DB_WAIT even where the statement ran at once, its answer
+// still to be read: what it says to wait for, the socket writable, is
+// ready at once. d_mariadb_open_cursor_start opens a run as
+// d_mariadb_open_cursor does, continued by d_mariadb_open_cursor_continue;
+// d_mariadb_fetch_rows_start reads the next page as d_mariadb_fetch_rows
+// does, a row at a time as each arrives, giving it once it is whole -- the
+// connection keeping it between continuations -- continued by
+// d_mariadb_fetch_rows_continue. Each start refuses, 2014, while a run, a
+// page's start excepted, or a call that does not block holds the
+// connection, rather than end or wait for it.
+/**
+ * @brief Sends a statement to run, with its values, without waiting for its
+ *        results.
+ *
+ * @param[in]  _statement  the statement.
+ * @param[out] _pending    receives what to wait for.
+ * @return D_DB_WAIT, the results to read with a continuation; the client's
+ *         error number for a failure before anything was sent, the
+ *         connection lost among them; 2014 while the connection is held;
+ *         D_DB_UNSUPPORTED with libmysqlclient, and over TLS the client
+ *         cannot carry so; D_DB_INVALID_ARGUMENT for a `NULL` argument, or a
+ *         statement whose connection is closed.
+ * @post While the answer is D_DB_WAIT, the caller reads the results with
+ *       d_mariadb_execute_update_continue or
+ *       d_mariadb_execute_query_continue.
+ */
+int    d_mariadb_execute_start(struct d_mariadb_statement* _statement,
+                               struct d_db_pending*        _pending)
+                               D_NOTHROW;
+/**
+ * @brief Reads the results of the run d_mariadb_execute_start sent, once
+ *        they have arrived, counting the rows it changed.
+ *
+ * @param[in]     _statement  the statement.
+ * @param[in]     _events     what came, as d_db_wait.
+ * @param[in,out] _pending    what the start or the last continuation wrote;
+ *                            receives what to wait for next.
+ * @param[out]    _changes    as for d_mariadb_execute_update; may be `NULL`.
+ * @return as d_mariadb_execute_update, and D_DB_WAIT; D_DB_INVALID_ARGUMENT
+ *         for a `NULL` statement or pending call, or a statement with no run
+ *         sent, or whose results d_mariadb_execute_query_continue reads.
+ */
+int    d_mariadb_execute_update_continue(
+           struct d_mariadb_statement* _statement,
+           unsigned                    _events,
+           struct d_db_pending*        _pending,
+           int64_t*                    _changes) D_NOTHROW;
+/**
+ * @brief Reads the results of the run d_mariadb_execute_start sent, once
+ *        they have arrived, returning the rows of the first.
+ *
+ * @param[in]     _statement  the statement.
+ * @param[in]     _events     what came, as d_db_wait.
+ * @param[in,out] _pending    what the start or the last continuation wrote;
+ *                            receives what to wait for next.
+ * @param[out]    _rows       as for d_mariadb_execute_query.
+ * @return as d_mariadb_execute_query, and D_DB_WAIT; D_DB_INVALID_ARGUMENT
+ *         also for a statement with no run sent, or whose results
+ *         d_mariadb_execute_update_continue reads.
+ * @post On success the caller releases `_rows` with d_db_rows_free.
+ */
+int    d_mariadb_execute_query_continue(
+           struct d_mariadb_statement* _statement,
+           unsigned                    _events,
+           struct d_db_pending*        _pending,
+           struct d_db_rows*           _rows) D_NOTHROW;
+/**
+ * @brief Opens a run as d_mariadb_open_cursor does, without waiting.
+ *
+ * @param[in]  _statement  the statement, its values bound.
+ * @param[out] _pending    receives what to wait for before continuing.
+ * @return 0, the run open, its pages to fetch; D_DB_WAIT; as
+ *         d_mariadb_open_cursor for a failure; 2014 while the connection is
+ *         held, a run of the statement's own among them; D_DB_UNSUPPORTED
+ *         with libmysqlclient, and over TLS the client cannot carry so;
+ *         D_DB_INVALID_ARGUMENT for a `NULL` argument, or a statement whose
+ *         connection is closed.
+ */
+int    d_mariadb_open_cursor_start(struct d_mariadb_statement* _statement,
+                                   struct d_db_pending*        _pending)
+                                   D_NOTHROW;
+/**
+ * @brief Continues the run d_mariadb_open_cursor_start began opening.
+ *
+ * @param[in]     _statement  the statement.
+ * @param[in]     _events     what came, as d_db_wait.
+ * @param[in,out] _pending    what the start or the last continuation wrote;
+ *                            receives what to wait for next.
+ * @return as d_mariadb_open_cursor_start; D_DB_INVALID_ARGUMENT also for a
+ *         statement with no run being opened.
+ */
+int    d_mariadb_open_cursor_continue(
+           struct d_mariadb_statement* _statement,
+           unsigned                    _events,
+           struct d_db_pending*        _pending) D_NOTHROW;
+/**
+ * @brief Begins reading the next page of the open run, without waiting.
+ *
+ * @param[in]  _statement  the statement, its run open.
+ * @param[in]  _max        the most rows the page holds; 1 or more.
+ * @param[out] _pending    receives what to wait for while the page is not
+ *                         whole.
+ * @param[out] _rows       as for d_mariadb_fetch_rows, once the page is
+ *                         given.
+ * @return as d_mariadb_fetch_rows, and D_DB_WAIT; 2014 while a call that
+ *         does not block holds the connection; D_DB_UNSUPPORTED with
+ *         libmysqlclient, and over TLS the client cannot carry so;
+ *         D_DB_INVALID_ARGUMENT as d_mariadb_fetch_rows gives it.
+ * @post On success the caller releases `_rows` with d_db_rows_free.
+ */
+int    d_mariadb_fetch_rows_start(struct d_mariadb_statement* _statement,
+                                  size_t                      _max,
+                                  struct d_db_pending*        _pending,
+                                  struct d_db_rows*           _rows)
+                                  D_NOTHROW;
+/**
+ * @brief Reads more of the page d_mariadb_fetch_rows_start began, giving it
+ *        once it is whole.
+ *
+ * @param[in]     _statement  the statement.
+ * @param[in]     _events     what came, as d_db_wait.
+ * @param[in,out] _pending    what the start or the last continuation wrote;
+ *                            receives what to wait for next.
+ * @param[out]    _rows       as for d_mariadb_fetch_rows_start.
+ * @return as d_mariadb_fetch_rows_start; D_DB_INVALID_ARGUMENT also for a
+ *         statement with no page under way.
+ * @post As for d_mariadb_fetch_rows_start.
+ */
+int    d_mariadb_fetch_rows_continue(
+           struct d_mariadb_statement* _statement,
+           unsigned                    _events,
+           struct d_db_pending*        _pending,
+           struct d_db_rows*           _rows) D_NOTHROW;
 
 
 D_EXTERN_C_END

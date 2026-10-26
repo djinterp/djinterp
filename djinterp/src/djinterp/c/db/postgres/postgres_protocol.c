@@ -20,7 +20,7 @@
 * path:      /src/djinterp/c/db/postgres/postgres_protocol.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 // D_INTERNAL_POSTGRES_SOURCE
 //   macro: this file is one of the PostgreSQL layer's own sources, for which
@@ -48,6 +48,11 @@
 //==============================================================================
 // FILE-LOCAL DEFINITIONS
 //==============================================================================
+
+// D_INTERNAL_POSTGRES_TURNED_ON
+//   constant: the bit of a pending send's state that says the send turned
+// libpq's non-blocking mode on, and so turns it off once it is written.
+#define D_INTERNAL_POSTGRES_TURNED_ON 1u
 
 /*
 d_internal_postgres_trouble
@@ -520,57 +525,33 @@ d_postgres_send_query(
 // 3.2    Results
 //------------------------------------------------------------------------------
 /*
-d_postgres_next_result
-  One result a call; none left is D_DB_NOT_FOUND. In pipeline mode a result
-yet to arrive is asked for first (d_internal_postgres_ask), and libpq ends
-each statement's results with no result: read at once after the statement's
-last success -- libpq answers it without waiting -- so that the next
-statement's rows can be asked for a few at a time, and after a statement
-skipped, whose answer is the layer's own; but after the server's failure
-only when the next result is asked for, since reading it clears the
-connection's message, which must describe the failure until then. A
-result's count is read before its rows are built, which frees it.
+d_internal_postgres_give
+  A result libpq handed over, as d_postgres_next_result gives it: none left
+is D_DB_NOT_FOUND. In pipeline mode a synchronization point is
+D_DB_NOT_FOUND too, a statement a failure skipped is the layer's own 25P02,
+and libpq ends each statement's results with no result, read at once after
+the statement's last success -- libpq answers it without waiting -- so that
+the next statement's rows can be asked for a few at a time. A result's count
+is read before its rows are built, which frees it.
 */
-int
-d_postgres_next_result(
-    struct pg_conn*   _db,
+static int
+d_internal_postgres_give(
+    PGconn*           _db,
+    PGresult*         _next,
+    bool              _pipelined,
     struct d_db_rows* _rows,
     int64_t*          _changes
 )
 {
-    PGresult* next  = NULL;
     PGresult* taken = NULL;
 
-    // parameter validation
-    if ( (!_db) ||
-         (!_rows) )
-    {
-        return D_DB_INVALID_ARGUMENT;
-    }
-
-    const bool pipelined = d_internal_postgres_pipelined(_db);
-    int        asked     = d_internal_postgres_await(_db, pipelined, &next);
-
-    // in a pipeline, the end of a failed statement's results, and the next
-    if ( (asked == 0) &&
-         (!next)      &&
-         (pipelined) )
-    {
-        asked = d_internal_postgres_await(_db, pipelined, &next);
-    }
-
-    // the server not asked, or every result read
-    if (asked != 0)
-    {
-        return asked;
-    }
-
-    if (!next)
+    // every result read
+    if (!_next)
     {
         return D_DB_NOT_FOUND;
     }
 
-    const ExecStatusType status = PQresultStatus(next);
+    const ExecStatusType status = PQresultStatus(_next);
 
 #if defined(LIBPQ_HAS_PIPELINING)
     // a synchronization point, and a statement a failure skipped, whose
@@ -578,13 +559,13 @@ d_postgres_next_result(
     switch (status)
     {
         case PGRES_PIPELINE_SYNC:
-            PQclear(next);
+            PQclear(_next);
             d_internal_postgres_heard(_db);
 
             return D_DB_NOT_FOUND;
 
         case PGRES_PIPELINE_ABORTED:
-            PQclear(next);
+            PQclear(_next);
             PQclear(PQgetResult(_db));
             d_internal_postgres_heard(_db);
 
@@ -597,7 +578,7 @@ d_postgres_next_result(
     }
 #endif  // LIBPQ_HAS_PIPELINING
 
-    const int result = d_internal_postgres_take(_db, next, &taken);
+    const int result = d_internal_postgres_take(_db, _next, &taken);
 
     // a failure, or a COPY ended
     if (result != 0)
@@ -606,7 +587,7 @@ d_postgres_next_result(
     }
 
     // in a pipeline, the end of the statement's results, after its last
-    if ( (pipelined)                     &&
+    if ( (_pipelined)                    &&
 #if defined(LIBPQ_HAS_CHUNK_MODE)
          (status != PGRES_TUPLES_CHUNK)  &&
 #endif  // LIBPQ_HAS_CHUNK_MODE
@@ -626,6 +607,50 @@ d_postgres_next_result(
     }
 
     return built;
+}
+
+/*
+d_postgres_next_result
+  One result a call (d_internal_postgres_give). In pipeline mode a result
+yet to arrive is asked for first (d_internal_postgres_ask); after the
+server's failure, the end of the failed statement's results is read only
+when the next result is asked for, since reading it clears the connection's
+message, which must describe the failure until then.
+*/
+int
+d_postgres_next_result(
+    struct pg_conn*   _db,
+    struct d_db_rows* _rows,
+    int64_t*          _changes
+)
+{
+    PGresult* next = NULL;
+
+    // parameter validation
+    if ( (!_db) ||
+         (!_rows) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    const bool pipelined = d_internal_postgres_pipelined(_db);
+    int        asked     = d_internal_postgres_await(_db, pipelined, &next);
+
+    // in a pipeline, the end of a failed statement's results, and the next
+    if ( (asked == 0) &&
+         (!next)      &&
+         (pipelined) )
+    {
+        asked = d_internal_postgres_await(_db, pipelined, &next);
+    }
+
+    // the server not asked
+    if (asked != 0)
+    {
+        return asked;
+    }
+
+    return d_internal_postgres_give(_db, next, pipelined, _rows, _changes);
 }
 
 /*
@@ -703,6 +728,223 @@ d_postgres_set_chunked_rows(
     }
 
     return (set == 1) ? 0 : D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION;
+}
+
+// 3.4    Without blocking
+//------------------------------------------------------------------------------
+/*
+d_internal_postgres_sending
+  What is left of a send, written as far as the socket takes it; a send
+that finishes, or fails, leaves nothing pending.
+*/
+static int
+d_internal_postgres_sending(
+    PGconn*              _db,
+    unsigned             _events,
+    struct d_db_pending* _pending
+)
+{
+    const int result = d_internal_postgres_flush(
+                           _db,
+                           _events,
+                           ((_pending->state &
+                             D_INTERNAL_POSTGRES_TURNED_ON) != 0u),
+                           _pending);
+
+    // finished, or failed
+    if (result != D_DB_WAIT)
+    {
+        d_internal_postgres_settled(_pending);
+    }
+
+    return result;
+}
+
+/*
+d_internal_postgres_next_arrived
+  The next result once it has arrived (d_internal_postgres_give), outside
+pipeline mode; until then, a wait for the socket to be readable.
+*/
+static int
+d_internal_postgres_next_arrived(
+    PGconn*              _db,
+    struct d_db_pending* _pending,
+    struct d_db_rows*    _rows,
+    int64_t*             _changes
+)
+{
+    const int arrived = d_internal_postgres_arrived(_db, _pending);
+
+    // still to come, or trouble
+    if (arrived != 0)
+    {
+        if (arrived != D_DB_WAIT)
+        {
+            d_internal_postgres_settled(_pending);
+        }
+
+        return arrived;
+    }
+
+    d_internal_postgres_settled(_pending);
+
+    return d_internal_postgres_give(_db,
+                                    PQgetResult(_db),
+                                    false,
+                                    _rows,
+                                    _changes);
+}
+
+/*
+d_postgres_send_query_start
+  PQsendQuery in non-blocking mode queues what the socket cannot take at
+once, and PQflush writes the rest as the socket takes it; the mode is turned
+on only where it is off, so that a program's own choice of it stands.
+*/
+int
+d_postgres_send_query_start(
+    struct pg_conn*      _db,
+    const char*          _sql,
+    struct d_db_pending* _pending
+)
+{
+    // nothing pending yet, whatever follows
+    if (_pending)
+    {
+        d_internal_postgres_settled(_pending);
+    }
+
+    // parameter validation
+    if ( (!_db)  ||
+         (!_sql) ||
+         (!_pending) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    // pipeline mode queues without waiting already
+    if (d_internal_postgres_pipelined(_db))
+    {
+        return d_internal_postgres_answer(
+                   _db,
+                   D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    }
+
+    const bool turned = d_internal_postgres_nonblocking_on(_db);
+    const int  sent   = PQsendQuery(_db, _sql);
+
+    // libpq has answered, by its return value and its message
+    d_internal_postgres_heard(_db);
+
+    // refused: busy with SQL sent before, or the connection lost
+    if (sent != 1)
+    {
+        if (turned)
+        {
+            (void)PQsetnonblocking(_db, 0);
+        }
+
+        return d_internal_postgres_trouble(_db);
+    }
+
+    _pending->state = (turned) ? D_INTERNAL_POSTGRES_TURNED_ON : 0u;
+
+    return d_internal_postgres_sending(_db, 0u, _pending);
+}
+
+/*
+d_postgres_send_query_continue
+  The rest of the send (d_internal_postgres_sending).
+*/
+int
+d_postgres_send_query_continue(
+    struct pg_conn*      _db,
+    unsigned             _events,
+    struct d_db_pending* _pending
+)
+{
+    // parameter validation
+    if ( (!_db) ||
+         (!_pending) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    return d_internal_postgres_sending(_db, _events, _pending);
+}
+
+/*
+d_postgres_next_result_start
+  The next result, once it has arrived (d_internal_postgres_next_arrived).
+*/
+int
+d_postgres_next_result_start(
+    struct pg_conn*      _db,
+    struct d_db_pending* _pending,
+    struct d_db_rows*    _rows,
+    int64_t*             _changes
+)
+{
+    // nothing pending yet, whatever follows
+    if (_pending)
+    {
+        d_internal_postgres_settled(_pending);
+    }
+
+    // parameter validation
+    if ( (!_db)      ||
+         (!_pending) ||
+         (!_rows) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    // pipeline mode reads its results its own way
+    if (d_internal_postgres_pipelined(_db))
+    {
+        return d_internal_postgres_answer(
+                   _db,
+                   D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    }
+
+    return d_internal_postgres_next_arrived(_db, _pending, _rows, _changes);
+}
+
+/*
+d_postgres_next_result_continue
+  What came is read whatever the program says came: PQconsumeInput never
+waits, and finds nothing when nothing came.
+*/
+int
+d_postgres_next_result_continue(
+    struct pg_conn*      _db,
+    unsigned             _events,
+    struct d_db_pending* _pending,
+    struct d_db_rows*    _rows,
+    int64_t*             _changes
+)
+{
+    (void)_events;
+
+    // parameter validation
+    if ( (!_db)      ||
+         (!_pending) ||
+         (!_rows) )
+    {
+        return D_DB_INVALID_ARGUMENT;
+    }
+
+    // pipeline mode reads its results its own way
+    if (d_internal_postgres_pipelined(_db))
+    {
+        d_internal_postgres_settled(_pending);
+
+        return d_internal_postgres_answer(
+                   _db,
+                   D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    }
+
+    return d_internal_postgres_next_arrived(_db, _pending, _rows, _changes);
 }
 
 //==============================================================================
@@ -1489,6 +1731,102 @@ d_postgres_set_chunked_rows(
     (void)_rows;
 
     return D_DB_UNSUPPORTED;
+}
+
+/*
+d_internal_postgres_nothing_pending
+  What a start or continuation leaves without libpq: nothing pending.
+D_DB_UNSUPPORTED.
+*/
+static int
+d_internal_postgres_nothing_pending(
+    struct d_db_pending* _pending
+)
+{
+    if (_pending)
+    {
+        _pending->socket     = D_DB_SOCKET_NONE;
+        _pending->events     = 0u;
+        _pending->timeout_ms = 0u;
+        _pending->deadline   = 0.0;
+        _pending->state      = 0u;
+    }
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_postgres_send_query_start
+  Without libpq, D_DB_UNSUPPORTED, nothing pending.
+*/
+int
+d_postgres_send_query_start(
+    struct pg_conn*      _db,
+    const char*          _sql,
+    struct d_db_pending* _pending
+)
+{
+    (void)_db;
+    (void)_sql;
+
+    return d_internal_postgres_nothing_pending(_pending);
+}
+
+/*
+d_postgres_send_query_continue
+  Without libpq, D_DB_UNSUPPORTED, nothing pending.
+*/
+int
+d_postgres_send_query_continue(
+    struct pg_conn*      _db,
+    unsigned             _events,
+    struct d_db_pending* _pending
+)
+{
+    (void)_db;
+    (void)_events;
+
+    return d_internal_postgres_nothing_pending(_pending);
+}
+
+/*
+d_postgres_next_result_start
+  Without libpq, D_DB_UNSUPPORTED, nothing pending, and no rows.
+*/
+int
+d_postgres_next_result_start(
+    struct pg_conn*      _db,
+    struct d_db_pending* _pending,
+    struct d_db_rows*    _rows,
+    int64_t*             _changes
+)
+{
+    (void)_db;
+    (void)_rows;
+    (void)_changes;
+
+    return d_internal_postgres_nothing_pending(_pending);
+}
+
+/*
+d_postgres_next_result_continue
+  Without libpq, D_DB_UNSUPPORTED, nothing pending, and no rows.
+*/
+int
+d_postgres_next_result_continue(
+    struct pg_conn*      _db,
+    unsigned             _events,
+    struct d_db_pending* _pending,
+    struct d_db_rows*    _rows,
+    int64_t*             _changes
+)
+{
+    (void)_db;
+    (void)_events;
+    (void)_rows;
+    (void)_changes;
+
+    return d_internal_postgres_nothing_pending(_pending);
 }
 
 /*

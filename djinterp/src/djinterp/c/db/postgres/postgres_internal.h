@@ -25,7 +25,7 @@
 * path:      /src/djinterp/c/db/postgres/postgres_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 
 /*
@@ -39,6 +39,7 @@ TABLE OF CONTENTS
     1.  Reading results
     2.  Answers of the layer's own
     3.  The connection held
+    4.  Waiting
 3.  NAMES
     -----
     1.  Checks
@@ -182,6 +183,59 @@ bool d_internal_postgres_answered(const PGconn* _db,
  * in it is reported ready.
  */
 int  d_internal_postgres_ready(const PGconn* _db);
+
+// 2.4    Waiting
+//------------------------------------------------------------------------------
+// waiting -- the plumbing of the calls that do not block (db_common.h 1.3).
+// _now is the clock libpq's blocking connect keeps connect_timeout by:
+// PQgetCurrentTimeUSec's microseconds from libpq 17, and time()'s whole
+// seconds before it. _pend fills a pending call -- the socket, what to wait
+// for, and, where it has a deadline, D_DB_WAIT_TIMEOUT and the milliseconds
+// left, rounded up, so that a program that wakes then finds it passed -- and
+// returns D_DB_WAIT; _settled leaves one as a finished call leaves it. A send
+// runs in libpq's non-blocking mode, which _nonblocking_on turns on where it
+// is off, answering whether it did, so that the send turns it off again once
+// everything is written: the layer's other calls -- COPY's among them -- need
+// it off, and turning it off then clears no failure's message, as libpq 15
+// and later would once every result is read.
+double d_internal_postgres_now(void);
+int    d_internal_postgres_pend(int                  _socket,
+                                unsigned             _events,
+                                struct d_db_pending* _pending);
+void   d_internal_postgres_settled(struct d_db_pending* _pending);
+bool   d_internal_postgres_nonblocking_on(PGconn* _db);
+/**
+ * @brief Writes what libpq holds of a send, as far as the socket takes it.
+ *
+ * @param[in]     _db         the connection, in non-blocking mode.
+ * @param[in]     _events     what came: with the socket readable, what the
+ *                            server sent is read first, as libpq asks, since
+ *                            a server can stop reading while its own
+ *                            writing waits.
+ * @param[in]     _turned_on  whether the send turned non-blocking mode on,
+ *                            and so turns it off once everything is written,
+ *                            or the send fails.
+ * @param[in,out] _pending    receives what to wait for while some is left:
+ *                            the socket, readable or writable.
+ * @return 0, everything written; D_DB_WAIT; or, for trouble libpq reports,
+ *         08006 when the connection is lost and 08000 when it is not.
+ */
+int    d_internal_postgres_flush(PGconn*              _db,
+                                 unsigned             _events,
+                                 bool                 _turned_on,
+                                 struct d_db_pending* _pending);
+/**
+ * @brief Reads what the server has sent, and says whether the next result
+ *        has arrived.
+ *
+ * @param[in]     _db       the connection.
+ * @param[in,out] _pending  receives, while the next result has yet to
+ *                          arrive, what to wait for: the socket readable.
+ * @return 0, PQgetResult then answering without waiting; D_DB_WAIT; or
+ *         08006 when the connection is lost, 08000 for other trouble.
+ */
+int    d_internal_postgres_arrived(PGconn*              _db,
+                                   struct d_db_pending* _pending);
 
 
 //==============================================================================

@@ -32,8 +32,27 @@
 * path:      /tests/djinterp/c/db/mariadb/t_mariadb.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
+// _WIN32_WINNT
+//   knob (Windows'): Vista's API at least, for WSAPoll, where nothing asked
+// for more; it precedes every include.
+#if ( (defined(_WIN32)) &&                                                    \
+      (!defined(_WIN32_WINNT)) )
+    #define _WIN32_WINNT 0x0600
+#endif  // _WIN32
+// WIN32_LEAN_AND_MEAN, NOMINMAX
+//   knobs (Windows'): <windows.h>, which <winsock2.h> and the clients' own
+// headers include, without its rarer headers -- rpcndr.h among them, which
+// makes `small` a macro -- and without its min and max macros.
+#if defined(_WIN32)
+    #if !defined(WIN32_LEAN_AND_MEAN)
+        #define WIN32_LEAN_AND_MEAN 1
+    #endif  // WIN32_LEAN_AND_MEAN
+    #if !defined(NOMINMAX)
+        #define NOMINMAX 1
+    #endif  // NOMINMAX
+#endif  // _WIN32
 // D_CFG_ENV_USING_MARIADB
 //   knob (env's): on, since the harness reads mysql.h itself -- the client's
 // own codes, and its flavor -- as a program asking for env's detection does;
@@ -43,11 +62,24 @@
 #endif  // D_CFG_ENV_USING_MARIADB
 
 // std
-#include <limits.h>  // UINT_MAX
+#include <limits.h>  // INT_MAX, UINT_MAX
 #include <locale.h>  // setlocale, LC_NUMERIC
 #include <stdio.h>   // printf, snprintf
 #include <stdlib.h>  // free, getenv, malloc, strtoul
-#include <string.h>  // memcmp, memset, strcmp, strlen, strncmp, strstr
+#include <string.h>  // memcmp, memcpy, memset, strcmp, strlen, strstr
+#include <time.h>    // time
+#if defined(_WIN32)
+    #include <winsock2.h>      // WSAPoll, struct pollfd, SOCKET
+    #if defined(_MSC_VER)
+        #pragma comment(lib, "ws2_32.lib")  // WSAPoll
+    #endif  // _MSC_VER
+#else
+    #include <arpa/inet.h>     // htonl, ntohs
+    #include <netinet/in.h>    // struct sockaddr_in, INADDR_LOOPBACK
+    #include <poll.h>          // poll, struct pollfd
+    #include <sys/socket.h>    // socket, bind, listen, getsockname
+    #include <unistd.h>        // close
+#endif
 // djinterp
 #include "../../../../../inc/djinterp/c/db/mariadb/mariadb.h"  // unit under test
 #include "../../../../../inc/djinterp/env/db/mariadb/env_mariadb.h"  // mysql.h
@@ -75,6 +107,60 @@ static struct d_mariadb_options g_options =
 //   setting: the prefix of every database the run makes, d_tests_mariadb_
 // and the setup connection's id, which no other connection has at once.
 static char g_run[40] = "";
+
+// g_plain
+//   setting: no TLS, which the connections the tests of calls that do not
+// block make are given where the client cannot carry TLS so
+// (d_tests_mariadb_without_blocking); g_plain_count is 1 while they run so,
+// and 0 otherwise.
+static const struct d_mariadb_setting g_plain =
+{
+    D_MARIADB_SETTING_SSL_MODE, (unsigned long)D_MARIADB_SSL_DISABLED, NULL,
+    NULL
+};
+static size_t                         g_plain_count = 0u;
+
+#if defined(_WIN32)
+
+// d_tests_mariadb_socket
+//   type: a socket, as the platform's poll takes it.
+typedef SOCKET d_tests_mariadb_socket;
+
+/*
+d_tests_mariadb_poll
+  WSAPoll, Windows' poll.
+*/
+static int
+d_tests_mariadb_poll(
+    struct pollfd* _fds,
+    unsigned       _count,
+    int            _timeout
+)
+{
+    return WSAPoll(_fds, (ULONG)_count, _timeout);
+}
+
+#else
+
+// d_tests_mariadb_socket
+//   type: a socket, as the platform's poll takes it.
+typedef int d_tests_mariadb_socket;
+
+/*
+d_tests_mariadb_poll
+  poll(2).
+*/
+static int
+d_tests_mariadb_poll(
+    struct pollfd* _fds,
+    unsigned       _count,
+    int            _timeout
+)
+{
+    return poll(_fds, (nfds_t)_count, _timeout);
+}
+
+#endif  // _WIN32
 
 /*
 d_tests_mariadb_expect
@@ -388,7 +474,8 @@ d_tests_mariadb_configure(
 
 /*
 d_tests_mariadb_connect
-  A connection as the run's settings say, with a database current or none.
+  A connection as the run's settings say, with a database current or none;
+without TLS while g_plain_count says so.
 */
 static struct d_mariadb*
 d_tests_mariadb_connect(
@@ -401,7 +488,11 @@ d_tests_mariadb_connect(
     options.database = _database;
 
     // a connection, or a reason
-    if (d_mariadb_connect(&options, &db) != 0)
+    if (d_mariadb_connect_with(&options,
+                               &g_plain,
+                               g_plain_count,
+                               &db,
+                               NULL) != 0)
     {
         printf("  cannot connect to %s:%u as %s\n",
                options.host,
@@ -1417,6 +1508,9 @@ d_tests_mariadb_connecting_with
   - no settings connects as d_mariadb_connect does
   - timeouts, compression, an init command, a connect attribute (where the
     server's performance_schema shows it) and a native option each take
+  - a character set a setting names -- CHARSET, or the client's option as
+    a native one -- replaces the layer's: the session's with every pairing,
+    where the handshake loses it too, and after a reset
   - an init command that fails fails the connect with the server's number,
     and its reason in the server's words; a password the server refuses, in
     its words too; no reason where nothing failed
@@ -1506,6 +1600,48 @@ d_tests_mariadb_connecting_with(
         }
 
         d_mariadb_close(db);
+    }
+
+    // a character set a setting names, in place of the layer's -- the
+    // layer's own setting, or the client's option as a native one: the
+    // session's with every pairing, where the handshake loses it too, and
+    // what a reset returns to
+    {
+        const struct d_mariadb_setting latin1[] =
+        {
+            { D_MARIADB_SETTING_CHARSET, 0ul, "latin1", NULL },
+            { D_MARIADB_SETTING_NATIVE, (unsigned long)MYSQL_SET_CHARSET_NAME,
+              NULL, "latin1" }
+        };
+
+        for (size_t i = 0u; i < (sizeof(latin1) / sizeof(latin1[0])); ++i)
+        {
+            D_TESTS_MARIADB_OK(NULL,
+                               d_mariadb_connect_with(&g_options,
+                                                      &latin1[i],
+                                                      1u,
+                                                      &db,
+                                                      NULL));
+            D_TESTS_MARIADB_CHECK(
+                d_tests_mariadb_text_is(db,
+                                        "SELECT @@character_set_client",
+                                        "latin1"));
+            D_TESTS_MARIADB_CHECK(
+                d_tests_mariadb_text_is(db,
+                                        "SELECT @@character_set_connection",
+                                        "latin1"));
+
+            if (d_mariadb_supports(db, D_MARIADB_FEATURE_RESET_CONNECTION))
+            {
+                D_TESTS_MARIADB_OK(db, d_mariadb_reset_connection(db));
+                D_TESTS_MARIADB_CHECK(
+                    d_tests_mariadb_text_is(db,
+                                            "SELECT @@character_set_client",
+                                            "latin1"));
+            }
+
+            d_mariadb_close(db);
+        }
     }
 
     // an init command that fails
@@ -1659,7 +1795,9 @@ d_tests_mariadb_connecting_with(
             { D_MARIADB_SETTING_CONNECT_ATTRIBUTE, 0ul, NULL, "yes" },
             { D_MARIADB_SETTING_SSL_MODE, 5ul, NULL, NULL },
             { D_MARIADB_SETTING_CLIENT_FLAGS,
-              (unsigned long)CLIENT_MULTI_STATEMENTS, NULL, NULL }
+              (unsigned long)CLIENT_MULTI_STATEMENTS, NULL, NULL },
+            { D_MARIADB_SETTING_CHARSET, 0ul, NULL, NULL },
+            { D_MARIADB_SETTING_CHARSET, 0ul, "", NULL }
         };
 
         for (size_t i = 0u; i < (sizeof(wrong) / sizeof(wrong[0])); ++i)
@@ -1753,7 +1891,7 @@ d_tests_mariadb_client_options(
 
     // the largest packet, past which the connection is lost
     {
-        const struct d_mariadb_setting small =
+        const struct d_mariadb_setting capped =
         {
             D_MARIADB_SETTING_MAX_PACKET, 1024ul * 1024ul, NULL, NULL
         };
@@ -1763,7 +1901,7 @@ d_tests_mariadb_client_options(
         };
 
         D_TESTS_MARIADB_OK(NULL,
-                           d_mariadb_connect_with(&g_options, &small, 1u, &db,
+                           d_mariadb_connect_with(&g_options, &capped, 1u, &db,
                                                   NULL));
 
         // a prepared statement's values past it: refused by libmysqlclient,
@@ -7191,6 +7329,1986 @@ d_tests_mariadb_upkeep_refusals(
 }
 
 //==============================================================================
+// mariadb_connection.h and mariadb_query.h -- without blocking
+//==============================================================================
+
+// D_TESTS_MARIADB_ROUNDS
+//   constant: the most waits a call that does not block is driven through
+// before the harness gives up on it, so that one that never finishes fails
+// rather than hangs.
+#define D_TESTS_MARIADB_ROUNDS 100000
+
+/*
+d_tests_mariadb_async
+  Whether the client makes calls that do not block: MariaDB's, and
+libmysqlclient from 8.0.16; and whether it makes all of them, as MariaDB's
+does.
+*/
+static bool
+d_tests_mariadb_async(
+    bool _all
+)
+{
+    return (d_mariadb_client_is_mariadb())
+               ? true
+               : ( (!_all) &&
+                   (d_mariadb_client_version_number() >= 80016ul) );
+}
+
+/*
+d_tests_mariadb_wait
+  Waits as a pending call says, with poll(2), or WSAPoll on Windows, and
+answers what came, as d_db_wait; trouble on the socket reads as ready for
+what was asked, and no socket as everything having come, for the call to
+find out.
+*/
+static unsigned
+d_tests_mariadb_wait(
+    const struct d_db_pending* _pending
+)
+{
+    const unsigned ready   = (unsigned)D_DB_WAIT_READ |
+                             (unsigned)D_DB_WAIT_WRITE;
+    const int      timeout = ((_pending->events & D_DB_WAIT_TIMEOUT) != 0u)
+                                 ? ( (_pending->timeout_ms > (unsigned)INT_MAX)
+                                         ? INT_MAX
+                                         : (int)_pending->timeout_ms )
+                                 : -1;
+    struct pollfd  fd;
+
+    // no socket to wait on
+    if (_pending->socket == D_DB_SOCKET_NONE)
+    {
+        return _pending->events & ready;
+    }
+
+    memset(&fd, 0, sizeof(fd));
+    fd.fd     = (d_tests_mariadb_socket)_pending->socket;
+    fd.events = (short)( ( ((_pending->events & D_DB_WAIT_READ) != 0u)
+                               ? POLLIN
+                               : 0 ) |
+                         ( ((_pending->events & D_DB_WAIT_WRITE) != 0u)
+                               ? POLLOUT
+                               : 0 ) );
+
+    const int came = d_tests_mariadb_poll(&fd, 1u, timeout);
+
+    // the deadline first
+    if (came == 0)
+    {
+        return (unsigned)D_DB_WAIT_TIMEOUT;
+    }
+
+    // trouble on the socket is the call's to find
+    if ( (came < 0) ||
+         ((fd.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0) )
+    {
+        return _pending->events & ready;
+    }
+
+    return ( ((fd.revents & POLLIN) != 0)  ? (unsigned)D_DB_WAIT_READ  : 0u ) |
+           ( ((fd.revents & POLLOUT) != 0) ? (unsigned)D_DB_WAIT_WRITE : 0u );
+}
+
+/*
+d_tests_mariadb_drive_connect
+  Continues a connect until it is done; the answer is the last
+continuation's.
+*/
+static int
+d_tests_mariadb_drive_connect(
+    int                  _started,
+    struct d_mariadb**   _db,
+    struct d_db_pending* _pending,
+    char**               _message
+)
+{
+    int result = _started;
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_MARIADB_ROUNDS);
+         ++waits)
+    {
+        d_db_free((_message) ? *_message : NULL);
+        result = d_mariadb_connect_continue(_db,
+                                            d_tests_mariadb_wait(_pending),
+                                            _pending,
+                                            _message);
+    }
+
+    return result;
+}
+
+/*
+d_tests_mariadb_drive_send
+  Continues a send until it is done.
+*/
+static int
+d_tests_mariadb_drive_send(
+    int                  _started,
+    struct d_mariadb*    _db,
+    struct d_db_pending* _pending
+)
+{
+    int result = _started;
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_MARIADB_ROUNDS);
+         ++waits)
+    {
+        result = d_mariadb_send_query_continue(_db,
+                                               d_tests_mariadb_wait(_pending),
+                                               _pending);
+    }
+
+    return result;
+}
+
+/*
+d_tests_mariadb_drive_next
+  Continues a result's read until it is done.
+*/
+static int
+d_tests_mariadb_drive_next(
+    int                  _started,
+    struct d_mariadb*    _db,
+    struct d_db_pending* _pending,
+    struct d_db_rows*    _rows,
+    int64_t*             _changes
+)
+{
+    int result = _started;
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_MARIADB_ROUNDS);
+         ++waits)
+    {
+        result = d_mariadb_next_result_continue(
+                     _db,
+                     d_tests_mariadb_wait(_pending),
+                     _pending,
+                     _rows,
+                     _changes);
+    }
+
+    return result;
+}
+
+/*
+d_tests_mariadb_next
+  The next result of SQL sent, read without blocking from start to end.
+*/
+static int
+d_tests_mariadb_next(
+    struct d_mariadb* _db,
+    struct d_db_rows* _rows,
+    int64_t*          _changes
+)
+{
+    struct d_db_pending pending;
+
+    return d_tests_mariadb_drive_next(d_mariadb_next_result_start(_db,
+                                                                  &pending,
+                                                                  _rows,
+                                                                  _changes),
+                                      _db,
+                                      &pending,
+                                      _rows,
+                                      _changes);
+}
+
+/*
+d_tests_mariadb_send
+  SQL sent without blocking, from start to end.
+*/
+static int
+d_tests_mariadb_send(
+    struct d_mariadb* _db,
+    const char*       _sql
+)
+{
+    struct d_db_pending pending;
+
+    return d_tests_mariadb_drive_send(d_mariadb_send_query_start(_db,
+                                                                 _sql,
+                                                                 &pending),
+                                      _db,
+                                      &pending);
+}
+
+/*
+d_tests_mariadb_first_int
+  A result's first value as an integer, or INT64_MIN.
+*/
+static int64_t
+d_tests_mariadb_first_int(
+    const struct d_db_rows* _rows
+)
+{
+    int64_t value = INT64_MIN;
+
+    // the value, or the sentinel
+    if (d_db_value_int64(d_db_rows_value(_rows, 0u, 0u), &value) != 0)
+    {
+        return INT64_MIN;
+    }
+
+    return value;
+}
+
+/*
+d_tests_mariadb_unpended
+  Whether a pending call was left as a finished one leaves it.
+*/
+static bool
+d_tests_mariadb_unpended(
+    const struct d_db_pending* _pending
+)
+{
+    return ( (_pending->socket == D_DB_SOCKET_NONE) &&
+             (_pending->events == 0u)               &&
+             (_pending->timeout_ms == 0u)           &&
+             (_pending->deadline == 0.0)            &&
+             (_pending->state == 0u) );
+}
+
+/*
+d_tests_mariadb_plain_first
+  A test's one setting, behind g_plain while the run's connections go
+without TLS: `_two` filled, the first to pass answered, how many in
+`_count` -- called before the connect, which must not read the count in the
+same expression.
+*/
+static const struct d_mariadb_setting*
+d_tests_mariadb_plain_first(
+    struct d_mariadb_setting*       _two,
+    const struct d_mariadb_setting* _one,
+    size_t*                         _count
+)
+{
+    _two[0] = g_plain;
+    _two[1] = *_one;
+    *_count = 1u + g_plain_count;
+
+    return &_two[1u - g_plain_count];
+}
+
+/*
+d_tests_mariadb_connect_nonblocking
+  d_mariadb_connect_start, _connect_with_start and _connect_continue, each
+connection without TLS while g_plain_count says so.
+  Tests the following:
+  - with a client that can, a start is D_DB_WAIT, the handle in hand, the
+    socket to wait on -- or 0, where every answer came at once; driven
+    through a poll loop, it connects, set up as a blocking connect: the
+    character set the layer names, the server described; with one that
+    cannot, D_DB_UNSUPPORTED, no handle
+  - settings apply: an init command has run; a character set a setting
+    names is the session's
+  - a wrong password is 1045 with the client's reason, the handle NULL
+  - a connect abandoned is closed with d_mariadb_close
+  - a server that never answers is 2013 once the connect timeout passes:
+    MariaDB's client keeps the timeout, and the layer keeps libmysqlclient's
+  - NULL arguments are D_DB_INVALID_ARGUMENT
+*/
+static void
+d_tests_mariadb_connect_nonblocking(
+    void
+)
+{
+    struct d_mariadb*              db       = NULL;
+    char*                          reason   = NULL;
+    struct d_db_pending            pending;
+    struct d_mariadb_options       options  = g_options;
+    const struct d_mariadb_setting init[1]  =
+    {
+        { D_MARIADB_SETTING_INIT_COMMAND, 0ul, "SET @d_tests_nb = 7", NULL }
+    };
+    struct d_mariadb_setting       two[2];
+    size_t                         count    = 0u;
+    const struct d_mariadb_setting* given   = NULL;
+    int64_t                        number   = 0;
+
+    printf("mariadb_connection: connecting without blocking\n");
+
+    memset(&pending, 0x5a, sizeof(pending));
+
+    // a client that cannot
+    if (!d_tests_mariadb_async(false))
+    {
+        D_TESTS_MARIADB_RESULT(NULL,
+                               d_mariadb_connect_start(&g_options,
+                                                       &db,
+                                                       &pending),
+                               D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_CHECK( (db == NULL) &&
+                               (d_tests_mariadb_unpended(&pending)) );
+
+        return;
+    }
+
+    const int started = d_mariadb_connect_with_start(&g_options,
+                                                     &g_plain,
+                                                     g_plain_count,
+                                                     &db,
+                                                     &pending,
+                                                     NULL);
+
+    // under way, the handle in hand and a socket to wait on; or, where
+    // every answer came at once, made
+    D_TESTS_MARIADB_CHECK( (db != NULL) &&
+                           ( (started == 0) ||
+                             ( (started == D_DB_WAIT) &&
+                               (pending.socket != D_DB_SOCKET_NONE) &&
+                               ((pending.events &
+                                 ((unsigned)D_DB_WAIT_READ |
+                                  (unsigned)D_DB_WAIT_WRITE)) != 0u) ) ) );
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_drive_connect(started,
+                                                         &db,
+                                                         &pending,
+                                                         &reason));
+    D_TESTS_MARIADB_CHECK( (db != NULL) &&
+                           (reason == NULL) &&
+                           (d_tests_mariadb_unpended(&pending)) );
+
+    // set up as a blocking connect sets it up
+    if (db)
+    {
+        char* charset = NULL;
+
+        D_TESTS_MARIADB_OK(db, d_mariadb_ping(db));
+        D_TESTS_MARIADB_CHECK(d_mariadb_server_version_number(db) > 0ul);
+        D_TESTS_MARIADB_OK(db, d_mariadb_query_text(
+                                   db,
+                                   &charset,
+                                   "SELECT @@character_set_client"));
+        D_TESTS_MARIADB_CHECK( (charset) &&
+                               (strcmp(charset, D_CFG_MARIADB_CHARSET) ==
+                                0) );
+        d_db_free(charset);
+    }
+
+    d_mariadb_close(db);
+    db = NULL;
+
+    // the settings, an init command among them
+    given = d_tests_mariadb_plain_first(two, init, &count);
+    D_TESTS_MARIADB_OK(NULL, d_tests_mariadb_drive_connect(
+                                 d_mariadb_connect_with_start(&g_options,
+                                                              given,
+                                                              count,
+                                                              &db,
+                                                              &pending,
+                                                              NULL),
+                                 &db,
+                                 &pending,
+                                 NULL));
+    D_TESTS_MARIADB_CHECK( (db) &&
+                           (d_mariadb_query_int64(db,
+                                                  &number,
+                                                  "SELECT @d_tests_nb") ==
+                            0) &&
+                           (number == 7) );
+    d_mariadb_close(db);
+    db = NULL;
+
+    // a character set a setting names, the session's with every pairing
+    {
+        const struct d_mariadb_setting latin1 =
+        {
+            D_MARIADB_SETTING_CHARSET, 0ul, "latin1", NULL
+        };
+
+        given = d_tests_mariadb_plain_first(two, &latin1, &count);
+        D_TESTS_MARIADB_OK(NULL, d_tests_mariadb_drive_connect(
+                                     d_mariadb_connect_with_start(&g_options,
+                                                                  given,
+                                                                  count,
+                                                                  &db,
+                                                                  &pending,
+                                                                  NULL),
+                                     &db,
+                                     &pending,
+                                     NULL));
+        D_TESTS_MARIADB_CHECK( (db) &&
+                               (d_tests_mariadb_text_is(
+                                    db,
+                                    "SELECT @@character_set_client",
+                                    "latin1")) );
+        d_mariadb_close(db);
+        db = NULL;
+    }
+
+    // a wrong password
+    options.password = "certainly not the password";
+    D_TESTS_MARIADB_RESULT(NULL,
+                           d_tests_mariadb_drive_connect(
+                               d_mariadb_connect_with_start(&options,
+                                                            &g_plain,
+                                                            g_plain_count,
+                                                            &db,
+                                                            &pending,
+                                                            &reason),
+                               &db,
+                               &pending,
+                               &reason),
+                           1045);
+    D_TESTS_MARIADB_CHECK( (db == NULL) &&
+                           (reason) &&
+                           (strstr(reason, "denied") != NULL) &&
+                           (d_tests_mariadb_unpended(&pending)) );
+    d_db_free(reason);
+    reason = NULL;
+
+    // abandoned while being made, or made at once
+    D_TESTS_MARIADB_CHECK( (d_mariadb_connect_with_start(&g_options,
+                                                         &g_plain,
+                                                         g_plain_count,
+                                                         &db,
+                                                         &pending,
+                                                         NULL) <= 0) &&
+                           (d_mariadb_close(db) == 0) );
+    db = NULL;
+
+#if !defined(_WIN32)
+    // a server that never answers, within the connect timeout: MariaDB's
+    // client keeps it, and the layer keeps libmysqlclient's
+    {
+        struct sockaddr_in             address;
+        socklen_t                      length  = (socklen_t)sizeof(address);
+        const int                      mute    = socket(AF_INET,
+                                                        SOCK_STREAM,
+                                                        0);
+        const struct d_mariadb_setting brief[1] =
+        {
+            { D_MARIADB_SETTING_CONNECT_TIMEOUT, 2ul, NULL, NULL }
+        };
+
+        memset(&address, 0, sizeof(address));
+        address.sin_family      = AF_INET;
+        address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+
+        if ( (mute >= 0) &&
+             (bind(mute, (struct sockaddr*)&address, length) == 0) &&
+             (listen(mute, 4) == 0) &&
+             (getsockname(mute, (struct sockaddr*)&address, &length) ==
+              0) )
+        {
+            const time_t began = time(NULL);
+
+            given            = d_tests_mariadb_plain_first(two,
+                                                           brief,
+                                                           &count);
+            options          = g_options;
+            options.host     = "127.0.0.1";
+            options.port     = (unsigned)ntohs(address.sin_port);
+            D_TESTS_MARIADB_RESULT(
+                NULL,
+                d_tests_mariadb_drive_connect(
+                    d_mariadb_connect_with_start(&options,
+                                                 given,
+                                                 count,
+                                                 &db,
+                                                 &pending,
+                                                 &reason),
+                    &db,
+                    &pending,
+                    &reason),
+                2013);
+            D_TESTS_MARIADB_CHECK( (db == NULL) &&
+                                   (reason) &&
+                                   (time(NULL) - began >= 1) &&
+                                   (time(NULL) - began <= 4) );
+            d_db_free(reason);
+            reason = NULL;
+        }
+
+        if (mute >= 0)
+        {
+            (void)close(mute);
+        }
+    }
+#endif  // !_WIN32
+
+    // arguments
+    D_TESTS_MARIADB_RESULT(NULL,
+                           d_mariadb_connect_start(&g_options, NULL, &pending),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL,
+                           d_mariadb_connect_start(&g_options, &db, NULL),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL,
+                           d_mariadb_connect_with_start(&g_options,
+                                                        NULL,
+                                                        1u,
+                                                        &db,
+                                                        &pending,
+                                                        NULL),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL,
+                           d_mariadb_connect_continue(NULL,
+                                                      0u,
+                                                      &pending,
+                                                      NULL),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL,
+                           d_mariadb_connect_continue(&db,
+                                                      0u,
+                                                      &pending,
+                                                      NULL),
+                           D_DB_INVALID_ARGUMENT);
+
+    return;
+}
+
+/*
+d_tests_mariadb_sent_nonblocking
+  d_mariadb_send_query_start, _continue, d_mariadb_next_result_start and
+_continue.
+  Tests the following:
+  - a statement sent gives its result -- empty rows and a count for one
+    without rows, rows for a query -- then D_DB_NOT_FOUND, again
+  - a procedure's several results come one a call, its status last
+  - a result still to come is D_DB_WAIT, the socket to read; meanwhile every
+    other command is 2014, a second send among them; an answer the server
+    takes half a second over is waited for, never waited in, over TLS too
+  - the first statement's failure is the first result, then nothing; a
+    failure among a procedure's results ends them
+  - SQL larger than the socket takes at once is sent as it takes it
+  - nothing sent is D_DB_NOT_FOUND at once; NULL arguments are
+    D_DB_INVALID_ARGUMENT; a client that cannot is D_DB_UNSUPPORTED
+*/
+static void
+d_tests_mariadb_sent_nonblocking(
+    void
+)
+{
+    char                schema[80] = "";
+    struct d_mariadb*   db         = d_tests_mariadb_begin("sentnb",
+                                                           schema,
+                                                           sizeof(schema));
+    struct d_db_rows    rows;
+    struct d_db_pending pending;
+    int64_t             changes    = -1;
+    const size_t        large      = (size_t)4u * 1024u * 1024u;
+    char* const         sql        = (char*)malloc(large + 64u);
+
+    printf("mariadb_query: statements sent without blocking\n");
+
+    memset(&rows, 0, sizeof(rows));
+
+    // nothing more without a server, or memory
+    if ( (!db) ||
+         (!sql) )
+    {
+        D_TESTS_MARIADB_CHECK( (db) && (sql) );
+        free(sql);
+        d_tests_mariadb_end(db, schema);
+
+        return;
+    }
+
+    // a client that cannot
+    if (!d_tests_mariadb_async(false))
+    {
+        D_TESTS_MARIADB_RESULT(db,
+                               d_mariadb_send_query_start(db,
+                                                          "SELECT 1",
+                                                          &pending),
+                               D_DB_UNSUPPORTED);
+        free(sql);
+        d_tests_mariadb_end(db, schema);
+
+        return;
+    }
+
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, &changes),
+                           D_DB_NOT_FOUND);
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_send(db, "CREATE TABLE t (a int)"));
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_next(db, &rows, &changes));
+    D_TESTS_MARIADB_CHECK(rows.column_count == 0u);
+    d_db_rows_free(&rows);
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, &changes),
+                           D_DB_NOT_FOUND);
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, &changes),
+                           D_DB_NOT_FOUND);
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_send(
+                               db,
+                               "INSERT INTO t VALUES (1), (2)"));
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_next(db, &rows, &changes));
+    D_TESTS_MARIADB_CHECK( (rows.column_count == 0u) && (changes == 2) );
+    d_db_rows_free(&rows);
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, &changes),
+                           D_DB_NOT_FOUND);
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_send(db,
+                                                "SELECT a FROM t ORDER BY a"));
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_next(db, &rows, &changes));
+    D_TESTS_MARIADB_CHECK( (rows.row_count == 2u) &&
+                           (rows.column_count == 1u) &&
+                           (strcmp(rows.columns[0].name, "a") == 0) &&
+                           (d_tests_mariadb_first_int(&rows) == 1) );
+    d_db_rows_free(&rows);
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, &changes),
+                           D_DB_NOT_FOUND);
+
+    // a procedure's results, its status last
+    D_TESTS_MARIADB_OK(db, d_mariadb_exec(
+                               db,
+                               "CREATE PROCEDURE p() BEGIN SELECT 1 AS a; "
+                               "SELECT 'x' AS s; END"));
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_send(db, "CALL p()"));
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_next(db, &rows, NULL));
+    D_TESTS_MARIADB_CHECK( (rows.column_count == 1u) &&
+                           (strcmp(rows.columns[0].name, "a") == 0) );
+    d_db_rows_free(&rows);
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_next(db, &rows, NULL));
+    D_TESTS_MARIADB_CHECK( (rows.column_count == 1u) &&
+                           (strcmp(rows.columns[0].name, "s") == 0) );
+    d_db_rows_free(&rows);
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_next(db, &rows, NULL));
+    D_TESTS_MARIADB_CHECK(rows.column_count == 0u);
+    d_db_rows_free(&rows);
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, NULL),
+                           D_DB_NOT_FOUND);
+
+    // a result still to come, the connection held meanwhile
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_send(db, "SELECT SLEEP(0.2), 7"));
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_exec(db, "SELECT 1"),
+                           2014);
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_send_query_start(db,
+                                                          "SELECT 1",
+                                                          &pending),
+                           2014);
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_next(db, &rows, NULL));
+    D_TESTS_MARIADB_CHECK( (rows.row_count == 1u) &&
+                           (rows.column_count == 2u) );
+    d_db_rows_free(&rows);
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, NULL),
+                           D_DB_NOT_FOUND);
+    D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "SELECT 1"));
+
+    // an answer still to come is waited for, never waited in: MariaDB's
+    // client's result, and libmysqlclient's send, which reads the answer
+    int waited = d_mariadb_send_query_start(db,
+                                            "SELECT SLEEP(0.5) AS s",
+                                            &pending);
+
+    D_TESTS_MARIADB_CHECK( (d_mariadb_client_is_mariadb()) ||
+                           (waited == D_DB_WAIT) );
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_drive_send(waited, db, &pending));
+    waited = d_mariadb_next_result_start(db, &pending, &rows, NULL);
+    D_TESTS_MARIADB_CHECK( (!d_mariadb_client_is_mariadb()) ||
+                           (waited == D_DB_WAIT) );
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_drive_next(waited,
+                                                      db,
+                                                      &pending,
+                                                      &rows,
+                                                      NULL));
+    D_TESTS_MARIADB_CHECK(rows.row_count == 1u);
+    d_db_rows_free(&rows);
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, NULL),
+                           D_DB_NOT_FOUND);
+
+    // the first statement's failure, then nothing
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_send(db, "SELECT * FROM no_table"));
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, NULL), 1146);
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, NULL),
+                           D_DB_NOT_FOUND);
+
+    // a failure among a procedure's results
+    D_TESTS_MARIADB_OK(db, d_mariadb_exec(
+                               db,
+                               "CREATE PROCEDURE q() BEGIN SELECT 1 AS a; "
+                               "SELECT * FROM no_table; END"));
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_send(db, "CALL q()"));
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_next(db, &rows, NULL));
+    d_db_rows_free(&rows);
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, NULL), 1146);
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, NULL),
+                           D_DB_NOT_FOUND);
+    D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "SELECT 1"));
+
+    // more than the socket takes at once
+    memcpy(sql, "SELECT LENGTH('", 15u);
+    memset(sql + 15, 'y', large);
+    memcpy(sql + 15 + large, "')", 3u);
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_send(db, sql));
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_next(db, &rows, NULL));
+    D_TESTS_MARIADB_CHECK(d_tests_mariadb_first_int(&rows) == (int64_t)large);
+    d_db_rows_free(&rows);
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, NULL),
+                           D_DB_NOT_FOUND);
+
+    // arguments
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_send_query_start(NULL,
+                                                            "SELECT 1",
+                                                            &pending),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_send_query_start(db,
+                                                            NULL,
+                                                            &pending),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_send_query_start(db,
+                                                            "SELECT 1",
+                                                            NULL),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_send_query_continue(db,
+                                                               0u,
+                                                               &pending),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_next_result_start(db,
+                                                             &pending,
+                                                             NULL,
+                                                             NULL),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_next_result_continue(db,
+                                                                0u,
+                                                                &pending,
+                                                                &rows,
+                                                                NULL),
+                           D_DB_INVALID_ARGUMENT);
+    free(sql);
+    d_tests_mariadb_end(db, schema);
+
+    return;
+}
+
+/*
+d_tests_mariadb_drive_prepare
+  Continues a prepare until it is done.
+*/
+static int
+d_tests_mariadb_drive_prepare(
+    int                         _started,
+    struct d_mariadb_statement* _statement,
+    struct d_db_pending*        _pending
+)
+{
+    int result = _started;
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_MARIADB_ROUNDS);
+         ++waits)
+    {
+        result = d_mariadb_prepare_continue(_statement,
+                                            d_tests_mariadb_wait(_pending),
+                                            _pending);
+    }
+
+    return result;
+}
+
+/*
+d_tests_mariadb_prepare_nb
+  A statement prepared without blocking, from start to end; a statement a
+failed prepare left is finalized, and NULL.
+*/
+static int
+d_tests_mariadb_prepare_nb(
+    struct d_mariadb*            _db,
+    struct d_mariadb_statement** _statement,
+    const char*                  _sql
+)
+{
+    struct d_db_pending pending;
+    const int           started = d_mariadb_prepare_start(_db,
+                                                          _statement,
+                                                          _sql,
+                                                          &pending);
+    const int           result  = d_tests_mariadb_drive_prepare(started,
+                                                                *_statement,
+                                                                &pending);
+
+    // what a failed prepare left
+    if (result != 0)
+    {
+        d_mariadb_finalize(*_statement);
+        *_statement = NULL;
+    }
+
+    return result;
+}
+
+/*
+d_tests_mariadb_update_nb
+  A statement run without blocking, its count read, from start to end.
+*/
+static int
+d_tests_mariadb_update_nb(
+    struct d_mariadb_statement* _statement,
+    int64_t*                    _changes
+)
+{
+    struct d_db_pending pending;
+    int                 result = d_mariadb_execute_start(_statement,
+                                                         &pending);
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_MARIADB_ROUNDS);
+         ++waits)
+    {
+        result = d_mariadb_execute_update_continue(
+                     _statement,
+                     d_tests_mariadb_wait(&pending),
+                     &pending,
+                     _changes);
+    }
+
+    return result;
+}
+
+/*
+d_tests_mariadb_query_nb
+  A statement run without blocking, its rows read, from start to end.
+*/
+static int
+d_tests_mariadb_query_nb(
+    struct d_mariadb_statement* _statement,
+    struct d_db_rows*           _rows
+)
+{
+    struct d_db_pending pending;
+    int                 result = d_mariadb_execute_start(_statement,
+                                                         &pending);
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_MARIADB_ROUNDS);
+         ++waits)
+    {
+        result = d_mariadb_execute_query_continue(
+                     _statement,
+                     d_tests_mariadb_wait(&pending),
+                     &pending,
+                     _rows);
+    }
+
+    return result;
+}
+
+/*
+d_tests_mariadb_open_nb
+  A run opened without blocking, from start to end.
+*/
+static int
+d_tests_mariadb_open_nb(
+    struct d_mariadb_statement* _statement
+)
+{
+    struct d_db_pending pending;
+    int                 result = d_mariadb_open_cursor_start(_statement,
+                                                             &pending);
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_MARIADB_ROUNDS);
+         ++waits)
+    {
+        result = d_mariadb_open_cursor_continue(
+                     _statement,
+                     d_tests_mariadb_wait(&pending),
+                     &pending);
+    }
+
+    return result;
+}
+
+/*
+d_tests_mariadb_page_nb
+  A page fetched without blocking, from start to end.
+*/
+static int
+d_tests_mariadb_page_nb(
+    struct d_mariadb_statement* _statement,
+    size_t                      _max,
+    struct d_db_rows*           _rows
+)
+{
+    struct d_db_pending pending;
+    int                 result = d_mariadb_fetch_rows_start(_statement,
+                                                            _max,
+                                                            &pending,
+                                                            _rows);
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_MARIADB_ROUNDS);
+         ++waits)
+    {
+        result = d_mariadb_fetch_rows_continue(
+                     _statement,
+                     d_tests_mariadb_wait(&pending),
+                     &pending,
+                     _rows);
+    }
+
+    return result;
+}
+
+/*
+d_tests_mariadb_statements_nonblocking
+  d_mariadb_prepare_start and _continue, d_mariadb_execute_start and its
+continuations, d_mariadb_open_cursor_start, _fetch_rows_start and theirs.
+  Tests the following:
+  - with libmysqlclient, each start is D_DB_UNSUPPORTED, no statement made
+  - a prepare driven through a poll loop compiles the statement, its
+    parameters counted -- after the multi-statement mode a failed script
+    left on, too; one the server refuses is its error, the statement, where
+    the start made one, unprepared -- each run D_DB_INVALID_ARGUMENT -- and
+    finalized
+  - a run sent is D_DB_WAIT; read for its count, it gives the rows it
+    changed; for its rows, those the blocking run gives; a failure is the
+    server's number; a procedure's further results are read away
+  - while a run is under way the connection is held: a statement, a bind on
+    the statement, its blocking run, another start, all 2014; the other
+    continuation, once one has chosen, D_DB_INVALID_ARGUMENT
+  - a run opened without blocking gives its rows a page at a time, as the
+    blocking run does, the last page short; the connection is then free;
+    while it is open, a start on it is 2014
+  - a statement finalized while its run is under way abandons it: the
+    connection then 2014 until closed
+  - NULL arguments, and continuations with nothing under way, are
+    D_DB_INVALID_ARGUMENT
+*/
+static void
+d_tests_mariadb_statements_nonblocking(
+    void
+)
+{
+    char                        schema[80] = "";
+    struct d_mariadb*           db         = d_tests_mariadb_begin(
+                                                 "stmtnb",
+                                                 schema,
+                                                 sizeof(schema));
+    struct d_mariadb_statement* statement  = NULL;
+    struct d_mariadb_statement* other      = NULL;
+    struct d_db_pending         pending;
+    struct d_db_rows            rows;
+    struct d_db_rows            all;
+    int64_t                     changes    = -1;
+
+    printf("mariadb_statement: without blocking\n");
+
+    memset(&rows, 0, sizeof(rows));
+    memset(&all, 0, sizeof(all));
+
+    // nothing more without a server
+    if (!db)
+    {
+        return;
+    }
+
+    D_TESTS_MARIADB_OK(db, d_mariadb_exec(db,
+                                          "CREATE TABLE t (a INT PRIMARY KEY, "
+                                          "b VARCHAR(20))"));
+
+    // a client without them
+    if (!d_mariadb_client_is_mariadb())
+    {
+        D_TESTS_MARIADB_RESULT(db, d_mariadb_prepare_start(db,
+                                                           &statement,
+                                                           "SELECT 1",
+                                                           &pending),
+                               D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_CHECK( (statement == NULL) &&
+                               (d_tests_mariadb_unpended(&pending)) );
+        D_TESTS_MARIADB_OK(db, d_mariadb_prepare(db, &statement, "SELECT 1"));
+        D_TESTS_MARIADB_RESULT(db, d_mariadb_execute_start(statement,
+                                                           &pending),
+                               D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_RESULT(db, d_mariadb_open_cursor_start(statement,
+                                                               &pending),
+                               D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_RESULT(db, d_mariadb_execute_update_continue(
+                                       statement,
+                                       0u,
+                                       &pending,
+                                       NULL),
+                               D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_OK(db, d_mariadb_execute_update(statement, NULL));
+        d_mariadb_finalize(statement);
+        d_tests_mariadb_end(db, schema);
+
+        return;
+    }
+
+    // prepared, after the mode a failed script left on
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_exec_script(db,
+                                                     "SELECT 1; "
+                                                     "SELECT * FROM none"),
+                           1146);
+
+    int started = d_mariadb_prepare_start(db,
+                                          &statement,
+                                          "INSERT INTO t VALUES (?, ?)",
+                                          &pending);
+
+    D_TESTS_MARIADB_CHECK( ( (started == D_DB_WAIT) ||
+                             (started == 0) ) &&
+                           (statement != NULL) );
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_drive_prepare(started,
+                                                         statement,
+                                                         &pending));
+    D_TESTS_MARIADB_CHECK( (d_mariadb_parameter_count(statement) == 2u) &&
+                           (d_tests_mariadb_unpended(&pending)) );
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_exec(db, "SELECT 1; SELECT 2"),
+                           1064);
+
+    // runs read for their counts
+    for (int64_t i = 1; i <= 5; ++i)
+    {
+        char text[16] = "";
+
+        (void)snprintf(text, sizeof(text), "row %d", (int)i);
+        D_TESTS_MARIADB_OK(db, d_mariadb_bind_int64(statement, 1u, i));
+        D_TESTS_MARIADB_OK(db, d_mariadb_bind_text(statement, 2u, text));
+        D_TESTS_MARIADB_OK(db, d_tests_mariadb_update_nb(statement,
+                                                         &changes));
+        D_TESTS_MARIADB_CHECK(changes == 1);
+    }
+
+    // a failure is the server's
+    D_TESTS_MARIADB_OK(db, d_mariadb_bind_int64(statement, 1u, 3));
+    D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_update_nb(statement, &changes),
+                           1062);
+    D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "SELECT 1"));
+    d_mariadb_finalize(statement);
+    statement = NULL;
+
+    // runs read for their rows, as the blocking run reads them
+    D_TESTS_MARIADB_OK(db, d_mariadb_prepare(db,
+                                             &other,
+                                             "SELECT a, b FROM t WHERE a > ? "
+                                             "ORDER BY a"));
+    D_TESTS_MARIADB_OK(db, d_mariadb_bind_int64(other, 1u, 1));
+    D_TESTS_MARIADB_OK(db, d_mariadb_execute_query(other, &all));
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_prepare_nb(
+                               db,
+                               &statement,
+                               "SELECT a, b FROM t WHERE a > ? ORDER BY a"));
+    D_TESTS_MARIADB_CHECK(statement != NULL);
+    D_TESTS_MARIADB_OK(db, d_mariadb_bind_int64(statement, 1u, 1));
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_query_nb(statement, &rows));
+    D_TESTS_MARIADB_CHECK( (all.row_count == 4u) &&
+                           (d_tests_mariadb_same_page(&rows, &all, 0u, 4u)) );
+    d_db_rows_free(&rows);
+
+    // a page at a time, as the blocking run reads them
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_open_nb(statement));
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_exec(db, "SELECT 1"), 2014);
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_execute_start(other, &pending),
+                           2014);
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_open_cursor_start(statement,
+                                                           &pending),
+                           2014);
+
+    for (size_t first = 0u; first < 4u; first += 3u)
+    {
+        const size_t expected = (first == 0u) ? 3u : 1u;
+
+        D_TESTS_MARIADB_OK(db, d_tests_mariadb_page_nb(statement, 3u, &rows));
+        D_TESTS_MARIADB_CHECK(
+            (rows.row_count == expected) &&
+            (d_tests_mariadb_same_page(&rows, &all, first, expected)) );
+        d_db_rows_free(&rows);
+    }
+
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_fetch_rows_start(statement,
+                                                          3u,
+                                                          &pending,
+                                                          &rows),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "SELECT 1"));
+    d_db_rows_free(&all);
+    d_mariadb_finalize(other);
+    other = NULL;
+
+    // the connection held while a run is under way
+    D_TESTS_MARIADB_OK(db, d_mariadb_prepare(db,
+                                             &other,
+                                             "SELECT SLEEP(0.3) AS s, ? AS v"));
+    D_TESTS_MARIADB_OK(db, d_mariadb_bind_int64(other, 1u, 42));
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_execute_start(other, &pending),
+                           D_DB_WAIT);
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_exec(db, "SELECT 1"), 2014);
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_bind_int64(other, 1u, 7), 2014);
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_clear_bindings(other), 2014);
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_execute_update(other, NULL), 2014);
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_execute_start(statement, &pending),
+                           2014);
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_execute_query_continue(other,
+                                                                0u,
+                                                                &pending,
+                                                                &rows),
+                           D_DB_WAIT);
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_execute_update_continue(other,
+                                                                 0u,
+                                                                 &pending,
+                                                                 NULL),
+                           D_DB_INVALID_ARGUMENT);
+
+    started = D_DB_WAIT;
+
+    for (int waits = 0;
+         (started == D_DB_WAIT) && (waits < D_TESTS_MARIADB_ROUNDS);
+         ++waits)
+    {
+        started = d_mariadb_execute_query_continue(
+                      other,
+                      d_tests_mariadb_wait(&pending),
+                      &pending,
+                      &rows);
+    }
+
+    D_TESTS_MARIADB_OK(db, started);
+    D_TESTS_MARIADB_CHECK( (rows.row_count == 1u) &&
+                           (rows.column_count == 2u) );
+
+    {
+        int64_t value = 0;
+
+        D_TESTS_MARIADB_CHECK(
+            (d_db_value_int64(d_db_rows_value(&rows, 0u, 1u), &value) == 0) &&
+            (value == 42) );
+    }
+
+    d_db_rows_free(&rows);
+    D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "SELECT 1"));
+    d_mariadb_finalize(other);
+    other = NULL;
+
+    // a procedure's further results, read away
+    D_TESTS_MARIADB_OK(db, d_mariadb_exec(db,
+                                          "CREATE PROCEDURE p() BEGIN "
+                                          "SELECT 1 AS x; SELECT 2 AS y; "
+                                          "END"));
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_prepare_nb(db, &other, "CALL p()"));
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_query_nb(other, &rows));
+    D_TESTS_MARIADB_CHECK( (rows.row_count == 1u) &&
+                           (strcmp(rows.columns[0].name, "x") == 0) );
+    d_db_rows_free(&rows);
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_update_nb(other, &changes));
+    D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "SELECT 1"));
+    d_mariadb_finalize(other);
+    other = NULL;
+
+    // a statement the server refuses
+    started = d_mariadb_prepare_start(db, &other, "SELEC 1", &pending);
+
+    if (started == D_DB_WAIT)
+    {
+        D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_drive_prepare(started,
+                                                                 other,
+                                                                 &pending),
+                               1064);
+        D_TESTS_MARIADB_CHECK(strstr(d_mariadb_error_message(db), "SELEC"));
+        D_TESTS_MARIADB_RESULT(db, d_mariadb_execute_update(other, NULL),
+                               D_DB_INVALID_ARGUMENT);
+        D_TESTS_MARIADB_RESULT(db, d_mariadb_execute_start(other, &pending),
+                               D_DB_INVALID_ARGUMENT);
+        D_TESTS_MARIADB_CHECK(d_mariadb_parameter_count(other) == 0u);
+        D_TESTS_MARIADB_OK(db, d_mariadb_finalize(other));
+    }
+    else
+    {
+        D_TESTS_MARIADB_CHECK( (started == 1064) &&
+                               (other == NULL) );
+    }
+
+    other = NULL;
+    D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "SELECT 1"));
+
+    // arguments, and continuations with nothing under way
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_prepare_start(NULL,
+                                                         &other,
+                                                         "SELECT 1",
+                                                         &pending),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_prepare_start(db,
+                                                         NULL,
+                                                         "SELECT 1",
+                                                         &pending),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_prepare_start(db,
+                                                         &other,
+                                                         NULL,
+                                                         &pending),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_prepare_start(db,
+                                                         &other,
+                                                         "SELECT 1",
+                                                         NULL),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_prepare_continue(statement,
+                                                            0u,
+                                                            &pending),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_execute_start(NULL, &pending),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_execute_start(statement, NULL),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_execute_update_continue(statement,
+                                                                   0u,
+                                                                   &pending,
+                                                                   NULL),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_execute_query_continue(statement,
+                                                                  0u,
+                                                                  &pending,
+                                                                  &rows),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_open_cursor_continue(statement,
+                                                                0u,
+                                                                &pending),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_fetch_rows_start(statement,
+                                                            0u,
+                                                            &pending,
+                                                            &rows),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_fetch_rows_continue(statement,
+                                                               0u,
+                                                               &pending,
+                                                               &rows),
+                           D_DB_INVALID_ARGUMENT);
+
+    // finalized under way: the run abandoned, the connection good only for
+    // closing
+    D_TESTS_MARIADB_OK(db, d_mariadb_prepare(db,
+                                             &other,
+                                             "SELECT SLEEP(0.3)"));
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_execute_start(other, &pending),
+                           D_DB_WAIT);
+    D_TESTS_MARIADB_OK(db, d_mariadb_finalize(other));
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_exec(db, "SELECT 1"), 2014);
+    D_TESTS_MARIADB_RESULT(db, d_mariadb_execute_start(statement, &pending),
+                           2014);
+    d_mariadb_finalize(statement);
+    d_tests_mariadb_end(db, schema);
+
+    return;
+}
+
+/*
+d_tests_mariadb_drive_on
+  Continues a ping, a reset or a change of user until it is done.
+*/
+static int
+d_tests_mariadb_drive_on(
+    int                  _started,
+    struct d_mariadb*    _db,
+    struct d_db_pending* _pending,
+    int                (*_continue)(struct d_mariadb*,
+                                    unsigned,
+                                    struct d_db_pending*)
+)
+{
+    int result = _started;
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_MARIADB_ROUNDS);
+         ++waits)
+    {
+        result = _continue(_db, d_tests_mariadb_wait(_pending), _pending);
+    }
+
+    return result;
+}
+
+/*
+d_tests_mariadb_session_nonblocking
+  d_mariadb_ping_start, _reset_connection_start and _change_user_start, and
+their continuations.
+  Tests the following:
+  - with MariaDB's client, each finishes through a poll loop as its blocking
+    form does: a ping answers; a reset ends the session's state -- a user
+    variable gone -- and runs the connect's init commands again; a change
+    of user to the same user signs in again, the database named current
+  - while one is under way the connection is held: a statement is 2014,
+    where a reset's answer has yet to come when it starts
+  - with libmysqlclient, each is D_DB_UNSUPPORTED
+  - NULL arguments, and continuations with nothing under way, are
+    D_DB_INVALID_ARGUMENT
+*/
+static void
+d_tests_mariadb_session_nonblocking(
+    void
+)
+{
+    char                           schema[80] = "";
+    struct d_mariadb*              holder     = d_tests_mariadb_begin(
+                                                    "sessnb",
+                                                    schema,
+                                                    sizeof(schema));
+    struct d_mariadb*              db         = NULL;
+    struct d_db_pending            pending;
+    const struct d_mariadb_setting init[1]    =
+    {
+        { D_MARIADB_SETTING_INIT_COMMAND, 0ul, "SET @d_tests_init = 5", NULL }
+    };
+    struct d_mariadb_setting       two[2];
+    size_t                         count      = 0u;
+    int64_t                        number     = 0;
+    char*                          current    = NULL;
+
+    printf("mariadb_connection: the session without blocking\n");
+
+    const struct d_mariadb_setting* given = d_tests_mariadb_plain_first(
+                                                two,
+                                                init,
+                                                &count);
+
+    D_TESTS_MARIADB_OK(NULL, d_mariadb_connect_with(&g_options,
+                                                    given,
+                                                    count,
+                                                    &db,
+                                                    NULL));
+
+    // nothing more without a server
+    if ( (!db) ||
+         (!holder) )
+    {
+        d_mariadb_close(db);
+        d_tests_mariadb_end(holder, schema);
+
+        return;
+    }
+
+    // a client that makes none of them
+    if (!d_tests_mariadb_async(true))
+    {
+        D_TESTS_MARIADB_RESULT(db, d_mariadb_ping_start(db, &pending),
+                               D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_RESULT(db,
+                               d_mariadb_reset_connection_start(db, &pending),
+                               D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_RESULT(db,
+                               d_mariadb_change_user_start(db,
+                                                           g_options.user,
+                                                           g_options.password,
+                                                           NULL,
+                                                           &pending),
+                               D_DB_UNSUPPORTED);
+        D_TESTS_MARIADB_CHECK(d_tests_mariadb_unpended(&pending));
+        D_TESTS_MARIADB_OK(db, d_mariadb_ping(db));
+        d_mariadb_close(db);
+        d_tests_mariadb_end(holder, schema);
+
+        return;
+    }
+
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_drive_on(
+                               d_mariadb_ping_start(db, &pending),
+                               db,
+                               &pending,
+                               d_mariadb_ping_continue));
+
+    // a reset, the init command run again
+    D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "SET @d_tests_init = 9, "
+                                              "@d_tests_gone = 1"));
+    const int reset = d_mariadb_reset_connection_start(db, &pending);
+
+    // held while under way, where the answer has yet to come
+    if (reset == D_DB_WAIT)
+    {
+        D_TESTS_MARIADB_RESULT(db, d_mariadb_exec(db, "SELECT 1"), 2014);
+    }
+
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_drive_on(
+                               reset,
+                               db,
+                               &pending,
+                               d_mariadb_reset_connection_continue));
+    D_TESTS_MARIADB_CHECK( (d_mariadb_query_int64(db,
+                                                  &number,
+                                                  "SELECT @d_tests_init") ==
+                            0) &&
+                           (number == 5) );
+    D_TESTS_MARIADB_CHECK( (d_mariadb_query_int64(db,
+                                                  &number,
+                                                  "SELECT @d_tests_gone") ==
+                            0) &&
+                           (number == 0) );
+
+    // a change of user, to the same user, the test's database named
+    D_TESTS_MARIADB_OK(db, d_tests_mariadb_drive_on(
+                               d_mariadb_change_user_start(
+                                   db,
+                                   g_options.user,
+                                   g_options.password,
+                                   schema,
+                                   &pending),
+                               db,
+                               &pending,
+                               d_mariadb_change_user_continue));
+    D_TESTS_MARIADB_CHECK(d_tests_mariadb_unpended(&pending));
+    D_TESTS_MARIADB_OK(db, d_mariadb_query_text(db,
+                                                &current,
+                                                "SELECT DATABASE()"));
+    D_TESTS_MARIADB_CHECK( (current) &&
+                           (strcmp(current, schema) == 0) );
+    d_db_free(current);
+
+    // arguments, and continuations with nothing under way
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_ping_start(NULL, &pending),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_ping_start(db, NULL),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_ping_continue(db, 0u, &pending),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL,
+                           d_mariadb_reset_connection_continue(db,
+                                                               0u,
+                                                               &pending),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL,
+                           d_mariadb_change_user_continue(db, 0u, &pending),
+                           D_DB_INVALID_ARGUMENT);
+    d_mariadb_close(db);
+    d_tests_mariadb_end(holder, schema);
+
+    return;
+}
+
+/*
+d_tests_mariadb_sleeping
+  Starts sending a long sleep without blocking, and waits, from another
+connection, until the server runs it; the send is left as it started, for
+d_tests_mariadb_stopped to finish: MariaDB's client has sent it, and
+libmysqlclient, whose send waits for the first statement's answer, has it
+on its way.
+*/
+static bool
+d_tests_mariadb_sleeping(
+    struct d_mariadb*    _db,
+    struct d_mariadb*    _watcher,
+    struct d_db_pending* _pending,
+    int*                 _sent
+)
+{
+    char sql[200] = "";
+
+    *_sent = d_mariadb_send_query_start(_db,
+                                        "SELECT SLEEP(30) AS slept",
+                                        _pending);
+
+    // the statement on its way
+    if ( (*_sent != 0) &&
+         (*_sent != D_DB_WAIT) )
+    {
+        return false;
+    }
+
+    (void)snprintf(sql,
+                   sizeof(sql),
+                   "SELECT COUNT(*) FROM information_schema.PROCESSLIST "
+                   "WHERE ID = %lu AND INFO LIKE '%%SLEEP(30)%%'",
+                   d_mariadb_connection_id(_db));
+
+    for (int i = 0; i < 250; ++i)
+    {
+        int64_t count = 0;
+
+        if ( (d_mariadb_query_int64(_watcher, &count, sql) == 0) &&
+             (count == 1) )
+        {
+            return true;
+        }
+
+        (void)d_mariadb_exec(_watcher, "DO SLEEP(0.02)");
+    }
+
+    return false;
+}
+
+/*
+d_tests_mariadb_stopped
+  Finishes a cancelled sleep's send and reads its result: the server's 1317,
+or SLEEP's own 1 for a sleep it interrupted, soon either way; then nothing,
+the connection free.
+*/
+static void
+d_tests_mariadb_stopped(
+    struct d_mariadb*    _db,
+    time_t               _began,
+    int                  _sent,
+    struct d_db_pending* _pending
+)
+{
+    struct d_db_rows rows;
+
+    D_TESTS_MARIADB_OK(_db, d_tests_mariadb_drive_send(_sent, _db, _pending));
+
+    const int result = d_tests_mariadb_next(_db, &rows, NULL);
+
+    D_TESTS_MARIADB_CHECK( (result == 1317) ||
+                           ( (result == 0) &&
+                             (d_tests_mariadb_first_int(&rows) == 1) ) );
+    D_TESTS_MARIADB_CHECK(time(NULL) - _began < 10);
+
+    if (result == 0)
+    {
+        d_db_rows_free(&rows);
+        D_TESTS_MARIADB_RESULT(_db, d_tests_mariadb_next(_db, &rows, NULL),
+                               D_DB_NOT_FOUND);
+    }
+
+    D_TESTS_MARIADB_OK(_db, d_mariadb_exec(_db, "SELECT 1"));
+
+    return;
+}
+
+// D_TESTS_MARIADB_TLS_LIBRARY
+//   macro: 1 where the client names its TLS library at run time
+// (mariadb_get_infov's MARIADB_TLS_LIBRARY): Connector/C from 3.0.
+#if defined(MARIADB_PACKAGE_VERSION_ID)
+    #if (MARIADB_PACKAGE_VERSION_ID >= 30000)
+        #define D_TESTS_MARIADB_TLS_LIBRARY 1
+    #endif
+#endif
+#if !defined(D_TESTS_MARIADB_TLS_LIBRARY)
+    #define D_TESTS_MARIADB_TLS_LIBRARY 0
+#endif
+
+#if (D_TESTS_MARIADB_TLS_LIBRARY == 1)
+
+/*
+d_tests_mariadb_tls_expected
+  The harness's own reading of whether the client carries TLS without
+blocking: Connector/C before 3.4.10 whose TLS library is Schannel does not,
+nor one before 3.0.4 with any TLS library.
+*/
+static bool
+d_tests_mariadb_tls_expected(
+    void
+)
+{
+    const unsigned long version = mysql_get_client_version();
+    const char*         library = "";
+
+    (void)mariadb_get_infov(NULL, MARIADB_TLS_LIBRARY, &library);
+
+    return ( (version >= 30410ul)                         ||
+             ( (library) &&
+               (strcmp(library, "Off") == 0) )            ||
+             ( (version >= 30004ul) &&
+               ( (!library) ||
+                 (strcmp(library, "Schannel") != 0) ) ) );
+}
+
+#else
+
+/*
+d_tests_mariadb_tls_expected
+  A client without Schannel carries TLS where it makes calls that do not
+block at all.
+*/
+static bool
+d_tests_mariadb_tls_expected(
+    void
+)
+{
+    return d_tests_mariadb_async(false);
+}
+
+#endif  // D_TESTS_MARIADB_TLS_LIBRARY
+
+/*
+d_tests_mariadb_tls_under
+  Whether a connection runs under TLS, as the cipher it agreed says.
+*/
+static bool
+d_tests_mariadb_tls_under(
+    struct d_mariadb* _db
+)
+{
+    return (mysql_get_ssl_cipher((MYSQL*)d_mariadb_native(_db)) != NULL);
+}
+
+/*
+d_tests_mariadb_tls_refusals
+  Every start on a connection under TLS, where the client cannot carry it
+without blocking: each D_DB_UNSUPPORTED, nothing pending, nothing held -- the
+connection still answers a blocking call after each.
+*/
+static void
+d_tests_mariadb_tls_refusals(
+    struct d_mariadb* _db
+)
+{
+    struct d_mariadb_statement* statement = NULL;
+    struct d_mariadb_statement* started   = NULL;
+    struct d_mariadb*           canceller = NULL;
+    char*                       reason    = NULL;
+    struct d_db_pending         pending;
+    struct d_db_rows            rows;
+
+    memset(&rows, 0, sizeof(rows));
+    D_TESTS_MARIADB_RESULT(_db, d_mariadb_ping_start(_db, &pending),
+                           D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_RESULT(_db,
+                           d_mariadb_reset_connection_start(_db, &pending),
+                           D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_RESULT(_db,
+                           d_mariadb_change_user_start(_db,
+                                                       g_options.user,
+                                                       g_options.password,
+                                                       NULL,
+                                                       &pending),
+                           D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_RESULT(_db,
+                           d_mariadb_send_query_start(_db,
+                                                      "SELECT 1",
+                                                      &pending),
+                           D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_RESULT(_db,
+                           d_mariadb_next_result_start(_db,
+                                                       &pending,
+                                                       &rows,
+                                                       NULL),
+                           D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_RESULT(_db,
+                           d_mariadb_prepare_start(_db,
+                                                   &started,
+                                                   "SELECT 1",
+                                                   &pending),
+                           D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_CHECK( (started == NULL) &&
+                           (d_tests_mariadb_unpended(&pending)) );
+    D_TESTS_MARIADB_OK(_db, d_mariadb_ping(_db));
+
+    // a statement prepared by blocking: its runs and its cursor's pages
+    D_TESTS_MARIADB_OK(_db, d_mariadb_prepare(_db,
+                                              &statement,
+                                              "SELECT 1 UNION SELECT 2"));
+    D_TESTS_MARIADB_RESULT(_db, d_mariadb_execute_start(statement, &pending),
+                           D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_RESULT(_db, d_mariadb_open_cursor_start(statement,
+                                                            &pending),
+                           D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_OK(_db, d_mariadb_open_cursor(statement));
+    D_TESTS_MARIADB_RESULT(_db, d_mariadb_fetch_rows_start(statement,
+                                                           1u,
+                                                           &pending,
+                                                           &rows),
+                           D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_CHECK(d_tests_mariadb_unpended(&pending));
+    D_TESTS_MARIADB_OK(_db, d_mariadb_close_cursor(statement));
+    D_TESTS_MARIADB_OK(_db, d_mariadb_finalize(statement));
+
+    // a cancel, which would need TLS for its own connection too
+    D_TESTS_MARIADB_RESULT(_db, d_mariadb_cancel_start(_db,
+                                                       &canceller,
+                                                       &pending,
+                                                       &reason),
+                           D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_CHECK( (canceller == NULL) &&
+                           (reason) &&
+                           (strstr(reason, "Schannel") != NULL) );
+    d_db_free(reason);
+    D_TESTS_MARIADB_OK(_db, d_mariadb_exec(_db, "SELECT 1"));
+
+    return;
+}
+
+/*
+d_tests_mariadb_tls_nonblocking
+  d_mariadb_client_nonblocking_tls, and the starts' refusal of TLS where it
+is false.
+  Tests the following:
+  - the answer is the harness's own reading of the client: Connector/C
+    before 3.4.10 whose TLS library is Schannel cannot, nor one before 3.0.4;
+    any other client with calls that do not block can
+  - where it can, a connection under TLS where the server offers it sends
+    and reads without blocking
+  - where it cannot: a connect's start that would ask for TLS -- the
+    layer's default -- is D_DB_UNSUPPORTED, no handle, nothing pending, the
+    reason given; one with D_MARIADB_SSL_DISABLED connects, without TLS,
+    sends and reads, and cancels, its own connection without TLS; on a
+    connection under TLS every start is D_DB_UNSUPPORTED -- a ping, a reset,
+    a change of user, SQL sent, its results, a prepare, a run, a cursor, its
+    pages, a cancel with its reason -- and the connection carries on by
+    blocking
+*/
+static void
+d_tests_mariadb_tls_nonblocking(
+    void
+)
+{
+    const bool          can       = d_mariadb_client_nonblocking_tls();
+    struct d_mariadb*   db        = NULL;
+    struct d_mariadb*   plain     = NULL;
+    struct d_mariadb*   canceller = NULL;
+    char*               reason    = NULL;
+    struct d_db_pending pending;
+    struct d_db_rows    rows;
+
+    printf("mariadb_common: calls that do not block, over TLS (%s)\n",
+           (can) ? "carried" : "refused");
+
+    memset(&rows, 0, sizeof(rows));
+    D_TESTS_MARIADB_CHECK(can == d_tests_mariadb_tls_expected());
+
+    // a client with no calls that do not block has nothing to refuse
+    if (!d_tests_mariadb_async(false))
+    {
+        D_TESTS_MARIADB_CHECK(!can);
+
+        return;
+    }
+
+    db = d_tests_mariadb_connect(NULL);
+
+    // nothing more without a server
+    if (!db)
+    {
+        D_TESTS_MARIADB_CHECK(db != NULL);
+
+        return;
+    }
+
+    printf("  %s\n", (d_tests_mariadb_tls_under(db)) ? "under TLS"
+                                                     : "the server has no TLS");
+
+    // carried: SQL sent and read over the connection as it is
+    if (can)
+    {
+        D_TESTS_MARIADB_OK(db, d_tests_mariadb_send(db, "SELECT 1"));
+        D_TESTS_MARIADB_OK(db, d_tests_mariadb_next(db, &rows, NULL));
+        d_db_rows_free(&rows);
+        D_TESTS_MARIADB_RESULT(db, d_tests_mariadb_next(db, &rows, NULL),
+                               D_DB_NOT_FOUND);
+        d_mariadb_close(db);
+
+        return;
+    }
+
+    // refused: a connect's start that would ask for TLS
+    D_TESTS_MARIADB_RESULT(NULL,
+                           d_mariadb_connect_with_start(&g_options,
+                                                        NULL,
+                                                        0u,
+                                                        &plain,
+                                                        &pending,
+                                                        &reason),
+                           D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_CHECK( (plain == NULL) &&
+                           (d_tests_mariadb_unpended(&pending)) &&
+                           (reason) &&
+                           (strstr(reason, "D_MARIADB_SSL_DISABLED") != NULL) );
+    d_db_free(reason);
+    reason = NULL;
+    D_TESTS_MARIADB_RESULT(NULL,
+                           d_mariadb_connect_start(&g_options,
+                                                   &plain,
+                                                   &pending),
+                           D_DB_UNSUPPORTED);
+    D_TESTS_MARIADB_CHECK(plain == NULL);
+
+    // without TLS: made, sent and read, and cancelled, without blocking
+    D_TESTS_MARIADB_OK(NULL, d_tests_mariadb_drive_connect(
+                                 d_mariadb_connect_with_start(&g_options,
+                                                              &g_plain,
+                                                              1u,
+                                                              &plain,
+                                                              &pending,
+                                                              NULL),
+                                 &plain,
+                                 &pending,
+                                 NULL));
+
+    if (plain)
+    {
+        int result = 0;
+
+        D_TESTS_MARIADB_CHECK(!d_tests_mariadb_tls_under(plain));
+        D_TESTS_MARIADB_OK(plain, d_tests_mariadb_send(plain, "SELECT 1"));
+        D_TESTS_MARIADB_OK(plain, d_tests_mariadb_next(plain, &rows, NULL));
+        d_db_rows_free(&rows);
+        D_TESTS_MARIADB_RESULT(plain, d_tests_mariadb_next(plain, &rows, NULL),
+                               D_DB_NOT_FOUND);
+        result = d_mariadb_cancel_start(plain, &canceller, &pending, &reason);
+
+        for (int waits = 0;
+             (result == D_DB_WAIT) && (waits < D_TESTS_MARIADB_ROUNDS);
+             ++waits)
+        {
+            result = d_mariadb_cancel_continue(&canceller,
+                                               d_tests_mariadb_wait(&pending),
+                                               &pending,
+                                               &reason);
+        }
+
+        D_TESTS_MARIADB_OK(plain, result);
+        D_TESTS_MARIADB_CHECK( (canceller == NULL) &&
+                               (reason == NULL) );
+        d_db_free(reason);
+        d_mariadb_close(plain);
+    }
+
+    // a connection under TLS: every start refused
+    if (d_tests_mariadb_tls_under(db))
+    {
+        d_tests_mariadb_tls_refusals(db);
+    }
+
+    d_mariadb_close(db);
+
+    return;
+}
+
+/*
+d_tests_mariadb_cancels
+  d_mariadb_cancel, _cancel_start and _cancel_continue.
+  Tests the following:
+  - a request made while the server runs a long sleep stops it, soon
+  - without blocking, the same, the canceller closed and NULLed once done
+  - a request with nothing running is made, and changes nothing
+  - a request abandoned is closed with d_mariadb_close
+  - NULL arguments are D_DB_INVALID_ARGUMENT
+*/
+static void
+d_tests_mariadb_cancels(
+    void
+)
+{
+    struct d_mariadb*   db        = d_tests_mariadb_connect(NULL);
+    struct d_mariadb*   watcher   = d_tests_mariadb_connect(NULL);
+    struct d_mariadb*   canceller = NULL;
+    char*               reason    = NULL;
+    struct d_db_pending pending;
+
+    printf("mariadb_connection: cancelling\n");
+
+    // nothing more without a server, or a client that can send without
+    // blocking
+    if ( (!db)      ||
+         (!watcher) ||
+         (!d_tests_mariadb_async(false)) )
+    {
+        D_TESTS_MARIADB_CHECK( (db) && (watcher) );
+        d_mariadb_close(db);
+        d_mariadb_close(watcher);
+
+        return;
+    }
+
+    time_t began = time(NULL);
+    int    sent  = 0;
+
+    D_TESTS_MARIADB_CHECK(d_tests_mariadb_sleeping(db,
+                                                   watcher,
+                                                   &pending,
+                                                   &sent));
+    D_TESTS_MARIADB_OK(watcher, d_mariadb_cancel(db, &reason));
+    D_TESTS_MARIADB_CHECK(reason == NULL);
+    d_tests_mariadb_stopped(db, began, sent, &pending);
+    D_TESTS_MARIADB_OK(watcher, d_mariadb_cancel(db, NULL));
+    D_TESTS_MARIADB_OK(db, d_mariadb_exec(db, "SELECT 1"));
+
+    // without blocking
+    struct d_db_pending sending;
+
+    began = time(NULL);
+    D_TESTS_MARIADB_CHECK(d_tests_mariadb_sleeping(db,
+                                                   watcher,
+                                                   &sending,
+                                                   &sent));
+
+    int result = d_mariadb_cancel_start(db, &canceller, &pending, &reason);
+
+    // under way, or done at once where every answer came at once (a loaded
+    // machine, with libmysqlclient)
+    D_TESTS_MARIADB_CHECK( ( (result == D_DB_WAIT) &&
+                             (canceller != NULL) ) ||
+                           ( (result == 0) &&
+                             (canceller == NULL) ) );
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_MARIADB_ROUNDS);
+         ++waits)
+    {
+        result = d_mariadb_cancel_continue(&canceller,
+                                           d_tests_mariadb_wait(&pending),
+                                           &pending,
+                                           &reason);
+    }
+
+    D_TESTS_MARIADB_OK(watcher, result);
+    D_TESTS_MARIADB_CHECK( (canceller == NULL) &&
+                           (reason == NULL) &&
+                           (d_tests_mariadb_unpended(&pending)) );
+    d_tests_mariadb_stopped(db, began, sent, &sending);
+
+    // abandoned under way, or done at once
+    result = d_mariadb_cancel_start(db, &canceller, &pending, NULL);
+    D_TESTS_MARIADB_CHECK( ( (result == D_DB_WAIT) &&
+                             (canceller != NULL) ) ||
+                           ( (result == 0) &&
+                             (canceller == NULL) ) );
+    D_TESTS_MARIADB_CHECK(d_mariadb_close(canceller) == 0);
+    canceller = NULL;
+
+    // arguments
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_cancel(NULL, NULL),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_cancel_start(NULL,
+                                                        &canceller,
+                                                        &pending,
+                                                        NULL),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_cancel_start(db,
+                                                        NULL,
+                                                        &pending,
+                                                        NULL),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_cancel_continue(NULL,
+                                                           0u,
+                                                           &pending,
+                                                           NULL),
+                           D_DB_INVALID_ARGUMENT);
+    D_TESTS_MARIADB_RESULT(NULL, d_mariadb_cancel_continue(&canceller,
+                                                           0u,
+                                                           &pending,
+                                                           NULL),
+                           D_DB_INVALID_ARGUMENT);
+    d_mariadb_close(db);
+    d_mariadb_close(watcher);
+
+    return;
+}
+
+/*
+d_tests_mariadb_without_blocking
+  The tests of calls that do not block, over connections without TLS where
+the client cannot carry TLS so (d_tests_mariadb_tls_nonblocking tests that
+refusal), and as the run's other connections otherwise.
+*/
+static void
+d_tests_mariadb_without_blocking(
+    void
+)
+{
+    d_tests_mariadb_tls_nonblocking();
+    g_plain_count = ( (d_tests_mariadb_async(false)) &&
+                      (!d_mariadb_client_nonblocking_tls()) )
+                        ? 1u
+                        : 0u;
+
+    if (g_plain_count != 0u)
+    {
+        printf("  (the tests that follow connect without TLS)\n");
+    }
+
+    d_tests_mariadb_connect_nonblocking();
+    d_tests_mariadb_sent_nonblocking();
+    d_tests_mariadb_statements_nonblocking();
+    d_tests_mariadb_session_nonblocking();
+    d_tests_mariadb_cancels();
+    g_plain_count = 0u;
+
+    return;
+}
+
+
+//==============================================================================
 // RUNNER
 //==============================================================================
 
@@ -7215,6 +9333,7 @@ static void (* const d_tests_mariadb_all[])(void) =
     d_tests_mariadb_changing_user,
     d_tests_mariadb_resetting,
     d_tests_mariadb_liveness,
+    d_tests_mariadb_without_blocking,
     d_tests_mariadb_rows_changed,
     d_tests_mariadb_statements,
     d_tests_mariadb_scripts,

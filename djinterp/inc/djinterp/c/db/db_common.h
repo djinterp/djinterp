@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/c/db/db_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 
 /*
@@ -146,7 +146,10 @@ const char* d_db_status_message(int _status) D_NOTHROW;
 // A call a layer makes without blocking (the audit's 11.26.6) starts, and
 // returns D_DB_WAIT until it is done, each time saying what it waits for: a
 // socket to become readable or writable, a deadline, or both. The program
-// waits so, in whatever loop it has, and continues the call with what came.
+// waits so, in whatever loop it has, and continues the call with what came,
+// passing the same d_db_pending back each time: besides what to wait for, it
+// carries what the call keeps between its continuations, which the program
+// leaves as the layer wrote it.
 
 // 1.3.1
 // d_db_socket
@@ -165,18 +168,27 @@ enum d_db_wait
 {
     D_DB_WAIT_READ    = 1,  // the socket readable
     D_DB_WAIT_WRITE   = 2,  // the socket writable
-    D_DB_WAIT_TIMEOUT = 4   // a deadline the client keeps: continue the call
-                            // when it passes, ready or not
+    D_DB_WAIT_TIMEOUT = 4   // a deadline the client keeps, or the layer for
+                            // it: continue the call when it passes, ready
+                            // or not
 };
 
 // 1.3.3
 // d_db_pending
-//   struct: what a call that has not finished waits for.
+//   struct: what a call that has not finished waits for, and what it keeps
+// until it is continued. A call that finishes leaves it all 0 and
+// D_DB_SOCKET_NONE; a program need not initialize it before a call starts.
 struct d_db_pending
 {
     d_db_socket socket;      // the socket to wait on
     unsigned    events;      // d_db_wait, ORed
     unsigned    timeout_ms;  // with D_DB_WAIT_TIMEOUT: the deadline, from now
+    // the call's own, between continuations: the program leaves them alone
+    double      deadline;    // when a deadline the layer keeps passes, for
+                             // a client that keeps none in this mode: in
+                             // seconds, on the clock the layer names; 0 for
+                             // none
+    unsigned    state;       // anything else the call must remember
 };
 
 

@@ -35,8 +35,27 @@
 * path:      /tests/djinterp/c/db/postgres/t_postgres.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
+// _WIN32_WINNT
+//   knob (Windows'): Vista's API at least, for WSAPoll, where nothing asked
+// for more; it precedes every include.
+#if ( (defined(_WIN32)) &&                                                    \
+      (!defined(_WIN32_WINNT)) )
+    #define _WIN32_WINNT 0x0600
+#endif  // _WIN32
+// WIN32_LEAN_AND_MEAN, NOMINMAX
+//   knobs (Windows'): <windows.h>, which <winsock2.h> and the clients' own
+// headers include, without its rarer headers -- rpcndr.h among them, which
+// makes `small` a macro -- and without its min and max macros.
+#if defined(_WIN32)
+    #if !defined(WIN32_LEAN_AND_MEAN)
+        #define WIN32_LEAN_AND_MEAN 1
+    #endif  // WIN32_LEAN_AND_MEAN
+    #if !defined(NOMINMAX)
+        #define NOMINMAX 1
+    #endif  // NOMINMAX
+#endif  // _WIN32
 // D_CFG_ENV_USING_POSTGRESQL
 //   knob (env's): on, since the harness calls libpq itself, as a program
 // asking for env's detection does; the layer turns it on for its own sources
@@ -52,6 +71,19 @@
 #include <stdio.h>   // printf, snprintf
 #include <stdlib.h>  // getenv, setenv, strtoul
 #include <string.h>  // memcmp, memset, strcmp, strlen, strncmp, strstr
+#include <time.h>    // time
+#if defined(_WIN32)
+    #include <winsock2.h>      // WSAPoll, struct pollfd, SOCKET
+    #if defined(_MSC_VER)
+        #pragma comment(lib, "ws2_32.lib")  // WSAPoll
+    #endif  // _MSC_VER
+#else
+    #include <arpa/inet.h>     // htonl, ntohs
+    #include <netinet/in.h>    // struct sockaddr_in, INADDR_LOOPBACK
+    #include <poll.h>          // poll, struct pollfd
+    #include <sys/socket.h>    // socket, bind, listen, getsockname
+    #include <unistd.h>        // close
+#endif
 // djinterp
 #include "../../../../../inc/djinterp/c/db/postgres/postgres.h"  // under test
 #include "../../../../../inc/djinterp/env/db/postgres/env_postgres.h"  // libpq
@@ -80,6 +112,48 @@ static struct d_postgres_options g_options =
 // d_tests_postgres_ and the setup connection's backend process id, which no
 // other session has at once.
 static char g_run[48] = "";
+
+#if defined(_WIN32)
+
+// d_tests_postgres_socket
+//   type: a socket, as the platform's poll takes it.
+typedef SOCKET d_tests_postgres_socket;
+
+/*
+d_tests_postgres_poll
+  WSAPoll, Windows' poll.
+*/
+static int
+d_tests_postgres_poll(
+    struct pollfd* _fds,
+    unsigned       _count,
+    int            _timeout
+)
+{
+    return WSAPoll(_fds, (ULONG)_count, _timeout);
+}
+
+#else
+
+// d_tests_postgres_socket
+//   type: a socket, as the platform's poll takes it.
+typedef int d_tests_postgres_socket;
+
+/*
+d_tests_postgres_poll
+  poll(2).
+*/
+static int
+d_tests_postgres_poll(
+    struct pollfd* _fds,
+    unsigned       _count,
+    int            _timeout
+)
+{
+    return poll(_fds, (nfds_t)_count, _timeout);
+}
+
+#endif  // _WIN32
 
 /*
 d_tests_postgres_expect
@@ -1067,6 +1141,14 @@ d_tests_postgres_client(
 #else
     D_TESTS_POSTGRES_CHECK(!d_postgres_client_supports(
                                D_POSTGRES_CLIENT_CLOSE_PREPARED));
+#endif
+#if defined(LIBPQ_HAS_ASYNC_CANCEL)
+    D_TESTS_POSTGRES_CHECK(d_postgres_client_supports(
+                               D_POSTGRES_CLIENT_ASYNC_CANCEL) ==
+                           (library >= 170000));
+#else
+    D_TESTS_POSTGRES_CHECK(!d_postgres_client_supports(
+                               D_POSTGRES_CLIENT_ASYNC_CANCEL));
 #endif
     D_TESTS_POSTGRES_CHECK(!d_postgres_client_supports(
                                (enum d_postgres_client_feature)99));
@@ -2172,6 +2254,850 @@ d_tests_postgres_lost_connections(
     D_TESTS_POSTGRES_CHECK(d_postgres_server_version(db) == NULL);
     D_TESTS_POSTGRES_CHECK(d_postgres_server_version_number(db) == 0);
     D_TESTS_POSTGRES_CHECK(d_postgres_close(db) == 0);
+
+    return;
+}
+
+//==============================================================================
+// postgres_connection.h: without blocking
+//==============================================================================
+
+// D_TESTS_POSTGRES_ROUNDS
+//   constant: the most waits a call that does not block is driven through
+// before the harness gives up on it, so that a call that never finishes
+// fails rather than hangs.
+#define D_TESTS_POSTGRES_ROUNDS 10000
+
+/*
+d_tests_postgres_wait
+  Waits as a pending call says, as a program's loop would -- poll(2), or
+WSAPoll on Windows -- and answers what came, as d_db_wait: D_DB_WAIT_TIMEOUT
+when the deadline passed first. An error or a hang-up on the socket reads as
+ready for whatever was asked, so that the call finds out for itself.
+*/
+static unsigned
+d_tests_postgres_wait(
+    const struct d_db_pending* _pending
+)
+{
+    const unsigned ready   = (unsigned)D_DB_WAIT_READ |
+                             (unsigned)D_DB_WAIT_WRITE;
+    const int      timeout = ((_pending->events & D_DB_WAIT_TIMEOUT) != 0u)
+                                 ? ( (_pending->timeout_ms > (unsigned)INT_MAX)
+                                         ? INT_MAX
+                                         : (int)_pending->timeout_ms )
+                                 : -1;
+    struct pollfd  fd;
+
+    memset(&fd, 0, sizeof(fd));
+    fd.fd     = (d_tests_postgres_socket)_pending->socket;
+    fd.events = (short)( ( ((_pending->events & D_DB_WAIT_READ) != 0u)
+                               ? POLLIN
+                               : 0 ) |
+                         ( ((_pending->events & D_DB_WAIT_WRITE) != 0u)
+                               ? POLLOUT
+                               : 0 ) );
+
+    // no socket to wait on: nothing would come; the call finds out
+    if (_pending->socket == D_DB_SOCKET_NONE)
+    {
+        return _pending->events & ready;
+    }
+
+    const int came = d_tests_postgres_poll(&fd, 1u, timeout);
+
+    // the deadline first
+    if (came == 0)
+    {
+        return (unsigned)D_DB_WAIT_TIMEOUT;
+    }
+
+    // trouble on the socket is the call's to find
+    if ( (came < 0) ||
+         ((fd.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0) )
+    {
+        return _pending->events & ready;
+    }
+
+    return ( ((fd.revents & POLLIN) != 0)  ? (unsigned)D_DB_WAIT_READ  : 0u ) |
+           ( ((fd.revents & POLLOUT) != 0) ? (unsigned)D_DB_WAIT_WRITE : 0u );
+}
+
+/*
+d_tests_postgres_drive_connect
+  Continues a connection a start began until it is done, counting the waits;
+the answer is the last continuation's.
+*/
+static int
+d_tests_postgres_drive_connect(
+    int                  _started,
+    struct pg_conn**     _db,
+    struct d_db_pending* _pending,
+    char**               _message,
+    int*                 _waits
+)
+{
+    int result = _started;
+    int waits  = 0;
+
+    while ( (result == D_DB_WAIT) &&
+            (waits < D_TESTS_POSTGRES_ROUNDS) )
+    {
+        const unsigned came = d_tests_postgres_wait(_pending);
+
+        ++waits;
+        d_db_free((_message) ? *_message : NULL);
+        result = d_postgres_connect_continue(_db, came, _pending, _message);
+    }
+
+    if (_waits)
+    {
+        *_waits = waits;
+    }
+
+    return result;
+}
+
+/*
+d_tests_postgres_settled
+  Whether a pending call was left as a finished one leaves it.
+*/
+static bool
+d_tests_postgres_settled(
+    const struct d_db_pending* _pending
+)
+{
+    return ( (_pending->socket == D_DB_SOCKET_NONE) &&
+             (_pending->events == 0u)               &&
+             (_pending->timeout_ms == 0u)           &&
+             (_pending->deadline == 0.0)            &&
+             (_pending->state == 0u) );
+}
+
+/*
+d_tests_postgres_digits_from_startup
+  Whether extra_float_digits is 3 and came in the startup packet, which the
+server records as the client's -- not a session's SET.
+*/
+static bool
+d_tests_postgres_digits_from_startup(
+    struct pg_conn* _db
+)
+{
+    return ( (d_tests_postgres_text_is(_db,
+                                       "SHOW extra_float_digits",
+                                       "3")) &&
+             (d_tests_postgres_text_is(_db,
+                                       "SELECT source FROM pg_settings "
+                                       "WHERE name = 'extra_float_digits'",
+                                       "client")) );
+}
+
+/*
+d_tests_postgres_connect_nonblocking
+  d_postgres_connect_start, _string_start, _with_start and _continue.
+  Tests the following:
+  - a start answers D_DB_WAIT, the connection being made in hand, waiting
+    to write, with the layer's default connect_timeout as a deadline
+  - driven through a poll loop, each form connects, the pending call left
+    settled, extra_float_digits 3 from the startup packet
+  - options of the caller's keep their own settings and gain the digits in
+    the same packet; options naming the digits keep theirs
+  - a continuation without a ready socket before the deadline waits again,
+    for the same thing, without failing
+  - a connection libpq already made continues as done
+  - a wrong password is 08001 with libpq's reason, the handle NULL
+  - a connection being made is abandoned with d_postgres_close
+  - NULL handles, pending calls and keywords are D_DB_INVALID_ARGUMENT
+*/
+static void
+d_tests_postgres_connect_nonblocking(
+    void
+)
+{
+    struct pg_conn*           db         = NULL;
+    char*                     reason     = NULL;
+    struct d_db_pending       pending;
+    struct d_postgres_options options    = g_options;
+    char                      port[16]   = "";
+    char                      text[512]  = "";
+    int                       waits      = 0;
+    const char*               keywords[] = { "host", "port", "user",
+                                             "password", "dbname",
+                                             "options" };
+    const char*               values[]   = { g_options.host, port,
+                                             g_options.user,
+                                             g_options.password,
+                                             g_options.database,
+                                             "-c application_name=d_nb" };
+
+    printf("postgres_connection: connecting without blocking\n");
+
+    memset(&pending, 0x5a, sizeof(pending));
+    (void)snprintf(port, sizeof(port), "%u", g_options.port);
+
+    // the start: a connection being made, waiting to write, a deadline
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_connect_start(&g_options,
+                                                     &db,
+                                                     &pending,
+                                                     &reason),
+                            D_DB_WAIT);
+    D_TESTS_POSTGRES_CHECK(db != NULL);
+    D_TESTS_POSTGRES_CHECK(reason == NULL);
+    D_TESTS_POSTGRES_CHECK(pending.socket != D_DB_SOCKET_NONE);
+    D_TESTS_POSTGRES_CHECK((pending.events & D_DB_WAIT_WRITE) != 0u);
+    D_TESTS_POSTGRES_CHECK( (getenv("PGCONNECT_TIMEOUT")) ||
+                            ( ((pending.events & D_DB_WAIT_TIMEOUT) != 0u) &&
+                              (pending.timeout_ms > 0u)                    &&
+                              (pending.timeout_ms <= 10000u)               &&
+                              (pending.deadline > 0.0) ) );
+
+    // nothing came before the deadline: the same wait again
+    if (db)
+    {
+        const unsigned asked = pending.events;
+
+        D_TESTS_POSTGRES_RESULT(NULL,
+                                d_postgres_connect_continue(&db,
+                                                            0u,
+                                                            &pending,
+                                                            &reason),
+                                D_DB_WAIT);
+        D_TESTS_POSTGRES_CHECK(db != NULL);
+        D_TESTS_POSTGRES_CHECK(pending.events == asked);
+    }
+
+    D_TESTS_POSTGRES_OK(NULL,
+                        d_tests_postgres_drive_connect(D_DB_WAIT,
+                                                       &db,
+                                                       &pending,
+                                                       &reason,
+                                                       &waits));
+    D_TESTS_POSTGRES_CHECK(waits > 0);
+    D_TESTS_POSTGRES_CHECK(reason == NULL);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_settled(&pending));
+    D_TESTS_POSTGRES_CHECK( (db) &&
+                            (PQstatus(db) == CONNECTION_OK) &&
+                            (d_tests_postgres_digits_from_startup(db)) );
+
+    // made already: done at once
+    if (db)
+    {
+        D_TESTS_POSTGRES_OK(db,
+                            d_postgres_connect_continue(&db,
+                                                        D_DB_WAIT_READ,
+                                                        &pending,
+                                                        NULL));
+        D_TESTS_POSTGRES_CHECK(db != NULL);
+    }
+
+    d_postgres_close(db);
+    db = NULL;
+
+    // a connection string
+    (void)snprintf(text,
+                   sizeof(text),
+                   "host=%s port=%u user=%s dbname=%s%s%s",
+                   g_options.host,
+                   g_options.port,
+                   g_options.user,
+                   g_options.database,
+                   (g_options.password) ? " password=" : "",
+                   (g_options.password) ? g_options.password : "");
+    D_TESTS_POSTGRES_OK(NULL,
+                        d_tests_postgres_drive_connect(
+                            d_postgres_connect_string_start(text,
+                                                            &db,
+                                                            &pending,
+                                                            NULL),
+                            &db,
+                            &pending,
+                            NULL,
+                            NULL));
+    D_TESTS_POSTGRES_CHECK( (db) &&
+                            (d_tests_postgres_digits_from_startup(db)) );
+    d_postgres_close(db);
+    db = NULL;
+
+    // the caller's options, the digits ahead of them in the same packet
+    D_TESTS_POSTGRES_OK(NULL,
+                        d_tests_postgres_drive_connect(
+                            d_postgres_connect_with_start(NULL,
+                                                          keywords,
+                                                          values,
+                                                          6u,
+                                                          &db,
+                                                          &pending,
+                                                          NULL),
+                            &db,
+                            &pending,
+                            NULL,
+                            NULL));
+    D_TESTS_POSTGRES_CHECK( (db) &&
+                            (d_tests_postgres_digits_from_startup(db)) &&
+                            (d_tests_postgres_text_is(
+                                 db,
+                                 "SHOW application_name",
+                                 "d_nb")) );
+    d_postgres_close(db);
+    db        = NULL;
+    values[5] = "-c extra_float_digits=1";
+    D_TESTS_POSTGRES_OK(NULL,
+                        d_tests_postgres_drive_connect(
+                            d_postgres_connect_with_start(NULL,
+                                                          keywords,
+                                                          values,
+                                                          6u,
+                                                          &db,
+                                                          &pending,
+                                                          NULL),
+                            &db,
+                            &pending,
+                            NULL,
+                            NULL));
+    D_TESTS_POSTGRES_CHECK( (db) &&
+                            (d_tests_postgres_text_is(
+                                 db,
+                                 "SHOW extra_float_digits",
+                                 "1")) );
+    d_postgres_close(db);
+    db = NULL;
+
+    // a wrong password, found while continuing
+    options.password = "certainly not the password";
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_tests_postgres_drive_connect(
+                                d_postgres_connect_start(&options,
+                                                         &db,
+                                                         &pending,
+                                                         &reason),
+                                &db,
+                                &pending,
+                                &reason,
+                                NULL),
+                            D_POSTGRES_SQLSTATE_CANNOT_CONNECT);
+    D_TESTS_POSTGRES_CHECK(db == NULL);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_settled(&pending));
+    D_TESTS_POSTGRES_CHECK( (reason) &&
+                            (strlen(reason) > 0u) &&
+                            (reason[strlen(reason) - 1u] != '\n') );
+    d_db_free(reason);
+    reason = NULL;
+
+    // abandoned while being made
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_connect_start(&g_options,
+                                                     &db,
+                                                     &pending,
+                                                     NULL),
+                            D_DB_WAIT);
+    D_TESTS_POSTGRES_CHECK(d_postgres_close(db) == 0);
+    db = NULL;
+
+    // arguments
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_connect_start(&g_options,
+                                                     NULL,
+                                                     &pending,
+                                                     NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_connect_start(&g_options,
+                                                     &db,
+                                                     NULL,
+                                                     &reason),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_CHECK( (db == NULL) &&
+                            (reason == NULL) );
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_connect_string_start("dbname=x",
+                                                            &db,
+                                                            NULL,
+                                                            NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_connect_with_start(NULL,
+                                                          NULL,
+                                                          values,
+                                                          1u,
+                                                          &db,
+                                                          &pending,
+                                                          NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_connect_with_start("host='open",
+                                                          NULL,
+                                                          NULL,
+                                                          0u,
+                                                          &db,
+                                                          &pending,
+                                                          &reason),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_CHECK( (db == NULL) &&
+                            (reason != NULL) );
+    d_db_free(reason);
+    reason = NULL;
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_connect_continue(NULL,
+                                                        0u,
+                                                        &pending,
+                                                        NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_connect_continue(&db,
+                                                        0u,
+                                                        &pending,
+                                                        NULL),
+                            D_DB_INVALID_ARGUMENT);
+
+    return;
+}
+
+#if !defined(_WIN32)
+
+/*
+d_tests_postgres_connect_timeouts
+  The deadline the layer keeps for a connect that does not block, against a
+listening socket that never answers: the kernel completes the handshake,
+libpq sends its startup packet, and nothing comes back.
+  Tests the following:
+  - connect_timeout=2 is the deadline: after it, the continuation fails with
+    08001 and "timeout expired", the handle NULL, in about two seconds
+  - a connect_timeout that is not an integer is 08001, naming it
+  - 0 is no deadline: no D_DB_WAIT_TIMEOUT asked for
+*/
+static void
+d_tests_postgres_connect_timeouts(
+    void
+)
+{
+    struct sockaddr_in  address;
+    socklen_t           length     = (socklen_t)sizeof(address);
+    struct pg_conn*     db         = NULL;
+    char*               reason     = NULL;
+    struct d_db_pending pending;
+    char                port[16]   = "";
+    const char*         keywords[] = { "host", "port", "connect_timeout",
+                                       "sslmode" };
+    const char*         values[]   = { "127.0.0.1", port, "2", "disable" };
+    const int           mute       = socket(AF_INET, SOCK_STREAM, 0);
+
+    printf("postgres_connection: deadlines without blocking\n");
+
+    memset(&address, 0, sizeof(address));
+    address.sin_family      = AF_INET;
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    address.sin_port        = 0;
+
+    // a socket that listens and never answers
+    if ( (mute < 0) ||
+         (bind(mute, (struct sockaddr*)&address, length) != 0) ||
+         (listen(mute, 4) != 0) ||
+         (getsockname(mute, (struct sockaddr*)&address, &length) != 0) )
+    {
+        D_TESTS_POSTGRES_CHECK(!"a listening socket");
+
+        if (mute >= 0)
+        {
+            (void)close(mute);
+        }
+
+        return;
+    }
+
+    (void)snprintf(port, sizeof(port), "%u", (unsigned)ntohs(address.sin_port));
+
+    const time_t began  = time(NULL);
+    const int    result = d_tests_postgres_drive_connect(
+                              d_postgres_connect_with_start(NULL,
+                                                            keywords,
+                                                            values,
+                                                            4u,
+                                                            &db,
+                                                            &pending,
+                                                            &reason),
+                              &db,
+                              &pending,
+                              &reason,
+                              NULL);
+    const time_t ended  = time(NULL);
+
+    D_TESTS_POSTGRES_RESULT(NULL, result, D_POSTGRES_SQLSTATE_CANNOT_CONNECT);
+    D_TESTS_POSTGRES_CHECK(db == NULL);
+    D_TESTS_POSTGRES_CHECK( (reason) &&
+                            (strcmp(reason, "timeout expired") == 0) );
+    D_TESTS_POSTGRES_CHECK( (ended - began >= 1) &&
+                            (ended - began <= 4) );
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_settled(&pending));
+    d_db_free(reason);
+    reason = NULL;
+
+    // no integer
+    values[2] = "two";
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_connect_with_start(NULL,
+                                                          keywords,
+                                                          values,
+                                                          4u,
+                                                          &db,
+                                                          &pending,
+                                                          &reason),
+                            D_POSTGRES_SQLSTATE_CANNOT_CONNECT);
+    D_TESTS_POSTGRES_CHECK(db == NULL);
+    D_TESTS_POSTGRES_CHECK( (reason) &&
+                            (strstr(reason, "connect_timeout") != NULL) );
+    d_db_free(reason);
+    reason = NULL;
+
+    // none: no deadline asked for
+    values[2] = "0";
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_connect_with_start(NULL,
+                                                          keywords,
+                                                          values,
+                                                          4u,
+                                                          &db,
+                                                          &pending,
+                                                          NULL),
+                            D_DB_WAIT);
+    D_TESTS_POSTGRES_CHECK( ((pending.events & D_DB_WAIT_TIMEOUT) == 0u) &&
+                            (pending.deadline == 0.0) );
+    d_postgres_close(db);
+    (void)close(mute);
+
+    return;
+}
+
+#endif  // !_WIN32
+
+/*
+d_tests_postgres_drive_reconnect
+  Continues a reset until it is done; the answer is the last continuation's.
+*/
+static int
+d_tests_postgres_drive_reconnect(
+    int                  _started,
+    struct pg_conn*      _db,
+    struct d_db_pending* _pending
+)
+{
+    int result = _started;
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_POSTGRES_ROUNDS);
+         ++waits)
+    {
+        result = d_postgres_reconnect_continue(_db,
+                                           d_tests_postgres_wait(_pending),
+                                           _pending);
+    }
+
+    return result;
+}
+
+/*
+d_tests_postgres_reconnects
+  d_postgres_reconnect, _reset_start and _reset_continue.
+  Tests the following:
+  - a reset makes the connection again: a new backend, which answers
+  - what the session held is gone: a SET, a temporary table
+  - the caller's options, and the layer's digits ahead of them, come again
+    with the startup packet
+  - a lost connection is made again, by either form
+  - NULL is D_DB_INVALID_ARGUMENT
+*/
+static void
+d_tests_postgres_reconnects(
+    void
+)
+{
+    struct pg_conn*     db         = NULL;
+    struct d_db_pending pending;
+    char                port[16]   = "";
+    const char*         keywords[] = { "host", "port", "user", "password",
+                                       "dbname", "options" };
+    const char*         values[]   = { g_options.host, port, g_options.user,
+                                       g_options.password,
+                                       g_options.database,
+                                       "-c application_name=d_reset" };
+
+    printf("postgres_connection: resets\n");
+
+    (void)snprintf(port, sizeof(port), "%u", g_options.port);
+    D_TESTS_POSTGRES_OK(NULL, d_postgres_connect_with(NULL,
+                                                      keywords,
+                                                      values,
+                                                      6u,
+                                                      &db,
+                                                      NULL));
+
+    // nothing more without a server
+    if (!db)
+    {
+        return;
+    }
+
+    int pid = d_postgres_backend_pid(db);
+
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "SET work_mem = '7MB'"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "CREATE TEMP TABLE t (i int)"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_reconnect(db));
+    D_TESTS_POSTGRES_CHECK(d_postgres_backend_pid(db) != pid);
+    D_TESTS_POSTGRES_OK(db, d_postgres_ping(db));
+    D_TESTS_POSTGRES_CHECK(!d_tests_postgres_text_is(db,
+                                                     "SHOW work_mem",
+                                                     "7MB"));
+    D_TESTS_POSTGRES_CHECK(d_postgres_exec(db, "SELECT * FROM t") != 0);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_digits_from_startup(db));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_text_is(db,
+                                                    "SHOW application_name",
+                                                    "d_reset"));
+
+    // without blocking
+    pid = d_postgres_backend_pid(db);
+    D_TESTS_POSTGRES_OK(db,
+                        d_tests_postgres_drive_reconnect(
+                            d_postgres_reconnect_start(db, &pending),
+                            db,
+                            &pending));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_settled(&pending));
+    D_TESTS_POSTGRES_CHECK(d_postgres_backend_pid(db) != pid);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_digits_from_startup(db));
+
+    // a lost connection, made again
+    d_tests_postgres_lose(db);
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_ping(db),
+                            D_POSTGRES_SQLSTATE_CONNECTION_FAILURE);
+    D_TESTS_POSTGRES_OK(db, d_postgres_reconnect(db));
+    D_TESTS_POSTGRES_OK(db, d_postgres_ping(db));
+    d_tests_postgres_lose(db);
+    D_TESTS_POSTGRES_OK(db,
+                        d_tests_postgres_drive_reconnect(
+                            d_postgres_reconnect_start(db, &pending),
+                            db,
+                            &pending));
+    D_TESTS_POSTGRES_OK(db, d_postgres_ping(db));
+
+    // arguments
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_reconnect(NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_reconnect_start(NULL, &pending),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_reconnect_start(db, NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_reconnect_continue(NULL, 0u, &pending),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_reconnect_continue(db, 0u, NULL),
+                            D_DB_INVALID_ARGUMENT);
+    d_postgres_close(db);
+
+    return;
+}
+
+/*
+d_tests_postgres_sleeping
+  Sends a long sleep on a connection, and waits, from another, until the
+server is running it, so that a cancel request finds it running.
+*/
+static bool
+d_tests_postgres_sleeping(
+    struct pg_conn* _db,
+    struct pg_conn* _watcher
+)
+{
+    char sql[160] = "";
+
+    // the statement on its way
+    if (d_postgres_send_query(_db, "SELECT pg_sleep(30)") != 0)
+    {
+        return false;
+    }
+
+    (void)snprintf(sql,
+                   sizeof(sql),
+                   "SELECT count(*) FROM pg_stat_activity WHERE pid = %d "
+                   "AND state = 'active' AND query LIKE '%%pg_sleep(30)%%'",
+                   d_postgres_backend_pid(_db));
+
+    for (int i = 0; i < 250; ++i)
+    {
+        if (d_tests_postgres_int(_watcher, sql) == 1)
+        {
+            return true;
+        }
+
+        (void)d_postgres_exec(_watcher, "SELECT pg_sleep(0.02)");
+    }
+
+    return false;
+}
+
+/*
+d_tests_postgres_canceled
+  Reads a connection's results after a cancel request: 57014, then nothing,
+the connection ready again.
+*/
+static void
+d_tests_postgres_canceled(
+    struct pg_conn* _db
+)
+{
+    struct d_db_rows rows;
+
+    D_TESTS_POSTGRES_RESULT(_db,
+                            d_postgres_next_result(_db, &rows, NULL),
+                            D_POSTGRES_SQLSTATE_QUERY_CANCELED);
+    D_TESTS_POSTGRES_RESULT(_db,
+                            d_postgres_next_result(_db, &rows, NULL),
+                            D_DB_NOT_FOUND);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(_db, "SELECT 7") == 7);
+
+    return;
+}
+
+/*
+d_tests_postgres_cancels
+  d_postgres_cancel, _cancel_start, _cancel_continue and _cancel_finish.
+  Tests the following:
+  - a request delivered while the server runs a long statement stops it:
+    57014, then the connection ready again
+  - a request with nothing running is delivered and changes nothing
+  - without blocking, from libpq 17, the same, driven through a poll loop,
+    the request's connection finished and NULLed once delivered; before 17
+    D_DB_UNSUPPORTED, no request made
+  - a request abandoned while under way is finished; NULL finishes as
+    nothing
+  - a lost connection is 08006; NULL arguments are D_DB_INVALID_ARGUMENT
+*/
+static void
+d_tests_postgres_cancels(
+    void
+)
+{
+    struct pg_conn*        db      = d_tests_postgres_connect(NULL);
+    struct pg_conn*        watcher = d_tests_postgres_connect(NULL);
+    struct pg_cancel_conn* cancel  = NULL;
+    char*                  reason  = NULL;
+    struct d_db_pending    pending;
+
+    printf("postgres_connection: cancelling\n");
+
+    // nothing more without a server
+    if ( (!db) ||
+         (!watcher) )
+    {
+        D_TESTS_POSTGRES_CHECK( (db) &&
+                                (watcher) );
+        d_postgres_close(db);
+        d_postgres_close(watcher);
+
+        return;
+    }
+
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_sleeping(db, watcher));
+    D_TESTS_POSTGRES_OK(db, d_postgres_cancel(db, &reason));
+    D_TESTS_POSTGRES_CHECK(reason == NULL);
+    d_tests_postgres_canceled(db);
+    D_TESTS_POSTGRES_OK(db, d_postgres_cancel(db, NULL));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT 8") == 8);
+
+    // without blocking: libpq 17's
+    if (d_postgres_client_supports(D_POSTGRES_CLIENT_ASYNC_CANCEL))
+    {
+        int result = D_DB_WAIT;
+
+        printf("  without blocking, libpq 17's\n");
+
+        D_TESTS_POSTGRES_CHECK(d_tests_postgres_sleeping(db, watcher));
+        D_TESTS_POSTGRES_RESULT(db,
+                                result = d_postgres_cancel_start(db,
+                                                                 &cancel,
+                                                                 &pending,
+                                                                 &reason),
+                                D_DB_WAIT);
+        D_TESTS_POSTGRES_CHECK( (cancel != NULL) &&
+                                (pending.socket != D_DB_SOCKET_NONE) );
+
+        for (int waits = 0;
+             (result == D_DB_WAIT) && (waits < D_TESTS_POSTGRES_ROUNDS);
+             ++waits)
+        {
+            result = d_postgres_cancel_continue(&cancel,
+                                                d_tests_postgres_wait(
+                                                    &pending),
+                                                &pending,
+                                                &reason);
+        }
+
+        D_TESTS_POSTGRES_OK(db, result);
+        D_TESTS_POSTGRES_CHECK( (cancel == NULL) &&
+                                (reason == NULL) &&
+                                (d_tests_postgres_settled(&pending)) );
+        d_tests_postgres_canceled(db);
+
+        // abandoned under way
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_cancel_start(db,
+                                                        &cancel,
+                                                        &pending,
+                                                        NULL),
+                                D_DB_WAIT);
+        D_TESTS_POSTGRES_CHECK(d_postgres_cancel_finish(cancel) == 0);
+        cancel = NULL;
+    }
+    else
+    {
+        D_TESTS_POSTGRES_RESULT(db,
+                                d_postgres_cancel_start(db,
+                                                        &cancel,
+                                                        &pending,
+                                                        &reason),
+                                D_DB_UNSUPPORTED);
+        D_TESTS_POSTGRES_CHECK( (cancel == NULL) &&
+                                (reason == NULL) &&
+                                (d_tests_postgres_settled(&pending)) );
+    }
+
+    D_TESTS_POSTGRES_CHECK(d_postgres_cancel_finish(NULL) == 0);
+
+    // arguments, and a lost connection
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_cancel(NULL, NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_cancel_start(NULL,
+                                                    &cancel,
+                                                    &pending,
+                                                    NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_cancel_start(db, NULL, &pending, NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_cancel_continue(NULL,
+                                                       0u,
+                                                       &pending,
+                                                       NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_cancel_continue(&cancel,
+                                                       0u,
+                                                       &pending,
+                                                       NULL),
+                            D_DB_INVALID_ARGUMENT);
+    d_tests_postgres_lose(db);
+    D_TESTS_POSTGRES_RESULT(db,
+                            d_postgres_cancel(db, NULL),
+                            D_POSTGRES_SQLSTATE_CONNECTION_FAILURE);
+    d_postgres_close(db);
+    d_postgres_close(watcher);
 
     return;
 }
@@ -8910,6 +9836,972 @@ d_tests_postgres_pipelines(
 // RUN
 //==============================================================================
 
+/*
+d_tests_postgres_drive_next
+  Continues a result's read until it is done; the answer is the last
+continuation's.
+*/
+static int
+d_tests_postgres_drive_next(
+    int                  _started,
+    struct pg_conn*      _db,
+    struct d_db_pending* _pending,
+    struct d_db_rows*    _rows,
+    int64_t*             _changes
+)
+{
+    int result = _started;
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_POSTGRES_ROUNDS);
+         ++waits)
+    {
+        result = d_postgres_next_result_continue(
+                     _db,
+                     d_tests_postgres_wait(_pending),
+                     _pending,
+                     _rows,
+                     _changes);
+    }
+
+    return result;
+}
+
+/*
+d_tests_postgres_drive_send
+  Continues a send until it is written, counting the waits; the answer is
+the last continuation's.
+*/
+static int
+d_tests_postgres_drive_send(
+    int                  _started,
+    struct pg_conn*      _db,
+    struct d_db_pending* _pending,
+    int*                 _waits
+)
+{
+    int result = _started;
+    int waits  = 0;
+
+    while ( (result == D_DB_WAIT) &&
+            (waits < D_TESTS_POSTGRES_ROUNDS) )
+    {
+        ++waits;
+        result = d_postgres_send_query_continue(
+                     _db,
+                     d_tests_postgres_wait(_pending),
+                     _pending);
+    }
+
+    if (_waits)
+    {
+        *_waits = waits;
+    }
+
+    return result;
+}
+
+/*
+d_tests_postgres_sent_without_blocking
+  d_postgres_send_query_start, _continue, d_postgres_next_result_start and
+_continue.
+  Tests the following:
+  - SQL the socket takes at once is sent, nothing pending; its results,
+    read through a poll loop, are d_postgres_next_result's -- rows, a count,
+    rows -- then D_DB_NOT_FOUND, again
+  - a result still to come is D_DB_WAIT, the socket to read; meanwhile a
+    statement on the connection is 08000, the layer's own answer
+  - SQL too large for the socket at once is written as it takes it, and
+    runs; libpq's non-blocking mode is off again after, and a program's own
+    choice of it stands
+  - rows a few at a time arrive a result each, then their end
+  - a failure ends the results
+  - pipeline mode is 08000; a lost connection 08006; NULL arguments
+    D_DB_INVALID_ARGUMENT
+*/
+static void
+d_tests_postgres_sent_without_blocking(
+    void
+)
+{
+    char                schema[96] = "";
+    struct pg_conn*     db         = d_tests_postgres_begin("sentnb",
+                                                            schema,
+                                                            sizeof(schema));
+    struct d_db_rows    rows;
+    struct d_db_pending pending;
+    int64_t             changes    = -1;
+    int64_t             number     = 0;
+    int                 waits      = 0;
+    const size_t        large      = (size_t)16u * 1024u * 1024u;
+    char* const         sql        = (char*)malloc(large + 64u);
+
+    printf("postgres_protocol: statements sent without blocking\n");
+
+    memset(&rows, 0, sizeof(rows));
+
+    // nothing more without a server, or memory
+    if ( (!db) ||
+         (!sql) )
+    {
+        D_TESTS_POSTGRES_CHECK( (db) && (sql) );
+        free(sql);
+        d_tests_postgres_end(db, schema);
+
+        return;
+    }
+
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "CREATE TABLE t (a int)"));
+
+    // three statements, three results, then none
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_send(
+                                d_postgres_send_query_start(
+                                    db,
+                                    "SELECT 1 AS a; "
+                                    "INSERT INTO t VALUES (1), (2); "
+                                    "SELECT 'x' AS s",
+                                    &pending),
+                                db,
+                                &pending,
+                                NULL));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_settled(&pending));
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_next(
+                                d_postgres_next_result_start(db,
+                                                             &pending,
+                                                             &rows,
+                                                             &changes),
+                                db,
+                                &pending,
+                                &rows,
+                                &changes));
+    D_TESTS_POSTGRES_CHECK( (rows.column_count == 1u) &&
+                            (strcmp(rows.columns[0].name, "a") == 0) &&
+                            (changes == 1) );
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_settled(&pending));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_next(
+                                d_postgres_next_result_start(db,
+                                                             &pending,
+                                                             &rows,
+                                                             &changes),
+                                db,
+                                &pending,
+                                &rows,
+                                &changes));
+    D_TESTS_POSTGRES_CHECK( (rows.column_count == 0u) && (changes == 2) );
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_next(
+                                d_postgres_next_result_start(db,
+                                                             &pending,
+                                                             &rows,
+                                                             NULL),
+                                db,
+                                &pending,
+                                &rows,
+                                NULL));
+    D_TESTS_POSTGRES_CHECK( (rows.row_count == 1u) &&
+                            (d_db_rows_value(&rows, 0u, 0u)) &&
+                            (strcmp(d_db_rows_value(&rows, 0u, 0u)->as.text,
+                                    "x") == 0) );
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_RESULT(db, d_tests_postgres_drive_next(
+                                    d_postgres_next_result_start(db,
+                                                                 &pending,
+                                                                 &rows,
+                                                                 &changes),
+                                    db,
+                                    &pending,
+                                    &rows,
+                                    &changes),
+                            D_DB_NOT_FOUND);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_next_result_start(db,
+                                                             &pending,
+                                                             &rows,
+                                                             &changes),
+                            D_DB_NOT_FOUND);
+
+    // a result still to come: a wait, the connection held meanwhile
+    D_TESTS_POSTGRES_OK(db, d_postgres_send_query_start(
+                                db,
+                                "SELECT pg_sleep(0.2), 7",
+                                &pending));
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_next_result_start(db,
+                                                             &pending,
+                                                             &rows,
+                                                             &changes),
+                            D_DB_WAIT);
+    D_TESTS_POSTGRES_CHECK( (pending.socket != D_DB_SOCKET_NONE) &&
+                            (pending.events == D_DB_WAIT_READ) );
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_exec(db, "SELECT 9"),
+                            D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+    D_TESTS_POSTGRES_CHECK(
+        d_postgres_result_is_own(db,
+                                 D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION));
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_next(D_DB_WAIT,
+                                                        db,
+                                                        &pending,
+                                                        &rows,
+                                                        &changes));
+    D_TESTS_POSTGRES_CHECK(
+        (d_db_value_int64(d_db_rows_value(&rows, 0u, 1u), &number) == 0) &&
+        (number == 7));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_RESULT(db, d_tests_postgres_drive_next(
+                                    d_postgres_next_result_start(db,
+                                                                 &pending,
+                                                                 &rows,
+                                                                 &changes),
+                                    db,
+                                    &pending,
+                                    &rows,
+                                    &changes),
+                            D_DB_NOT_FOUND);
+
+    // more than the socket takes at once
+    memcpy(sql, "SELECT length('", 15u);
+    memset(sql + 15, 'y', large);
+    memcpy(sql + 15 + large, "')", 3u);
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_send(
+                                d_postgres_send_query_start(db,
+                                                            sql,
+                                                            &pending),
+                                db,
+                                &pending,
+                                &waits));
+    printf("  16 MiB written in %d wait(s)\n", waits);
+    D_TESTS_POSTGRES_CHECK(PQisnonblocking(db) == 0);
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_next(
+                                d_postgres_next_result_start(db,
+                                                             &pending,
+                                                             &rows,
+                                                             NULL),
+                                db,
+                                &pending,
+                                &rows,
+                                NULL));
+    D_TESTS_POSTGRES_CHECK(
+        (d_db_value_int64(d_db_rows_value(&rows, 0u, 0u), &number) == 0) &&
+        (number == (int64_t)large));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_RESULT(db, d_tests_postgres_drive_next(
+                                    d_postgres_next_result_start(db,
+                                                                 &pending,
+                                                                 &rows,
+                                                                 NULL),
+                                    db,
+                                    &pending,
+                                    &rows,
+                                    NULL),
+                            D_DB_NOT_FOUND);
+
+    // the program's own non-blocking mode stands
+    D_TESTS_POSTGRES_CHECK(PQsetnonblocking(db, 1) == 0);
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_send(
+                                d_postgres_send_query_start(db,
+                                                            "SELECT 4",
+                                                            &pending),
+                                db,
+                                &pending,
+                                NULL));
+    D_TESTS_POSTGRES_CHECK(PQisnonblocking(db) == 1);
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_next(
+                                d_postgres_next_result_start(db,
+                                                             &pending,
+                                                             &rows,
+                                                             NULL),
+                                db,
+                                &pending,
+                                &rows,
+                                NULL));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_RESULT(db, d_tests_postgres_drive_next(
+                                    d_postgres_next_result_start(db,
+                                                                 &pending,
+                                                                 &rows,
+                                                                 NULL),
+                                    db,
+                                    &pending,
+                                    &rows,
+                                    NULL),
+                            D_DB_NOT_FOUND);
+    D_TESTS_POSTGRES_CHECK(PQsetnonblocking(db, 0) == 0);
+
+    // a row a result, then the rows' end, describing their column
+    D_TESTS_POSTGRES_OK(db, d_postgres_send_query_start(
+                                db,
+                                "SELECT g FROM generate_series(1, 3) g",
+                                &pending));
+    D_TESTS_POSTGRES_OK(db, d_postgres_set_chunked_rows(db, 1));
+
+    for (int64_t expected = 1; expected <= 3; ++expected)
+    {
+        D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_next(
+                                    d_postgres_next_result_start(db,
+                                                                 &pending,
+                                                                 &rows,
+                                                                 NULL),
+                                    db,
+                                    &pending,
+                                    &rows,
+                                    NULL));
+        D_TESTS_POSTGRES_CHECK(
+            (rows.row_count == 1u) &&
+            (d_db_value_int64(d_db_rows_value(&rows, 0u, 0u), &number) ==
+             0) &&
+            (number == expected));
+        d_db_rows_free(&rows);
+    }
+
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_next(
+                                d_postgres_next_result_start(db,
+                                                             &pending,
+                                                             &rows,
+                                                             &changes),
+                                db,
+                                &pending,
+                                &rows,
+                                &changes));
+    D_TESTS_POSTGRES_CHECK( (rows.row_count == 0u) &&
+                            (rows.column_count == 1u) &&
+                            (changes == 3) );
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_RESULT(db, d_tests_postgres_drive_next(
+                                    d_postgres_next_result_start(db,
+                                                                 &pending,
+                                                                 &rows,
+                                                                 NULL),
+                                    db,
+                                    &pending,
+                                    &rows,
+                                    NULL),
+                            D_DB_NOT_FOUND);
+
+    // a failure ends the results
+    D_TESTS_POSTGRES_OK(db, d_postgres_send_query_start(
+                                db,
+                                "SELECT 1; SELECT * FROM no_table; SELECT 3",
+                                &pending));
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_next(
+                                d_postgres_next_result_start(db,
+                                                             &pending,
+                                                             &rows,
+                                                             NULL),
+                                db,
+                                &pending,
+                                &rows,
+                                NULL));
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_RESULT(db, d_tests_postgres_drive_next(
+                                    d_postgres_next_result_start(db,
+                                                                 &pending,
+                                                                 &rows,
+                                                                 NULL),
+                                    db,
+                                    &pending,
+                                    &rows,
+                                    NULL),
+                            D_POSTGRES_SQLSTATE_UNDEFINED_TABLE);
+    D_TESTS_POSTGRES_RESULT(db, d_tests_postgres_drive_next(
+                                    d_postgres_next_result_start(db,
+                                                                 &pending,
+                                                                 &rows,
+                                                                 NULL),
+                                    db,
+                                    &pending,
+                                    &rows,
+                                    NULL),
+                            D_DB_NOT_FOUND);
+
+    // pipeline mode's own calls queue already
+    if (d_postgres_client_supports(D_POSTGRES_CLIENT_PIPELINE))
+    {
+        D_TESTS_POSTGRES_OK(db, d_postgres_enter_pipeline(db));
+        D_TESTS_POSTGRES_RESULT(db, d_postgres_send_query_start(db,
+                                                                "SELECT 1",
+                                                                &pending),
+                                D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+        D_TESTS_POSTGRES_RESULT(db, d_postgres_next_result_start(db,
+                                                                 &pending,
+                                                                 &rows,
+                                                                 NULL),
+                                D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION);
+        D_TESTS_POSTGRES_OK(db, d_postgres_exit_pipeline(db));
+    }
+
+    // arguments
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_send_query_start(NULL,
+                                                              "SELECT 1",
+                                                              &pending),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_send_query_start(db,
+                                                              NULL,
+                                                              &pending),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_send_query_start(db,
+                                                              "SELECT 1",
+                                                              NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_send_query_continue(NULL,
+                                                                 0u,
+                                                                 &pending),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_next_result_start(db,
+                                                               NULL,
+                                                               &rows,
+                                                               NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_next_result_start(db,
+                                                               &pending,
+                                                               NULL,
+                                                               NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_next_result_continue(NULL,
+                                                                  0u,
+                                                                  &pending,
+                                                                  &rows,
+                                                                  NULL),
+                            D_DB_INVALID_ARGUMENT);
+
+    // a lost connection
+    d_tests_postgres_lose(db);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_send_query_start(db,
+                                                            "SELECT 1",
+                                                            &pending),
+                            D_POSTGRES_SQLSTATE_CONNECTION_FAILURE);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_settled(&pending));
+    free(sql);
+    d_tests_postgres_end(db, schema);
+
+    return;
+}
+
+/*
+d_tests_postgres_drive_prepare
+  Continues a prepare until it is done; the answer is the last
+continuation's. The statement is read through its address, after the start
+that fills it, whose argument the call may evaluate last.
+*/
+static int
+d_tests_postgres_drive_prepare(
+    int                                 _started,
+    struct d_postgres_statement* const* _statement,
+    struct d_db_pending*                _pending
+)
+{
+    int result = _started;
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_POSTGRES_ROUNDS);
+         ++waits)
+    {
+        result = d_postgres_prepare_continue(*_statement,
+                                             d_tests_postgres_wait(_pending),
+                                             _pending);
+    }
+
+    return result;
+}
+
+/*
+d_tests_postgres_drive_query
+  Continues a run's read, as rows, until it is done.
+*/
+static int
+d_tests_postgres_drive_query(
+    int                          _started,
+    struct d_postgres_statement* _statement,
+    struct d_db_pending*         _pending,
+    struct d_db_rows*            _rows
+)
+{
+    int result = _started;
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_POSTGRES_ROUNDS);
+         ++waits)
+    {
+        result = d_postgres_execute_query_continue(
+                     _statement,
+                     d_tests_postgres_wait(_pending),
+                     _pending,
+                     _rows);
+    }
+
+    return result;
+}
+
+/*
+d_tests_postgres_drive_update
+  Continues a run's read, as a count, until it is done.
+*/
+static int
+d_tests_postgres_drive_update(
+    int                          _started,
+    struct d_postgres_statement* _statement,
+    struct d_db_pending*         _pending,
+    int64_t*                     _changes
+)
+{
+    int result = _started;
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_POSTGRES_ROUNDS);
+         ++waits)
+    {
+        result = d_postgres_execute_update_continue(
+                     _statement,
+                     d_tests_postgres_wait(_pending),
+                     _pending,
+                     _changes);
+    }
+
+    return result;
+}
+
+/*
+d_tests_postgres_drive_page
+  Opens nothing: continues a page's read until it is given.
+*/
+static int
+d_tests_postgres_drive_page(
+    int                          _started,
+    struct d_postgres_statement* _statement,
+    struct d_db_pending*         _pending,
+    struct d_db_rows*            _rows
+)
+{
+    int result = _started;
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_POSTGRES_ROUNDS);
+         ++waits)
+    {
+        result = d_postgres_fetch_rows_continue(
+                     _statement,
+                     d_tests_postgres_wait(_pending),
+                     _pending,
+                     _rows);
+    }
+
+    return result;
+}
+
+/*
+d_tests_postgres_drive_open
+  Continues a run's opening until it is open.
+*/
+static int
+d_tests_postgres_drive_open(
+    int                          _started,
+    struct d_postgres_statement* _statement,
+    struct d_db_pending*         _pending
+)
+{
+    int result = _started;
+
+    for (int waits = 0;
+         (result == D_DB_WAIT) && (waits < D_TESTS_POSTGRES_ROUNDS);
+         ++waits)
+    {
+        result = d_postgres_open_cursor_continue(
+                     _statement,
+                     d_tests_postgres_wait(_pending),
+                     _pending);
+    }
+
+    return result;
+}
+
+/*
+d_tests_postgres_first_int
+  The first value of rows as an integer, or INT64_MIN.
+*/
+static int64_t
+d_tests_postgres_first_int(
+    const struct d_db_rows* _rows,
+    size_t                  _row
+)
+{
+    int64_t value = INT64_MIN;
+
+    // the value, or the sentinel
+    if (d_db_value_int64(d_db_rows_value(_rows, _row, 0u), &value) != 0)
+    {
+        return INT64_MIN;
+    }
+
+    return value;
+}
+
+/*
+d_tests_postgres_statements_without_blocking
+  d_postgres_prepare_start and _continue; d_postgres_execute_start,
+_execute_update_continue and _execute_query_continue; d_postgres_open_cursor_
+start and _continue; d_postgres_fetch_rows_start and _continue.
+  Tests the following:
+  - a prepare is D_DB_WAIT, the statement in hand, then 0, its parameters
+    described -- or 0 at once, where the answer had already come; inside a
+    transaction too
+  - a stale name the server holds where the layer's next statement is named
+    is dropped, and the prepare tried again
+  - a prepare the server refuses is its SQLSTATE, the statement unprepared,
+    which finalizing releases with 0
+  - a run sent is D_DB_WAIT, never read by the start; its rows, or its
+    count, come with the continuation as execute_query and execute_update
+    give them; a run's failure is its SQLSTATE
+  - meanwhile the connection is held: a statement, another statement's
+    start, and the statement's own second start are 08000; a blocking call
+    of the statement's own waits for the call, then runs; finalize waits for
+    it too
+  - a cursor's run opened without blocking gives its pages through a poll
+    loop, each as execute_query's rows, a short page ending it; a failure
+    part-way is the server's
+  - a continuation with no call under way, and NULL arguments, are
+    D_DB_INVALID_ARGUMENT; pipeline mode is 08000
+*/
+static void
+d_tests_postgres_statements_without_blocking(
+    void
+)
+{
+    char                         schema[96] = "";
+    struct pg_conn*              db         = d_tests_postgres_begin(
+                                                  "stmtnb",
+                                                  schema,
+                                                  sizeof(schema));
+    struct d_postgres_statement* add        = NULL;
+    struct d_postgres_statement* insert     = NULL;
+    struct d_postgres_statement* series     = NULL;
+    struct d_postgres_statement* broken     = NULL;
+    struct d_db_rows             rows;
+    struct d_db_pending          pending;
+    struct d_db_pending          refused;
+    int64_t                      changes    = -1;
+    const int                    busy       =
+        D_POSTGRES_SQLSTATE_CONNECTION_EXCEPTION;
+
+    printf("postgres_statement: without blocking\n");
+
+    memset(&rows, 0, sizeof(rows));
+
+    // nothing more without a server
+    if (!db)
+    {
+        D_TESTS_POSTGRES_CHECK(db != NULL);
+
+        return;
+    }
+
+    D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, "CREATE TABLE t (a int)"));
+
+    // preparing; the start reads what has come, so an answer already there
+    // (a loaded machine) finishes it at once, as its contract allows
+    const int prepared = d_postgres_prepare_start(db,
+                                                  &add,
+                                                  "SELECT $1::bigint + 1",
+                                                  &pending);
+
+    D_TESTS_POSTGRES_CHECK( (prepared == D_DB_WAIT) ||
+                            (prepared == 0) );
+    D_TESTS_POSTGRES_CHECK(add != NULL);
+
+    if (prepared == D_DB_WAIT)
+    {
+        D_TESTS_POSTGRES_CHECK(pending.socket != D_DB_SOCKET_NONE);
+        D_TESTS_POSTGRES_RESULT(db, d_postgres_exec(db, "SELECT 1"), busy);
+    }
+
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_prepare(prepared,
+                                                           &add,
+                                                           &pending));
+    D_TESTS_POSTGRES_CHECK( (d_postgres_parameter_count(add) == 1u) &&
+                            (d_tests_postgres_settled(&pending)) );
+    D_TESTS_POSTGRES_OK(db, d_postgres_begin_transaction(
+                                db,
+                                D_POSTGRES_TRANSACTION_DEFAULT));
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_prepare(
+                                d_postgres_prepare_start(
+                                    db,
+                                    &insert,
+                                    "INSERT INTO t VALUES ($1), ($1 + 1)",
+                                    &pending),
+                                &insert,
+                                &pending));
+    D_TESTS_POSTGRES_OK(db, d_postgres_commit(db));
+
+    // running, as rows and as a count
+    D_TESTS_POSTGRES_OK(db, d_postgres_bind_int64(add, 1, 41));
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_execute_start(add, &pending),
+                            D_DB_WAIT);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_exec(db, "SELECT 1"), busy);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_execute_start(insert, &refused),
+                            busy);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_execute_start(add, &refused),
+                            busy);
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_query(D_DB_WAIT,
+                                                         add,
+                                                         &pending,
+                                                         &rows));
+    D_TESTS_POSTGRES_CHECK( (rows.row_count == 1u) &&
+                            (d_tests_postgres_first_int(&rows, 0u) == 42) &&
+                            (d_tests_postgres_settled(&pending)) );
+    d_db_rows_free(&rows);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_execute_query_continue(add,
+                                                                  0u,
+                                                                  &pending,
+                                                                  &rows),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_OK(db, d_postgres_bind_int64(insert, 1, 5));
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_update(
+                                d_postgres_execute_start(insert, &pending),
+                                insert,
+                                &pending,
+                                &changes));
+    D_TESTS_POSTGRES_CHECK(changes == 2);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT sum(a) FROM t") ==
+                           11);
+
+    // a run's failure
+    D_TESTS_POSTGRES_OK(db, d_postgres_bind_text(add, 1, "not a number"));
+    D_TESTS_POSTGRES_RESULT(db, d_tests_postgres_drive_query(
+                                    d_postgres_execute_start(add, &pending),
+                                    add,
+                                    &pending,
+                                    &rows),
+                            d_postgres_result_from_sqlstate("22P02"));
+    D_TESTS_POSTGRES_OK(db, d_postgres_bind_int64(add, 1, 1));
+
+    // a blocking call of its own, and its finalize, wait for the call
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_execute_start(insert, &pending),
+                            D_DB_WAIT);
+    D_TESTS_POSTGRES_OK(db, d_postgres_execute_update(insert, &changes));
+    D_TESTS_POSTGRES_CHECK( (changes == 2) &&
+                            (d_tests_postgres_int(db,
+                                                  "SELECT count(*) FROM t") ==
+                             6) );
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_execute_start(insert, &pending),
+                            D_DB_WAIT);
+    D_TESTS_POSTGRES_OK(db, d_postgres_finalize(insert));
+    insert = NULL;
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT count(*) FROM t") ==
+                           8);
+
+    // a prepare the server refuses: unprepared, released by finalize
+    D_TESTS_POSTGRES_RESULT(db, d_tests_postgres_drive_prepare(
+                                    d_postgres_prepare_start(db,
+                                                             &broken,
+                                                             "SELEC 1",
+                                                             &pending),
+                                    &broken,
+                                    &pending),
+                            d_postgres_result_from_sqlstate("42601"));
+    D_TESTS_POSTGRES_CHECK(broken != NULL);
+    D_TESTS_POSTGRES_OK(db, d_postgres_finalize(broken));
+    broken = NULL;
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT 5") == 5);
+
+    // a stale name where the next statement's is: dropped, and once more
+    {
+        struct d_postgres_statement* first  = NULL;
+        struct d_postgres_statement* second = NULL;
+        char*                        name   = NULL;
+        char                         sql[160] = "";
+
+        D_TESTS_POSTGRES_OK(db, d_postgres_prepare(db, &first, "SELECT 1"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_query_text(
+                                    db,
+                                    &name,
+                                    "SELECT name FROM "
+                                    "pg_catalog.pg_prepared_statements "
+                                    "WHERE name LIKE 'd\\_stmt\\_%' "
+                                    "AND statement = 'SELECT 1'"));
+        D_TESTS_POSTGRES_OK(db, d_postgres_finalize(first));
+        (void)snprintf(sql,
+                       sizeof(sql),
+                       "PREPARE \"%s\" AS SELECT 'stale'",
+                       (name) ? name : "x");
+        D_TESTS_POSTGRES_OK(db, d_postgres_exec(db, sql));
+        D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_prepare(
+                                    d_postgres_prepare_start(db,
+                                                             &second,
+                                                             "SELECT 2",
+                                                             &pending),
+                                    &second,
+                                    &pending));
+        (void)snprintf(sql,
+                       sizeof(sql),
+                       "SELECT count(*) FROM pg_catalog.pg_prepared_statements "
+                       "WHERE name = '%s' AND statement LIKE '%%stale%%'",
+                       (name) ? name : "x");
+        printf("  a stale name %s\n",
+               (d_tests_postgres_int(db, sql) == 0) ? "dropped"
+                                                    : "not met this time");
+        D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_query(
+                                    d_postgres_execute_start(second,
+                                                             &pending),
+                                    second,
+                                    &pending,
+                                    &rows));
+        D_TESTS_POSTGRES_CHECK(d_tests_postgres_first_int(&rows, 0u) == 2);
+        d_db_rows_free(&rows);
+        D_TESTS_POSTGRES_OK(db, d_postgres_finalize(second));
+        d_db_free(name);
+    }
+
+    // a cursor's pages, as execute_query's rows
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_prepare(
+                                d_postgres_prepare_start(
+                                    db,
+                                    &series,
+                                    "SELECT g, 'r' || g AS label "
+                                    "FROM generate_series(1, $1::int) g",
+                                    &pending),
+                                &series,
+                                &pending));
+    D_TESTS_POSTGRES_OK(db, d_postgres_bind_int64(series, 1, 5));
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_open(
+                                d_postgres_open_cursor_start(series,
+                                                             &pending),
+                                series,
+                                &pending));
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_execute_start(series, &refused),
+                            busy);
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_exec(db, "SELECT 1"), busy);
+
+    for (int page = 0; page < 3; ++page)
+    {
+        D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_page(
+                                    d_postgres_fetch_rows_start(series,
+                                                                2u,
+                                                                &pending,
+                                                                &rows),
+                                    series,
+                                    &pending,
+                                    &rows));
+        D_TESTS_POSTGRES_CHECK(
+            (rows.column_count == 2u) &&
+            (strcmp(rows.columns[1].name, "label") == 0) &&
+            (rows.row_count == ((page < 2) ? 2u : 1u)) &&
+            (d_tests_postgres_first_int(&rows, 0u) == (int64_t)(2 * page + 1)));
+        d_db_rows_free(&rows);
+    }
+
+    D_TESTS_POSTGRES_RESULT(db, d_postgres_fetch_rows_start(series,
+                                                            2u,
+                                                            &pending,
+                                                            &rows),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT 6") == 6);
+
+    // a failure part-way through a run
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_prepare(
+                                d_postgres_prepare_start(
+                                    db,
+                                    &broken,
+                                    "SELECT 1 / (3 - g) "
+                                    "FROM generate_series(1, 5) g",
+                                    &pending),
+                                &broken,
+                                &pending));
+    D_TESTS_POSTGRES_OK(db, d_tests_postgres_drive_open(
+                                d_postgres_open_cursor_start(broken,
+                                                             &pending),
+                                broken,
+                                &pending));
+    D_TESTS_POSTGRES_RESULT(db, d_tests_postgres_drive_page(
+                                    d_postgres_fetch_rows_start(broken,
+                                                                10u,
+                                                                &pending,
+                                                                &rows),
+                                    broken,
+                                    &pending,
+                                    &rows),
+                            d_postgres_result_from_sqlstate("22012"));
+    D_TESTS_POSTGRES_CHECK(d_tests_postgres_int(db, "SELECT 7") == 7);
+    D_TESTS_POSTGRES_OK(db, d_postgres_finalize(broken));
+    broken = NULL;
+
+    // pipeline mode
+    if (d_postgres_client_supports(D_POSTGRES_CLIENT_PIPELINE))
+    {
+        D_TESTS_POSTGRES_OK(db, d_postgres_enter_pipeline(db));
+        D_TESTS_POSTGRES_RESULT(db, d_postgres_execute_start(add, &pending),
+                                busy);
+        D_TESTS_POSTGRES_RESULT(db, d_postgres_prepare_start(db,
+                                                             &broken,
+                                                             "SELECT 1",
+                                                             &pending),
+                                busy);
+        D_TESTS_POSTGRES_CHECK(broken == NULL);
+        D_TESTS_POSTGRES_OK(db, d_postgres_exit_pipeline(db));
+    }
+
+    // arguments, and continuations with nothing under way
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_prepare_start(NULL,
+                                                           &broken,
+                                                           "SELECT 1",
+                                                           &pending),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_prepare_start(db,
+                                                           NULL,
+                                                           "SELECT 1",
+                                                           &pending),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_prepare_start(db,
+                                                           &broken,
+                                                           NULL,
+                                                           &pending),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_prepare_start(db,
+                                                           &broken,
+                                                           "SELECT 1",
+                                                           NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_prepare_continue(add,
+                                                              0u,
+                                                              &pending),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_execute_start(NULL, &pending),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_execute_start(add, NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_execute_update_continue(add,
+                                                               0u,
+                                                               &pending,
+                                                               &changes),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL,
+                            d_postgres_execute_query_continue(add,
+                                                              0u,
+                                                              &pending,
+                                                              NULL),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_open_cursor_start(NULL,
+                                                               &pending),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_open_cursor_continue(add,
+                                                                  0u,
+                                                                  &pending),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_fetch_rows_start(add,
+                                                              0u,
+                                                              &pending,
+                                                              &rows),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_RESULT(NULL, d_postgres_fetch_rows_continue(add,
+                                                                 0u,
+                                                                 &pending,
+                                                                 &rows),
+                            D_DB_INVALID_ARGUMENT);
+    D_TESTS_POSTGRES_OK(db, d_postgres_finalize(add));
+    D_TESTS_POSTGRES_OK(db, d_postgres_finalize(series));
+    d_tests_postgres_end(db, schema);
+
+    return;
+}
+
+
 // d_tests_postgres_all
 //   table: every test, in the headers' order.
 static void (* const d_tests_postgres_all[])(void) =
@@ -8932,6 +10824,12 @@ static void (* const d_tests_postgres_all[])(void) =
     d_tests_postgres_connect_with,
     d_tests_postgres_liveness,
     d_tests_postgres_lost_connections,
+    d_tests_postgres_connect_nonblocking,
+#if !defined(_WIN32)
+    d_tests_postgres_connect_timeouts,
+#endif  // !_WIN32
+    d_tests_postgres_reconnects,
+    d_tests_postgres_cancels,
     d_tests_postgres_statements,
     d_tests_postgres_scripts,
     d_tests_postgres_copies,
@@ -8952,6 +10850,7 @@ static void (* const d_tests_postgres_all[])(void) =
     d_tests_postgres_statement_arguments,
     d_tests_postgres_closing_by_name,
     d_tests_postgres_cursors,
+    d_tests_postgres_statements_without_blocking,
     d_tests_postgres_large_objects,
     d_tests_postgres_databases,
     d_tests_postgres_database_transactions,
@@ -9011,6 +10910,7 @@ static void (* const d_tests_postgres_all[])(void) =
     d_tests_postgres_copy_in,
     d_tests_postgres_notifications,
     d_tests_postgres_sent_statements,
+    d_tests_postgres_sent_without_blocking,
     d_tests_postgres_chunked_rows,
     d_tests_postgres_pipelines
 };

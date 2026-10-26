@@ -1,0 +1,1945 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Solution>
+	<Configurations>
+		<BuildType Name="Debug"/>
+		<BuildType Name="Release"/>
+		<BuildType Name="MinSizeRel"/>
+		<BuildType Name="RelWithDebInfo"/>
+		<Platform Name="x64"/>
+	</Configurations>
+	<Project Path="ALL_BUILD.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="3beea98a-8f51-3350-9228-fb8bf84727a0" DefaultStartup="true">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/accumulator/accumulator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/adapter/adapter/adapter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/allocator_memory_strategy/allocator_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/alternative/alternative_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/applicative/applicative_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/archive_options/archive_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/archive/archive_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/array/array_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/sync/atomic/atomic_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/bifunctor/bifunctor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/bounded_container_traits/bounded_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/bsearch/bsearch_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/bubble_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/byte_size/byte_size_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/carrier/carrier_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/cofree/cofree_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/comonad/comonad_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/comparator/comparator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/compose/compose_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/compress_options/compress_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/compress/compress_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/concepts/concepts_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/constexpr_container_traits/constexpr_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/consumer/consumer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_comparison_traits/container_comparison_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_conversion_traits/container_conversion_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_copy_merge_traits/container_copy_merge_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_filter_traits/container_filter_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_memory_strategy/container_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/container_metadata/container_metadata_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_multiplicity_traits/container_multiplicity_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_overlay_traits/container_overlay_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_storage_traits/container_storage_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_traits/container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_transform_traits/container_transform_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/contravariant/contravariant_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/counter/counter/counter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/curry/curry_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/db/database/database_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/decode_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/decode_tests.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/djinterp_header_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_all/djinterp_tests_all.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/dtuple/dtuple_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/dtuple_wrap_partition/dtuple_wrap_partition_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/element_relation_traits/element_relation_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/encode_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/encode_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_common/event_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_dispatcher/event_dispatcher_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_handler/event_handler_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_registry/event_registry_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_table/event_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_tests_all/event_tests_all.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/extractor/extractor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/fs/file_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/filter/filter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/fixed_string/fixed_string_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/flat_container_traits/flat_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/flat/flat_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/fn_builder/fn_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/foldable/foldable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/free/free_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/functional_common/functional_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/functor/functor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/heap_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/hierarchical_container_traits/hierarchical_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/hierarchical/hierarchical_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/insertion_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/interpolate/interpolate_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/iterable_container_traits/iterable_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/kv_pair/kv_pair_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/lifetime/lifetime_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/maybe/maybe_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/mediator/mediator/mediator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/member_traits/member_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/member_types/member_types_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/momento/momento/memento_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_all/memory_strategy_all_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_strategy_concepts/memory_strategy_concepts_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_strategy_traits/memory_strategy_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/merge_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/monad/monad_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/monoid/monoid_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/monotonic_byte_arena/monotonic_byte_arena_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/re_std/move_family_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/mutable_container_traits/mutable_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/node_container_traits/node_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/observational_comparison_traits/observational_comparison_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/observer/observer/observer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_builder/option_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_compose/option_compose_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_diff/option_diff_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_factory/option_factory_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_generator/option_generator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_override/option_override_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_set_compare/option_set_compare_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_set/option_set_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option/option_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_tests_all.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/optionator/optionator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/ordered_container/ordered_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/ordered_container_traits/ordered_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/override/override_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/pack_element/pack_element_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/passthrough/passthrough_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/pattern/pattern/pattern_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/pipeline/pipeline_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/polynomial/polynomial_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool_all/pool_all_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool_allocator/pool_allocator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool_memory_strategy/pool_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool/pool_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/predicate/predicate_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/producer/producer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/profunctor/profunctor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/publisher/publisher/publisher_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/quick_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/read_only_container/read_only_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/read_only_container_traits/read_only_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/read_write_container/read_write_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/read_write_container_traits/read_write_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/recursion/recursion_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/reduce/reduce_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/result/result_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/runtime_container_traits/runtime_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/selection_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/semigroup/semigroup_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/sequence/sequence/sequence_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/sequential_container/sequential_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_conformance_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_dispatch_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_monoid_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_view_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/sorted_container/sorted_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/sorted_container_traits/sorted_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/static_buffer_strategy/static_buffer_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/structural_traits/structural_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/structure_tags/structure_tags_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/template/template/template_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_archive_options/test_archive_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_archive/test_archive_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_builder/test_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_callable/test_callable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_common/test_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_compress_options/test_compress_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_compress/test_compress_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_container/test_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_context/test_context_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_counter/test_counter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_defaults/test_defaults_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_emit/test_emit_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_event/test_event_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_handler/test_handler_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_kind/test_kind_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_object/test_object_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_options/test_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_output_config/test_output_config_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_output/test_output_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_pack/test_pack_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render_pdf_table/test_render_pdf_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render_pdf/test_render_pdf_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render/test_render_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report_runner_table/test_report_runner_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report_runner/test_report_runner_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report/test_report_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_runner/test_runner_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_session/test_session_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_timer/test_timer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_traits/test_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_tree/test_tree_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_zip_store/test_zip_store_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/threadsafe_container/threadsafe_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/timer/timer/timer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/transducer/transducer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/traversable/traversable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/type_traits/type_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/value_list/value_list_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/view/view_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/visitor/visitor/visitor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/write_only_container_traits/write_only_container_traits_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="Continuous.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b401babb-8a0f-3896-bf92-b022180ac1e6">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="Experimental.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="216b40d1-2baa-3f42-ace8-4f575408d16b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="Nightly.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="141d98b3-d511-3579-84e9-ef1267c10b93">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="NightlyMemoryCheck.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ec074136-6d1d-3e50-b39b-306cd28a1952">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="RUN_TESTS.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="346b4b6f-dc02-3c71-9608-52612c345d64">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="ZERO_CHECK.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4f65cb34-fcc4-37a6-872f-b6db02bf3645"/>
+	<Project Path="testing/djinterp/core/functional/accumulator/accumulator_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8fe16750-214c-35e7-a8c8-a4e5fdb8dbf8">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/adapter/adapter/adapter_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="baa471d3-c037-3aa8-8efe-d89b576b546d">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/binary/all_binary_serial.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d0a98612-1e01-3ca9-b983-84f79e6dd04d">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/decode_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/decode_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/encode_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/encode_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/all_djinterp.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="e62a8a1f-aa52-3617-8449-d1ad615955de">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/accumulator/accumulator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/adapter/adapter/adapter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/allocator_memory_strategy/allocator_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/alternative/alternative_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/applicative/applicative_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/archive_options/archive_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/archive/archive_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/array/array_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/sync/atomic/atomic_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/bifunctor/bifunctor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/bounded_container_traits/bounded_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/bsearch/bsearch_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/bubble_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/byte_size/byte_size_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/carrier/carrier_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/cofree/cofree_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/comonad/comonad_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/comparator/comparator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/compose/compose_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/compress_options/compress_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/compress/compress_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/concepts/concepts_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/constexpr_container_traits/constexpr_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/consumer/consumer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_comparison_traits/container_comparison_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_conversion_traits/container_conversion_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_copy_merge_traits/container_copy_merge_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_filter_traits/container_filter_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_memory_strategy/container_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/container_metadata/container_metadata_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_multiplicity_traits/container_multiplicity_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_overlay_traits/container_overlay_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_storage_traits/container_storage_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_traits/container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_transform_traits/container_transform_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/contravariant/contravariant_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/counter/counter/counter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/curry/curry_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/db/database/database_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/decode_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/decode_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/djinterp_header_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_all/djinterp_tests_all.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/dtuple/dtuple_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/dtuple_wrap_partition/dtuple_wrap_partition_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/element_relation_traits/element_relation_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/encode_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/encode_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_common/event_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_dispatcher/event_dispatcher_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_handler/event_handler_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_registry/event_registry_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_table/event_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_tests_all/event_tests_all.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/extractor/extractor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/fs/file_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/filter/filter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/fixed_string/fixed_string_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/flat_container_traits/flat_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/flat/flat_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/fn_builder/fn_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/foldable/foldable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/free/free_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/functional_common/functional_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/functor/functor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/heap_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/hierarchical_container_traits/hierarchical_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/hierarchical/hierarchical_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/insertion_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/interpolate/interpolate_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/iterable_container_traits/iterable_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/kv_pair/kv_pair_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/lifetime/lifetime_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/maybe/maybe_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/mediator/mediator/mediator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/member_traits/member_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/member_types/member_types_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/momento/momento/memento_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_all/memory_strategy_all_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_strategy_concepts/memory_strategy_concepts_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_strategy_traits/memory_strategy_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/merge_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/monad/monad_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/monoid/monoid_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/monotonic_byte_arena/monotonic_byte_arena_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/re_std/move_family_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/mutable_container_traits/mutable_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/node_container_traits/node_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/observational_comparison_traits/observational_comparison_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/observer/observer/observer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_builder/option_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_compose/option_compose_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_diff/option_diff_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_factory/option_factory_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_generator/option_generator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_override/option_override_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_set_compare/option_set_compare_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_set/option_set_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option/option_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_tests_all.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/optionator/optionator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/ordered_container/ordered_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/ordered_container_traits/ordered_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/override/override_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/pack_element/pack_element_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/passthrough/passthrough_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/pattern/pattern/pattern_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/pipeline/pipeline_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/polynomial/polynomial_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool_all/pool_all_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool_allocator/pool_allocator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool_memory_strategy/pool_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool/pool_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/predicate/predicate_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/producer/producer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/profunctor/profunctor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/publisher/publisher/publisher_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/quick_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/read_only_container/read_only_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/read_only_container_traits/read_only_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/read_write_container/read_write_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/read_write_container_traits/read_write_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/recursion/recursion_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/reduce/reduce_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/result/result_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/runtime_container_traits/runtime_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/selection_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/semigroup/semigroup_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/sequence/sequence/sequence_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/sequential_container/sequential_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_conformance_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_dispatch_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_monoid_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_view_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/sorted_container/sorted_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/sorted_container_traits/sorted_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/static_buffer_strategy/static_buffer_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/structural_traits/structural_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/structure_tags/structure_tags_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/template/template/template_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_archive_options/test_archive_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_archive/test_archive_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_builder/test_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_callable/test_callable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_common/test_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_compress_options/test_compress_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_compress/test_compress_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_container/test_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_context/test_context_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_counter/test_counter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_defaults/test_defaults_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_emit/test_emit_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_event/test_event_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_handler/test_handler_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_kind/test_kind_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_object/test_object_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_options/test_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_output_config/test_output_config_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_output/test_output_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_pack/test_pack_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render_pdf_table/test_render_pdf_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render_pdf/test_render_pdf_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render/test_render_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report_runner_table/test_report_runner_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report_runner/test_report_runner_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report/test_report_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_runner/test_runner_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_session/test_session_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_timer/test_timer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_traits/test_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_tree/test_tree_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_zip_store/test_zip_store_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/threadsafe_container/threadsafe_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/timer/timer/timer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/transducer/transducer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/traversable/traversable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/type_traits/type_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/value_list/value_list_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/view/view_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/visitor/visitor/visitor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/write_only_container_traits/write_only_container_traits_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/all_djinterp_core.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8111d49f-9967-318f-acff-38e1fe5fee9a">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/accumulator/accumulator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/adapter/adapter/adapter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/allocator_memory_strategy/allocator_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/alternative/alternative_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/applicative/applicative_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/archive_options/archive_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/archive/archive_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/array/array_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/sync/atomic/atomic_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/bifunctor/bifunctor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/bounded_container_traits/bounded_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/bsearch/bsearch_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/bubble_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/byte_size/byte_size_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/carrier/carrier_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/cofree/cofree_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/comonad/comonad_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/comparator/comparator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/compose/compose_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/compress_options/compress_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/compress/compress_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/concepts/concepts_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/constexpr_container_traits/constexpr_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/consumer/consumer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_comparison_traits/container_comparison_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_conversion_traits/container_conversion_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_copy_merge_traits/container_copy_merge_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_filter_traits/container_filter_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_memory_strategy/container_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/container_metadata/container_metadata_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_multiplicity_traits/container_multiplicity_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_overlay_traits/container_overlay_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_storage_traits/container_storage_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_traits/container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_transform_traits/container_transform_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/contravariant/contravariant_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/counter/counter/counter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/curry/curry_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/db/database/database_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/decode_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/decode_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/djinterp_header_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/dtuple/dtuple_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/dtuple_wrap_partition/dtuple_wrap_partition_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/element_relation_traits/element_relation_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/encode_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/encode_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_common/event_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_dispatcher/event_dispatcher_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_handler/event_handler_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_registry/event_registry_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_table/event_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_tests_all/event_tests_all.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/extractor/extractor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/fs/file_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/filter/filter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/fixed_string/fixed_string_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/flat_container_traits/flat_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/flat/flat_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/fn_builder/fn_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/foldable/foldable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/free/free_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/functional_common/functional_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/functor/functor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/heap_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/hierarchical_container_traits/hierarchical_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/hierarchical/hierarchical_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/insertion_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/interpolate/interpolate_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/iterable_container_traits/iterable_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/kv_pair/kv_pair_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/lifetime/lifetime_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/maybe/maybe_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/mediator/mediator/mediator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/member_traits/member_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/member_types/member_types_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/momento/momento/memento_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_all/memory_strategy_all_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_strategy_concepts/memory_strategy_concepts_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_strategy_traits/memory_strategy_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/merge_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/monad/monad_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/monoid/monoid_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/monotonic_byte_arena/monotonic_byte_arena_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/mutable_container_traits/mutable_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/node_container_traits/node_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/observational_comparison_traits/observational_comparison_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/observer/observer/observer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_builder/option_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_compose/option_compose_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_diff/option_diff_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_factory/option_factory_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_generator/option_generator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_override/option_override_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_set_compare/option_set_compare_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_set/option_set_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option/option_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_tests_all.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/optionator/optionator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/ordered_container/ordered_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/ordered_container_traits/ordered_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/override/override_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/pack_element/pack_element_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/passthrough/passthrough_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/pattern/pattern/pattern_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/pipeline/pipeline_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/polynomial/polynomial_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool_all/pool_all_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool_allocator/pool_allocator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool_memory_strategy/pool_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool/pool_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/predicate/predicate_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/producer/producer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/profunctor/profunctor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/publisher/publisher/publisher_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/quick_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/read_only_container/read_only_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/read_only_container_traits/read_only_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/read_write_container/read_write_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/read_write_container_traits/read_write_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/recursion/recursion_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/reduce/reduce_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/result/result_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/runtime_container_traits/runtime_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/selection_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/semigroup/semigroup_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/sequence/sequence/sequence_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/sequential_container/sequential_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_conformance_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_dispatch_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_monoid_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_view_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/sorted_container/sorted_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/sorted_container_traits/sorted_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/static_buffer_strategy/static_buffer_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/structural_traits/structural_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/structure_tags/structure_tags_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/template/template/template_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/threadsafe_container/threadsafe_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/timer/timer/timer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/transducer/transducer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/traversable/traversable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/type_traits/type_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/value_list/value_list_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/view/view_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/visitor/visitor/visitor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/write_only_container_traits/write_only_container_traits_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/all_djinterp_core_container_traits.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d592ff5c-b1a4-3300-8446-a23eb2cba5c8">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/bounded_container_traits/bounded_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/constexpr_container_traits/constexpr_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_comparison_traits/container_comparison_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_conversion_traits/container_conversion_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_copy_merge_traits/container_copy_merge_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_filter_traits/container_filter_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_memory_strategy/container_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_multiplicity_traits/container_multiplicity_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_overlay_traits/container_overlay_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_storage_traits/container_storage_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_traits/container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_transform_traits/container_transform_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/element_relation_traits/element_relation_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/flat_container_traits/flat_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/hierarchical_container_traits/hierarchical_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/iterable_container_traits/iterable_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/mutable_container_traits/mutable_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/node_container_traits/node_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/observational_comparison_traits/observational_comparison_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/ordered_container_traits/ordered_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/read_only_container_traits/read_only_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/read_write_container_traits/read_write_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/runtime_container_traits/runtime_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/sorted_container_traits/sorted_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/write_only_container_traits/write_only_container_traits_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/db/all_djinterp_core_db.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="bfcab13a-f14b-3dae-9e36-e860f0869e2b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/db/database/database_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/fs/all_djinterp_core_fs.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b1028ca6-3715-3a49-aca9-b5664673838d">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/fs/file_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/all_djinterp_core_functional.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c80438bc-c98f-35b6-b4d6-ed608b8c574d">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/accumulator/accumulator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/alternative/alternative_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/applicative/applicative_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/bifunctor/bifunctor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/cofree/cofree_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/comonad/comonad_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/comparator/comparator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/compose/compose_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/consumer/consumer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/contravariant/contravariant_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/curry/curry_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/extractor/extractor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/filter/filter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/fn_builder/fn_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/foldable/foldable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/free/free_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/functional_common/functional_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/functor/functor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/interpolate/interpolate_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/maybe/maybe_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/monad/monad_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/monoid/monoid_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/pipeline/pipeline_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/polynomial/polynomial_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/predicate/predicate_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/producer/producer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/profunctor/profunctor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/recursion/recursion_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/reduce/reduce_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/result/result_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/semigroup/semigroup_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/structural_traits/structural_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/transducer/transducer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/traversable/traversable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/value_list/value_list_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/view/view_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/memory/pool/all_djinterp_core_memory_pool.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4d0f0638-9c5a-33a6-819c-8dfa64592333">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool_all/pool_all_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool_allocator/pool_allocator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool/pool_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/all_djinterp_core_meta.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="e9fdb077-3073-372a-bb95-9c09c7229530">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/bsearch/bsearch_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/byte_size/byte_size_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/carrier/carrier_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/concepts/concepts_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/dtuple/dtuple_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/dtuple_wrap_partition/dtuple_wrap_partition_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/fixed_string/fixed_string_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/flat/flat_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/hierarchical/hierarchical_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/kv_pair/kv_pair_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/lifetime/lifetime_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/member_traits/member_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/member_types/member_types_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/override/override_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/pack_element/pack_element_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/passthrough/passthrough_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/structure_tags/structure_tags_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/type_traits/type_traits_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/option/all_djinterp_core_option.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7f1c2938-ef98-3959-b5cb-8c863074f8fd">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_builder/option_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_compose/option_compose_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_diff/option_diff_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_factory/option_factory_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_generator/option_generator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_override/option_override_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_set_compare/option_set_compare_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_set/option_set_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option/option_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_tests_all.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/optionator/optionator_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/all_djinterp_core_paradigm.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="a8713a59-3350-32ee-a461-dcc6b24e400d">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/adapter/adapter/adapter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/mediator/mediator/mediator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/momento/momento/memento_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/observer/observer/observer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/pattern/pattern/pattern_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/publisher/publisher/publisher_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/sequence/sequence/sequence_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/template/template/template_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/visitor/visitor/visitor_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/adapter/all_djinterp_core_paradigm_adapter.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="88648eff-398d-33bf-a2d7-e31077eda4b1">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/adapter/adapter/adapter_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/mediator/all_djinterp_core_paradigm_mediator.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="212de708-c5b7-3cc5-88bf-3596c5d88ddc">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/mediator/mediator/mediator_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/momento/all_djinterp_core_paradigm_momento.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="e9de1034-fa51-3095-b1a9-399506a29611">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/momento/momento/memento_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/observer/all_djinterp_core_paradigm_observer.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="043c557c-96fb-3c98-8408-ef94a1671f41">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/observer/observer/observer_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/pattern/all_djinterp_core_paradigm_pattern.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d7ba59ee-bda7-3d22-893a-ce71e82e0754">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/pattern/pattern/pattern_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/publisher/all_djinterp_core_paradigm_publisher.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ebd64d5d-6c3b-3b69-af80-8a224791e18d">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/publisher/publisher/publisher_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/sequence/all_djinterp_core_paradigm_sequence.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="163d1d75-a852-3438-bdc1-2d93dd92d932">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/sequence/sequence/sequence_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/template/all_djinterp_core_paradigm_template.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c2750a42-45d2-3943-8c4d-f8bb2ebbb828">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/template/template/template_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/visitor/all_djinterp_core_paradigm_visitor.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="651b4bed-c96d-365d-8666-b7789713fdf9">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/visitor/visitor/visitor_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/sync/all_djinterp_core_sync.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="0a9f14bf-d2bb-37f8-b546-7bac725981a0">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/sync/atomic/atomic_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/all_djinterp_core_util.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="736ff6ab-2b66-33c1-a814-7b3ded88aef3">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/archive_options/archive_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/archive/archive_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/bubble_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/compress_options/compress_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/compress/compress_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/counter/counter/counter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/heap_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/insertion_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/merge_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/quick_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/selection_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_conformance_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_dispatch_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_monoid_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_view_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/timer/timer/timer_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/counter/all_djinterp_core_util_counter.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8bb23583-b481-3c51-9044-dd9fe7586f26">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/counter/counter/counter_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/timer/all_djinterp_core_util_timer.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="01c5a483-06be-3a38-a172-c4774210562e">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/timer/timer/timer_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/test/all_djinterp_test.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="38fcdf6a-9fb9-33af-9a3c-85e1e418d07c">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_all/djinterp_tests_all.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_archive_options/test_archive_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_archive/test_archive_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_builder/test_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_callable/test_callable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_common/test_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_compress_options/test_compress_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_compress/test_compress_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_container/test_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_context/test_context_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_counter/test_counter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_defaults/test_defaults_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_emit/test_emit_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_event/test_event_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_handler/test_handler_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_kind/test_kind_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_object/test_object_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_options/test_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_output_config/test_output_config_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_output/test_output_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_pack/test_pack_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render_pdf_table/test_render_pdf_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render_pdf/test_render_pdf_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render/test_render_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report_runner_table/test_report_runner_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report_runner/test_report_runner_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report/test_report_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_runner/test_runner_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_session/test_session_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_timer/test_timer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_traits/test_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_tree/test_tree_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_zip_store/test_zip_store_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/test/output/all_djinterp_test_output.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="0e318977-4675-328a-acfc-7e5a4857c2e8">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_output_config/test_output_config_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_output/test_output_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render_pdf_table/test_render_pdf_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render_pdf/test_render_pdf_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render/test_render_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report_runner_table/test_report_runner_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report_runner/test_report_runner_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report/test_report_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_zip_store/test_zip_store_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/event/all_events.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="9aaa443f-1484-3742-ad8d-38e124a0ef5f">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_common/event_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_dispatcher/event_dispatcher_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_handler/event_handler_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_registry/event_registry_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_table/event_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_tests_all/event_tests_all.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/all_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="037d9f37-e259-3437-8a88-9d14373c93c1">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/accumulator/accumulator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/adapter/adapter/adapter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/allocator_memory_strategy/allocator_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/alternative/alternative_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/applicative/applicative_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/archive_options/archive_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/archive/archive_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/array/array_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/sync/atomic/atomic_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/bifunctor/bifunctor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/bounded_container_traits/bounded_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/bsearch/bsearch_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/bubble_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/byte_size/byte_size_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/carrier/carrier_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/cofree/cofree_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/comonad/comonad_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/comparator/comparator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/compose/compose_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/compress_options/compress_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/compress/compress_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/concepts/concepts_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/constexpr_container_traits/constexpr_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/consumer/consumer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_comparison_traits/container_comparison_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_conversion_traits/container_conversion_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_copy_merge_traits/container_copy_merge_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_filter_traits/container_filter_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_memory_strategy/container_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/container_metadata/container_metadata_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_multiplicity_traits/container_multiplicity_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_overlay_traits/container_overlay_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_storage_traits/container_storage_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_traits/container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_transform_traits/container_transform_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/contravariant/contravariant_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/counter/counter/counter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/curry/curry_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/db/database/database_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/decode_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/decode_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/djinterp_header_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_all/djinterp_tests_all.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/dtuple/dtuple_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/dtuple_wrap_partition/dtuple_wrap_partition_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/element_relation_traits/element_relation_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/encode_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/binary/encode_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_common/event_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_dispatcher/event_dispatcher_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_handler/event_handler_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_registry/event_registry_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_table/event_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/event/event_tests_all/event_tests_all.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/extractor/extractor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/fs/file_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/filter/filter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/fixed_string/fixed_string_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/flat_container_traits/flat_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/flat/flat_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/fn_builder/fn_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/foldable/foldable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/free/free_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/functional_common/functional_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/functor/functor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/heap_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/hierarchical_container_traits/hierarchical_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/hierarchical/hierarchical_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/insertion_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/interpolate/interpolate_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/iterable_container_traits/iterable_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/kv_pair/kv_pair_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/lifetime/lifetime_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/maybe/maybe_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/mediator/mediator/mediator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/member_traits/member_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/member_types/member_types_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/momento/momento/memento_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_all/memory_strategy_all_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_strategy_concepts/memory_strategy_concepts_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_strategy_traits/memory_strategy_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/merge_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/monad/monad_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/monoid/monoid_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/monotonic_byte_arena/monotonic_byte_arena_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/re_std/move_family_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/mutable_container_traits/mutable_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/node_container_traits/node_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/observational_comparison_traits/observational_comparison_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/observer/observer/observer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_builder/option_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_compose/option_compose_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_diff/option_diff_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_factory/option_factory_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_generator/option_generator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_override/option_override_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_set_compare/option_set_compare_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_set/option_set_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option/option_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/option_tests_all.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/option/optionator/optionator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/ordered_container/ordered_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/ordered_container_traits/ordered_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/override/override_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/pack_element/pack_element_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/passthrough/passthrough_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/pattern/pattern/pattern_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/pipeline/pipeline_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/polynomial/polynomial_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool_all/pool_all_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool_allocator/pool_allocator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool_memory_strategy/pool_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool/pool_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/predicate/predicate_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/producer/producer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/profunctor/profunctor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/publisher/publisher/publisher_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/quick_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/read_only_container/read_only_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/read_only_container_traits/read_only_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/read_write_container/read_write_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/read_write_container_traits/read_write_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/recursion/recursion_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/reduce/reduce_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/result/result_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/runtime_container_traits/runtime_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/selection_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/semigroup/semigroup_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/sequence/sequence/sequence_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/sequential_container/sequential_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_conformance_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_dispatch_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_monoid_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_view_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/sorted_container/sorted_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/sorted_container_traits/sorted_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/static_buffer_strategy/static_buffer_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/structural_traits/structural_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/structure_tags/structure_tags_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/template/template/template_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_archive_options/test_archive_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_archive/test_archive_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_builder/test_builder_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_callable/test_callable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_common/test_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_compress_options/test_compress_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_compress/test_compress_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_container/test_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_context/test_context_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_counter/test_counter_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_defaults/test_defaults_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_emit/test_emit_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_event/test_event_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_handler/test_handler_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_kind/test_kind_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_object/test_object_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_options/test_options_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_output_config/test_output_config_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_output/test_output_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_pack/test_pack_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render_pdf_table/test_render_pdf_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render_pdf/test_render_pdf_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_render/test_render_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report_runner_table/test_report_runner_table_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report_runner/test_report_runner_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_report/test_report_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_runner/test_runner_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_session/test_session_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_timer/test_timer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_traits/test_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/test_tree/test_tree_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/test/output/test_zip_store/test_zip_store_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/threadsafe_container/threadsafe_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/timer/timer/timer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/transducer/transducer_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/traversable/traversable_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/meta/type_traits/type_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/value_list/value_list_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/functional/view/view_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/paradigm/visitor/visitor/visitor_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/write_only_container_traits/write_only_container_traits_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/memory/allocator_memory_strategy/allocator_memory_strategy_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="47229ef7-be83-31c9-ad67-532008074a81">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/alternative/alternative_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7fa6af45-51e4-3fd1-92ab-c9ffc26c458b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/applicative/applicative_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="047e5829-8e3e-32e1-af92-9cc145534341">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/archive_options/archive_options_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="54866fdf-15d1-3953-bd1a-40327e29d7ba">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/archive/archive_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c3306c52-8252-3f83-b7ac-2894ab9faa4c">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/array/array_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="1a35c802-8787-3412-8089-0018d0443ebc">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/sync/atomic/atomic_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="6885f297-8eef-3414-8d18-8cc11cd87aad">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/bifunctor/bifunctor_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="bcf716df-175c-3a5f-9c5a-31afe3091d46">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/bounded_container_traits/bounded_container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="3d57002c-c563-3388-bc26-9ed162a4a7af">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/bsearch/bsearch_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="0925bec9-9aea-3d6b-b1e3-ab170176849c">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/sort/bubble_sort_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="562b847a-b086-3ac6-adf2-dbe4390fdcc6">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/byte_size/byte_size_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="994b6f03-0d82-3c57-ab80-849d1512e1fe">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/carrier/carrier_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c35f802d-ceb6-3bfa-973c-a6b3c77c22b4">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/cofree/cofree_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="3d8b7c04-9ffc-39e6-a204-0d05f116f555">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/comonad/comonad_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7baaf321-c1de-3c95-acd9-2ef4a00bb788">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/comparator/comparator_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="974a5bd5-8c0e-38af-a988-72b4b1c7a6d0">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/compose/compose_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="55d098d5-1889-399a-964e-766aa29317e9">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/compress_options/compress_options_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f0bc6ace-da36-35ca-92d9-9a714647faa3">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/compress/compress_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="66810b73-a36e-3c44-ad20-1d7bdc554b00">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/concepts/concepts_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="fd864440-051f-3a21-b77c-579af976646b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/constexpr_container_traits/constexpr_container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="51effc22-02bb-3969-8d80-39c4df6818f5">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/consumer/consumer_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4ab72014-45b8-3dbd-ba5f-c02749baeb26">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/container_comparison_traits/container_comparison_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2ee4c0aa-f79d-30db-ba1b-03ab313111b5">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/container_conversion_traits/container_conversion_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7dca0dcf-9f24-3b46-b180-41f180df0b11">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/container_copy_merge_traits/container_copy_merge_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="efe7badb-d089-3362-b263-eef067068184">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/container_filter_traits/container_filter_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="5fe027cd-27b5-336f-a110-15a601f2a8a5">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/container_memory_strategy/container_memory_strategy_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="dae770fd-4a35-3829-b75c-aeb870c032ca">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/container_metadata/container_metadata_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ff1a48dd-58e1-3755-b5fa-22d1e2a1d5c8">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/container_multiplicity_traits/container_multiplicity_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="506abf7d-77c4-381b-97b0-e87127375b07">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/container_overlay_traits/container_overlay_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d80cff56-c8a2-32e2-9ce6-c72389d10d62">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/container_storage_traits/container_storage_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="96c14952-b82c-328f-a091-189f46680cac">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/container_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="bd145720-745d-3597-9d68-68cc6f0fae7b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/array/array_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/bounded_container_traits/bounded_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/constexpr_container_traits/constexpr_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_comparison_traits/container_comparison_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_conversion_traits/container_conversion_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_copy_merge_traits/container_copy_merge_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_filter_traits/container_filter_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_memory_strategy/container_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/container_metadata/container_metadata_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_multiplicity_traits/container_multiplicity_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_overlay_traits/container_overlay_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_storage_traits/container_storage_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_traits/container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/container_transform_traits/container_transform_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/element_relation_traits/element_relation_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/flat_container_traits/flat_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/hierarchical_container_traits/hierarchical_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/iterable_container_traits/iterable_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/mutable_container_traits/mutable_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/node_container_traits/node_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/observational_comparison_traits/observational_comparison_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/ordered_container/ordered_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/ordered_container_traits/ordered_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/read_only_container/read_only_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/read_only_container_traits/read_only_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/read_write_container/read_write_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/read_write_container_traits/read_write_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/runtime_container_traits/runtime_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/sequential_container/sequential_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/sorted_container/sorted_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/sorted_container_traits/sorted_container_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/threadsafe_container/threadsafe_container_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/container/traits/write_only_container_traits/write_only_container_traits_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/container_traits/container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4efa0163-f0ee-3479-8f8b-aa9323a5b086">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/container_transform_traits/container_transform_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4b35526c-64a1-31da-80d2-aeea5e78ba5c">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/contravariant/contravariant_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="e4e44bc8-b495-3d1a-bb29-135b1a17542a">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/counter/counter/counter_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d5e06384-00ad-39e1-8ff8-801b9994f675">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/curry/curry_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d52a1104-347b-340e-93e0-e41aab8a0fc2">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/db/database/database_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8fe24eae-d8d0-3c8c-9a64-ac6bff58ae15">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/binary/decode_options_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d6006074-00d1-3e89-bcf8-7cefe79c7124">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/binary/decode_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="a1f522ef-6912-31d2-88f2-8e4ab6cf8e12">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="djinterp_c_runtime.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="34b26773-9a44-344e-a412-900e0132e20d">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/djinterp_header_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="a0f035aa-d9bb-30fa-8957-765fab1f8e89">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_all/djinterp_tests_all.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="1c69979a-5b15-36f5-b571-8b63606fd762">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/dtuple/dtuple_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="aede7291-deae-344c-92f3-2b77a112bbf0">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/dtuple_wrap_partition/dtuple_wrap_partition_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d6c36c44-f1f5-3e56-9860-1db049170e1b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/element_relation_traits/element_relation_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="64241e9b-3833-39d5-b76a-f9e7aeb6e068">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/binary/encode_options_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c95230b8-72fe-36d4-b69a-39123d02bebe">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/binary/encode_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="44fb002f-7dbb-3dd8-b6db-067d004013d8">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/event/event_common/event_common_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d6087e9f-5293-3c26-abc5-b2d3adcbccba">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/event/event_dispatcher/event_dispatcher_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4815522b-0854-3fd7-8a41-f876f2475f43">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/event/event_handler/event_handler_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="614647e6-7dad-36cf-8db8-8020fbb6b4c7">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/event/event_registry/event_registry_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d7d8609a-4a71-36ea-8277-1f0dc442ffe0">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/event/event_table/event_table_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="5f837f87-1809-3f3b-8950-15766ffd1248">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/event/event_tests_all/event_tests_all.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="83b98ef6-3f85-3b02-b008-1a1b192c99fe">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/extractor/extractor_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="5b77e441-8b90-3308-a431-84115555b1b9">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/fs/file_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="986a17cd-20fd-34f0-a44d-d27dc20e050e">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/filter/filter_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c2f59f36-0633-3a84-8dfd-df7b6e492b9a">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/fixed_string/fixed_string_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="661ae960-2995-38b4-9961-5ede4d84a074">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/flat_container_traits/flat_container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="233daa9a-5eb4-3bc9-b670-6ea5fe2905cb">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/flat/flat_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7d737167-6271-3bd0-ae8a-4e16bd6fa833">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/fn_builder/fn_builder_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="e3b9edcf-7416-3cec-bba3-c888969f1713">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/foldable/foldable_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="6eade3ad-712a-3c9c-9e17-38d903f92c2a">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/free/free_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="bc48125c-dcd6-310a-a405-2194062f7a77">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/functional_common/functional_common_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c1273de6-ffe4-3142-bf56-cd022930cd66">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/functor/functor_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4136ef6f-9540-3967-83dc-a24fa3841af3">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/sort/heap_sort_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f42d467a-4c3b-32bc-ba03-6ef65bdc8de0">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/hierarchical_container_traits/hierarchical_container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2dc0e755-6273-3eb7-b295-abf5829842df">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/hierarchical/hierarchical_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ddc8ac42-5ae0-3b21-923c-7938f29ccddf">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/sort/insertion_sort_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="bfc4ba5c-9ca9-310c-8cfe-4ba277c73dbb">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/interpolate/interpolate_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f85d7a56-f368-3c18-b08c-8796954a83e9">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/iterable_container_traits/iterable_container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="10c17140-b88c-3515-ba04-eaefc54493a2">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/kv_pair/kv_pair_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8c17fd8a-d16f-3ab0-aef8-db06d0fa955f">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/lifetime/lifetime_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="6c37855d-dee4-370d-a337-9d4539ffe113">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/maybe/maybe_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="6d7287a8-2530-3a98-b961-4de51de592c4">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/mediator/mediator/mediator_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="5bff71a3-a6cb-35fa-b2df-b7f2225c44d8">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/member_traits/member_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2f47f5e4-4f42-300f-81ce-f049c0ef4cf5">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/member_types/member_types_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="1b8ae8a1-6e49-3ae1-811b-0a442f8b408b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/momento/momento/memento_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="cbe16d62-ec94-3365-97b2-20f2c02557ca">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/memory/memory_all/memory_strategy_all_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ba521663-3ed4-3a20-aed1-f47c5ab33dee">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/memory/memory_strategy_concepts/memory_strategy_concepts_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="87215949-651b-3270-a506-ca2cb3b0e6f4">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/memory/memory_strategy_traits/memory_strategy_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="9f0371be-7a30-3de5-a172-f7f7483d7971">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/memory/memory_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="0e7605c6-2d64-3cec-835e-216cc95fed3b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/allocator_memory_strategy/allocator_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_all/memory_strategy_all_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_strategy_concepts/memory_strategy_concepts_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/memory_strategy_traits/memory_strategy_traits_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/monotonic_byte_arena/monotonic_byte_arena_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool_all/pool_all_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool_allocator/pool_allocator_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool_memory_strategy/pool_memory_strategy_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/pool/pool/pool_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/memory/static_buffer_strategy/static_buffer_strategy_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/sort/merge_sort_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="12bfe6f3-da53-3384-a546-da5c0c56ca82">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/monad/monad_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="0de96b98-e3a2-374c-ab11-067c657cb325">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/monoid/monoid_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="aa9bcc1c-5579-37ce-ba30-b4426e89d2b5">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/memory/monotonic_byte_arena/monotonic_byte_arena_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f0be5843-e240-3683-8fdd-10167cd7955f">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/re_std/move_family_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7053b6e8-3f0c-3b60-9897-3ec7f87f894e">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/mutable_container_traits/mutable_container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="6fc6138a-6c75-3db1-a6d1-7918216e6744">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/node_container_traits/node_container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4c178004-a5ab-349f-b994-345156f2f8b1">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/observational_comparison_traits/observational_comparison_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="5a5d2c1b-5515-3b3f-8db6-fe8c52e12376">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/observer/observer/observer_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="13b64fa7-4b90-31d3-b542-cbd6a4712ad4">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/option/option_builder/option_builder_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="daabdfcf-f592-3c28-8e09-68ddb413c8e8">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/option/option_compose/option_compose_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="dad0eda2-b00a-31cd-b2cc-9055148aaccc">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/option/option_diff/option_diff_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b138ad98-2d46-3e5a-9487-564afcc78322">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/option/option_factory/option_factory_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="706bd33b-e5d1-3fae-9c69-ee8f4adebdd2">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/option/option_generator/option_generator_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="1433d8ce-47dc-3d1a-b93b-ce89236113b6">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/option/option_override/option_override_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="03a66a5a-a5fe-373b-a59e-fba11c4555f5">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/option/option_set_compare/option_set_compare_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7a216d2b-4286-3cb2-9f07-0dfd23ca5bfc">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/option/option_set/option_set_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="5a399185-99b1-34b4-9584-0b8b041d0abf">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/option/option/option_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8eda449d-b4b3-3d52-ac1e-b369e90b02e7">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/option/option_tests_all.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="69b38f82-ba26-3880-8769-bfc5e0f7a16f">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/option/optionator/optionator_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="0a8e7f62-29ee-3df9-b52f-f45a7ab74e40">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/ordered_container/ordered_container_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="70d04719-b195-3a22-a9b6-a148937394db">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/ordered_container_traits/ordered_container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c4c8dd8f-479d-3ec9-b7d8-64b1b768e1fd">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/override/override_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8779ade7-b782-3492-827c-c186d2f9e11f">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/pack_element/pack_element_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ebd8d9e0-36ed-3bd9-81d9-63cb5f271d47">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/passthrough/passthrough_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="41061b1a-172f-3395-9893-83cfdbd62597">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/pattern/pattern/pattern_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="cac82fb0-739e-3fb7-9956-c3bdb5388ccd">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/pipeline/pipeline_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="530f54f0-4bf3-3600-b42e-0ec56551d918">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/polynomial/polynomial_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="fdaa77a8-1893-3e72-b2d6-d44376d67f19">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/memory/pool/pool_all/pool_all_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="e90e8e0c-ec37-39be-bbe0-1b9ba657bd19">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/memory/pool/pool_allocator/pool_allocator_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="957841e0-f62c-34a1-a7ae-d7ddb3cf096f">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/memory/pool_memory_strategy/pool_memory_strategy_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="aeddd082-6489-35cd-af5b-12a083c30149">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/memory/pool/pool/pool_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="e142d3f1-4adf-3046-af6e-c29fc3c88dc5">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/predicate/predicate_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="a17583dd-2c33-3d79-9232-39e9b1a9d01b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/producer/producer_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7263b783-2b62-3b07-bf14-820a17412bdf">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/profunctor/profunctor_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="aff0e394-e492-3605-a8b0-634573f36faf">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/publisher/publisher/publisher_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="98318a13-5d48-30ee-8580-24c6e4f36240">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/sort/quick_sort_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="29002479-d90f-3c2e-ba72-cec3ca21dbcb">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/read_only_container/read_only_container_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="1737c3f8-106f-308f-82fd-2e5d72da87df">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/read_only_container_traits/read_only_container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b33964c7-2a43-37da-8e37-4321309d94ab">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/read_write_container/read_write_container_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="fdf2ebfb-90a4-35fc-8524-d747b93cfa54">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/read_write_container_traits/read_write_container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="9a9186ac-02f1-31a9-9a20-6549034a6a36">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/recursion/recursion_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d75c941f-68aa-30c4-baf1-428109b50106">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/reduce/reduce_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="347233a3-4909-3175-84c8-8c7a2d0daa3c">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/result/result_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="6efb5864-3870-37e6-af8e-1b696ba37fe7">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/runtime_container_traits/runtime_container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b82540df-cd88-3b08-bf11-92f0d693d640">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/sort/selection_sort_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="fb5e0979-b637-3e0d-a941-d59143d7120d">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/semigroup/semigroup_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="6242bda8-27f8-3ce2-98bc-6d48df6119cb">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/sequence/sequence/sequence_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="a0753920-f61e-33fd-a6a4-6d4f0b3112cf">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/sequential_container/sequential_container_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b9b3e321-39fa-3948-9a1d-5e975eade777">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/sort/sort_common_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4a4b1515-40df-3a8c-8031-4d7d0a1be9e4">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/sort/sort_conformance_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ee858812-9e12-3dcd-ad43-999fe3cd18d4">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/sort/sort_dispatch_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="e17b292f-4374-3687-ad61-cd395c978a9b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/sort/sort_monoid_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b47e3cd0-d6e8-3dbe-af84-26dcb1f21e8b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/sort/sort_subsystem_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="3ba49e2a-579a-3892-9b32-c68b2be298fb">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/bubble_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/heap_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/insertion_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/merge_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/quick_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/selection_sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_common_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_conformance_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_dispatch_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_monoid_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_tests.vcxproj"/>
+		<BuildDependency Project="testing/djinterp/core/util/sort/sort_view_tests.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/sort/sort_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="94fd2acf-0867-37d2-8d11-fbc1a5fda2a8">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/sort/sort_view_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ae22fca4-8744-3749-91bb-9832844e1e61">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/sorted_container/sorted_container_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="89b214e9-992b-39a3-b27c-275dd5dfa3ea">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/sorted_container_traits/sorted_container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="447f8697-3158-36e7-9810-a028de260351">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/memory/static_buffer_strategy/static_buffer_strategy_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="04f46cc7-d4fd-3ea1-b683-2141c93fe396">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/structural_traits/structural_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c221f4d4-c3c8-3acf-9cfd-508821c20302">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/structure_tags/structure_tags_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d504c0d8-eb6d-360a-9ac7-bb68e7c500b7">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/template/template/template_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7d4dbc21-8a04-3d48-9e48-0569d6fe265d">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_archive_options/test_archive_options_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="e3755594-008f-370f-8a54-457d8ae60db9">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_archive/test_archive_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="5dd637ac-a940-3ac1-bac8-5655fcd71c1b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_builder/test_builder_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b182a3b6-f16e-32c6-8f85-6b27bf9b509a">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_callable/test_callable_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="bb925730-b9e4-31cd-9fa2-9c4491a105c2">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_common/test_common_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="23d95f9b-5afd-3d27-8a73-68a3c41da40f">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_compress_options/test_compress_options_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="a44be809-78d7-33af-b38b-e4e0344081c1">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_compress/test_compress_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f4126b01-c53c-38d6-9654-a85c1e55f26e">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_container/test_container_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b6bdd887-ecd5-31b3-ae24-1ad74b207e8e">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_context/test_context_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="97420ec8-e8a2-385f-b411-21993b9a06c7">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_counter/test_counter_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="75b46562-522b-3f9a-9c2e-ca756472c8d5">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_defaults/test_defaults_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ac5a1c72-2ee0-32b7-b845-a79331b21060">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_emit/test_emit_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="1180546a-d8a7-35e6-be8d-d5eefbfcf62e">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_event/test_event_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="909e6057-eb2a-301e-af88-1a1269bb410b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_handler/test_handler_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="fa8884ba-2781-3ca6-b9f7-d4ee9e6c8cc6">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_kind/test_kind_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="02406111-b926-3623-bf4c-d3e7bb993618">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_object/test_object_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ef7a7f33-2c17-3115-95ef-8693d37e4db9">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_options/test_options_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="3f3b464c-2cbe-3e7e-85aa-0f183e145777">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/output/test_output_config/test_output_config_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f10d6f6f-22a1-39ed-be83-9a3a388134b8">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/output/test_output/test_output_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c6ed4058-1ad3-3020-b0de-ad2c0bb5e603">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_pack/test_pack_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="399659da-0a22-3699-bef6-1c1c3be9eef2">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/output/test_render_pdf_table/test_render_pdf_table_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="a08ed483-16b4-3afc-a7d6-8ce617550d04">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/output/test_render_pdf/test_render_pdf_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2048c2ba-4aea-3db4-8a21-a1894ee1ea39">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/output/test_render/test_render_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b03166e0-9663-3c9d-ae92-88dd2a12443c">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/output/test_report_runner_table/test_report_runner_table_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="09572d16-f53d-31e0-a5bb-182a3b0ea5d5">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/output/test_report_runner/test_report_runner_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8b6ebee9-61e9-3c3d-84f8-e7cf40b25c9b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/output/test_report/test_report_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="285914ce-c06c-3d7b-b0e4-1e27f7f63472">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_runner/test_runner_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="eb52142c-0169-31aa-a8a5-6634dd07e2a1">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_session/test_session_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="033d40c2-6cd9-3ed4-8965-c8164bdfba94">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_timer/test_timer_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="9bb82097-96bc-35bc-97f5-3f3bd45b2579">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_traits/test_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ed62c8b4-99d5-37e3-869c-abed27e65dce">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/test_tree/test_tree_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="43ec76db-9492-3303-901b-79b3062955b2">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/test/output/test_zip_store/test_zip_store_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="bcf4fbaa-7102-3f7a-950a-d9117244d1cd">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/threadsafe_container/threadsafe_container_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="5c5ca23a-f05c-3867-a652-55bd51d7db4f">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/util/timer/timer/timer_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="fb97a02a-99d6-350a-9e70-9508e751ae2c">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/transducer/transducer_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="75324826-92ed-3270-b77a-c90fba357538">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/traversable/traversable_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="3775ace2-bab3-3348-916d-e442b40e6358">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/meta/type_traits/type_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7a057738-2cfd-3f14-9ef4-a10effcde624">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/value_list/value_list_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="66c7767a-be0f-3d92-9873-363bcffa4302">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/functional/view/view_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="0b1c56f9-ab9c-3b85-9dcf-aed0c38f51c3">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/paradigm/visitor/visitor/visitor_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4383f09b-c34e-30ef-a938-e5bc991ffb06">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+	<Project Path="testing/djinterp/core/container/traits/write_only_container_traits/write_only_container_traits_tests.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2bf2d751-7b5e-3b1f-9296-680f253d643d">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="djinterp_c_runtime.vcxproj"/>
+	</Project>
+</Solution>

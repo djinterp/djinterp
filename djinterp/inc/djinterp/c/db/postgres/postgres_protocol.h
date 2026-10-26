@@ -27,6 +27,13 @@
 * hold the connection the same way. d_postgres_set_chunked_rows has the rows
 * of the statements still to come arrive a few at a time -- one a result, as
 * every libpq can, or more, from libpq 17 -- rather than all at once.
+* d_postgres_send_query_start and d_postgres_next_result_start are the forms
+* that never wait (db_common.h 1.3): the send writes what the socket takes,
+* and the read gives a result once it has arrived, each answering D_DB_WAIT
+* until then and continued when the socket is ready. Every statement sent
+* this way -- one or several, rows whole or a few at a time -- is read this
+* way too; d_postgres_exec and the layer's other calls are its blocking
+* compositions.
 *   PIPELINES. In pipeline mode (libpq 14) d_postgres_send_query queues
 * statements, one a call, without waiting for any of them, and
 * d_postgres_pipeline_sync marks a synchronization point, which sends what is
@@ -55,7 +62,7 @@
 * path:      /inc/djinterp/c/db/postgres/postgres_protocol.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 
 /*
@@ -73,6 +80,7 @@ TABLE OF CONTENTS
     1.  Sending
     2.  Results
     3.  Rows a few at a time
+    4.  Without blocking
 4.  PIPELINES
     ---------
     1.  The mode
@@ -308,6 +316,94 @@ int    d_postgres_consume_input(struct pg_conn* _db) D_NOTHROW;
  */
 int    d_postgres_set_chunked_rows(struct pg_conn* _db,
                                    int             _rows) D_NOTHROW;
+
+// 3.4    Without blocking
+//------------------------------------------------------------------------------
+// The forms of 3.1 and 3.2 that never wait. d_postgres_send_query_start sends
+// as d_postgres_send_query does, in libpq's non-blocking mode, which is off
+// again once everything is written: it answers D_DB_WAIT while some of the
+// SQL is left, the socket full, and d_postgres_send_query_continue writes more
+// each time the socket takes it, reading what the server sends meanwhile.
+// d_postgres_next_result_start reads what the server has sent and gives the
+// next result as d_postgres_next_result does -- D_DB_NOT_FOUND once every
+// result is read -- or D_DB_WAIT while it has yet to arrive, after which
+// d_postgres_next_result_continue reads more each time the socket is
+// readable. Rows a few at a time arrive the same way, a result a page; and
+// between continuations the connection is held, every call that waits on it
+// 08000, as for a query sent by 3.1. Pipeline mode, whose calls queue without
+// waiting already, is not for these (08000). A COPY among the results is
+// ended as d_postgres_next_result ends one, which waits.
+/**
+ * @brief Sends SQL as d_postgres_send_query does, without waiting for the
+ *        socket.
+ *
+ * @param[in]  _db       the connection.
+ * @param[in]  _sql      as for d_postgres_send_query, outside pipeline
+ *                       mode.
+ * @param[out] _pending  receives what to wait for while some is left to
+ *                       write; left settled once everything is.
+ * @return 0, the SQL sent; D_DB_WAIT, some left to write; 08000 in pipeline
+ *         mode, or as d_postgres_send_query gives it; 08006 when the
+ *         connection is lost; or D_DB_INVALID_ARGUMENT for a `NULL`
+ *         argument.
+ * @post On 0 and while D_DB_WAIT the results are read as 3.2 or this
+ *       subsection reads them -- once everything is written, for the
+ *       latter.
+ */
+int    d_postgres_send_query_start(struct pg_conn*      _db,
+                                   const char*          _sql,
+                                   struct d_db_pending* _pending) D_NOTHROW;
+/**
+ * @brief Writes more of the SQL d_postgres_send_query_start began to send.
+ *
+ * @param[in]     _db       the connection.
+ * @param[in]     _events   what came, as d_db_wait.
+ * @param[in,out] _pending  what the start or the last continuation wrote;
+ *                          receives what to wait for next.
+ * @return as d_postgres_send_query_start; D_DB_INVALID_ARGUMENT for a
+ *         `NULL` argument.
+ */
+int    d_postgres_send_query_continue(struct pg_conn*      _db,
+                                      unsigned             _events,
+                                      struct d_db_pending* _pending)
+                                      D_NOTHROW;
+/**
+ * @brief Gives the next result of the SQL sent once it has arrived,
+ *        without waiting for it.
+ *
+ * @param[in]  _db       the connection.
+ * @param[out] _pending  receives what to wait for while the result has yet
+ *                       to arrive; left settled once it has.
+ * @param[out] _rows     as for d_postgres_next_result.
+ * @param[out] _changes  as for d_postgres_next_result; may be `NULL`.
+ * @return as d_postgres_next_result, and D_DB_WAIT while the result has yet
+ *         to arrive; 08000 in pipeline mode; D_DB_INVALID_ARGUMENT for a
+ *         `NULL` connection, pending call or rows.
+ * @post On success the caller releases `_rows` with d_db_rows_free.
+ */
+int    d_postgres_next_result_start(struct pg_conn*      _db,
+                                    struct d_db_pending* _pending,
+                                    struct d_db_rows*    _rows,
+                                    int64_t*             _changes) D_NOTHROW;
+/**
+ * @brief Reads more of what d_postgres_next_result_start waited for, and
+ *        gives the result once it has arrived.
+ *
+ * @param[in]     _db       the connection.
+ * @param[in]     _events   what came, as d_db_wait.
+ * @param[in,out] _pending  what the start or the last continuation wrote;
+ *                          receives what to wait for next.
+ * @param[out]    _rows     as for d_postgres_next_result.
+ * @param[out]    _changes  as for d_postgres_next_result; may be `NULL`.
+ * @return as d_postgres_next_result_start.
+ * @post As for d_postgres_next_result_start.
+ */
+int    d_postgres_next_result_continue(struct pg_conn*      _db,
+                                       unsigned             _events,
+                                       struct d_db_pending* _pending,
+                                       struct d_db_rows*    _rows,
+                                       int64_t*             _changes)
+                                       D_NOTHROW;
 
 
 //==============================================================================

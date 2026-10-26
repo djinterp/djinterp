@@ -13,7 +13,7 @@
 * path:      /src/djinterp/c/db/mariadb/mariadb_internal.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 // D_INTERNAL_MARIADB_SOURCE
 //   macro: this file is one of the MariaDB layer's own sources, for which
@@ -26,7 +26,13 @@
 #include <stdarg.h>  // va_list, va_start, va_end
 #include <stddef.h>  // size_t, NULL
 #include <stdlib.h>  // malloc, free
-#include <string.h>  // memcpy, strchr, strlen
+#include <string.h>  // memcpy, memset, strchr, strlen
+#include <time.h>    // time
+#if ( (D_INTERNAL_MARIADB == 1) && !defined(_WIN32) )
+    #if (D_INTERNAL_MARIADB_ASYNC == 2)
+        #include <fcntl.h>  // fcntl, F_GETFL, F_SETFL, O_NONBLOCK
+    #endif  // D_INTERNAL_MARIADB_ASYNC
+#endif
 // djinterp
 #include "../../../../../inc/djinterp/c/db/db_common.h"  // D_DB_*, the lists
 #include "../db_internal.h"  // buffers, builders, formatting, numbers
@@ -771,7 +777,1097 @@ d_internal_mariadb_idle(
     const struct d_mariadb* _db
 )
 {
-    return (_db->cursor) ? D_INTERNAL_MARIADB_OUT_OF_SYNC : 0;
+    return ( (_db->cursor) ||
+             (d_internal_mariadb_busy(_db)) ) ? D_INTERNAL_MARIADB_OUT_OF_SYNC
+                                             : 0;
+}
+
+// 2.7    Calls that do not block
+//------------------------------------------------------------------------------
+/*
+d_internal_mariadb_refused_by
+  The client's error number for a call that failed, or the unknown error
+where it left none.
+*/
+static int
+d_internal_mariadb_refused_by(
+    MYSQL* _native
+)
+{
+    return (mysql_errno(_native) != 0u) ? (int)mysql_errno(_native)
+                                        : D_INTERNAL_MARIADB_UNKNOWN_ERROR;
+}
+
+/*
+d_internal_mariadb_async_get
+  The record is zeroed, every step NONE; MariaDB's client is given its
+non-blocking context, which mysql_options accepts on a connection already
+made too, and which a connection keeps until it closes.
+*/
+struct d_internal_mariadb_async*
+d_internal_mariadb_async_get(
+    struct d_mariadb* _db
+)
+{
+    // made already
+    if (_db->async)
+    {
+        return _db->async;
+    }
+
+    struct d_internal_mariadb_async* const made =
+        (struct d_internal_mariadb_async*)malloc(sizeof(*made));
+
+    // allocation failure
+    if (!made)
+    {
+        return NULL;
+    }
+
+    memset(made, 0, sizeof(*made));
+    made->step = D_INTERNAL_MARIADB_STEP_NONE;
+
+#if (D_INTERNAL_MARIADB_ASYNC == 2)
+    // MariaDB's client: the context its _start and _cont calls run in
+    if (mysql_options(_db->native, MYSQL_OPT_NONBLOCK, 0) != 0)
+    {
+        free(made);
+
+        return NULL;
+    }
+#endif  // D_INTERNAL_MARIADB_ASYNC
+
+    _db->async = made;
+
+    return made;
+}
+
+/*
+d_internal_mariadb_release_copies
+  The copies the record keeps for the client to read again, freed.
+*/
+static void
+d_internal_mariadb_release_copies(
+    struct d_internal_mariadb_async* _async
+)
+{
+    free(_async->text);
+    free(_async->host);
+    free(_async->user);
+    free(_async->password);
+    free(_async->database);
+    free(_async->socket);
+
+    _async->text     = NULL;
+    _async->host     = NULL;
+    _async->user     = NULL;
+    _async->password = NULL;
+    _async->database = NULL;
+    _async->socket   = NULL;
+
+    return;
+}
+
+/*
+d_internal_mariadb_async_free
+  A result the record still holds is freed with it; the rows a statement's
+call had read, and the copies, too.
+*/
+void
+d_internal_mariadb_async_free(
+    struct d_mariadb* _db
+)
+{
+    // none made
+    if (!_db->async)
+    {
+        return;
+    }
+
+    if (_db->async->result)
+    {
+        mysql_free_result(_db->async->result);
+    }
+
+    d_internal_db_rows_release(&_db->async->page);
+    d_internal_mariadb_release_copies(_db->async);
+    free(_db->async);
+    _db->async = NULL;
+
+    return;
+}
+
+/*
+d_internal_mariadb_busy
+  An operation is under way while it has an advance function, between its
+start and its end; SQL sent holds the connection until its results are read
+to the end, as the client's own state says too.
+*/
+bool
+d_internal_mariadb_busy(
+    const struct d_mariadb* _db
+)
+{
+    return ( (_db->async) &&
+             ( (_db->async->advance) ||
+               (_db->async->results) ) );
+}
+
+/*
+d_internal_mariadb_keep_text
+  strlen and memcpy, the terminator with them.
+*/
+bool
+d_internal_mariadb_keep_text(
+    char**      _to,
+    const char* _text
+)
+{
+    *_to = NULL;
+
+    // NULL stays NULL
+    if (!_text)
+    {
+        return true;
+    }
+
+    const size_t size = strlen(_text) + 1u;
+
+    *_to = (char*)malloc(size);
+
+    if (!*_to)
+    {
+        return false;
+    }
+
+    memcpy(*_to, _text, size);
+
+    return true;
+}
+
+/*
+d_internal_mariadb_unpend
+  Every field as a finished call leaves it.
+*/
+void
+d_internal_mariadb_unpend(
+    struct d_db_pending* _pending
+)
+{
+    _pending->socket     = D_DB_SOCKET_NONE;
+    _pending->events     = 0u;
+    _pending->timeout_ms = 0u;
+    _pending->deadline   = 0.0;
+    _pending->state      = 0u;
+
+    return;
+}
+
+/*
+d_internal_mariadb_tls_blocks
+  The client's answer first, which asks the server nothing; then the cipher
+the connection agreed, which only a connection under TLS has.
+*/
+bool
+d_internal_mariadb_tls_blocks(
+    const struct d_mariadb* _db
+)
+{
+    return ( (!d_mariadb_client_nonblocking_tls()) &&
+             (mysql_get_ssl_cipher(_db->native) != NULL) );
+}
+
+#if (D_INTERNAL_MARIADB_TLS_LIBRARY == 1)
+
+/*
+d_internal_mariadb_tls_blocks_connect
+  Connector/C decides as it answers the server's greeting, from what it was
+told (my_auth.c's send_client_reply_packet), so the same is read back here:
+the switch, whether to check the certificate -- which from 3.4 it does unless
+told not to -- and every text that brings TLS with it. The server's own
+offer cannot be known before the connect: a server without TLS would have
+done, but the start cannot tell.
+*/
+bool
+d_internal_mariadb_tls_blocks_connect(
+    MYSQL* _native
+)
+{
+    static const enum mysql_option switches[] =
+    {
+        MYSQL_OPT_SSL_ENFORCE,
+        MYSQL_OPT_SSL_VERIFY_SERVER_CERT
+    };
+    static const enum mysql_option texts[] =
+    {
+        MYSQL_OPT_SSL_KEY,
+        MYSQL_OPT_SSL_CERT,
+        MYSQL_OPT_SSL_CA,
+        MYSQL_OPT_SSL_CAPATH,
+        MYSQL_OPT_SSL_CIPHER,
+        MARIADB_OPT_TLS_PEER_FP,
+        MARIADB_OPT_TLS_PEER_FP_LIST,
+        MYSQL_READ_DEFAULT_FILE,
+        MYSQL_READ_DEFAULT_GROUP
+    };
+
+    // a client that can
+    if (d_mariadb_client_nonblocking_tls())
+    {
+        return false;
+    }
+
+    for (size_t i = 0u; i < (sizeof(switches) / sizeof(switches[0])); ++i)
+    {
+        d_internal_mariadb_flag on = 0;
+
+        if ( (mysql_get_option(_native, switches[i], &on) != 0) ||
+             (on) )
+        {
+            return true;
+        }
+    }
+
+    for (size_t i = 0u; i < (sizeof(texts) / sizeof(texts[0])); ++i)
+    {
+        const char* text = NULL;
+
+        if ( (mysql_get_option(_native, texts[i], &text) != 0) ||
+             (text) )
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+#else
+
+/*
+d_internal_mariadb_tls_blocks_connect
+  A client without Schannel carries TLS as it carries anything else.
+*/
+bool
+d_internal_mariadb_tls_blocks_connect(
+    MYSQL* _native
+)
+{
+    (void)_native;
+
+    return false;
+}
+
+#endif  // D_INTERNAL_MARIADB_TLS_LIBRARY
+
+#if (D_INTERNAL_MARIADB_ASYNC == 2)
+
+#if !defined(_WIN32)
+
+/*
+d_internal_mariadb_socket_on
+  MariaDB's client before 3.4.10 reads and writes a plain connection with
+MSG_DONTWAIT, but TLS through the socket itself, which on POSIX it leaves
+blocking once connected: a call over TLS would wait in its read. So the
+socket is made non-blocking for each of its calls, and blocking again after
+(d_internal_mariadb_socket_off). From 3.4.10 the client keeps the socket
+non-blocking itself, and nothing changes. Answers the socket made
+non-blocking, or -1 for none.
+*/
+static int
+d_internal_mariadb_socket_on(
+    MYSQL* _native
+)
+{
+    const my_socket fd = mysql_get_socket(_native);
+
+    // no socket yet, or no change to make
+    if (fd < 0)
+    {
+        return -1;
+    }
+
+    const int flags = fcntl(fd, F_GETFL);
+
+    if ( (flags < 0) ||
+         ((flags & O_NONBLOCK) != 0) )
+    {
+        return -1;
+    }
+
+    return (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == 0) ? (int)fd : -1;
+}
+
+/*
+d_internal_mariadb_socket_off
+  The socket d_internal_mariadb_socket_on made non-blocking, made blocking
+again where it is still the connection's and still non-blocking: the client
+keeps its own idea of the mode, which its blocking calls rely on, and a
+change it made during the call stands.
+*/
+static void
+d_internal_mariadb_socket_off(
+    MYSQL* _native,
+    int    _fd
+)
+{
+    // none changed, or no longer the connection's
+    if ( (_fd < 0) ||
+         ((int)mysql_get_socket(_native) != _fd) )
+    {
+        return;
+    }
+
+    const int flags = fcntl(_fd, F_GETFL);
+
+    if ( (flags >= 0) &&
+         ((flags & O_NONBLOCK) != 0) )
+    {
+        (void)fcntl(_fd, F_SETFL, flags & ~O_NONBLOCK);
+    }
+
+    return;
+}
+
+#endif  // !_WIN32
+
+/*
+d_internal_mariadb_pend
+  MariaDB's client says what it waits for: the socket readable, writable,
+or with an exception -- read as readable, where the program looks for what
+came -- and a deadline of its own, in milliseconds from now.
+*/
+static int
+d_internal_mariadb_pend(
+    struct d_mariadb*    _db,
+    struct d_db_pending* _pending
+)
+{
+    const int    status = _db->async->status;
+    const my_socket fd  = mysql_get_socket(_db->native);
+    unsigned     events = 0u;
+
+    // the waits, as d_db_wait
+    if ((status & (MYSQL_WAIT_READ | MYSQL_WAIT_EXCEPT)) != 0)
+    {
+        events |= (unsigned)D_DB_WAIT_READ;
+    }
+
+    if ((status & MYSQL_WAIT_WRITE) != 0)
+    {
+        events |= (unsigned)D_DB_WAIT_WRITE;
+    }
+
+    _pending->timeout_ms = 0u;
+
+    if ((status & MYSQL_WAIT_TIMEOUT) != 0)
+    {
+        events               |= (unsigned)D_DB_WAIT_TIMEOUT;
+        _pending->timeout_ms  = mysql_get_timeout_value_ms(_db->native);
+    }
+
+    _pending->socket = (fd != (my_socket)-1) ? (d_db_socket)fd
+                                             : D_DB_SOCKET_NONE;
+    _pending->events = events;
+
+    return D_DB_WAIT;
+}
+
+/*
+d_internal_mariadb_answer
+  A step's status: 0 for done -- the step then none -- or what it waits
+for, kept for its continuation.
+*/
+static int
+d_internal_mariadb_answer(
+    struct d_mariadb*    _db,
+    int                  _status,
+    struct d_db_pending* _pending
+)
+{
+    struct d_internal_mariadb_async* const async = _db->async;
+
+    async->status = _status;
+
+    // done
+    if (_status == 0)
+    {
+        async->step = D_INTERNAL_MARIADB_STEP_NONE;
+
+        return 0;
+    }
+
+    return d_internal_mariadb_pend(_db, _pending);
+}
+
+/*
+d_internal_mariadb_step
+  Each step's _start, its answer in the record; the client copies nothing
+it reads while it waits, so the record keeps what it was given.
+*/
+int
+d_internal_mariadb_step(
+    struct d_mariadb*            _db,
+    enum d_internal_mariadb_step _step,
+    struct d_db_pending*         _pending
+)
+{
+    struct d_internal_mariadb_async* const async  = _db->async;
+    MYSQL* const                           native = _db->native;
+    int                                    status = 0;
+
+    async->step = _step;
+
+#if !defined(_WIN32)
+    const int turned = d_internal_mariadb_socket_on(native);
+#endif  // !_WIN32
+
+    switch (_step)
+    {
+        case D_INTERNAL_MARIADB_STEP_CONNECT:
+            status = mysql_real_connect_start(&async->made,
+                                              native,
+                                              async->host,
+                                              async->user,
+                                              async->password,
+                                              async->database,
+                                              async->port,
+                                              async->socket,
+                                              async->flags);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_QUERY:
+            status = mysql_real_query_start(&async->ret,
+                                            native,
+                                            async->text,
+                                            async->length);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_SEND:
+            status = mysql_send_query_start(&async->ret,
+                                            native,
+                                            async->text,
+                                            async->length);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_READ:
+            status = mysql_read_query_result_start(&async->flag, native);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_STORE:
+            status = mysql_store_result_start(&async->result, native);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_NEXT:
+            status = mysql_next_result_start(&async->ret, native);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_OPTION:
+            status = mysql_set_server_option_start(
+                         &async->ret,
+                         native,
+                         MYSQL_OPTION_MULTI_STATEMENTS_OFF);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_PING:
+            status = mysql_ping_start(&async->ret, native);
+
+            break;
+
+#if (D_INTERNAL_MARIADB_RESET == 1)
+        case D_INTERNAL_MARIADB_STEP_RESET:
+            status = mysql_reset_connection_start(&async->ret, native);
+
+            break;
+#endif  // D_INTERNAL_MARIADB_RESET
+
+        case D_INTERNAL_MARIADB_STEP_USER:
+            status = mysql_change_user_start(&async->flag,
+                                             native,
+                                             async->user,
+                                             async->password,
+                                             async->database);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_CHARSET:
+            status = mysql_set_character_set_start(&async->ret,
+                                                   native,
+                                                   async->charset);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_PREPARE:
+            status = mysql_stmt_prepare_start(&async->ret,
+                                              async->stmt,
+                                              async->text,
+                                              async->length);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_EXECUTE:
+            status = mysql_stmt_execute_start(&async->ret, async->stmt);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_STMT_STORE:
+            status = mysql_stmt_store_result_start(&async->ret, async->stmt);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_STMT_NEXT:
+            status = mysql_stmt_next_result_start(&async->ret, async->stmt);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_STMT_FREE:
+            status = mysql_stmt_free_result_start(&async->flag, async->stmt);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_FETCH:
+            status = mysql_stmt_fetch_start(&async->ret, async->stmt);
+
+            break;
+
+        default:
+            async->step = D_INTERNAL_MARIADB_STEP_NONE;
+            status      = -1;
+
+            break;
+    }
+
+#if !defined(_WIN32)
+    d_internal_mariadb_socket_off(native, turned);
+#endif  // !_WIN32
+
+    // no such step
+    if (status < 0)
+    {
+        return D_DB_UNSUPPORTED;
+    }
+
+    return d_internal_mariadb_answer(_db, status, _pending);
+}
+
+/*
+d_internal_mariadb_step_continue
+  Each step's _cont, told what came as MYSQL_WAIT_* bits.
+*/
+static int
+d_internal_mariadb_step_continue(
+    struct d_mariadb*    _db,
+    unsigned             _events,
+    struct d_db_pending* _pending
+)
+{
+    struct d_internal_mariadb_async* const async  = _db->async;
+    MYSQL* const                           native = _db->native;
+    const int                              ready  =
+        ( ((_events & D_DB_WAIT_READ) != 0u)    ? MYSQL_WAIT_READ    : 0 ) |
+        ( ((_events & D_DB_WAIT_WRITE) != 0u)   ? MYSQL_WAIT_WRITE   : 0 ) |
+        ( ((_events & D_DB_WAIT_TIMEOUT) != 0u) ? MYSQL_WAIT_TIMEOUT : 0 );
+    int                                    status = 0;
+
+#if !defined(_WIN32)
+    const int turned = d_internal_mariadb_socket_on(native);
+#endif  // !_WIN32
+
+    switch (async->step)
+    {
+        case D_INTERNAL_MARIADB_STEP_CONNECT:
+            status = mysql_real_connect_cont(&async->made, native, ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_QUERY:
+            status = mysql_real_query_cont(&async->ret, native, ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_SEND:
+            status = mysql_send_query_cont(&async->ret, native, ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_READ:
+            status = mysql_read_query_result_cont(&async->flag, native, ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_STORE:
+            status = mysql_store_result_cont(&async->result, native, ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_NEXT:
+            status = mysql_next_result_cont(&async->ret, native, ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_OPTION:
+            status = mysql_set_server_option_cont(&async->ret, native, ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_PING:
+            status = mysql_ping_cont(&async->ret, native, ready);
+
+            break;
+
+#if (D_INTERNAL_MARIADB_RESET == 1)
+        case D_INTERNAL_MARIADB_STEP_RESET:
+            status = mysql_reset_connection_cont(&async->ret, native, ready);
+
+            break;
+#endif  // D_INTERNAL_MARIADB_RESET
+
+        case D_INTERNAL_MARIADB_STEP_USER:
+            status = mysql_change_user_cont(&async->flag, native, ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_CHARSET:
+            status = mysql_set_character_set_cont(&async->ret, native, ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_PREPARE:
+            status = mysql_stmt_prepare_cont(&async->ret, async->stmt, ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_EXECUTE:
+            status = mysql_stmt_execute_cont(&async->ret, async->stmt, ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_STMT_STORE:
+            status = mysql_stmt_store_result_cont(&async->ret,
+                                                  async->stmt,
+                                                  ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_STMT_NEXT:
+            status = mysql_stmt_next_result_cont(&async->ret,
+                                                 async->stmt,
+                                                 ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_STMT_FREE:
+            status = mysql_stmt_free_result_cont(&async->flag,
+                                                 async->stmt,
+                                                 ready);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_FETCH:
+            status = mysql_stmt_fetch_cont(&async->ret, async->stmt, ready);
+
+            break;
+
+        default:
+            async->step = D_INTERNAL_MARIADB_STEP_NONE;
+
+            break;
+    }
+
+#if !defined(_WIN32)
+    d_internal_mariadb_socket_off(native, turned);
+#endif  // !_WIN32
+
+    return d_internal_mariadb_answer(_db, status, _pending);
+}
+
+#elif (D_INTERNAL_MARIADB_ASYNC == 1)
+
+/*
+d_internal_mariadb_pend
+  libmysqlclient says nothing of what it waits for: the socket readable,
+for at most D_INTERNAL_MARIADB_ASYNC_POLL_MS, after which the call is made
+again whatever came.
+*/
+static int
+d_internal_mariadb_pend(
+    struct d_mariadb*    _db,
+    struct d_db_pending* _pending
+)
+{
+    const my_socket fd = _db->native->net.fd;
+
+    _pending->socket     = (fd != (my_socket)-1) ? (d_db_socket)fd
+                                                 : D_DB_SOCKET_NONE;
+    _pending->events     = (unsigned)D_DB_WAIT_READ |
+                           (unsigned)D_DB_WAIT_TIMEOUT;
+    _pending->timeout_ms = D_INTERNAL_MARIADB_ASYNC_POLL_MS;
+
+    return D_DB_WAIT;
+}
+
+/*
+d_internal_mariadb_step_call
+  One call of libmysqlclient's _nonblocking function for the step under way,
+with the arguments the record keeps; its answer in the record: a connect
+made or not, a query sent and its reply begun or not, a result stored, the
+next result read or none left (ret -1). 0 for done, D_DB_WAIT while not.
+*/
+static int
+d_internal_mariadb_step_call(
+    struct d_mariadb*    _db,
+    struct d_db_pending* _pending
+)
+{
+    struct d_internal_mariadb_async* const async  = _db->async;
+    MYSQL* const                           native = _db->native;
+    enum net_async_status                  status = NET_ASYNC_ERROR;
+
+    switch (async->step)
+    {
+        case D_INTERNAL_MARIADB_STEP_CONNECT:
+            status = mysql_real_connect_nonblocking(native,
+                                                    async->host,
+                                                    async->user,
+                                                    async->password,
+                                                    async->database,
+                                                    async->port,
+                                                    async->socket,
+                                                    async->flags);
+            async->made = (status == NET_ASYNC_COMPLETE) ? native : NULL;
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_QUERY:
+            status = mysql_real_query_nonblocking(native,
+                                                  async->text,
+                                                  async->length);
+            async->ret = (status == NET_ASYNC_COMPLETE) ? 0 : 1;
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_STORE:
+            status = mysql_store_result_nonblocking(native, &async->result);
+
+            break;
+
+        case D_INTERNAL_MARIADB_STEP_NEXT:
+            status = mysql_next_result_nonblocking(native);
+            async->ret = (status == NET_ASYNC_COMPLETE)
+                             ? 0
+                             : (status == NET_ASYNC_COMPLETE_NO_MORE_RESULTS)
+                                   ? -1
+                                   : 1;
+
+            break;
+
+        default:
+            async->step = D_INTERNAL_MARIADB_STEP_NONE;
+
+            return D_DB_UNSUPPORTED;
+    }
+
+    // waiting still
+    if (status == NET_ASYNC_NOT_READY)
+    {
+        return d_internal_mariadb_pend(_db, _pending);
+    }
+
+    async->step = D_INTERNAL_MARIADB_STEP_NONE;
+
+    return 0;
+}
+
+/*
+d_internal_mariadb_step
+  The first call of the step's _nonblocking function; libmysqlclient keeps
+its place itself between calls.
+*/
+int
+d_internal_mariadb_step(
+    struct d_mariadb*            _db,
+    enum d_internal_mariadb_step _step,
+    struct d_db_pending*         _pending
+)
+{
+    _db->async->step = _step;
+
+    return d_internal_mariadb_step_call(_db, _pending);
+}
+
+/*
+d_internal_mariadb_step_continue
+  The step's call again, whatever came: libmysqlclient reads and writes
+what the socket allows, and says whether it is done. Its calls that do not
+block keep no timeout, so a connect's is the layer's: past it, the connect
+is done, made by no one, and lost as the client's blocking connect reports
+it.
+*/
+static int
+d_internal_mariadb_step_continue(
+    struct d_mariadb*    _db,
+    unsigned             _events,
+    struct d_db_pending* _pending
+)
+{
+    struct d_internal_mariadb_async* const async = _db->async;
+
+    (void)_events;
+
+    // a connect past its timeout
+    if ( (async->step == D_INTERNAL_MARIADB_STEP_CONNECT) &&
+         (async->deadline != 0) &&
+         (time(NULL) > async->deadline) )
+    {
+        async->step    = D_INTERNAL_MARIADB_STEP_NONE;
+        async->made    = NULL;
+        async->failure = D_INTERNAL_MARIADB_SERVER_LOST;
+
+        return 0;
+    }
+
+    return d_internal_mariadb_step_call(_db, _pending);
+}
+
+#else
+
+/*
+d_internal_mariadb_step
+  A client without calls that do not block: D_DB_UNSUPPORTED.
+*/
+int
+d_internal_mariadb_step(
+    struct d_mariadb*            _db,
+    enum d_internal_mariadb_step _step,
+    struct d_db_pending*         _pending
+)
+{
+    (void)_step;
+    (void)_pending;
+
+    _db->async->step = D_INTERNAL_MARIADB_STEP_NONE;
+
+    return D_DB_UNSUPPORTED;
+}
+
+/*
+d_internal_mariadb_step_continue
+  Nothing is ever under way.
+*/
+static int
+d_internal_mariadb_step_continue(
+    struct d_mariadb*    _db,
+    unsigned             _events,
+    struct d_db_pending* _pending
+)
+{
+    (void)_events;
+    (void)_pending;
+
+    _db->async->step = D_INTERNAL_MARIADB_STEP_NONE;
+
+    return 0;
+}
+
+#endif  // D_INTERNAL_MARIADB_ASYNC
+
+/*
+d_internal_mariadb_drive
+  The step under way continued until it finishes or must wait, then the
+operation advanced -- which may begin another step, finished at once or
+waiting -- until it must wait or is done. Done, the record holds no
+operation and nothing is pending; its copies go.
+*/
+int
+d_internal_mariadb_drive(
+    struct d_mariadb*    _db,
+    unsigned             _events,
+    struct d_db_pending* _pending
+)
+{
+    struct d_internal_mariadb_async* const async = _db->async;
+
+    // the step under way, as far as what came allows
+    if (async->step != D_INTERNAL_MARIADB_STEP_NONE)
+    {
+        const int stepped = d_internal_mariadb_step_continue(_db,
+                                                             _events,
+                                                             _pending);
+
+        if (stepped == D_DB_WAIT)
+        {
+            return D_DB_WAIT;
+        }
+    }
+
+    const int result = async->advance(_db, _pending);
+
+    // done: nothing under way, nothing pending
+    if (result != D_DB_WAIT)
+    {
+        async->advance = NULL;
+        async->step    = D_INTERNAL_MARIADB_STEP_NONE;
+        d_internal_mariadb_release_copies(async);
+        d_internal_mariadb_unpend(_pending);
+    }
+
+    return result;
+}
+
+/*
+d_internal_mariadb_run_async
+  Its stages, in the record's `sub`: 0 the query begun; 1 its answer; 2 its
+current result's rows stored, if it has rows; 3 the stored rows freed; 4 the
+next result begun, if there is one; 5 its answer, back to 2 for that
+result. Each step that cannot start, or fails, ends the run with its error,
+and records a reply that carried no changes.
+*/
+int
+d_internal_mariadb_run_async(
+    struct d_mariadb*    _db,
+    struct d_db_pending* _pending
+)
+{
+    struct d_internal_mariadb_async* const async  = _db->async;
+    MYSQL* const                           native = _db->native;
+    int                                    result = 0;
+
+    for (;;)
+    {
+        enum d_internal_mariadb_step step = D_INTERNAL_MARIADB_STEP_NONE;
+
+        switch (async->sub)
+        {
+            case 0:
+                step = D_INTERNAL_MARIADB_STEP_QUERY;
+
+                break;
+
+            case 1:
+                d_internal_mariadb_attributes_sent(_db);
+                result = (async->ret == 0) ? 0
+                                           : d_internal_mariadb_refused_by(
+                                                 native);
+
+                break;
+
+            case 2:
+                // a result without rows has nothing to store
+                if (mysql_field_count(native) == 0u)
+                {
+                    async->sub = 4;
+
+                    continue;
+                }
+
+                step = D_INTERNAL_MARIADB_STEP_STORE;
+
+                break;
+
+            case 3:
+                result = (async->result) ? 0
+                                         : d_internal_mariadb_refused_by(
+                                               native);
+
+                if (async->result)
+                {
+                    mysql_free_result(async->result);
+                    async->result = NULL;
+                }
+
+                break;
+
+            case 4:
+                // the last result: the reply's end says what it carried
+                if (!mysql_more_results(native))
+                {
+                    d_internal_mariadb_replied(
+                        _db,
+                        ( (mysql_field_count(native) == 0u) ||
+                          (d_internal_mariadb_rows_end_ok(_db)) ));
+
+                    return 0;
+                }
+
+                step = D_INTERNAL_MARIADB_STEP_NEXT;
+
+                break;
+
+            default:
+                // none after all; or a failure among the next results
+                if (async->ret < 0)
+                {
+                    async->sub = 4;
+
+                    continue;
+                }
+
+                result = (async->ret == 0) ? 0
+                                           : d_internal_mariadb_refused_by(
+                                                 native);
+
+                break;
+        }
+
+        // a failure ends the run
+        if (result != 0)
+        {
+            d_internal_mariadb_replied(_db, false);
+
+            return result;
+        }
+
+        // the stage's answer read: on to the next stage
+        if (step == D_INTERNAL_MARIADB_STEP_NONE)
+        {
+            async->sub = (async->sub == 5) ? 2 : async->sub + 1;
+
+            continue;
+        }
+
+        // the stage's step, finished at once or waiting
+        ++async->sub;
+        result = d_internal_mariadb_step(_db, step, _pending);
+
+        if (result != 0)
+        {
+            if (result != D_DB_WAIT)
+            {
+                d_internal_mariadb_replied(_db, false);
+            }
+
+            return result;
+        }
+    }
+}
+
+/*
+d_internal_mariadb_begin
+  The operation recorded at its first stage, then driven.
+*/
+int
+d_internal_mariadb_begin(
+    struct d_mariadb*    _db,
+    int                (*_advance)(struct d_mariadb*,
+                                   struct d_db_pending*),
+    struct d_db_pending* _pending
+)
+{
+    struct d_internal_mariadb_async* const async = _db->async;
+
+    async->advance = _advance;
+    async->stage   = 0;
+    async->failure = 0;
+    async->step    = D_INTERNAL_MARIADB_STEP_NONE;
+
+    return d_internal_mariadb_drive(_db, 0u, _pending);
 }
 
 //==============================================================================
@@ -1001,8 +2097,10 @@ d_internal_mariadb_ready(
     struct d_mariadb* _db
 )
 {
-    // nothing is sent while a statement's rows are still arriving
-    if (_db->cursor)
+    // nothing is sent while a statement's rows are still arriving, or a call
+    // that does not block is under way
+    if ( (_db->cursor) ||
+         (d_internal_mariadb_busy(_db)) )
     {
         return D_INTERNAL_MARIADB_OUT_OF_SYNC;
     }

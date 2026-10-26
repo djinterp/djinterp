@@ -37,12 +37,17 @@
 * statement before closing the connection. Its run ends before anything
 * else it does: running it again, opening another run, or finalizing it
 * reads away whatever rows the run had left.
+*   Preparing, running, opening a run and reading its pages each have a form
+* that never waits (db_common.h 1.3), which starts, answers D_DB_WAIT while it
+* waits on the socket, and is continued until it is done; meanwhile the
+* connection is held, as by a run. A blocking call of the statement's own
+* ends such a call first, waiting for what is left of it, as it ends a run.
 *
 *
 * path:      /inc/djinterp/c/db/postgres/postgres_statement.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.15
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.24
 *******************************************************************************/
 
 /*
@@ -53,6 +58,7 @@ TABLE OF CONTENTS
     1.  Preparing
     2.  Finalizing and closing
     3.  Describing
+    4.  Preparing without blocking
 2.  VALUES
     ------
     1.  Binding
@@ -62,6 +68,7 @@ TABLE OF CONTENTS
     1.  Rows changed
     2.  Rows
     3.  Rows a few at a time
+    4.  Running without blocking
 */
 
 #ifndef DJINTERP_C_DB_POSTGRES_POSTGRES_STATEMENT_H
@@ -177,6 +184,57 @@ size_t d_postgres_parameter_count(const struct d_postgres_statement* _statement)
 struct pg_conn*
        d_postgres_statement_connection(
            const struct d_postgres_statement* _statement) D_NOTHROW;
+
+
+// 1.4    Preparing without blocking
+//------------------------------------------------------------------------------
+// d_postgres_prepare_start begins what d_postgres_prepare does -- a stale name
+// looked for where it must be and dropped, the prepare, tried once more after
+// a stale name the server still held, the parameters described -- as
+// exchanges that never wait, each continued by d_postgres_prepare_continue as
+// the socket allows, until one answers anything but D_DB_WAIT. The statement
+// exists from the start, and is the caller's to finalize whatever the
+// outcome: a prepare that fails leaves it unprepared, good for nothing else,
+// and finalizing one under way waits for what is left of it. Not in pipeline
+// mode (08000).
+/**
+ * @brief Begins having the server prepare one SQL statement, without
+ *        waiting.
+ *
+ * @param[in]  _db         the connection.
+ * @param[out] _statement  receives the statement being prepared; `NULL` on
+ *                         failure.
+ * @param[in]  _sql        as for d_postgres_prepare.
+ * @param[out] _pending    receives what to wait for before continuing.
+ * @return D_DB_WAIT; 0 should every exchange finish at once; 08000 while a
+ *         run holds the connection, or in pipeline mode; 08006 when the
+ *         connection is lost; 53200 when memory ran out;
+ *         D_DB_INVALID_ARGUMENT for a `NULL` argument.
+ * @post Unless it failed, the caller releases `*_statement` with
+ *       d_postgres_finalize, and continues it with
+ *       d_postgres_prepare_continue while the answer is D_DB_WAIT.
+ */
+int    d_postgres_prepare_start(struct pg_conn*               _db,
+                                struct d_postgres_statement** _statement,
+                                const char*                   _sql,
+                                struct d_db_pending*          _pending)
+                                D_NOTHROW;
+/**
+ * @brief Continues the prepare d_postgres_prepare_start began.
+ *
+ * @param[in]     _statement  the statement being prepared.
+ * @param[in]     _events     what came, as d_db_wait.
+ * @param[in,out] _pending    what the start or the last continuation wrote;
+ *                            receives what to wait for next.
+ * @return 0, the statement prepared and its parameters described;
+ *         D_DB_WAIT; as d_postgres_prepare for a failure, which leaves the
+ *         statement unprepared; D_DB_INVALID_ARGUMENT for a `NULL` argument,
+ *         or a statement with no prepare under way.
+ */
+int    d_postgres_prepare_continue(struct d_postgres_statement* _statement,
+                                   unsigned                     _events,
+                                   struct d_db_pending*         _pending)
+                                   D_NOTHROW;
 
 
 //==============================================================================
@@ -307,6 +365,142 @@ int    d_postgres_fetch_rows(struct d_postgres_statement* _statement,
 // D_DB_INVALID_ARGUMENT for NULL
 int    d_postgres_close_cursor(struct d_postgres_statement* _statement)
        D_NOTHROW;
+
+// 3.4    Running without blocking
+//------------------------------------------------------------------------------
+// d_postgres_execute_start sends the statement with its values and returns,
+// never reading: its result is read by d_postgres_execute_update_continue,
+// which gives it as d_postgres_execute_update does, or by
+// d_postgres_execute_query_continue, as d_postgres_execute_query does, each
+// answering D_DB_WAIT until it has arrived, the statement keeping it until
+// one of them reads it. d_postgres_open_cursor_start opens a run as
+// d_postgres_open_cursor does, d_postgres_open_cursor_continue writing what
+// the socket could not take; d_postgres_fetch_rows_start reads a page as
+// d_postgres_fetch_rows does, from whatever has arrived, giving it once it is
+// whole -- the statement keeping it between continuations -- and
+// d_postgres_fetch_rows_continue reads more. Each start refuses, 08000, while
+// a run or a call of the statement's own is under way, rather than wait for
+// it -- a page's start excepted, which is the run's -- and in pipeline mode.
+/**
+ * @brief Sends a statement to run, with its values, without waiting for its
+ *        result.
+ *
+ * @param[in]  _statement  the statement.
+ * @param[out] _pending    receives what to wait for: room to write the
+ *                         rest, or the result.
+ * @return D_DB_WAIT, the result to read with a continuation; 08000 while a
+ *         run or a call of its own, or another's run, is under way, or in
+ *         pipeline mode; 08006 when the connection is lost;
+ *         D_DB_INVALID_ARGUMENT for a `NULL` argument.
+ * @post While the answer is D_DB_WAIT, the caller reads the result with
+ *       d_postgres_execute_update_continue or
+ *       d_postgres_execute_query_continue.
+ */
+int    d_postgres_execute_start(struct d_postgres_statement* _statement,
+                                struct d_db_pending*         _pending)
+                                D_NOTHROW;
+/**
+ * @brief Reads the result of the run d_postgres_execute_start sent, once it
+ *        has arrived, counting the rows it changed.
+ *
+ * @param[in]     _statement  the statement.
+ * @param[in]     _events     what came, as d_db_wait.
+ * @param[in,out] _pending    what the start or the last continuation wrote;
+ *                            receives what to wait for next.
+ * @param[out]    _changes    as for d_postgres_execute_update; may be
+ *                            `NULL`.
+ * @return as d_postgres_execute_update, and D_DB_WAIT;
+ *         D_DB_INVALID_ARGUMENT for a `NULL` statement or pending call, or a
+ *         statement with no run sent.
+ */
+int    d_postgres_execute_update_continue(
+           struct d_postgres_statement* _statement,
+           unsigned                     _events,
+           struct d_db_pending*         _pending,
+           int64_t*                     _changes) D_NOTHROW;
+/**
+ * @brief Reads the result of the run d_postgres_execute_start sent, once it
+ *        has arrived, returning its rows.
+ *
+ * @param[in]     _statement  the statement.
+ * @param[in]     _events     what came, as d_db_wait.
+ * @param[in,out] _pending    what the start or the last continuation wrote;
+ *                            receives what to wait for next.
+ * @param[out]    _rows       as for d_postgres_execute_query.
+ * @return as d_postgres_execute_query, and D_DB_WAIT; D_DB_INVALID_ARGUMENT
+ *         also for a statement with no run sent.
+ * @post On success the caller releases `_rows` with d_db_rows_free.
+ */
+int    d_postgres_execute_query_continue(
+           struct d_postgres_statement* _statement,
+           unsigned                     _events,
+           struct d_db_pending*         _pending,
+           struct d_db_rows*            _rows) D_NOTHROW;
+/**
+ * @brief Opens a run as d_postgres_open_cursor does, without waiting for
+ *        the socket.
+ *
+ * @param[in]  _statement  the statement, its values bound.
+ * @param[out] _pending    receives what to wait for while some of the run's
+ *                         message is left to write.
+ * @return 0, the run open, its pages to fetch; D_DB_WAIT; 08000 as
+ *         d_postgres_execute_start gives it; 08006 when the connection is
+ *         lost; D_DB_INVALID_ARGUMENT for a `NULL` argument.
+ */
+int    d_postgres_open_cursor_start(struct d_postgres_statement* _statement,
+                                    struct d_db_pending*         _pending)
+                                    D_NOTHROW;
+/**
+ * @brief Writes more of the run d_postgres_open_cursor_start opened.
+ *
+ * @param[in]     _statement  the statement.
+ * @param[in]     _events     what came, as d_db_wait.
+ * @param[in,out] _pending    what the start or the last continuation wrote;
+ *                            receives what to wait for next.
+ * @return as d_postgres_open_cursor_start; D_DB_INVALID_ARGUMENT also for a
+ *         statement with no run being opened.
+ */
+int    d_postgres_open_cursor_continue(
+           struct d_postgres_statement* _statement,
+           unsigned                     _events,
+           struct d_db_pending*         _pending) D_NOTHROW;
+/**
+ * @brief Begins reading the next page of the open run, without waiting.
+ *
+ * @param[in]  _statement  the statement, its run open.
+ * @param[in]  _max        the most rows the page holds; 1 or more.
+ * @param[out] _pending    receives what to wait for while the page is not
+ *                         whole.
+ * @param[out] _rows       as for d_postgres_fetch_rows, once the page is
+ *                         given.
+ * @return as d_postgres_fetch_rows, and D_DB_WAIT; 08000 while a call of
+ *         its own is under way; D_DB_INVALID_ARGUMENT as
+ *         d_postgres_fetch_rows gives it.
+ * @post On success the caller releases `_rows` with d_db_rows_free.
+ */
+int    d_postgres_fetch_rows_start(struct d_postgres_statement* _statement,
+                                   size_t                       _max,
+                                   struct d_db_pending*         _pending,
+                                   struct d_db_rows*            _rows)
+                                   D_NOTHROW;
+/**
+ * @brief Reads more of the page d_postgres_fetch_rows_start began, giving
+ *        it once it is whole.
+ *
+ * @param[in]     _statement  the statement.
+ * @param[in]     _events     what came, as d_db_wait.
+ * @param[in,out] _pending    what the start or the last continuation wrote;
+ *                            receives what to wait for next.
+ * @param[out]    _rows       as for d_postgres_fetch_rows_start.
+ * @return as d_postgres_fetch_rows_start; D_DB_INVALID_ARGUMENT also for a
+ *         statement with no page under way.
+ * @post As for d_postgres_fetch_rows_start.
+ */
+int    d_postgres_fetch_rows_continue(
+           struct d_postgres_statement* _statement,
+           unsigned                     _events,
+           struct d_db_pending*         _pending,
+           struct d_db_rows*            _rows) D_NOTHROW;
 
 
 D_EXTERN_C_END

@@ -13,6 +13,14 @@
 * connection_exception -- a connection that could not be made, or that the
 * database dropped -- leaves the connection in connection_state::error, which
 * reconnect() leaves. A connection never reconnects on its own.
+*   connect_async and the SQL members ending in _async are the operations
+* that do not block (database_async.hpp), over the layer's calls that do
+* not wait where the vendor's face has them -- MariaDB's, MySQL's and
+* PostgreSQL's -- and done as they start where it does not, as SQLite's.
+* While one is under way it holds the connection, as a stream's run does.
+* has_async_operations, and from C++20 concepts::async_connection, say
+* whether a class has connect_async and the three SQL members (section 2):
+* every vendor's has.
 *   A vendor's class derives from database_connection<Derived, X>, Derived
 * being itself, and provides the hooks the class's description lists, public
 * so that the gated operations can tell which it has; programs call the
@@ -29,7 +37,7 @@
 * path:      /inc/djinterp/core/db/database_connection.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 
 /*
@@ -40,6 +48,21 @@ TABLE OF CONTENTS
     1.  The class
          1.  database_connection
     2.  Definitions
+    3.  Operations that do not block
+         1.  internal::sent_steps
+         2.  internal::connect_steps
+    4.  Their definitions
+2.  CAPABILITIES
+    ------------
+    1.  Detectors
+         1.  connect_async_t
+         2.  execute_async_t
+         3.  execute_query_async_t
+         4.  execute_update_async_t
+    2.  Traits
+         1.  has_async_operations
+    3.  C++20 concepts
+         1.  concepts::async_connection
 */
 
 #ifndef DJINTERP_DB_DATABASE_CONNECTION_HPP
@@ -62,6 +85,7 @@ TABLE OF CONTENTS
 #include "../meta/type_traits.hpp"             // is_detected
 #include "./database.hpp"                      // the vocabulary, connection
 #include "./database_connection_template.hpp"  // connection_template
+#include "./database_async.hpp"                // async_operation
 #include "./database_statement.hpp"            // internal::session,
                                                // buffered_result_set,
                                                // prepared_statement
@@ -70,6 +94,21 @@ TABLE OF CONTENTS
 
 
 NS_DJINTERP
+
+NS_INTERNAL
+
+    // the operations that do not block, section 3: friends of the
+    // connection, whose state they keep as its blocking operations do
+    template<typename      Derived,
+             database_type DbType,
+             typename      Result>
+    class sent_steps;
+
+    template<typename      Derived,
+             database_type DbType>
+    class connect_steps;
+
+NS_END  // internal
 
 
 //==============================================================================
@@ -254,6 +293,67 @@ public:
     std::optional<row> execute_single_row(const std::string& _query);
 
     /**
+     * @brief Opens the connection, as connect() does, without waiting on
+     *        the network: an operation to drive (database_async.hpp);
+     *        gated (a vendor with a layer).
+     *
+     * @note MariaDB, MySQL and PostgreSQL make the handshake without
+     *       waiting, but resolve the host's name before it, waiting for
+     *       that; the setup a configuration asks for beyond the handshake
+     *       -- on MariaDB and MySQL a character set other than utf8mb4,
+     *       Galera's causal reads, a default storage engine; on PostgreSQL
+     *       a search path, a statement timeout -- is made once connected,
+     *       waiting, a round trip each. SQLite opens as it starts. An open
+     *       connection stays as it is, the operation done as it starts.
+     *
+     * @return the operation; its result() throws as connect() does, the
+     *         connection then in connection_state::error. Destroyed while
+     *         under way, it abandons the connection being made.
+     */
+    template<typename Type = Derived,
+             typename      = internal::face_hook_t<Type>>
+    async_operation<void> connect_async();
+
+    /**
+     * @brief Runs one statement, and returns its rows, as execute_query
+     *        does, without waiting: an operation to drive; gated.
+     *
+     * @param[in] _query  the statement, copied.
+     * @return the operation; its result() is execute_query's, or throws
+     *         what execute_query throws. Every result the SQL produced is
+     *         read, the rows of the first kept.
+     */
+    template<typename Type = Derived,
+             typename      = internal::face_hook_t<Type>>
+    async_operation<std::unique_ptr<buffered_result_set>>
+        execute_query_async(const std::string& _query);
+
+    /**
+     * @brief Runs SQL, and counts the rows it changed, as execute_update
+     *        does, without waiting: an operation to drive; gated.
+     *
+     * @param[in] _query  the SQL, copied.
+     * @return the operation; its result() is execute_update's -- the count
+     *         of the last result -- or throws what execute_update throws.
+     */
+    template<typename Type = Derived,
+             typename      = internal::face_hook_t<Type>>
+    async_operation<re_std::int64_t>
+        execute_update_async(const std::string& _query);
+
+    /**
+     * @brief Runs SQL, as execute does, without waiting: an operation to
+     *        drive; gated.
+     *
+     * @param[in] _query  the SQL, copied.
+     * @return the operation; its result() is true, or throws what execute
+     *         throws.
+     */
+    template<typename Type = Derived,
+             typename      = internal::face_hook_t<Type>>
+    async_operation<bool> execute_async(const std::string& _query);
+
+    /**
      * @brief Calls the layer, through the vendor's face, as one of this
      *        connection's operations: once the connection is open, its state
      *        `executing` meanwhile, and a failure raised and recorded as the
@@ -415,7 +515,8 @@ protected:
 
     // ensure_connected -- connection_exception unless the connection is open
     // and no statement found it lost; query_exception, with the layer's
-    // busy_code, while a stream's run holds it
+    // busy_code, while a stream's run, or an operation that does not block,
+    // holds it
     void ensure_connected() const;
 
     // capture_error -- records a failure as the latest, for vendor members
@@ -470,6 +571,15 @@ protected:
     void close_session_noexcept() noexcept;
 
 private:
+    template<typename      Type,
+             database_type Vendor,
+             typename      Result>
+    friend class internal::sent_steps;
+
+    template<typename      Type,
+             database_type Vendor>
+    friend class internal::connect_steps;
+
     // m_close_quietly -- the statements, then the connection; nothing thrown
     void m_close_quietly() noexcept;
 
@@ -1415,14 +1525,15 @@ database_connection<Derived, DbType>::ensure_connected() const
                                    traits_type::display_name);
     }
 
-    // nor while a stream's run holds it, which the layer would refuse
+    // nor while a stream's run, or an operation that does not block, holds
+    // it, which the layer would refuse
     if ( (m_session) &&
          (m_session->holder() != nullptr) )
     {
-        throw query_exception(std::string("a stream's run holds the "
+        throw query_exception(std::string("a stream's run, or an operation "
+                                          "not yet done, holds the "
                                           "connection to ") +
-                              traits_type::display_name +
-                              " until it is read to its end or closed",
+                              traits_type::display_name,
                               m_session->busy_code());
     }
 
@@ -1754,6 +1865,797 @@ database_connection<Derived, DbType>::m_self() const noexcept
     return static_cast<const Derived&>(*this);
 }
 
+
+// 1.3    Operations that do not block
+//------------------------------------------------------------------------------
+NS_INTERNAL
+
+    // send_query_start_t, connect_start_hook_t -- a face that sends SQL
+    // without waiting, and a vendor that connects without waiting, as the
+    // calls; their absence makes the operation done as it starts
+    template<typename Face>
+    using send_query_start_t =
+        decltype(std::declval<Face&>().send_query_start(
+            std::declval<face::string_arg>(),
+            std::declval<d_db_pending&>()));
+
+    template<typename Type>
+    using connect_start_hook_t =
+        decltype(std::declval<Type&>().connect_start_impl(
+            std::declval<d_db_pending&>()));
+
+    // 1.3.1
+    // sent_steps
+    //   class template: SQL sent without waiting, and every result it
+    // produces read as it arrives -- the rows of the first kept, the count of
+    // each -- for execute_query_async (Result the rows), execute_update_async
+    // (the count) and execute_async (true). A failure among the results is
+    // described at once, while the connection's message is its own, and
+    // thrown once the results are read to their end, so that the connection
+    // is free again; a second failure ends the reading.
+    template<typename      Derived,
+             database_type DbType,
+             typename      Result>
+    class sent_steps final : public async_steps<Result>
+    {
+    private:
+        using connection_type = database_connection<Derived, DbType>;
+        using layer_type      = typename Derived::layer_type;
+
+    public:
+        sent_steps(
+            connection_type& _connection,
+            const char*      _operation,
+            std::string      _sql
+        )
+            : m_connection(&_connection),
+              m_operation(_operation),
+              m_sql(std::move(_sql)),
+              m_sending(true),
+              m_first(false),
+              m_rows(),
+              m_reading(),
+              m_changes(0),
+              m_counted(0),
+              m_failure()
+        {}
+
+        bool   begin(d_db_pending& _pending) override;
+        bool   advance(unsigned      _events,
+                       d_db_pending& _pending) override;
+        Result take() override;
+        void   ended() noexcept override;
+        void   cancel() override;
+        void   abandon() noexcept override;
+
+    private:
+        // m_sent, m_read -- the send's answer, and a result's: false while
+        // waiting, true once every result is read
+        bool m_sent(int           _result,
+                    d_db_pending& _pending);
+        bool m_read(int           _result,
+                    d_db_pending& _pending);
+
+        // m_raise -- the layer's exception for a failed call
+        [[noreturn]] void m_raise(int _result) const;
+
+        // m_guarded -- a step, its failure recorded as the connection's
+        // blocking operations record theirs
+        template<typename Step>
+        bool m_guarded(Step&& _step);
+
+        connection_type*   m_connection;
+        const char*        m_operation;
+        std::string        m_sql;
+        bool               m_sending;
+        bool               m_first;
+        face::rows         m_rows;
+        face::rows         m_reading;
+        re_std::int64_t    m_changes;
+        re_std::int64_t    m_counted;
+        std::exception_ptr m_failure;
+    };
+
+    // 1.3.2
+    // connect_steps
+    //   class template: connect_async over the vendor's hooks that connect
+    // without waiting -- connect_start_impl, connect_continue_impl, each the
+    // layer's result, D_DB_WAIT while waiting, throwing for a failure;
+    // connect_finish_impl, the setup that follows; connect_abandon_impl,
+    // the connection being made closed -- around which it keeps the
+    // connection's state as connect() keeps it.
+    template<typename      Derived,
+             database_type DbType>
+    class connect_steps final : public async_steps<void>
+    {
+    private:
+        using connection_type = database_connection<Derived, DbType>;
+
+    public:
+        explicit connect_steps(
+            connection_type& _connection
+        ) noexcept
+            : m_connection(&_connection)
+        {}
+
+        bool begin(d_db_pending& _pending) override;
+        bool advance(unsigned      _events,
+                     d_db_pending& _pending) override;
+        void take() override;
+        void ended() noexcept override;
+        void cancel() override;
+        void abandon() noexcept override;
+
+    private:
+        // m_after -- a hook's answer: false while waiting; true once
+        // connected, the setup made and the state kept
+        bool m_after(int _result);
+
+        // m_guarded -- a step, a failure leaving the connection in error
+        template<typename Step>
+        bool m_guarded(Step&& _step);
+
+        connection_type* m_connection;
+    };
+
+NS_END  // internal
+
+// 1.4    Their definitions
+//------------------------------------------------------------------------------
+// the connection's members
+template<typename      Derived,
+         database_type DbType>
+template<typename Type,
+         typename>
+async_operation<void>
+database_connection<Derived, DbType>::connect_async()
+{
+    // the vendor's hooks, or a connect done as it starts
+    if constexpr (is_detected_v<internal::connect_start_hook_t, Derived>)
+    {
+        return async_operation<void>(
+            std::make_unique<internal::connect_steps<Derived, DbType>>(
+                *this));
+    }
+    else
+    {
+        return async_operation<void>(
+            std::make_unique<internal::at_once_steps<void>>(
+                [this]() -> void
+                {
+                    connect();
+
+                    return;
+                }));
+    }
+}
+
+template<typename      Derived,
+         database_type DbType>
+template<typename Type,
+         typename>
+async_operation<std::unique_ptr<buffered_result_set>>
+database_connection<Derived, DbType>::execute_query_async(
+    const std::string& _query
+)
+{
+    using result_type = std::unique_ptr<buffered_result_set>;
+    using face_type   = std::decay_t<decltype(m_self().get_face())>;
+
+    // SQL sent without waiting, or a query run as it starts
+    if constexpr (is_detected_v<internal::send_query_start_t, face_type>)
+    {
+        return async_operation<result_type>(
+            std::make_unique<internal::sent_steps<Derived,
+                                                  DbType,
+                                                  result_type>>(
+                *this,
+                "execute_query",
+                _query));
+    }
+    else
+    {
+        return async_operation<result_type>(
+            std::make_unique<internal::at_once_steps<result_type>>(
+                [this, _query]() -> result_type
+                {
+                    return execute_query(_query);
+                }));
+    }
+}
+
+template<typename      Derived,
+         database_type DbType>
+template<typename Type,
+         typename>
+async_operation<re_std::int64_t>
+database_connection<Derived, DbType>::execute_update_async(
+    const std::string& _query
+)
+{
+    using face_type = std::decay_t<decltype(m_self().get_face())>;
+
+    // SQL sent without waiting, or run as it starts
+    if constexpr (is_detected_v<internal::send_query_start_t, face_type>)
+    {
+        return async_operation<re_std::int64_t>(
+            std::make_unique<internal::sent_steps<Derived,
+                                                  DbType,
+                                                  re_std::int64_t>>(
+                *this,
+                "execute_update",
+                _query));
+    }
+    else
+    {
+        return async_operation<re_std::int64_t>(
+            std::make_unique<internal::at_once_steps<re_std::int64_t>>(
+                [this, _query]() -> re_std::int64_t
+                {
+                    return execute_update(_query);
+                }));
+    }
+}
+
+template<typename      Derived,
+         database_type DbType>
+template<typename Type,
+         typename>
+async_operation<bool>
+database_connection<Derived, DbType>::execute_async(
+    const std::string& _query
+)
+{
+    using face_type = std::decay_t<decltype(m_self().get_face())>;
+
+    // SQL sent without waiting, or run as it starts
+    if constexpr (is_detected_v<internal::send_query_start_t, face_type>)
+    {
+        return async_operation<bool>(
+            std::make_unique<internal::sent_steps<Derived, DbType, bool>>(
+                *this,
+                "execute",
+                _query));
+    }
+    else
+    {
+        return async_operation<bool>(
+            std::make_unique<internal::at_once_steps<bool>>(
+                [this, _query]() -> bool
+                {
+                    return execute(_query);
+                }));
+    }
+}
+
+NS_INTERNAL
+
+    // sent_steps's members
+    /*
+    sent_steps::begin
+      The connection must be free, as for any operation; the operation holds
+    it from here until it ends.
+    */
+    template<typename      Derived,
+             database_type DbType,
+             typename      Result>
+    bool
+    sent_steps<Derived, DbType, Result>::begin(
+        d_db_pending& _pending
+    )
+    {
+        m_connection->ensure_connected();
+        refuse_nul(m_sql, m_operation, "the SQL");
+        m_connection->m_session->hold(this, layer_type::busy_code);
+
+        return m_guarded(
+            [this, &_pending]() -> bool
+            {
+                auto& face = m_connection->m_self().get_face();
+
+                return m_sent(face.send_query_start(m_sql, _pending),
+                              _pending);
+            });
+    }
+
+    template<typename      Derived,
+             database_type DbType,
+             typename      Result>
+    bool
+    sent_steps<Derived, DbType, Result>::advance(
+        unsigned      _events,
+        d_db_pending& _pending
+    )
+    {
+        return m_guarded(
+            [this, _events, &_pending]() -> bool
+            {
+                auto& face = m_connection->m_self().get_face();
+
+                // the send, or the result being read
+                if (m_sending)
+                {
+                    return m_sent(face.send_query_continue(_events,
+                                                           _pending),
+                                  _pending);
+                }
+
+                return m_read(face.next_result_continue(_events,
+                                                        _pending,
+                                                        m_reading,
+                                                        m_counted),
+                              _pending);
+            });
+    }
+
+    /*
+    sent_steps::take
+      The count goes to the session, as the blocking forms record theirs.
+    */
+    template<typename      Derived,
+             database_type DbType,
+             typename      Result>
+    Result
+    sent_steps<Derived, DbType, Result>::take()
+    {
+        // the rows of the first result, or the count, or true
+        if constexpr (std::is_same_v<Result,
+                                     std::unique_ptr<buffered_result_set>>)
+        {
+            return std::make_unique<buffered_result_set>(std::move(m_rows));
+        }
+        else
+        {
+            m_connection->m_session->record(m_changes);
+
+            if constexpr (std::is_same_v<Result, bool>)
+            {
+                return true;
+            }
+            else
+            {
+                return m_changes;
+            }
+        }
+    }
+
+    template<typename      Derived,
+             database_type DbType,
+             typename      Result>
+    void
+    sent_steps<Derived, DbType, Result>::ended() noexcept
+    {
+        m_connection->m_session->release(this);
+
+        return;
+    }
+
+    template<typename      Derived,
+             database_type DbType,
+             typename      Result>
+    void
+    sent_steps<Derived, DbType, Result>::cancel()
+    {
+        layer_type::cancel(m_connection->m_self().get_face().handle());
+
+        return;
+    }
+
+    /*
+    sent_steps::abandon
+      The exchange is left in the middle, which nothing can take up again:
+    the connection is lost, for reconnect() to replace.
+    */
+    template<typename      Derived,
+             database_type DbType,
+             typename      Result>
+    void
+    sent_steps<Derived, DbType, Result>::abandon() noexcept
+    {
+        m_connection->m_session->release(this);
+        m_connection->m_session->mark_lost();
+
+        return;
+    }
+
+    template<typename      Derived,
+             database_type DbType,
+             typename      Result>
+    bool
+    sent_steps<Derived, DbType, Result>::m_sent(
+        int           _result,
+        d_db_pending& _pending
+    )
+    {
+        // waiting still, or a failure of the send's own
+        if (_result == D_DB_WAIT)
+        {
+            return false;
+        }
+
+        if (_result != 0)
+        {
+            m_raise(_result);
+        }
+
+        m_sending = false;
+
+        auto& face = m_connection->m_self().get_face();
+
+        return m_read(face.next_result_start(_pending, m_reading, m_counted),
+                      _pending);
+    }
+
+    /*
+    sent_steps::m_read
+      Each result read begins the next, until there are none left: the
+    first's rows kept, each one's count, the last standing.
+    */
+    template<typename      Derived,
+             database_type DbType,
+             typename      Result>
+    bool
+    sent_steps<Derived, DbType, Result>::m_read(
+        int           _result,
+        d_db_pending& _pending
+    )
+    {
+        auto& face   = m_connection->m_self().get_face();
+        int   result = _result;
+
+        for (;;)
+        {
+            // waiting still
+            if (result == D_DB_WAIT)
+            {
+                return false;
+            }
+
+            // none left: the failure, if one came, or done
+            if (result == D_DB_NOT_FOUND)
+            {
+                if (m_failure)
+                {
+                    std::rethrow_exception(m_failure);
+                }
+
+                return true;
+            }
+
+            // a failure, described now, thrown at the end; a second ends it
+            if (result != 0)
+            {
+                if (m_failure)
+                {
+                    std::rethrow_exception(m_failure);
+                }
+
+                try
+                {
+                    m_raise(result);
+                }
+                catch (...)
+                {
+                    m_failure = std::current_exception();
+                }
+            }
+            else
+            {
+                // the first result's rows kept; each one's count
+                if (!m_first)
+                {
+                    m_rows  = std::move(m_reading);
+                    m_first = true;
+                }
+
+                m_changes = m_counted;
+            }
+
+            result = face.next_result_start(_pending, m_reading, m_counted);
+        }
+    }
+
+    template<typename      Derived,
+             database_type DbType,
+             typename      Result>
+    void
+    sent_steps<Derived, DbType, Result>::m_raise(
+        int _result
+    ) const
+    {
+        layer_type::raise(m_connection->m_self().get_face().handle(),
+                          failure_kind::query,
+                          m_operation,
+                          _result);
+    }
+
+    /*
+    sent_steps::m_guarded
+      As run_guarded records a failure: a connection_exception leaves the
+    connection in error.
+    */
+    template<typename      Derived,
+             database_type DbType,
+             typename      Result>
+    template<typename Step>
+    bool
+    sent_steps<Derived, DbType, Result>::m_guarded(
+        Step&& _step
+    )
+    {
+        try
+        {
+            return _step();
+        }
+        catch (const connection_exception& _e)
+        {
+            m_connection->m_state = connection_state::error;
+            m_connection->m_capture(_e);
+
+            throw;
+        }
+        catch (const exception& _e)
+        {
+            m_connection->m_capture(_e);
+
+            throw;
+        }
+    }
+
+    // connect_steps's members
+    /*
+    connect_steps::begin
+      As connect() begins: an open connection stays as it is; what is left
+    of an earlier one goes; a session made or renewed; the state connecting.
+    */
+    template<typename      Derived,
+             database_type DbType>
+    bool
+    connect_steps<Derived, DbType>::begin(
+        d_db_pending& _pending
+    )
+    {
+        connection_type& db = *m_connection;
+
+        // an open connection stays as it is
+        if (db.m_effective_state() == connection_state::connected)
+        {
+            return true;
+        }
+
+        // core/db never reconnects behind a program's back
+        if (db.m_config.auto_reconnect)
+        {
+            throw connection_exception(
+                std::string(connection_type::traits_type::display_name) +
+                    " connect_async: auto_reconnect is not supported; "
+                    "reconnect() reconnects",
+                D_DB_UNSUPPORTED);
+        }
+
+        // what is left of an earlier connection goes first
+        if (db.m_state != connection_state::disconnected)
+        {
+            db.m_close_quietly();
+        }
+
+        // a session for the statements to come, made or renewed
+        if (db.m_session)
+        {
+            db.m_session->renew();
+        }
+        else
+        {
+            db.m_session = std::make_shared<session>();
+        }
+
+        db.m_state = connection_state::connecting;
+        db.clear_error();
+
+        return m_guarded(
+            [this, &db, &_pending]() -> bool
+            {
+                db.m_refuse_nul_settings();
+
+                return m_after(db.m_self().connect_start_impl(_pending));
+            });
+    }
+
+    template<typename      Derived,
+             database_type DbType>
+    bool
+    connect_steps<Derived, DbType>::advance(
+        unsigned      _events,
+        d_db_pending& _pending
+    )
+    {
+        return m_guarded(
+            [this, _events, &_pending]() -> bool
+            {
+                return m_after(m_connection->m_self().connect_continue_impl(
+                                   _events,
+                                   _pending));
+            });
+    }
+
+    template<typename      Derived,
+             database_type DbType>
+    void
+    connect_steps<Derived, DbType>::take()
+    {
+        return;
+    }
+
+    template<typename      Derived,
+             database_type DbType>
+    void
+    connect_steps<Derived, DbType>::ended() noexcept
+    {
+        return;
+    }
+
+    // cancel -- a connect has nothing on the server to stop
+    template<typename      Derived,
+             database_type DbType>
+    void
+    connect_steps<Derived, DbType>::cancel()
+    {
+        return;
+    }
+
+    template<typename      Derived,
+             database_type DbType>
+    void
+    connect_steps<Derived, DbType>::abandon() noexcept
+    {
+        m_connection->m_self().connect_abandon_impl();
+        m_connection->m_state = connection_state::disconnected;
+
+        return;
+    }
+
+    /*
+    connect_steps::m_after
+      Connected: the vendor's setup, then the state connect() leaves.
+    */
+    template<typename      Derived,
+             database_type DbType>
+    bool
+    connect_steps<Derived, DbType>::m_after(
+        int _result
+    )
+    {
+        connection_type& db = *m_connection;
+
+        // waiting still
+        if (_result == D_DB_WAIT)
+        {
+            return false;
+        }
+
+        db.m_self().connect_finish_impl();
+
+        db.m_state              = connection_state::connected;
+        db.m_in_transaction     = false;
+        db.m_auto_commit        = true;
+        db.m_reconnect_attempts = 0;
+
+        try
+        {
+            db.m_server_version = db.m_self().get_server_version_impl();
+        }
+        catch (...)
+        {
+            // the version is for reading later; not having it costs nothing
+            db.m_server_version.clear();
+        }
+
+        return true;
+    }
+
+    template<typename      Derived,
+             database_type DbType>
+    template<typename Step>
+    bool
+    connect_steps<Derived, DbType>::m_guarded(
+        Step&& _step
+    )
+    {
+        try
+        {
+            return _step();
+        }
+        catch (const exception& _e)
+        {
+            m_connection->m_state = connection_state::error;
+            m_connection->m_capture(_e);
+
+            throw;
+        }
+        catch (...)
+        {
+            m_connection->m_state = connection_state::error;
+
+            throw;
+        }
+    }
+
+NS_END  // internal
+
+
+//==============================================================================
+// 2.  CAPABILITIES
+//==============================================================================
+// Whether a class has the operations that do not block, connect_async and
+// the three SQL members (1.1): every class derived from database_connection
+// has them, done as they start where the vendor's face has no calls that do
+// not wait, so the answer is a class's, not a client's. The trait serves from
+// C++17; the concept forwards to it where the compiler has concepts.
+
+// 2.1    Detectors
+//------------------------------------------------------------------------------
+// 2.1.1
+// connect_async_t
+//   detector: connect_async() method.
+template<typename Type>
+using connect_async_t = decltype(std::declval<Type&>().connect_async());
+
+// 2.1.2
+// execute_async_t
+//   detector: execute_async(const std::string&) method.
+template<typename Type>
+using execute_async_t = decltype(std::declval<Type&>().execute_async(
+    std::declval<const std::string&>()));
+
+// 2.1.3
+// execute_query_async_t
+//   detector: execute_query_async(const std::string&) method.
+template<typename Type>
+using execute_query_async_t = decltype(
+    std::declval<Type&>().execute_query_async(
+        std::declval<const std::string&>()));
+
+// 2.1.4
+// execute_update_async_t
+//   detector: execute_update_async(const std::string&) method.
+template<typename Type>
+using execute_update_async_t = decltype(
+    std::declval<Type&>().execute_update_async(
+        std::declval<const std::string&>()));
+
+// 2.2    Traits
+//------------------------------------------------------------------------------
+// 2.2.1
+// has_async_operations
+//   trait: true if Type has connect_async and the three SQL members that do
+// not block.
+template<typename Type>
+struct has_async_operations
+{
+    static constexpr bool value =
+        ( is_detected<connect_async_t, clean_t<Type>>::value        &&
+          is_detected<execute_async_t, clean_t<Type>>::value        &&
+          is_detected<execute_query_async_t, clean_t<Type>>::value  &&
+          is_detected<execute_update_async_t, clean_t<Type>>::value );
+};
+
+// 2.3    C++20 concepts
+//------------------------------------------------------------------------------
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+NS_CONCEPTS
+
+    // 2.3.1
+    // async_connection
+    //   concept: constrains connections with the operations that do not
+    // block (has_async_operations).
+    template<typename Type>
+    concept async_connection =
+        has_async_operations<Type>::value;
+
+NS_END  // concepts
+
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 NS_END  // djinterp
 

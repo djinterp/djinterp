@@ -17,7 +17,7 @@
 * path:      /tests/djinterp/core/db/t_db_core.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.10.25
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CORE_DB_T_DB_CORE_HPP
@@ -25,20 +25,32 @@
 
 // std
 #include <algorithm>  // std::reverse
-#include <chrono>     // std::chrono::system_clock, seconds, microseconds
+#include <chrono>     // std::chrono's clocks, seconds, microseconds
 #include <climits>    // LLONG_MIN
 #include <cstdio>     // std::printf
 #include <cstdlib>    // std::getenv
-#include <cstring>    // std::strlen, std::strncmp, std::strstr
+#include <cstring>    // std::memset, std::strlen, std::strncmp, std::strstr
 #include <memory>     // std::unique_ptr
 #include <optional>   // std::optional
-#include <stdexcept>  // std::out_of_range
+#include <stdexcept>  // std::logic_error, std::out_of_range
 #include <string>     // std::string
 #include <utility>    // std::move
 #include <variant>    // std::holds_alternative, std::get
 #include <vector>     // std::vector
+#if defined(D_TESTS_DB_CORE_SOCKETS)
+    #if defined(_WIN32)
+        #include <winsock2.h>  // WSAPoll, struct pollfd
+        #if defined(_MSC_VER)
+            #pragma comment(lib, "ws2_32.lib")
+        #endif  // _MSC_VER
+    #else
+        #include <poll.h>      // poll, struct pollfd
+    #endif
+#endif  // D_TESTS_DB_CORE_SOCKETS
 // djinterp
 #include "../../../../inc/djinterp/core/db/database.hpp"  // the vocabulary
+#include "../../../../inc/djinterp/core/db/database_async.hpp"
+                                                  // async_operation
 #include "../../../../inc/djinterp/core/db/database_table.hpp"
                                                   // database_table
 #include "../../../../inc/djinterp/core/db/database_table_render.hpp"
@@ -120,6 +132,13 @@ struct dialect
     db::field_type small_type;        // and small, INT
     int            syntax_error;      // what "SELEC 1" fails with
     bool         (*unique_violation)(int _code);  // a duplicate key's code
+    const char*    slow_query;        // a query of one row, 0, that the
+                                      // server takes a fraction of a second
+                                      // over; NULL without a server
+    const char*    long_query;        // and one it takes seconds over
+    bool         (*cancelled)(int _code);  // a statement stopped by a
+                                           // cancel's code; NULL without a
+                                           // server
 };
 
 // table_abilities
@@ -980,9 +999,9 @@ number(
     const db::value& _value
 )
 {
-    if (const re_std::int32_t* small = std::get_if<re_std::int32_t>(&_value))
+    if (const re_std::int32_t* narrow = std::get_if<re_std::int32_t>(&_value))
     {
-        return *small;
+        return *narrow;
     }
 
     if (const re_std::int64_t* big = std::get_if<re_std::int64_t>(&_value))
@@ -1627,6 +1646,505 @@ tables(
                            (plain.rows() == 0u) );
     moved.drop_table();
     D_TESTS_DB_CORE_CHECK(_db.is_connected());
+
+    return;
+}
+
+#if defined(D_TESTS_DB_CORE_SOCKETS)
+
+/*
+wait
+  Waits as a pending operation says, with poll(2) or WSAPoll, and answers
+what came, as d_db_wait; trouble on the socket reads as ready, for the
+operation to find, and no socket as everything having come.
+*/
+inline unsigned
+wait(
+    const d_db_pending& _pending
+)
+{
+    const unsigned ready = static_cast<unsigned>(D_DB_WAIT_READ) |
+                           static_cast<unsigned>(D_DB_WAIT_WRITE);
+    struct pollfd  fd;
+
+    // no socket to wait on
+    if (_pending.socket == D_DB_SOCKET_NONE)
+    {
+        return _pending.events & ready;
+    }
+
+    std::memset(&fd, 0, sizeof(fd));
+#if defined(_WIN32)
+    fd.fd     = static_cast<SOCKET>(_pending.socket);
+#else
+    fd.fd     = static_cast<int>(_pending.socket);
+#endif
+    fd.events = static_cast<short>(
+                    ( ((_pending.events & D_DB_WAIT_READ) != 0u)
+                          ? POLLIN
+                          : 0 ) |
+                    ( ((_pending.events & D_DB_WAIT_WRITE) != 0u)
+                          ? POLLOUT
+                          : 0 ));
+
+    const int timeout = ((_pending.events & D_DB_WAIT_TIMEOUT) != 0u)
+                            ? static_cast<int>(_pending.timeout_ms)
+                            : -1;
+#if defined(_WIN32)
+    const int came    = WSAPoll(&fd, 1u, timeout);
+#else
+    const int came    = poll(&fd, 1u, timeout);
+#endif
+
+    // the deadline first; trouble, for the operation to find
+    if (came == 0)
+    {
+        return static_cast<unsigned>(D_DB_WAIT_TIMEOUT);
+    }
+
+    if ( (came < 0) ||
+         ((fd.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0) )
+    {
+        return _pending.events & ready;
+    }
+
+    return ( ((fd.revents & POLLIN) != 0)
+                 ? static_cast<unsigned>(D_DB_WAIT_READ)
+                 : 0u ) |
+           ( ((fd.revents & POLLOUT) != 0)
+                 ? static_cast<unsigned>(D_DB_WAIT_WRITE)
+                 : 0u );
+}
+
+#endif  // D_TESTS_DB_CORE_SOCKETS
+
+/*
+drive
+  An operation started, where it was not, and driven to its end, as a
+program's loop would: its result, or its failure thrown. Without sockets --
+SQLite -- every operation is done as it starts.
+*/
+template<typename Result>
+Result
+drive(
+    db::async_operation<Result>& _operation
+)
+{
+    // started here, unless the caller started it
+    if (!_operation.started())
+    {
+        _operation.start();
+    }
+
+    for (long i = 0; ( (!_operation.done()) && (i < 10000000L) ); ++i)
+    {
+#if defined(D_TESTS_DB_CORE_SOCKETS)
+        _operation.resume(wait(_operation.pending()));
+#else
+        _operation.resume(0u);
+#endif
+    }
+
+    return _operation.result();
+}
+
+/*
+first_long
+  The first value of rows as an integer, or LLONG_MIN.
+*/
+inline long long
+first_long(
+    db::buffered_result_set& _rows
+)
+{
+    // the first row's first value
+    if ( (!_rows.next()) ||
+         (_rows.column_count() == 0u) )
+    {
+        return LLONG_MIN;
+    }
+
+    const std::optional<re_std::int64_t> value =
+        _rows.get_long(static_cast<std::size_t>(0));
+
+    return (value) ? static_cast<long long>(*value) : LLONG_MIN;
+}
+
+#if D_INTERNAL_DB_ASYNC_AWAIT
+
+// poll_loop
+//   class: the smallest loop an operation can be awaited through: one watch
+// at a time, waited on with wait(), until none is left.
+class poll_loop
+{
+public:
+    void
+    watch(
+        const d_db_pending& _pending,
+        db::db_wakeup       _wakeup
+    )
+    {
+        m_pending = _pending;
+        m_wakeup.emplace(_wakeup);
+
+        return;
+    }
+
+    void
+    run()
+    {
+        // each wakeup may watch again
+        while (m_wakeup)
+        {
+            const db::db_wakeup woken = *m_wakeup;
+
+            m_wakeup.reset();
+#if defined(D_TESTS_DB_CORE_SOCKETS)
+            woken(wait(m_pending));
+#else
+            woken(0u);
+#endif
+        }
+
+        return;
+    }
+
+private:
+    d_db_pending                 m_pending {};
+    std::optional<db::db_wakeup> m_wakeup;
+};
+
+static_assert(db::concepts::db_event_loop<poll_loop>);
+static_assert(!db::concepts::db_event_loop<int>);
+
+// task
+//   struct: a coroutine that starts at once and runs to its end through the
+// loop; one it does not catch is a failed check.
+struct task
+{
+    struct promise_type
+    {
+        task
+        get_return_object() noexcept
+        {
+            return task{};
+        }
+
+        std::suspend_never
+        initial_suspend() noexcept
+        {
+            return {};
+        }
+
+        std::suspend_never
+        final_suspend() noexcept
+        {
+            return {};
+        }
+
+        void
+        return_void() noexcept
+        {
+            return;
+        }
+
+        void
+        unhandled_exception() noexcept
+        {
+            expect(false, "a coroutine let an exception go", __LINE__);
+
+            return;
+        }
+    };
+};
+
+/*
+awaited
+  The operations awaited: a query's rows, a count, a failure thrown by
+co_await; `_finished` once the coroutine reaches its end.
+*/
+template<typename Connection>
+task
+awaited(
+    Connection&    _db,
+    const dialect& _dialect,
+    poll_loop&     _loop,
+    bool&          _finished
+)
+{
+    auto query = _db.execute_query_async("SELECT 41 + 1");
+    std::unique_ptr<db::buffered_result_set> rows = co_await query.on(_loop);
+
+    D_TESTS_DB_CORE_CHECK( (rows) && (first_long(*rows) == 42) );
+
+    auto                  update  = _db.execute_update_async(
+                                        "UPDATE core_t SET small = small "
+                                        "WHERE name = 'async'");
+    const re_std::int64_t changes = co_await update.on(_loop);
+
+    D_TESTS_DB_CORE_CHECK(changes >= 0);
+
+    auto failing = _db.execute_async("SELEC 1");
+    bool thrown  = false;
+
+    try
+    {
+        (void)co_await failing.on(_loop);
+    }
+    catch (const db::query_exception& e)
+    {
+        thrown = (e.error_code() == _dialect.syntax_error);
+    }
+
+    D_TESTS_DB_CORE_CHECK(thrown);
+
+    _finished = true;
+
+    co_return;
+}
+
+#endif  // D_INTERNAL_DB_ASYNC_AWAIT
+
+/*
+async_operations
+  The operations that do not block (database_async.hpp), driven as a
+program's loop drives them. `_make` makes a connection to the harness's
+database, and `_refused` one the database refuses, neither connected;
+`_statements_wait` is whether a prepared statement's operations work --
+false for libmysqlclient, whose are D_DB_UNSUPPORTED.
+  Tests the following:
+  - an operation does nothing before start(); resume() before it, result()
+    before done() or twice, and an empty operation's start() throw
+    std::logic_error
+  - execute_update_async counts what it inserts, execute_query_async reads
+    rows as execute_query does, execute_async gives true; a failure is
+    result()'s to throw, with the vendor's code, the connection free after
+  - SQL the server takes a while over is under way after start(): every
+    other operation of the connection -- SQL, a statement's run, another
+    operation, a bind on a statement under way -- throws query_exception
+    with the busy code; done, the connection is free. SQLite's are done as
+    they start
+  - a prepared statement's operations give what its blocking runs give
+  - cancel() stops a long statement, soon: the vendor's refusal, or the
+    result where the server let the statement finish
+  - connect_async opens a connection as connect() does, and leaves an open
+    one open; one refused is connection_exception, the connection in error
+  - an operation destroyed under way leaves the connection lost, until
+    reconnect()
+  - from C++20, each awaited in a coroutine through a minimal loop
+*/
+template<typename Connection,
+         typename Make,
+         typename MakeRefused>
+void
+async_operations(
+    Connection&    _db,
+    const dialect& _dialect,
+    Make           _make,
+    MakeRefused    _refused,
+    bool           _statements_wait
+)
+{
+    using layer_type = typename Connection::layer_type;
+
+    std::printf("operations that do not block\n");
+
+    // the order of the calls
+    {
+        db::async_operation<bool> empty;
+        auto                      unstarted = _db.execute_async("SELECT 1");
+
+        D_TESTS_DB_CORE_THROWS_ANY(empty.start(), std::logic_error);
+        D_TESTS_DB_CORE_CHECK( (!unstarted.started()) &&
+                               (!unstarted.done()) &&
+                               (unstarted.pending().socket ==
+                                D_DB_SOCKET_NONE) );
+        D_TESTS_DB_CORE_THROWS_ANY(unstarted.resume(0u), std::logic_error);
+        D_TESTS_DB_CORE_THROWS_ANY((void)unstarted.result(),
+                                   std::logic_error);
+        D_TESTS_DB_CORE_CHECK(drive(unstarted));
+        D_TESTS_DB_CORE_THROWS_ANY((void)unstarted.result(),
+                                   std::logic_error);
+        D_TESTS_DB_CORE_THROWS_ANY(unstarted.start(), std::logic_error);
+    }
+
+    // counts, rows, true; a failure
+    {
+        auto insert = _db.execute_update_async(
+                          "INSERT INTO core_t (name, small) VALUES "
+                          "('async', 1), ('async', 2), ('async', 3)");
+        auto select = _db.execute_query_async(
+                          "SELECT small FROM core_t WHERE name = 'async' "
+                          "ORDER BY small");
+        auto failed = _db.execute_query_async("SELEC 1");
+
+        D_TESTS_DB_CORE_CHECK(drive(insert) == 3);
+        D_TESTS_DB_CORE_CHECK(_db.get_affected_rows() == 3);
+
+        std::unique_ptr<db::buffered_result_set> rows = drive(select);
+
+        D_TESTS_DB_CORE_CHECK( (rows) && (rows->row_count() == 3) &&
+                               (first_long(*rows) == 1) );
+        D_TESTS_DB_CORE_THROWS((void)drive(failed),
+                               db::query_exception,
+                               _dialect.syntax_error);
+        D_TESTS_DB_CORE_CHECK(_db.execute("SELECT 1"));
+    }
+
+    // a prepared statement's, as its blocking runs
+    {
+        auto select = _db.prepare("SELECT small FROM core_t WHERE name = "
+                                  "'async' ORDER BY small");
+        auto query  = select->execute_query_async();
+        auto count  = select->execute_update_async();
+
+        // libmysqlclient runs none without waiting
+        if (!_statements_wait)
+        {
+            D_TESTS_DB_CORE_THROWS((void)drive(query),
+                                   db::query_exception,
+                                   D_DB_UNSUPPORTED);
+        }
+        else
+        {
+            std::unique_ptr<db::buffered_result_set> rows = drive(query);
+
+            D_TESTS_DB_CORE_CHECK( (rows) && (rows->row_count() == 3) &&
+                                   (first_long(*rows) == 1) );
+            D_TESTS_DB_CORE_CHECK(drive(count) == 3);
+        }
+
+        D_TESTS_DB_CORE_CHECK(select->execute_query()->row_count() == 3);
+    }
+
+    // SQL the server takes a while over: under way, the connection held
+    if constexpr (layer_type::holds_connection)
+    {
+        auto slow   = _db.execute_query_async(_dialect.slow_query);
+        auto other  = _db.prepare("SELECT 1");
+        auto second = _db.execute_update_async("SELECT 1");
+
+        slow.start();
+        D_TESTS_DB_CORE_CHECK( (slow.started()) && (!slow.done()) &&
+                               (slow.pending().socket != D_DB_SOCKET_NONE) );
+        D_TESTS_DB_CORE_THROWS(_db.execute("SELECT 1"),
+                               db::query_exception,
+                               layer_type::busy_code);
+        D_TESTS_DB_CORE_THROWS((void)other->execute_update(),
+                               db::query_exception,
+                               layer_type::busy_code);
+        second.start();
+        D_TESTS_DB_CORE_CHECK(second.done());
+        D_TESTS_DB_CORE_THROWS((void)second.result(),
+                               db::query_exception,
+                               layer_type::busy_code);
+        D_TESTS_DB_CORE_CHECK(first_long(*drive(slow)) == 0);
+        D_TESTS_DB_CORE_CHECK(other->execute_update() >= 0);
+
+        // a statement's own operation holds its values
+        if (_statements_wait)
+        {
+            auto statement = _db.prepare(_dialect.slow_query);
+            auto running   = statement->execute_query_async();
+
+            running.start();
+            D_TESTS_DB_CORE_CHECK(!running.done());
+            D_TESTS_DB_CORE_THROWS(statement->clear_parameters(),
+                                   db::query_exception,
+                                   layer_type::busy_code);
+            D_TESTS_DB_CORE_THROWS(_db.execute("SELECT 1"),
+                                   db::query_exception,
+                                   layer_type::busy_code);
+            D_TESTS_DB_CORE_CHECK(first_long(*drive(running)) == 0);
+            statement->clear_parameters();
+        }
+
+        // cancelled, soon
+        auto        long_one = _db.execute_query_async(_dialect.long_query);
+        const auto  began    = std::chrono::steady_clock::now();
+        bool        stopped  = false;
+
+        long_one.start();
+        long_one.cancel();
+
+        try
+        {
+            (void)drive(long_one);
+            stopped = true;
+        }
+        catch (const db::query_exception& e)
+        {
+            stopped = _dialect.cancelled(e.error_code());
+        }
+
+        D_TESTS_DB_CORE_CHECK(stopped);
+        D_TESTS_DB_CORE_CHECK(std::chrono::steady_clock::now() - began <
+                              std::chrono::seconds(4));
+        D_TESTS_DB_CORE_CHECK(_db.execute("SELECT 1"));
+    }
+    else
+    {
+        auto at_once = _db.execute_query_async("SELECT 1");
+
+        at_once.start();
+        D_TESTS_DB_CORE_CHECK(at_once.done());
+        D_TESTS_DB_CORE_CHECK(at_once.result()->row_count() == 1);
+    }
+
+#if D_INTERNAL_DB_ASYNC_AWAIT
+    // awaited
+    {
+        poll_loop loop;
+        bool      finished = false;
+
+        awaited(_db, _dialect, loop, finished);
+        loop.run();
+        D_TESTS_DB_CORE_CHECK(finished);
+    }
+#endif  // D_INTERNAL_DB_ASYNC_AWAIT
+
+    // connecting
+    {
+        Connection fresh   = _make();
+        Connection refused = _refused();
+        auto       opening = fresh.connect_async();
+
+        drive(opening);
+        D_TESTS_DB_CORE_CHECK( (fresh.is_connected()) &&
+                               (fresh.execute_query("SELECT 1")->row_count() ==
+                                1) );
+
+        auto again = fresh.connect_async();
+
+        again.start();
+        D_TESTS_DB_CORE_CHECK( (again.done()) && (fresh.is_connected()) );
+        again.result();
+
+        auto failing = refused.connect_async();
+
+        D_TESTS_DB_CORE_THROWS_ANY(drive(failing), db::connection_exception);
+        D_TESTS_DB_CORE_CHECK(refused.get_state() ==
+                              db::connection_state::error);
+    }
+
+    // abandoned under way: the connection lost until reconnect()
+    if constexpr (layer_type::holds_connection)
+    {
+        {
+            auto abandoned = _db.execute_query_async(_dialect.slow_query);
+
+            abandoned.start();
+        }
+
+        D_TESTS_DB_CORE_CHECK(_db.get_state() == db::connection_state::error);
+        D_TESTS_DB_CORE_THROWS_ANY(_db.execute("SELECT 1"),
+                                   db::connection_exception);
+        _db.reconnect();
+        D_TESTS_DB_CORE_CHECK( (_db.is_connected()) &&
+                               (_db.execute("SELECT 1")) );
+    }
+
+    _db.execute("DELETE FROM core_t WHERE name = 'async'");
 
     return;
 }
