@@ -245,7 +245,9 @@ bool           d_mariadb_server_at_least(const struct d_mariadb* _db,
 // features -- whether the server can do it, by its flavor and release;
 // `false` for a value outside enum d_mariadb_feature. What a plugin or a
 // setting adds -- Galera, the X Plugin, Group Replication -- is whether the
-// server's release has it; whether this server runs it is its configuration.
+// server's release has it; whether this server runs it is its configuration,
+// and its build: MariaDB's Windows builds leave Galera out, its wsrep_*
+// variables with it, which no answer here can see without asking.
 // A feature that is a call of the client's -- the reset, session tracking,
 // query attributes -- needs the client the layer was built with to have it
 // too: Connector/C from 3.0, or libmysqlclient from 5.7.3, 5.7.4 and 8.0.23,
