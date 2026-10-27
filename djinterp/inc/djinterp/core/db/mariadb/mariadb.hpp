@@ -1020,10 +1020,12 @@ public:
     // while the connection is not open. client_capabilities answers for the
     // client's header at compile time. json_is_native: JSON stored as binary,
     // as MySQL stores it, where MariaDB's JSON is text (LONGTEXT) checked to
-    // be JSON; supports_galera: Galera replication built in, which this
-    // server runs or not as it is configured; supports_modern_sql: window
-    // functions, CTEs, sequences and system versioning together (on a MySQL
-    // server, its own set: window functions, CTEs and LATERAL)
+    // be JSON; supports_galera: Galera replication in the release, which
+    // this server runs or not as it is configured -- and not at all where
+    // MariaDB built it for Windows, which leaves Galera out;
+    // supports_modern_sql: window functions, CTEs, sequences and system
+    // versioning together (on a MySQL server, its own set: window functions,
+    // CTEs and LATERAL)
     bool
     supports_inet6_type() const noexcept
     {
