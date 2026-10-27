@@ -28,7 +28,7 @@
 * path:      /inc/djinterp/c/db/mariadb/mariadb_connection.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.10.27
 *******************************************************************************/
 
 /*
@@ -580,20 +580,25 @@ int            d_mariadb_ping_continue(struct d_mariadb*    _db,
 // 1.9    Cancelling
 //------------------------------------------------------------------------------
 // The protocol has no cancel of its own: a statement is stopped by KILL QUERY
-// with its connection's id, sent on another connection. d_mariadb_cancel
-// makes one -- to the connection's host and port, or socket, as its user,
-// with the layer's defaults (TLS PREFERRED, the connect timeout) and none of
-// the connection's own settings -- runs KILL QUERY on it, and closes it. The
+// with its connection's id, sent on another connection. d_mariadb_cancel makes
+// one -- to the connection's host and port, or socket, as its user, with the
+// layer's defaults (TLS PREFERRED, the connect timeout) and none of the
+// connection's own settings -- runs KILL QUERY on it, and closes it. The
 // statement, if it still runs, stops with 1317 (query execution was
-// interrupted), which the connection's reply reports; one that has finished
-// is not touched. _cancel_start and _cancel_continue do it without blocking,
-// as 1.8 connects -- with libmysqlclient too -- the request's connection a
-// handle of its own until it is done, abandoned with d_mariadb_close. A user
-// who cannot sign in again -- with a one-time password, say -- cannot cancel
-// this way, and a connection whose settings the second one needs -- a
-// certificate of its own -- is not reached the same way. Where the client
-// cannot carry TLS without blocking (1.8), _cancel_start refuses a connection
-// under TLS, and makes its own without TLS, as the connection was made.
+// interrupted), which the connection's reply reports; one that has finished is
+// not touched. Nor is one the server has not yet begun -- sent but not yet
+// read, or waiting for a thread: MariaDB discards a KILL QUERY that reaches a
+// connection between statements, so a request made the moment a statement is
+// sent can miss it. A caller that must stop it waits until the server shows it
+// running (information_schema.PROCESSLIST, its ID d_mariadb_connection_id) and
+// asks then. _cancel_start and _cancel_continue do it without blocking, as 1.8
+// connects -- with libmysqlclient too -- the request's connection a handle of
+// its own until it is done, abandoned with d_mariadb_close. A user who cannot
+// sign in again -- with a one-time password, say -- cannot cancel this way, and
+// a connection whose settings the second one needs -- a certificate of its own
+// -- is not reached the same way. Where the client cannot carry TLS without
+// blocking (1.8), _cancel_start refuses a connection under TLS, and makes its
+// own without TLS, as the connection was made.
 /**
  * @brief Asks the server to stop what the connection runs, and waits until
  *        the request is done.

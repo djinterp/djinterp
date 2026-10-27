@@ -11,8 +11,8 @@
 
 set(_c_dir     "${DJINTERP_SRC_ROOT}/djinterp/c/db")
 set(_core_dir  "${DJINTERP_SRC_ROOT}/djinterp/core/db")
-set(_c_tests   "${DJINTERP_TESTS_ROOT}/djinterp/c/db/sqlite")
-set(_core_test "${DJINTERP_TESTS_ROOT}/djinterp/core/db/sqlite")
+set(_c_tests   "${DJINTERP_TESTS_ROOT}/unintegrated/c/db/sqlite")
+set(_core_test "${DJINTERP_TESTS_ROOT}/unintegrated/core/db/sqlite")
 
 file(GLOB _layer CONFIGURE_DEPENDS "${_c_dir}/sqlite/sqlite_*.c")
 set(_common "${_c_dir}/db_common.c" "${_c_dir}/db_internal.c")
