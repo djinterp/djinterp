@@ -30,7 +30,7 @@
 * path:      /inc/djinterp/core/db/mysql/mysql_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.25
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.10.27
 *******************************************************************************/
 
 /*
@@ -373,6 +373,10 @@ struct mariadb_layer
      * @brief Asks the server to stop what a connection runs, from a
      *        connection of the layer's own (d_mariadb_cancel), waiting for
      *        it: an operation's cancel().
+     *
+     * @note KILL QUERY, which MariaDB discards when it reaches a connection
+     *       between statements: a statement sent but not yet begun is not
+     *       stopped (mariadb_connection.h, 1.9).
      *
      * @param[in] _db  the connection whose statement is to stop.
      * @throws query_exception, with the layer's result and the reason it

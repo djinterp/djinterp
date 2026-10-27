@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/core/db/database_async.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.24
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.10.27
 *******************************************************************************/
 
 /*
@@ -352,7 +352,11 @@ public:
      *       and closes, waiting for both; the operation goes on, and ends
      *       with the server's refusal -- 1317 on MariaDB and MySQL, 57014 on
      *       PostgreSQL -- or with its result, where it finished first. A
-     *       connect has nothing to stop; destroying it abandons it.
+     *       request the server receives before it has begun the statement
+     *       may be lost -- MariaDB discards a KILL QUERY between statements
+     *       -- so a caller that must stop the statement asks once the
+     *       server runs it. A connect has nothing to stop; destroying it
+     *       abandons it.
      *
      * @throws query_exception when the request cannot be made; nothing for
      *         an operation not under way.

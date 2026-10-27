@@ -16,10 +16,10 @@
 #   Naming (per the test-authoring guide):
 #     - exe / CTest target : database_tests   (ctest -R database_tests)
 #     - runner (main)       : database_tests_runner.cpp  (this config dir)
-#     - section TUs         : tests/djinterp/core/db/database_tests_*.cpp
+#     - section TUs         : tests/unintegrated/core/db/database_tests_*.cpp
 #
 #   Include dirs for a test leaf = inc/djinterp/core/db (so the bare
-# `#include "database.hpp"` resolves) + tests/djinterp/core/db (so the bare
+# `#include "database.hpp"` resolves) + tests/unintegrated/core/db (so the bare
 # `#include "database_tests.hpp"` resolves). Only inc/ is added automatically;
 # the rest is declared here.
 #
@@ -29,7 +29,7 @@
 # one-line `djinterp_add_test_subtree(all_djinterp_core_db)`.
 # =============================================================================
 
-set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/core/db")
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/unintegrated/core/db")
 set(_src_dir   "${DJINTERP_SRC_ROOT}/djinterp")
 
 # all section TUs for this component; the runner is added explicitly below.

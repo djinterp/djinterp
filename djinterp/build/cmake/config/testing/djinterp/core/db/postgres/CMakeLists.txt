@@ -12,8 +12,8 @@
 
 set(_c_dir     "${DJINTERP_SRC_ROOT}/djinterp/c/db")
 set(_core_dir  "${DJINTERP_SRC_ROOT}/djinterp/core/db")
-set(_c_tests   "${DJINTERP_TESTS_ROOT}/djinterp/c/db/postgres")
-set(_core_test "${DJINTERP_TESTS_ROOT}/djinterp/core/db/postgres")
+set(_c_tests   "${DJINTERP_TESTS_ROOT}/unintegrated/c/db/postgres")
+set(_core_test "${DJINTERP_TESTS_ROOT}/unintegrated/core/db/postgres")
 
 file(GLOB _layer CONFIGURE_DEPENDS "${_c_dir}/postgres/postgres_*.c")
 set(_common "${_c_dir}/db_common.c" "${_c_dir}/db_internal.c")
