@@ -2,6 +2,39 @@
 
 ---
 
+## Layout
+
+C and C++ live in two trees. Under `inc/`, `src/` and `tests/`, every C file
+(`.h`, `.c`) is in `djinterp/c/` and every C++ file (`.hpp`, `.cpp`) in
+`djinterp/cpp/`, each tree split into `core/` and `modules/`. A file's
+language decides its tree; a module with both languages has a folder in each
+(`c/modules/parse/` and `cpp/modules/parse/`), and no language folder of its
+own (there is no `parse/c/`).
+
+| Path | Holds |
+|---|---|
+| `inc/djinterp/c/djinterp.h` | the C framework root |
+| `inc/djinterp/c/djinterp_cpp.h` | the C++ keywords, namespace macros and qualifier kit, defined only when the unit is C++: what a C header includes instead of C++ |
+| `inc/djinterp/cpp/djinterp.hpp` | the C++ framework root, which includes `djinterp_cpp.h` |
+| `c/core/`, `cpp/core/` | the core: containers, memory, strings, files, db, events, meta and the rest |
+| `c/modules/`, `cpp/modules/` | the modules: jit (C), math (C++), net, parse, parsegen, render (C++), test |
+| `inc/djinterp/config/` | configuration, mirroring the code it configures (`config/c/core/filesys/` for `c/core/filesys/`), in the tree of the language that includes it, C when both do; headers for the whole framework, such as `cfg_re_std.h`, stay at its root |
+| `inc/djinterp/env/` | environment detection, shared by both languages |
+| `inc/djinterp/tools/`, `src/djinterp/tools/` | djinterp's programs and their kit: bitwisedom, vparse, dawk, the cli kit, ui |
+| `inc/re_std/c/`, `inc/re_std/cpp/` | re_std, split the same way; `inc/re_std/config.h` and `config.hpp` stay at its root |
+| `tests/unintegrated/` | tests not yet in DTest, laid out as `tests/djinterp/` is |
+| `inc/ui/`, `src/ui/`, `tests/ui/` | the programs' windows, outside djinterp, since they need uxoxo |
+| `build/cmake/config/` | every CMake file; `testing/` mirrors `tests/`. Only what CMake generates sits outside it, in `build/cmake/msvs/` |
+| `docs/` | documentation, mirroring the code it describes |
+| `scripts/`, `scripts/ci/` | tools and CI scripts |
+| `res/` | data; `res/sheets/` holds dawk's style sheets |
+
+**No C header includes C++.** A C header never includes a `.hpp`: neither
+`djinterp.hpp` nor its own C++ face. Where its C++ branch needs the
+keywords, the namespace macros or the qualifier kit, it includes
+`djinterp_cpp.h`. A C++ file that uses a C header's C++ face includes the
+face itself, right after the C header.
+
 ## General Formatting
 
 ### Spacing
@@ -60,50 +93,71 @@ derivation has **no exceptions**: the guard is a function of the file's location
 and extension and nothing else. That is what makes a collision impossible rather
 than merely unlikely, and it is what lets tooling verify and repair guards.
 
-**Derivation**
+**Derivation**, for a header under `inc/djinterp/`:
 
 1.  Start with `DJINTERP_`.
-2.  Append the subsystem prefix for the top-level directory, from the table
-    below. `/core` contributes nothing.
-3.  Append every remaining directory segment, in order.
-4.  Append the file's stem.
+2.  A header in the C tree, `c/`, adds `C_`; one in the C++ tree, `cpp/`,
+    adds nothing. One in `config/` adds `CONFIG_`, then `C_` or `CPP_` for
+    the tree it mirrors. `env/` and `tools/` are folders like any other.
+3.  Skip the structural folder: the `core/` or `modules/` right under `c/`
+    or `cpp/` (or under `config/c/` or `config/cpp/`) contributes nothing.
+4.  Append every remaining folder, in order, then the file's stem.
 5.  Append `_H` for a `.h` file, `_HPP` for a `.hpp` file.
 
 Uppercase the result and collapse every run of non-alphanumeric characters to a
 single underscore. Do not merge repeated segments, do not drop segments, and do
 not abbreviate. A guard that looks redundant is still correct.
 
+| Header, under `inc/djinterp/`             | Guard                                         |
+|-------------------------------------------|-----------------------------------------------|
+| `c/djinterp.h`                            | `DJINTERP`                                    |
+| `cpp/djinterp.hpp`                        | `DJINTERP_CPP`                                |
+| `c/core/memory/dmemory.h`                 | `DJINTERP_C_MEMORY_DMEMORY_H`                 |
+| `c/modules/parse/charset.h`               | `DJINTERP_C_PARSE_CHARSET_H`                  |
+| `cpp/core/db/sqlite/sqlite_face.hpp`      | `DJINTERP_DB_SQLITE_SQLITE_FACE_HPP`          |
+| `cpp/modules/net/net.hpp`                 | `DJINTERP_NET_NET_HPP`                        |
+| `config/c/core/filesys/cfg_file_common.h` | `DJINTERP_CONFIG_C_FILESYS_CFG_FILE_COMMON_H` |
+| `env/env.h`                               | `DJINTERP_ENV_ENV_H`                          |
+| `tools/cli/c/cli.h`                       | `DJINTERP_TOOLS_CLI_C_CLI_H`                  |
+
+The two framework roots keep the short guards `DJINTERP` and `DJINTERP_CPP`.
+
 **re_std is the exception.** It includes nothing from djinterp and builds on
-its own, so its guards are derived from its own path: `RE_STD_`, then the
-file's path under `inc/re_std/` with its extension, uppercased, every run of
-non-alphanumeric characters collapsed to one underscore. `cstdint/cstdint.hpp`
-is `RE_STD_CSTDINT_CSTDINT_HPP`, the extensionless umbrella `cstdint/cstdint`
-is `RE_STD_CSTDINT_CSTDINT`, and `cstdint/dstdint.h` is
-`RE_STD_CSTDINT_DSTDINT_H`. Its macros are spelled `RE_STD_`, never `D_`, and
-its configuration is its own, `inc/re_std/config.hpp`.
+its own, so its guards are derived from its own path: `RE_STD_`, then `C_`
+for a header under `inc/re_std/c/` and nothing for one under
+`inc/re_std/cpp/`, then the rest of its path with its extension, uppercased,
+every run of non-alphanumeric characters collapsed to one underscore.
+`cpp/cstdint/cstdint.hpp` is `RE_STD_CSTDINT_CSTDINT_HPP`, the extensionless
+umbrella `cpp/cstdint/cstdint` is `RE_STD_CSTDINT_CSTDINT`, and
+`c/cstdint/dstdint.h` is `RE_STD_C_CSTDINT_DSTDINT_H`. Its macros are spelled
+`RE_STD_`, never `D_`, and its configuration is its own, `inc/re_std/config.h`
+and `config.hpp`.
 
 **Subsystem table**
 
-| Directory   | Guard prefix | Guard suffix | Macro prefix | Skippable | Namespace  |
-|-------------|--------------|--------------|--------------|-----------|------------|
-| `/djinterp` | `DJINTERP_`  | `_H`/`_HPP`  | `D_`         | no        | `djinterp` |
-| `/3d`       | `3D_`        | `_H`/`_HPP`  | default      | no        | `render3d` |
-| `/c`        | `C_`         | `_H`         | none         | yes       | none       |
-| `/config`   | `CONFIG_`    | `_H`         | `CFG_`       | no        | none       |
-| `/core`     | *(empty)*    | `_HPP`       | none         | yes       | none       |
-| `/env`      | `ENV_`       | `_H`         | default      | no        | none       |
-| `/jit`      | `JIT_`       | `_H`         | default      | no        | none       |
-| `/math`     | `MATH_`      | `_H`/`_HPP`  | default      | no        | `math`     |
-| `/net`      | `NET_`       | `_H`/`_HPP`  | default      | yes       | `net`      |
-| `/parse`    | `PARSE_`     | `_H`/`_HPP`  | default      | yes       | `parse`    |
-| `/parsegen` | `PARSEGEN_`  | `_H`/`_HPP`  | default      | yes       | `parsegen` |
-| `/re_std`   | see above    | see above    | `RE_STD_`    | no        | `re_std`   |
-| `/test`     | `TEST_`      | `_H`/`_HPP`  | default      | no        | `test`     |
+| Folder                  | Macro prefix | Skippable | Namespace  | Banner tag                       |
+|-------------------------|--------------|-----------|------------|----------------------------------|
+| `djinterp/`             | `D_`         | no        | `djinterp` |                                  |
+| `c/`, `cpp/`            | none         | yes       | none       | `[c]`, `[cpp]` for the roots     |
+| `core/`                 | none         | yes       | none       | `[c/core]`, `[cpp/core]`         |
+| `modules/jit/` (C)      | `JIT_`       | no        | none       | `[c/jit]`                        |
+| `modules/math/` (C++)   | `MATH_`      | no        | `math`     | `[cpp/math]`                     |
+| `modules/net/`          | `NET_`       | yes       | `net`      | `[c/net]`, `[cpp/net]`           |
+| `modules/parse/`        | `PARSE_`     | yes       | `parse`    | `[c/parse]`, `[cpp/parse]`       |
+| `modules/parsegen/`     | `PARSEGEN_`  | yes       | `parsegen` | `[c/parsegen]`, `[cpp/parsegen]` |
+| `modules/render/` (C++) | `RENDER_`    | no        | `render3d` | `[cpp/render]`                   |
+| `modules/test/`         | `TEST_`      | no        | `test`     | `[c/test]`, `[cpp/test]`         |
+| `config/`               | `CFG_`       | no        | none       | `[config]`                       |
+| `env/`                  | `ENV_`       | no        | none       | `[env]`                          |
+| `tools/`                | `TOOLS_`     | no        | none       | `[tools]`                        |
+| `tools/ui/`             | `UI_`        | no        | `ui`       | `[tools]`                        |
+| `re_std/`               | `RE_STD_`    | no        | `re_std`   | `[re_std]`                       |
 
-Namespaces nest inside `djinterp`, so `/math` is `djinterp::math` -- except
-`re_std`, which stands on its own and is the top-level namespace `re_std`.
-A namespace cannot begin with a digit, so the 2D and 3D subsystems are
-`render2d` and `render3d` while their guard prefixes stay `2D_` and `3D_`.
+
+Namespaces nest inside `djinterp`, so `modules/math/` is `djinterp::math` --
+except `re_std`, which stands on its own and is the top-level namespace
+`re_std`. A namespace cannot begin with a digit, so the 3D renderer under
+`modules/render/` is `render3d`, its guards `RENDER_` from the folder.
 
 **Format**
 
@@ -120,19 +174,18 @@ A namespace cannot begin with a digit, so the 2D and 3D subsystems are
 
 -   No two headers may share a guard. Because the guard is derived from the
     path, this cannot happen unless the derivation is broken.
--   `/core` contributing an empty prefix means no subdirectory of `/core` may
-    share a name with a top-level subsystem. `/core/net/` would collide with
-    `/net/`.
+-   `core/` and `modules/` contributing nothing means no folder in a tree's
+    `core/` may share a name with a module of the same tree: `c/core/net/`
+    would collide with `c/modules/net/`.
 -   The `#define` carries the value `1`.
 -   The closing `#endif` names the guard in a trailing comment.
 
 **Why there are no exceptions.** Shortening a guard by merging a repeated
 segment looks deterministic and safe. It is not: across this project it produces
 eight collisions, because an umbrella header and a same-named file inside its
-own subdirectory shorten to the same symbol — `net/curl.hpp` against
-`net/curl/curl.hpp`, `c/text/symbol/emoji.h` against
-`c/text/symbol/emoji/emoji.h`. The saving is 1.5 characters on average. Guards
-are read by the preprocessor, not for pleasure.
+own subdirectory shorten to the same symbol — `c/core/text/symbol/emoji.h`
+against `c/core/text/symbol/emoji/emoji.h`. The saving is 1.5 characters on
+average. Guards are read by the preprocessor, not for pleasure.
 
 ### Macro Names
 
@@ -186,38 +239,39 @@ file's include of its own corresponding header says `// corresponding header`,
 as every source's does, so `djinterp.c` includes `djinterp.h` with that one.
 
 **The fixed-width integers come from re_std.** A C file includes re_std's
-`cstdint/dstdint.h` and a C++ file `cstdint/cstdint.hpp`, never `<stdint.h>`,
-`<cstdint>`, `<inttypes.h>` or `<cinttypes>`. Between them they give the types,
-the limits, the constants and the formats at every language level and on every
-platform, and declare no family the build cannot spell. C++ spells the names
-`re_std::uint32_t`, never `std::uint32_t`; a name written without a namespace
-stays as it is, since `dstdint.h` declares the global names. The include is
-written like any other, a path relative to the file and a comment naming what
-the file uses, in a `// re_std` group of its own right after the `// djinterp`
-group: djinterp's configuration, which the framework root brings, is then read
-before re_std's, so that the switches djinterp carries into re_std arrive
-(`config/cfg_re_std.h` stops the build where they cannot).
-`tools/check_stdint_includes.py` enforces the rule,
+`c/cstdint/dstdint.h` and a C++ file `cpp/cstdint/cstdint.hpp`, never
+`<stdint.h>`, `<cstdint>`, `<inttypes.h>` or `<cinttypes>`. Between them they
+give the types, the limits, the constants and the formats at every language
+level and on every platform, and declare no family the build cannot spell. C++
+spells the names `re_std::uint32_t`, never `std::uint32_t`; a name written
+without a namespace stays as it is, since `dstdint.h` declares the global names.
+The include is written like any other, a path relative to the file and a comment
+naming what the file uses, in a `// re_std` group of its own right after the
+`// djinterp` group: djinterp's configuration, which the framework root brings,
+is then read before re_std's, so that the switches djinterp carries into re_std
+arrive (`config/cfg_re_std.h` stops the build where they cannot).
+`scripts/check_stdint_includes.py` enforces the rule,
 in CI as the `stdint-lint` workflow; `dstdint.h` itself and its conformance
 harness are the only files exempt.
 
-**Format:**
+**Format**, in a header under `c/core/<area>/`:
 
 ```c
 // std
-#include <errno.h>        // EINVAL, ERANGE
-#include <stddef.h>       // size_t
-#include <stdlib.h>       // malloc
-#include <string.h>       // memcpy, memset
+#include <errno.h>           // EINVAL, ERANGE
+#include <stddef.h>          // size_t
+#include <stdlib.h>          // malloc
+#include <string.h>          // memcpy, memset
 // djinterp
-#include "../djinterp.h"  // framework root
+#include "../../djinterp.h"  // framework root
 ```
 
 **Additional-line example:**
 
 ```c
-#include "../env/env.h"  // compiler and platform environment detection
-                         // used by conditional portability definitions
+#include "../../../env/env.h"  // compiler and platform environment
+                               // detection used by conditional portability
+                               // definitions
 ```
 
 ### Brackets
@@ -295,9 +349,8 @@ and give it a value in the same statement.
 **Format:**
 
 ```c
-struct some_struct*
-d_some_struct_new_copy(
-    const struct some_struct* _other
+struct dj_some_struct* d_some_struct_new_copy(
+    const struct dj_some_struct* _other
 )
 {
     // parameter validation first
@@ -309,7 +362,7 @@ d_some_struct_new_copy(
     const size_t count    = _other->count;
     const size_t capacity = _other->capacity;
 
-    struct some_struct* result = malloc(sizeof(*result));
+    struct dj_some_struct* result = malloc(sizeof(*result));
 
     // check if memory allocation was successful
     if (!result)
@@ -317,7 +370,8 @@ d_some_struct_new_copy(
         return NULL;
     }
 
-    void* elements = calloc(capacity, sizeof(void*));
+    void* elements = calloc(capacity,
+                            sizeof(void*));
 
     // rest of function logic...
 }
@@ -368,9 +422,8 @@ elements = malloc(size * sizeof(void*));
 **Example:**
 
 ```c
-void
-d_some_struct_free(
-    struct some_struct* _some_struct
+void d_some_struct_free(
+    struct dj_some_struct* _some_struct
 )
 {
     if (_some_struct)
@@ -391,31 +444,44 @@ d_some_struct_free(
 
 ### Prefixes
 
--   **Classes and types**: `snake_case`, with no `d_` prefix — `namespace
-    djinterp` provides the collision protection that C lacks
+-   **Classes, structs, unions, enums and type aliases**: `D` followed by
+    `PascalCase` (`DBoxedKind`, `DFixedArray`). The `D` marks a project type
+    as `dj_` marks a C type; `namespace djinterp` still provides the
+    collision protection
+-   **Kept `snake_case`**: what the standard's protocols name
+    (`value_type`, `iterator`, any `*_type`), traits and metafunctions
+    (`is_*`, `has_*`, `enable_*`, `remove_*`, `make_*`, `*_traits`, a
+    struct whose body is only a `type`, a `value` and static assertions)
+    and their `_t` and `_v` helpers, concepts, member type aliases, types
+    local to a function, and all of `re_std`, which mirrors the standard
+    library. C types keep their `dj_`
+-   **Functions**: `snake_case`
 -   **Macros**: prefixed with `D_`, with the rest in ALL CAPS
 -   **Named constants**: ALL CAPS, with no `D_` prefix, so a constant is
     distinguishable from a macro at the point of use
 -   **Members**: prefixed with `m_`
 -   **Function parameters**: prefixed with a single leading underscore, e.g.
     `_param1`
--   **Template parameters**: undecorated `CamelCase`, e.g. `Type`, `Container`
+-   **Template parameters**: undecorated `CamelCase`, e.g. `Type`, `Container`,
+    and never `D` followed by an upper-case letter, which marks a project type
 
 A **named constant** is a `const` object standing in for a literal —
 `MAX_PATH_LENGTH`, `DEFAULT_CAPACITY`. The rule is about that role, not the
 `const` qualifier: a `const` parameter, a `const` reference, or a `const` local
 holding a computed value is an ordinary variable and stays `snake_case`.
 
-`constexpr` values are `snake_case`, matching the type convention. The split is
+`constexpr` values are `snake_case`, as a trait's `value` is. The split is
 deliberate: `const` marks a runtime constant that reads like a literal, while a
 `constexpr` value is part of the type-level vocabulary and is used the way a
-type alias is.
+trait is.
 
 ```cpp
 const size_t MAX_PATH_LENGTH = 4096;          // named constant
 constexpr size_t default_capacity = 16;       // constexpr: snake_case
 
-bool is_valid(const std::string& _path)       // const parameter
+bool is_valid(
+    const std::string& _path                  // const parameter
+)
 {
     const size_t length = _path.size();       // const local
     return length < MAX_PATH_LENGTH;
@@ -511,11 +577,13 @@ Fields:
 -   `created:` records the original creation date and never changes afterward.
 -   `revised:` records the most recent revision date.
 -   Both dates use the format `YYYY.MM.DD`.
--   The title line's tag is the file's **top-level directory**, in square
-    brackets, exactly as it appears in the subsystem table: `[c]`, `[core]`,
-    `[config]`, `[env]`, `[math]`, `[net]`, `[parse]`, `[parsegen]`,
-    `[re_std]`, `[test]`, `[jit]`, `[3d]`. It is derived from the path, not
-    chosen, so a module name such as `[container]` or `[util]` is never a tag.
+-   The title line's tag is derived from the file's path, in square
+    brackets, as the subsystem table gives it: `[c]` or `[cpp]` for a framework
+    root; `[c/core]` or `[cpp/core]` for the core; `[c/<module>]` or
+    `[cpp/<module>]` for a module (`[cpp/net]`, `[c/parse]`); `[config]`,
+    `[env]`, `[tools]` and `[re_std]` for the shared folders. It is derived,
+    not chosen, so a folder name such as `[container]` or `[util]` is never a
+    tag.
     This makes the tag checkable; a tag nobody can check drifts.
 -   The filename is the file's own name, which must match the file on disk and
     the include guard derived from it.
@@ -750,7 +818,7 @@ header block. The corresponding header is included immediately after it.
 
 ```c
 /**
- * @brief Creates a `d_ptr_array` with the initial capacity specified.
+ * @brief Creates a `dj_ptr_array` with the initial capacity specified.
  *
  * @note An initial size of 0 is valid and creates an empty array.
  *
@@ -786,36 +854,36 @@ Function declarations in header files must follow these rules:
 1.  **Group functions by general functionality** — related functions should be
     placed together in logical sections or subsections.
 2.  **Include parameter names, not just types.**
-3.  **Pad between return type and function name** — all function names in a
-    block should line up in the same column.
+3.  **One shape for every signature**, declaration and definition alike:
 
-    *Exception:* where padding a long return type would carry a declaration
-    past 80 characters, the return type may stand on its own line when that
-    improves readability. Keep it as neat as the padded form: the return type
-    starts where the block's return types start, and the function name
-    starts on the next line in the block's name column, its parameters
-    aligned as rule 4 describes.
-
-    ```c
-    int     d_registry_open(const char* _path);
-    const struct d_registry_entry_descriptor_table*
-            d_registry_descriptor_table(const struct d_registry* _registry);
-    void    d_registry_close(struct d_registry* _registry);
+    ```text
+    template<...>                  the template head first, on its own line(s)
+    static inline                  specifiers and attributes on their own line
+    int d_snprintf(                return type and name on one line
+        char*       _buffer,       one parameter per line, four spaces in,
+        size_t      _size,         names aligned within the signature
+        const char* _format,
+        ...
+    );                             ) on its own line, then ; for a declaration,
+                                   or { on the next line for a definition
     ```
 
-4.  **Multi-line parameters** — when a declaration has more than one parameter,
-    break across multiple lines. Align all parameters with the first parameter
-    after the opening parenthesis. Align parameter names (the `_` character)
-    vertically within each declaration.
-5.  **No empty lines between functions** — functions within the same group have
+    `(void)` and `()` stay on one line, with any qualifiers after them
+    (`int count() const;`). A single parameter takes a line of its own too.
+    Whatever follows the `)` stays on its line (`) const`, `) noexcept`).
+    Nothing is aligned across declarations: a signature's names line up
+    within it and nowhere else. The return type and the name share a line
+    even where it runs past 80 characters.
+
+4.  **No empty lines between functions** — functions within the same group have
     no blank lines separating them.
-6.  **Use the common decimal header hierarchy** — section, subsection, and item
+5.  **Use the common decimal header hierarchy** — section, subsection, and item
     delineations must follow the formats defined under **Header Structure,
     Numbering, and Tables of Contents**.
-7.  **Keep the table of contents synchronized** — any header using structural
+6.  **Keep the table of contents synchronized** — any header using structural
     delineations must contain matching ToC entries.
-8.  **Use one blank line between distinct declaration groups when useful.**
-9.  **Document declarations per the rules under Function Comments.** A group
+7.  **Use one blank line between distinct declaration groups when useful.**
+8.  **Document declarations per the rules under Function Comments.** A group
     comment carries the shared contract for a run of related declarations; a
     function that allocates, invalidates, transfers ownership, or can fail
     carries its own block.
@@ -825,64 +893,58 @@ Function declarations in header files must follow these rules:
 ```c
 // 3.1    secure file opening
 //------------------------------------------------------------------------------
-FILE*   d_fopen(const char* _filename,
-                const char* _mode);
-int     d_fopen_s(FILE**      _stream,
-                  const char* _filename,
-                  const char* _mode);
-FILE*   d_freopen(const char* _filename,
-                  const char* _mode,
-                  FILE*       _stream);
-int     d_freopen_s(FILE**      _newstream,
-                    const char* _filename,
-                    const char* _mode,
-                    FILE*       _stream);
-FILE*   d_fdopen(int         _fd,
-                 const char* _mode);
+FILE* d_fopen(
+    const char* _filename,
+    const char* _mode
+);
+int d_fopen_s(
+    FILE**      _stream,
+    const char* _filename,
+    const char* _mode
+);
+FILE* d_fdopen(
+    int         _fd,
+    const char* _mode
+);
 
 // 3.2    large file support
 //------------------------------------------------------------------------------
-int     d_fseeko(FILE*   _stream,
-                 d_off_t _offset,
-                 int     _whence);
-d_off_t d_ftello(FILE* _stream);
-int     d_ftruncate(int     _fd,
-                    d_off_t _length);
-int     d_ftruncate_stream(FILE*   _stream,
-                           d_off_t _length);
+int d_fseeko(
+    FILE*    _stream,
+    dj_off_t _offset,
+    int      _whence
+);
+dj_off_t d_ftello(
+    FILE* _stream
+);
 
 // 3.3    file descriptor operations
 //------------------------------------------------------------------------------
-int     d_fileno(FILE* _stream);
-int     d_dup(int _fd);
-int     d_dup2(int _fd,
-               int _fd2);
-int     d_close(int _fd);
-ssize_t d_read(int    _fd,
-               void*  _buf,
-               size_t _count);
-ssize_t d_write(int         _fd,
-                const void* _buf,
-                size_t      _count);
-int     d_open(const char* _path,
-               int         _flags,
-               ...);
-```
+int d_fileno(
+    FILE* _stream
+);
+ssize_t d_read(
+    int    _fd,
+    void*  _buf,
+    size_t _count
+);
+int d_open(
+    const char* _path,
+    int         _flags,
+    ...
+);
 
-**Example with longer return types:**
-
-```c
 // 3.4    directory operations
 //------------------------------------------------------------------------------
-int                d_mkdir(const char* _path,
-                           uint32_t    _mode);
-int                d_mkdir_p(const char* _path,
-                             uint32_t    _mode);
-int                d_rmdir(const char* _path);
-struct d_dir_t*    d_opendir(const char* _path);
-struct d_dirent_t* d_readdir(struct d_dir_t* _dir);
-int                d_closedir(struct d_dir_t* _dir);
-void               d_rewinddir(struct d_dir_t* _dir);
+struct dj_dir_t* d_opendir(
+    const char* _path
+);
+struct dj_dirent_t* d_readdir(
+    struct dj_dir_t* _dir
+);
+void d_rewinddir(
+    struct dj_dir_t* _dir
+);
 ```
 
 **Incorrect (do NOT do this):**
@@ -891,7 +953,7 @@ void               d_rewinddir(struct d_dir_t* _dir);
 /// d_arg_parser_init
 ///   function: initialize a parser with default settings.
 /// Returns 0 on success, non-zero on failure.
-int                  d_arg_parser_init(struct d_arg_parser* _parser);
+int                  d_arg_parser_init(struct dj_arg_parser* _parser);
 
 int                  d_some_other_function(void);
 ```
@@ -902,6 +964,8 @@ This is wrong because:
 -   Documents a declaration in free text (`/// ... Returns 0 on success`)
     instead of a `/** */` contract with `@param` and `@return`, so
     `-Wdocumentation` has nothing to check
+-   Pads the return types into a column, and keeps the parameter on the
+    name's line: neither is the signature's shape
 -   Has empty lines between functions in the same group
 
 ### Function Definitions
@@ -927,8 +991,10 @@ In the header, on the declaration -- the contract:
  *         any pointer or iterator this call invalidates.
  * @return `true` if the operation succeeds, `false` otherwise.
  */
-bool             d_some_boolean_fn(const void*       _param1,
-                                   const void* const _param2);
+bool d_some_boolean_fn(
+    const void*       _param1,
+    const void* const _param2
+);
 ```
 
 In the source, on the definition -- the mechanism:
@@ -940,8 +1006,7 @@ d_some_boolean_fn
 break. No parameter list and no return description: those are in the header,
 and a second copy of them would drift.
 */
-bool
-d_some_boolean_fn(
+bool d_some_boolean_fn(
     const void*       _param1,
     const void* const _param2
 )
@@ -988,16 +1053,55 @@ absent from a binary distribution. The definition carries prose about mechanism:
 why this algorithm, what is subtle, which invariant is easy to break. The two do
 not duplicate each other.
 
+**File-local functions.** A function with internal linkage has no
+declaration in a header, so its contract has no header to live in. It goes
+above the function's first declaration in the source file, in the same
+Doxygen form. Where that first declaration is the definition, one block
+above it carries both: the contract's tags first, then the mechanism, as
+prose after them.
+
+```c
+/**
+ * @brief Folds an ASCII letter to lower case.
+ *
+ * @param[in] _c  the character, as an int.
+ * @return the lower-case letter, or `_c` itself for anything else.
+ *
+ * Compared with the ASCII range directly, so the result does not follow the
+ * C locale the way tolower does.
+ */
+static
+int d_internal_ascii_tolower(
+    int _c
+)
+{
+    ...
+}
+```
+
+In C++, a function private to one source file is either `static` or in an
+unnamed namespace, and the rule is the same for both. A `static` member
+function is a different case: its class declares it, in a header, and its
+contract goes on that declaration, as for any member.
+
 **Not every declaration needs a block.** A group comment carries the shared
 contract for a run of related declarations, which keeps aligned declaration
-blocks intact:
+blocks together:
 
 ```c
 // basic accessors -- all O(1), none allocate, all require a non-NULL _string
-size_t           d_string_length(const struct d_string* _string);
-size_t           d_string_size(const struct d_string* _string);
-const char*      d_string_cstr(const struct d_string* _string);
-bool             d_string_is_empty(const struct d_string* _string);
+size_t d_string_length(
+    const struct dj_string* _string
+);
+size_t d_string_size(
+    const struct dj_string* _string
+);
+const char* d_string_cstr(
+    const struct dj_string* _string
+);
+bool d_string_is_empty(
+    const struct dj_string* _string
+);
 ```
 
 A function carries its own block when it **allocates, invalidates, transfers
@@ -1018,12 +1122,14 @@ Declaration, in the header:
 
 ```c
 /**
- * @brief Frees a `d_some_struct` and all associated memory.
+ * @brief Frees a `dj_some_struct` and all associated memory.
  *
  * @param[in] _some_struct  the struct to free; may be `NULL`.
  * @post Every pointer previously obtained from `_some_struct` is invalid.
  */
-void             d_some_struct_free(struct some_struct* _some_struct);
+void d_some_struct_free(
+    struct dj_some_struct* _some_struct
+);
 ```
 
 Definition, in the source -- no `@return` for a `void` function:
@@ -1034,9 +1140,8 @@ d_some_struct_free
   Members are released before the struct itself so the free order stays
 readable; the NULL check is first so callers need no guard of their own.
 */
-void
-d_some_struct_free(
-    struct some_struct* _some_struct
+void d_some_struct_free(
+    struct dj_some_struct* _some_struct
 )
 {
     if (_some_struct)
@@ -1062,8 +1167,12 @@ in the header (declarations) \*.h file:
 ```c
 // group of tests name (corresponding one section of the module's header
 // file, if applicable)
-bool d_tests_some_feature(parameters);
-bool d_tests_another_feature(parameters);
+bool d_tests_some_feature(
+    parameters
+);
+bool d_tests_another_feature(
+    parameters
+);
 ```
 
 in the source (definitions) \*.c file:
@@ -1079,8 +1188,7 @@ d_tests_some_feature
   - specifically tested
   - in this function
 */
-bool
-d_tests_some_feature(
+bool d_tests_some_feature(
     parameters
 )
 {
@@ -1132,16 +1240,15 @@ d_tests_some_feature(
                                param2,                            \
                                other_fn_name,                     \
                                call_params)                       \
-    ret_type                                                      \
-    d_some_struct_hypothetical_example_fn(                        \
-        struct d_some_struct* param1,                             \
+    ret_type d_some_struct_hypothetical_example_fn(               \
+        struct dj_some_struct* param1,                            \
         param2                                                    \
     )                                                             \
     {                                                             \
         if (param1)                                               \
         {                                                         \
             return other_fn_name(                                 \
-                (struct d_some_struct*)param1,                    \
+                (struct dj_some_struct*)param1,                   \
                 param1->count,                                    \
                 call_params);                                     \
         }                                                         \
@@ -1207,25 +1314,28 @@ possible scope with a comment explaining why — never project-wide.
 The floor is ISO C++98: `-std=c++98 -pedantic-errors` with
 `D_CFG_ENV_ISO_STRICT=1`, which also refuses the extensions C++98 compilers
 accept by default, such as variadic macros. CI compiles every unit at each
-level from there to C++23 with GCC and Clang (`ci/check_cpp_standards.sh`).
-Decision 3.6 sets the modules' floors: C++98 for the root, env, the C layer,
-`re_std`, `core/fs`, `core/sync`, `core/meta` and `core/cli` (and `util`,
-`text`, `memory` and `container` if the ladder allows); C++11 for
-`functional`, `event`, `paradigm`, `test`, `net`, `parse`, `parsegen`, `ui`
-and `render`; C++17 for `option` and `db`.
+level from there to C++23 with GCC and Clang
+(`scripts/ci/check_cpp_standards.sh`). Decision 3.6 sets the floors: C++98
+for the root, env, the C tree, `re_std`, and `core/filesys`, `core/sync`,
+`core/meta` and `core/cli` (and `core/util`, `core/text`, `core/memory` and
+`core/container` if the ladder allows); C++11 for `core/functional`,
+`core/event`, `core/paradigm`, the `test`, `net`, `parse`, `parsegen` and
+`render` modules, and `tools/ui`; C++17 for `core/option` and `core/db`.
 
 -   Below its floor, a header compiles to nothing. Its body sits inside
     `#if D_ENV_LANG_IS_CPP11_OR_HIGHER` (or the level it needs), never behind
-    an `#error`. A C header includes its C++ face only from the face's floor,
-    so a C++ caller below it still has the C API.
+    an `#error`. A C header never includes its C++ face (no C header
+    includes C++): a C++ file that wants the face includes it, and below the
+    face's floor still has the C API.
 -   Above the floor, a feature exists from the level that can express it and
     is absent below. A symbol compiles on a level or is absent from it; no
     level changes what a shared type is.
 -   Test the level with `D_ENV_LANG_IS_CPPnn_OR_HIGHER`, which env defines at
     every level (0 below nn, and 0 in C), not with `__cplusplus` directly.
 -   Spell a feature newer than C++98 with the root's kit, defined once in
-    `djinterp.hpp` and `c/djinterp.h`. Never define a private copy: the macro
-    lint (`tools/check_macro_redefinitions.py`) rejects one that differs.
+    `c/djinterp_cpp.h` (which `djinterp.hpp` includes) and `c/djinterp.h`.
+    Never define a private copy: the macro lint
+    (`scripts/check_macro_redefinitions.py`) rejects one that differs.
 
 | Macro | From the level it names | Below it |
 |---|---|---|
@@ -1270,10 +1380,10 @@ scope, no type checking, does not appear in a debugger or a stack trace, and
 cannot be stepped through.
 
 **Carve-out.** Preprocessor recursion, token pasting, and macro families that
-emit declarations are permitted inside `c/util/macro/` and the `D_INTERNAL_`
-argument-count machinery. Variadic argument handling in C genuinely requires
-them and there is no alternative construct. Outside that directory, a
-function-like macro needs a reason that survives review.
+emit declarations are permitted inside `c/core/util/macro/` and the
+`D_INTERNAL_` argument-count machinery. Variadic argument handling in C
+genuinely requires them and there is no alternative construct. Outside that
+directory, a function-like macro needs a reason that survives review.
 
 Where a macro is unavoidable:
 
@@ -1339,7 +1449,9 @@ what the prose misses.
 |---|---|---|
 | Length | 60 lines, excluding the comment block | Extract a helper |
 | Brace nesting | 4 levels inside the body | Early return, or a `goto` cleanup label where this guide permits one |
-| Parameters | 5 | Group related parameters into a struct |
+
+Parameters have no limit; related ones may still travel as a struct where
+one reads better (decision 116 of the register).
 
 Exceeding a limit is not forbidden, it is a signal that needs a reason. A
 dispatch table, a generated function, or a state machine's switch may legitimately
@@ -1451,11 +1563,13 @@ exceptions policy below, `@throws` is rare: most fallible C++ functions return
  * @brief Parses a connection string into its components.
  *
  * @param[in]  _text  the connection string; must not be empty.
- * @return the parsed components, or `unexpected(parse_error)` describing the
+ * @return the parsed components, or `unexpected(DParseError)` describing the
  *         first malformed field.
  */
-[[nodiscard]] expected<connection_info, parse_error>
-parse_connection(std::string_view _text) noexcept;
+[[nodiscard]]
+expected<DConnectionInfo, DParseError> parse_connection(
+    std::string_view _text
+) noexcept;
 ```
 
 Use `@throws` only where the function genuinely propagates an exception — a
@@ -1542,9 +1656,10 @@ Template parameters should be formatted as follows:
 
 -   One parameter per line, starting on the `template<...` line
 -   Parameters use undecorated `CamelCase` and line up on the first letter.
-    Project types are `snake_case`, so a `CamelCase` name in a parameter list
-    is unambiguous without decoration. A leading underscore followed by an
-    upper-case letter is reserved; see **Reserved Identifiers**
+    Project types are `D` + `PascalCase`, so a `CamelCase` name that does not
+    begin with `D` and a capital is unambiguous without decoration. A leading
+    underscore followed by an upper-case letter is reserved; see **Reserved
+    Identifiers**
 -   **Always use `typename`**, never `class`, for type template parameters
 -   Equal signs for default values should line up vertically
 -   Type specifiers (`typename`, non-type specifiers) should align
@@ -1579,7 +1694,7 @@ struct detector<Default, void_t<Op<Args...>>, Op, Args...>
 **Example with default values:**
 
 ```cpp
-// fixed_array
+// DFixedArray
 //   class: fixed-size array container with configurable size and index types.
 template<typename Type,
          typename Iterator,
@@ -1587,7 +1702,7 @@ template<typename Type,
          typename DifferenceType = std::ptrdiff_t,
          typename SizeType       = std::size_t,
          SizeType MaxSize        = std::numeric_limits<SizeType>::max()>
-class fixed_array : public base<Type, DifferenceType, SizeType, MaxSize>
+class DFixedArray : public DBase<Type, DifferenceType, SizeType, MaxSize>
 {
     // body
 };
@@ -1638,9 +1753,9 @@ the very end of the class.
 **Format:**
 
 ```cpp
-// some_class
+// DSomeClass
 //   class: brief description of purpose.
-class some_class
+class DSomeClass
 {
 private:
     // private type aliases
@@ -1664,9 +1779,9 @@ private:
 **Example:**
 
 ```cpp
-// some_class
+// DSomeClass
 //   class: example class demonstrating member ordering conventions.
-class some_class
+class DSomeClass
 {
 private:
     using internal_type = std::vector<int>;
@@ -1678,11 +1793,11 @@ public:
     using value_type = int;
     using reference  = value_type&;
 
-    some_class();
-    ~some_class();
+    DSomeClass();
+    ~DSomeClass();
 
-    void        do_something();
-    value_type  get_value() const;
+    void do_something();
+    value_type get_value() const;
 
 protected:
     size_type m_protected_count;
@@ -1701,11 +1816,11 @@ Inheriting classes should be one per line, starting on the line with
 **Example:**
 
 ```cpp
-// derived
+// DDerived
 //   class: example derived class with multiple inheritance.
-class derived : public  base_one,
-                public  base_two,
-                private implementation_detail
+class DDerived : public  DBaseOne,
+                 public  DBaseTwo,
+                 private DImplementationDetail
 {
     // body
 };
@@ -1714,17 +1829,19 @@ class derived : public  base_one,
 ### Constructors
 
 Constructor definitions follow the same shape as ordinary function
-definitions: the opening parenthesis stays on the same line as the constructor
-name, parameters are indented one level, and the closing parenthesis returns to
-the constructor's own indentation with any `noexcept` specifier on the same
-line. The member initializer list is the only addition.
+definitions: specifiers such as `constexpr` and `explicit` on their own line,
+the opening parenthesis on the same line as the constructor name, parameters
+indented one level, and the closing parenthesis back at the constructor's own
+indentation with any `noexcept` specifier on the same line. The member
+initializer list is the only addition.
 
 **Format:**
 
 ```cpp
-    constexpr chunk_view(
+    constexpr
+    DChunkView(
         const Container& _c,
-        size_type         _chunk_sz
+        size_type        _chunk_sz
     ) noexcept
         : m_ref(_c),
           m_chunk_sz(_chunk_sz)
@@ -1733,6 +1850,8 @@ line. The member initializer list is the only addition.
 
 **Rules:**
 
+-   Specifiers (`constexpr`, `explicit`) on the line above the constructor
+    name, as for any signature
 -   Opening parenthesis `(` on the same line as the constructor name
 -   Parameters indented one level from the constructor line, aligned on the
     `_` character as with standard function parameters
@@ -1748,9 +1867,10 @@ line. The member initializer list is the only addition.
 **Example with body:**
 
 ```cpp
-    constexpr chunk_view(
+    constexpr
+    DChunkView(
         const Container& _c,
-        size_type         _chunk_sz
+        size_type        _chunk_sz
     ) noexcept
         : m_ref(_c),
           m_chunk_sz(_chunk_sz)
@@ -1762,7 +1882,8 @@ line. The member initializer list is the only addition.
 **Example with single parameter and no initializer list:**
 
 ```cpp
-    explicit chunk_view(
+    explicit
+    DChunkView(
         const Container& _c
     ) noexcept
     {}
@@ -1804,7 +1925,10 @@ NS_INTERNAL
     {
         using type = Head;
 
-        static constexpr auto value(const std::tuple<Head, Tail...>& _t)
+        static constexpr
+        auto value(
+            const std::tuple<Head, Tail...>& _t
+        )
         {
             return std::get<0>(_t);
         }
@@ -1848,7 +1972,8 @@ using tuple_type_at_t = tuple_type_at<Index, Types...>::type;
 
 ### Type Trait Naming
 
--   Primary type traits: `snake_case` (e.g., `tuple_type_at`)
+-   Primary type traits: `snake_case` (e.g., `tuple_type_at`), unlike
+    other project types, which are `D` + `PascalCase` (see **Prefixes**)
 -   Type alias helpers: suffix with `_t` (e.g., `tuple_type_at_t`)
 -   Value helpers: suffix with `_v` (e.g., `is_same_v`)
 -   Internal helpers: suffix with `_helper` and place in `internal` namespace
