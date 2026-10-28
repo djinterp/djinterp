@@ -1,0 +1,33 @@
+{
+  "project_name": "re_std",
+  "workbook_title": "re_std C coverage matrix",
+  "workbook_subtitle": "Per-std-header coverage of re_std across C versions. Green = re_std covers it, yellow = only std has it (a coverage gap), red = no coverage. A \"cx\" in a cell marks versions where the macro is an integer constant expression usable in #if.",
+  "unit_label": "Std Header",
+  "unit_label_plural": "std headers",
+  "tiers": {
+    "primary": {
+      "label": "std"
+    },
+    "secondary": {
+      "label": "re_std"
+    }
+  },
+  "support_coloring": "coverage",
+  "category_case": "lower",
+  "language_label": "C",
+  "versions": [
+    "C90",
+    "C95",
+    "C99",
+    "C11",
+    "C17",
+    "C23",
+    "C2y"
+  ],
+  "columns": {
+    "constexpr_matrix": false,
+    "support_shows_constexpr": true,
+    "t_alias": false,
+    "v_var": false
+  }
+}

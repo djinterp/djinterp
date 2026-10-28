@@ -1,0 +1,43 @@
+{
+  "header": "<source_location>",
+  "subtitle": "std::source_location — C++20's value type capturing a source position (file, function, line, column). re_std back-ports it to C++11 with re_std's OWN type (not a std re-export — no language construct emits a source_location, so identity buys nothing, and owning the type keeps behaviour identical across tiers). The factory current() relies on the compiler builtins __builtin_FILE / __builtin_FUNCTION / __builtin_LINE / __builtin_COLUMN supplied as default arguments, which the compiler evaluates at the call site — these builtins long predate C++20, so the RE_STD-AHEAD window spans ~9 years (C++11 vs C++20). std makes current() consteval; re_std makes it constexpr (a single return, valid C++11 constexpr) — strictly more permissive (usable at compile time and runtime), a deliberate documented divergence in service of the back-port. __builtin_COLUMN is newer (GCC 9+, Clang 9+); where absent, column() reports 0 (gated on D_RE_STD_HAS_BUILTIN_COLUMN) while all other fields stay exact. constexpr from C++11 in re_std (C++20 in std) on both the class and the factory. No unmet re_std dependencies; uses std::uint_least32_t from <cstdint> directly (a fundamental width typedef, like size_t).",
+  "legend_blurb": "Per-symbol coverage of the C++20 <source_location> header, back-ported by re_std to C++11 via compiler builtins. re_std's own type (not a re-export); current() is intrinsic-backed (__builtin_FILE/FUNCTION/LINE/COLUMN) and constexpr from C++11 (consteval/C++20 in std). column() degrades to 0 where __builtin_COLUMN is unavailable. 2/2 shipped at the C++11 floor — RE_STD AHEAD OF STD by ~9 years.",
+  "symbols": [
+    {
+      "name": "source_location",
+      "group": "class",
+      "primary_in": "C++20",
+      "secondary_min": "C++11",
+      "constexpr_in_primary": "C++20",
+      "constexpr_in_secondary": "C++11",
+      "intrinsic_required": false,
+      "intrinsic_names": "",
+      "detection_macro": "",
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "re_std's own value type (reexport=false — distinct from std::source_location). Default ctor yields an empty location (line 0, column 0, \"\" strings), matching std. Observers line() / column() / file_name() / function_name() are constexpr noexcept from C++11 (single-return bodies). Stores const char* file/function + uint_least32_t line/column. Lives in source_location/source_location.hpp, gated on D_ENV_LANG_IS_CPP11_OR_HIGHER. RE_STD AHEAD OF STD: surfaced on C++11 vs std's C++20, and constexpr from C++11 vs std's C++20.",
+      "depends_on": [],
+      "failure_reason": "C++11 floor (re_std is already 9 years ahead of std's C++20). Below C++11 there is no constexpr and no noexcept; uint_least32_t is no longer an obstacle, since re_std::uint_least32_t reaches C++98 through dstdint.h. The builtins themselves work in C++98 mode, so a degraded C++98 path (throw(), no constexpr) is possible but was not pursued.",
+      "reexport": false
+    },
+    {
+      "name": "source_location::current",
+      "group": "factory",
+      "primary_in": "C++20",
+      "secondary_min": "C++11",
+      "constexpr_in_primary": "C++20",
+      "constexpr_in_secondary": "C++11",
+      "intrinsic_required": true,
+      "intrinsic_names": "__builtin_FILE / __builtin_FUNCTION / __builtin_LINE / __builtin_COLUMN",
+      "detection_macro": "D_RE_STD_HAS_BUILTIN_COLUMN",
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "Static factory returning the CALL SITE's location: the four builtins are default arguments, so the compiler evaluates them at the caller, not inside current(). std declares it consteval (C++20); re_std declares it constexpr — a single return constructing the object via a private constexpr field-ctor, valid as C++11 constexpr and strictly more permissive (compile-time AND runtime). __builtin_FILE/FUNCTION/LINE are universal on GCC/Clang back to C++98 mode; __builtin_COLUMN (GCC 9+, Clang 9+) is detected via D_RE_STD_HAS_BUILTIN_COLUMN and falls back to column 0 where absent. intrinsic_required because the call-site capture cannot be expressed in portable C++.",
+      "depends_on": [],
+      "failure_reason": "C++11 floor — see source_location. The capture mechanism (builtins as default args) works pre-C++11 too, but constexpr/noexcept and the C++11 floor of the rest of the type set the minimum. consteval (std's C++20 form) cannot be back-ported (a C++20 language feature); re_std uses constexpr instead.",
+      "reexport": false
+    }
+  ]
+}

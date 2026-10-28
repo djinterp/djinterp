@@ -1,0 +1,61 @@
+{
+  "header": "<limits>",
+  "subtitle": "Arithmetic-type properties: numeric_limits<T> for every fundamental type, plus the rounding and subnormal enumerations. A real self-contained implementation (not a std re-export), portable from C++98.",
+  "legend_blurb": "numeric_limits<T> with self-contained per-type specialisations for every fundamental arithmetic type (integers derived generically from the type; floats from compiler-predefined macros + builtins), plus float_round_style and float_denorm_style. Full coverage from C++98; lowest()/max_digits10 back-ported below std's C++11.",
+  "symbols": [
+    {
+      "name": "numeric_limits",
+      "group": "Class template",
+      "primary_in": "C++98",
+      "secondary_min": "C++98",
+      "constexpr_in_primary": "C++11",
+      "constexpr_in_secondary": "C++11",
+      "intrinsic_required": true,
+      "intrinsic_names": "__builtin_huge_valf/__builtin_huge_val/__builtin_huge_vall, __builtin_nanf/__builtin_nan/__builtin_nanl, __builtin_nansf/__builtin_nans/__builtin_nansl; predefined __CHAR_BIT__ and __FLT_*__/__DBL_*__/__LDBL_*__",
+      "detection_macro": "D_RE_STD_LIMITS_BUILTINS",
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "Self-contained, NOT a re-export. Per-type specialisations for bool, every character type, every signed/unsigned integer, and float/double/long double, plus cv-qualified passthroughs. Integer limits derive signedness, digits and min()/max() from the type itself via an internal generic base (so the implementation-defined signedness of char/wchar_t is handled automatically) with no dependency on <climits> values. Floating-point limits read the compiler-predefined __FLT_*__/__DBL_*__/__LDBL_*__ macros, falling back to <cfloat> on compilers that do not predefine them; infinity()/quiet_NaN()/signaling_NaN() use compiler builtins, degrading to a documented best-effort where unavailable. long long / char16_t / char32_t specialisations appear from C++11 and char8_t from C++20 (gated by the underlying type's existence, not by re_std). RE_STD AHEAD OF STD on the member axis: the C++11 observers lowest() and max_digits10 are back-ported to every tier including C++98. Verified member-for-member against std::numeric_limits for all ~19 fundamental types across C++98/11/14/17/20/23.",
+      "depends_on": [],
+      "failure_reason": null,
+      "reexport": false
+    },
+    {
+      "name": "float_round_style",
+      "group": "Enum",
+      "primary_in": "C++98",
+      "secondary_min": "C++98",
+      "constexpr_in_primary": null,
+      "constexpr_in_secondary": null,
+      "intrinsic_required": false,
+      "intrinsic_names": null,
+      "detection_macro": null,
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "Plain (non-scoped) enum naming the rounding mode reported by numeric_limits<T>::round_style: round_indeterminate(-1), round_toward_zero(0), round_to_nearest(1), round_toward_infinity(2), round_toward_neg_infinity(3). A plain enum (matching std), so it works unchanged on C++98.",
+      "depends_on": [],
+      "failure_reason": null,
+      "reexport": false
+    },
+    {
+      "name": "float_denorm_style",
+      "group": "Enum",
+      "primary_in": "C++98",
+      "secondary_min": "C++98",
+      "constexpr_in_primary": null,
+      "constexpr_in_secondary": null,
+      "intrinsic_required": false,
+      "intrinsic_names": null,
+      "detection_macro": null,
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": "C++23",
+      "notes": "Plain enum naming subnormal support reported by numeric_limits<T>::has_denorm: denorm_indeterminate(-1), denorm_absent(0), denorm_present(1). std deprecated this enum (and has_denorm/has_denorm_loss) in C++23; re_std still provides it for portability and deliberately attaches no deprecation attribute so existing code keeps compiling warning-free.",
+      "depends_on": [],
+      "failure_reason": null,
+      "reexport": false
+    }
+  ]
+}

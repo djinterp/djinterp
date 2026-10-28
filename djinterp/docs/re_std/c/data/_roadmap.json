@@ -1,0 +1,275 @@
+[
+  {
+    "priority": 0,
+    "header": "<stdint.h>",
+    "summary": "SHIPPED as dstdint.h (2026.09.29, revised 2026.10.23), now at inc/re_std/c/cstdint/dstdint.h. Every C99 name -- types, limits, constants -- on two backends: the platform's headers, completed where they fall short, or the header's own definitions from the compiler's predefined macros, with a <limits.h> fallback. Identity-preserving; absent rather than approximated. Verified by dstdint.c and t_dstdint.c: 184/184 checks at C99, C11, C17 and C2x on both backends, and at gnu89 (169/169 on the own backend, which leaves the 8-bit scanf formats out below C99). REMAINING: C23's *_WIDTH macros -- the type widths and PTRDIFF / SIZE / SIG_ATOMIC / WCHAR / WINT widths -- fixed facts the own backend already knows, so a cheap, risk-free back-port to C99. __STDC_VERSION_STDINT_H__ is left to the platform on purpose.",
+    "blockers": "—",
+    "est_min": "C99 / C23"
+  },
+  {
+    "priority": 1,
+    "header": "<inttypes.h>",
+    "summary": "PARTIAL. Every C99 PRI / SCN format ships in dstdint.h, including the msvcrt.dll handling MinGW needs (I64 for ll, no hh, so no 8-bit scanf formats there). REMAINING, by payoff: (1) imaxdiv_t, imaxabs, imaxdiv -- trivial on intmax_t; (2) strtoimax / strtoumax -- the strtoll family on intmax_t, with C2y's 0o prefix for base 8 as a decision; (3) wcstoimax / wcstoumax; (4) C2y's umaxabs (draft). C23's PRIb / SCNb binary formats cannot be back-ported as macros: a format string is only as good as the runtime's printf, and no pre-C23 printf has %b. They wait on re_std owning a formatter (see <stdio.h>).",
+    "blockers": "Function naming policy (meta). Binary formats: a formatter of re_std's own.",
+    "est_min": "C99 / C23 / C2y"
+  },
+  {
+    "priority": 10,
+    "header": "<stdio.h>",
+    "summary": "HIGHEST RISK, and djinterp already wraps it (dio.h: d_snprintf, d_vsnprintf, d_sprintf_s, d_sscanf_s, d_gets_s, ...). Traps: (1) before VS2015 Microsoft's runtime had only _snprintf, which leaves a truncated buffer unterminated and returns -1 instead of the length needed; MinGW on msvcrt.dll inherits it unless __USE_MINGW_ANSI_STDIO; (2) the C99 length modifiers -- %zu, %lld, %hhd, %jd, %td -- are missing or wrong on msvcrt.dll, the runtime dstdint.h already special-cases; (3) %n is disabled by default in Microsoft's runtime; (4) C23's %b and %wN / %wfN exist in no older printf. Plan: re_std snprintf / vsnprintf with C99 semantics everywhere -- forwarding where the platform conforms, a shim over _vsnprintf / _vscprintf where it does not -- then decide whether re_std owns a formatter, the only route to %b and %wN below C23. Also: C11's fopen \"x\" (exclusive) mode and the removal of gets; C2y's fopen mode changes toward POSIX (N3247).",
+    "blockers": "Naming policy (meta). Anything newer than the runtime's printf needs a formatter of re_std's own.",
+    "est_min": "C99 / C11 / C23"
+  },
+  {
+    "priority": 11,
+    "header": "<string.h>",
+    "summary": "C23 standardised POSIX functions djinterp already wraps (string_fn.h: d_strdup, d_strndup, d_strnlen; dmemory.h: d_memset_s). Availability: strdup and memccpy are deprecated POSIX names on Microsoft's runtime (_strdup, _memccpy; warning C4996), which has no strndup at all. memset_explicit (C23) has no portable predecessor -- SecureZeroMemory on Windows, explicit_bzero on glibc 2.25+ and the BSDs, Annex K's memset_s on macOS -- and it is the one function whose whole point, surviving dead-store elimination, a naive fallback loses without a sound. strnlen (C2y) is POSIX.1-2008 and nearly universal. Traps outside ISO C that djinterp also wraps and re_std must not imitate by name: strerror_r (XSI returns int, GNU returns char*), and strtok_r vs Microsoft's three-argument strtok_s vs Annex K's four-argument strtok_s.",
+    "blockers": "Naming policy (meta). memset_explicit needs a compiler barrier or an out-of-line call, per compiler.",
+    "est_min": "C23 / C2y"
+  },
+  {
+    "priority": 12,
+    "header": "<time.h>",
+    "summary": "djinterp already wraps most of it (dtime.h: d_timespec_get, d_timegm, d_gmtime / d_localtime, d_strftime_s, monotonic clocks). Availability: timespec_get (C11) reached Microsoft's runtime in VS2015, glibc in 2.16 and macOS in 10.15. C23 adopts gmtime_r, localtime_r and timegm, which Microsoft spells gmtime_s, localtime_s and _mkgmtime -- and Microsoft's gmtime_s takes (struct tm*, const time_t*) and returns errno_t, while Annex K's gmtime_s takes (const time_t*, struct tm*) and returns struct tm*: one name, swapped arguments, the classic silent trap. C23 also adds timespec_getres and the optional TIME_MONOTONIC / TIME_ACTIVE / TIME_THREAD_ACTIVE bases, and deprecates asctime / ctime. Behavioural: 32-bit time_t on some targets (2038), and strftime conversions that vary by runtime.",
+    "blockers": "Naming policy (meta). Monotonic time is platform code, as in re_std's C++ <chrono> time source (clock_gettime / QueryPerformanceCounter).",
+    "est_min": "C11 / C23"
+  },
+  {
+    "priority": 13,
+    "header": "<threads.h>",
+    "summary": "OPTIONAL in C11 (__STDC_NO_THREADS__), and the widest availability gap in the library: glibc only from 2.28, Microsoft's runtime only from VS2022 17.8, musl and the BSDs yes, Apple's libc not at all. djinterp already wraps the whole surface (sync/dmutex.h: thrd_*, mtx_*, cnd_*, tss_*, call_once, plus rwlocks). Plan: the standard semantics on pthreads and on Win32 (SRWLOCK, CONDITION_VARIABLE, InitOnceExecuteOnce), forwarding to <threads.h> where it exists. C23 also declares call_once and once_flag in <stdlib.h>, and makes thread_local a keyword (C11 spelled it _Thread_local, with a macro here).",
+    "blockers": "Platform code (pthreads, Win32). Timed waits need <time.h>'s timespec_get.",
+    "est_min": "C11 (optional)"
+  },
+  {
+    "priority": 14,
+    "header": "<stdatomic.h>",
+    "summary": "OPTIONAL in C11 (__STDC_NO_ATOMICS__). GCC 4.9+ and Clang ship it; Microsoft's compiler only from VS2022 17.5, behind /experimental:c11atomics. djinterp wraps the pointer and flag operations (sync/datomic.h). The generic interface needs _Atomic and _Generic, so below C11 a back-port is per-type functions on compiler builtins (__atomic_*, __sync_*, Interlocked*). Lock-freedom (ATOMIC_*_LOCK_FREE) varies by target and must be reported, not assumed. ATOMIC_VAR_INIT, deprecated in C17, is gone in C23.",
+    "blockers": "Compiler intrinsics (__atomic_*, Interlocked*).",
+    "est_min": "C11 (optional)"
+  },
+  {
+    "priority": 15,
+    "header": "<stdckdint.h>",
+    "summary": "C23: ckd_add / ckd_sub / ckd_mul, overflow-checked integer arithmetic. GCC 14 and Clang 18 ship the header; Microsoft's compiler does not. Back-port: GCC 5+ and Clang 3.8+ have __builtin_add_overflow and friends with exactly these semantics, so the header is a thin map there, with a portable fallback per operand type elsewhere. The macros are type-generic: the fallback needs C11's _Generic, and a C99 path can only be per-type functions.",
+    "blockers": "Compiler intrinsics (__builtin_*_overflow); _Generic for the generic spelling.",
+    "est_min": "C23 (back-port to C11 / C99)"
+  },
+  {
+    "priority": 16,
+    "header": "<stdbit.h>",
+    "summary": "C23, with more in C2y (stdc_rotate_left / right, stdc_memreverse8, endian-aware stdc_load8 / stdc_store8). Availability: glibc 2.39; GCC 14 adds __builtin_stdc_* builtins; Microsoft's runtime has none. re_std's C++ <bit> already ships these algorithms with intrinsic fallbacks (__builtin_clz / ctz / popcount), so the C side is a port of known code. The generic forms (stdc_leading_zeros(x)) need _Generic; the suffixed forms (_uc, _us, _ui, _ul, _ull) are plain functions and back-port to C99.",
+    "blockers": "Compiler intrinsics; _Generic for the generic forms.",
+    "est_min": "C23 / C2y"
+  },
+  {
+    "priority": 17,
+    "header": "<stdlib.h>",
+    "summary": "Many separate traps. (1) aligned_alloc (C11) is unavailable from Microsoft's runtime, whose free cannot release over-aligned blocks (_aligned_malloc pairs with _aligned_free), so a portable interface needs its own matching free -- the shape C23's free_aligned_sized has. (2) C23: free_sized, free_aligned_sized, memalignment, strfromd / strfromf / strfroml, and call_once. (3) quick_exit / at_quick_exit (C11) are missing from Apple's libc; re_std's C++ <cstdlib> already detects it (D_RE_STD_HAS_QUICK_EXIT). (4) Sorting with a context has four incompatible spellings -- glibc's qsort_r (which POSIX.1-2024 adopted), the BSD / macOS qsort_r with the context first, Microsoft's qsort_s and Annex K's qsort_s -- each with its own comparator signature. (5) realloc(p, 0) is undefined in C23, and implementations disagree. (6) RAND_MAX is 32767 on Microsoft's runtime and 2147483647 on glibc. (7) C99's strtoll / strtoull / llabs / lldiv / atoll / _Exit were missing from Microsoft's runtime before VS2013. (8) C2y: uabs / ulabs / ullabs, and an 0o prefix for strtol and family.",
+    "blockers": "Naming policy (meta). Aligned allocation needs a free of its own.",
+    "est_min": "C99 / C11 / C23 / C2y"
+  },
+  {
+    "priority": 18,
+    "header": "(Annex K) bounds-checking interfaces",
+    "summary": "OPTIONAL since C11 (__STDC_LIB_EXT1__, requested with __STDC_WANT_LIB_EXT1__) and almost nowhere conforming: glibc and musl do not implement it; Microsoft's runtime has a pre-standard family under the same names with different signatures in places (strtok_s, gmtime_s, localtime_s, qsort_s, bsearch_s) and its own invalid-parameter handler in place of set_constraint_handler_s; macOS has memset_s and little else. WG14's own field report (N1967) recommended removing it. djinterp nonetheless uses the *_s style throughout (d_strcpy_s, d_strcat_s, d_memcpy_s, d_sprintf_s, d_strftime_s, file_open_stream_s). Decide before any work: back-port the standard interface under re_std names (never Microsoft's, whose signatures differ), or retire the *_s style in djinterp in favour of C23's own answers (memset_explicit, strnlen).",
+    "blockers": "A policy decision (meta). rsize_t, RSIZE_MAX, errno_t and the constraint-handler machinery.",
+    "est_min": "C11 (optional)"
+  },
+  {
+    "priority": 19,
+    "header": "<uchar.h>",
+    "summary": "C11: char16_t / char32_t and mbrtoc16 / c16rtomb / mbrtoc32 / c32rtomb. C23 adds char8_t, mbrtoc8 and c8rtomb, and makes UTF-16 / UTF-32 the encodings of char16_t / char32_t. Availability varies: glibc gained mbrtoc8 in 2.36, and Apple's libc went without the header for years. The functions read the active locale, which is where results differ silently. C2y's <stdmchar.h> supersedes them for explicit-encoding conversion.",
+    "blockers": "Locale handling. In C, char8_t is a typedef (unsigned char), not a distinct type as in C++20.",
+    "est_min": "C11 / C23"
+  },
+  {
+    "priority": 20,
+    "header": "<stddef.h>",
+    "summary": "Small, cheap, missing in places: max_align_t (C11); unreachable() (C23 -- __builtin_unreachable on GCC and Clang, __assume(0) on Microsoft's compiler); nullptr_t (C23, which needs the nullptr keyword and so does not back-port); __STDC_VERSION_STDDEF_H__ (the platform's to claim). re_std's C++ <cstddef> covers the same ground for C++. offsetof, size_t, ptrdiff_t, wchar_t and NULL are universal.",
+    "blockers": "Compiler intrinsics for unreachable.",
+    "est_min": "C11 / C23"
+  },
+  {
+    "priority": 21,
+    "header": "<limits.h>",
+    "summary": "Universal for its C90 content, and for C99's LLONG_* wherever long long exists. C23 adds the *_WIDTH macros (CHAR_WIDTH, INT_WIDTH, ...) and BITINT_MAXWIDTH. The widths back-port at no risk -- each is computable in #if from its *_MAX -- and re_std's C++ <climits> already gap-fills the long long set from compiler builtins, so the C side is a port. BITINT_MAXWIDTH means nothing without _BitInt and stays the platform's.",
+    "blockers": "—",
+    "est_min": "C90 / C99 / C23"
+  },
+  {
+    "priority": 22,
+    "header": "<float.h>",
+    "summary": "re_std's C++ <cfloat> already fills C11's set -- *_DECIMAL_DIG, *_TRUE_MIN, *_HAS_SUBNORM -- from GCC / Clang builtins where the platform header predates it, and leaves a macro missing where no builtin exists (Microsoft's compiler) rather than guess: the C side is a port of that work. C23 adds *_NORM_MAX, *_SNAN and *_IS_IEC_60559, and INFINITY / NAN join <math.h>'s here. Traps already documented on the C++ sheet: *_MIN is the smallest positive NORMAL value, and FLT_ROUNDS is not a constant expression. long double is double on Microsoft's compiler.",
+    "blockers": "Compiler builtins (__FLT_*__).",
+    "est_min": "C99 / C11 / C23"
+  },
+  {
+    "priority": 23,
+    "header": "<math.h>",
+    "summary": "The largest surface and the least uniform results. C99's additions (round, trunc, fmin / fmax, log2, cbrt, nan, the classification macros, the float and long double variants) reached Microsoft's runtime only in VS2013, and long double is double there. C23 brings the TS 18661 set -- roundeven, fmaximum / fminimum and their _num / _mag variants, nextup / nextdown, sinpi / cospi / tanpi, exp10, exp2m1, log2p1, compoundn, pown, powr, rootn, rsqrt, issignaling, iscanonical, canonicalize, fromfp / ufromfp -- almost none of which older libms have. Accuracy differs by libm even where names agree; a library cannot fix that, only document it. Plan: back-port C23 names where an exact composition of C99 functions exists (roundeven, fmaximum, nextup); leave correctly-rounded transcendentals to the platform.",
+    "blockers": "Exact-rounding requirements; long double variants where long double is double.",
+    "est_min": "C99 / C23"
+  },
+  {
+    "priority": 24,
+    "header": "<stdalign.h>",
+    "summary": "C11's alignas / alignof (over the _Alignas / _Alignof keywords) become keywords in C23, leaving the header nothing to do. Below C11 there is no portable spelling: alignof back-ports cleanly (offsetof over struct { char c; T t; }), alignas only per compiler (__attribute__((aligned)), __declspec(align)). Microsoft's compiler has the header from VS2019 16.8, in /std:c11 mode.",
+    "blockers": "Per-compiler attributes for alignas.",
+    "est_min": "C11 / C23"
+  },
+  {
+    "priority": 25,
+    "header": "<assert.h>",
+    "summary": "static_assert: C11 spells it _Static_assert behind a two-argument macro; C23 makes it a keyword with an optional message. djinterp's D_STATIC_ASSERT already spans C99 to C23 and C++; moving it into re_std in the standard's shape is the work. C23 also makes assert variadic, so a comma inside a compound literal no longer breaks it.",
+    "blockers": "—",
+    "est_min": "C11 / C23"
+  },
+  {
+    "priority": 26,
+    "header": "<stdarg.h>",
+    "summary": "va_copy (C99) was missing from Microsoft's compiler before VS2013. The usual stand-ins are __va_copy or plain assignment, and assignment is wrong on ABIs where va_list is an array (x86-64 System V). C23 lets va_start take only the va_list, and allows a variadic function with no named parameter.",
+    "blockers": "Compiler intrinsics (__builtin_va_copy).",
+    "est_min": "C99 / C23"
+  },
+  {
+    "priority": 27,
+    "header": "<complex.h>",
+    "summary": "OPTIONAL from C11 (__STDC_NO_COMPLEX__). Microsoft's compiler has no _Complex type at all: its <complex.h> offers _Dcomplex / _Fcomplex / _Lcomplex structs and functions over them, so complex code does not port to it unchanged. C11 adds CMPLX / CMPLXF / CMPLXL; C2y removes imaginary types and adds complex literals and ++ / --. A library can supply the functions but not the type: re_std's part is a portable struct-based interface, or nothing.",
+    "blockers": "A language feature (_Complex) absent on one major compiler.",
+    "est_min": "C99 (optional from C11)"
+  },
+  {
+    "priority": 28,
+    "header": "<wchar.h>",
+    "summary": "C95. Universal in name, divergent in substance: wchar_t is 16 bits (UTF-16 units) on Windows and 32 bits elsewhere, so one wchar_t is not one character there; Microsoft's runtime long shipped non-conforming swprintf (no size argument) and wcstok (two arguments), kept since VS2015 behind _CRT_NON_CONFORMING_SWPRINTFS / _CRT_NON_CONFORMING_WCSTOK. Wide-oriented I/O (fwide) does not mix with byte I/O on one stream. Low value to reimplement, high value to document; <uchar.h> and C2y's <stdmchar.h> are the better tools. C2y adds wcsnlen.",
+    "blockers": "—",
+    "est_min": "C95 / C99 / C2y"
+  },
+  {
+    "priority": 40,
+    "header": "<stdbool.h>",
+    "summary": "C99. bool / true / false become keywords in C23, leaving only the obsolescent __bool_true_false_are_defined. Universal from C99; Microsoft's compiler from VS2013. A C90 path would be a typedef that is not _Bool and converts differently -- leave it.",
+    "blockers": "—",
+    "est_min": "C99 / C23"
+  },
+  {
+    "priority": 41,
+    "header": "<stdnoreturn.h>",
+    "summary": "C11's noreturn macro for _Noreturn; C23 makes the header obsolescent in favour of [[noreturn]]. Below C11 the spellings are per compiler (__attribute__((noreturn)), __declspec(noreturn)). Low risk.",
+    "blockers": "—",
+    "est_min": "C11 / C23"
+  },
+  {
+    "priority": 42,
+    "header": "<errno.h>",
+    "summary": "Universal for EDOM, ERANGE and EILSEQ (C95). The POSIX error numbers are outside ISO C and vary in value and presence (Microsoft's runtime has a subset). errno_t is Annex K's. Nothing to back-port; djinterp's derror.h is the place for any mapping.",
+    "blockers": "—",
+    "est_min": "C90 / C95"
+  },
+  {
+    "priority": 43,
+    "header": "<ctype.h>",
+    "summary": "Universal (isblank is C99), with one trap that crashes real programs: passing a negative char other than EOF is undefined, and Microsoft's debug runtime asserts on it. An unsigned-char-safe layer is djinterp work rather than a back-port. Results otherwise follow the locale.",
+    "blockers": "—",
+    "est_min": "C90 / C99"
+  },
+  {
+    "priority": 44,
+    "header": "<locale.h>",
+    "summary": "Universal in name; locale names are not (\"C.UTF-8\", \"en_US.UTF-8\", \".UTF8\" on Windows 10 1803 and later), and setlocale is process-wide and not thread-safe. Nothing to back-port; a test matrix must document which names each platform accepts.",
+    "blockers": "—",
+    "est_min": "C90"
+  },
+  {
+    "priority": 45,
+    "header": "<signal.h>",
+    "summary": "Universal in name; signal()'s behaviour after delivery differs (System V resets the handler, BSD keeps it), and the fix, sigaction, is POSIX, outside ISO C. sig_atomic_t is missing on some embedded libraries (avr-libc), and <signal.h> is an #error on wasi-libc without its emulation -- both already handled by dstdint.c.",
+    "blockers": "—",
+    "est_min": "C90"
+  },
+  {
+    "priority": 46,
+    "header": "<setjmp.h>",
+    "summary": "Universal. The traps are language-level (locals changed between setjmp and longjmp must be volatile) and ABI-level (interaction with C++ unwinding and with structured exception handling). Nothing to back-port.",
+    "blockers": "—",
+    "est_min": "C90"
+  },
+  {
+    "priority": 47,
+    "header": "<wctype.h>",
+    "summary": "C95. Universal; results follow the locale and wchar_t's width (on Windows one UTF-16 unit, so no classification outside the BMP).",
+    "blockers": "—",
+    "est_min": "C95"
+  },
+  {
+    "priority": 48,
+    "header": "<tgmath.h>",
+    "summary": "C99 type-generic math: compiler magic before C11, _Generic after. Check Microsoft's compiler, whose C11 mode dates from VS2019 16.8. Follows <math.h>: back-port the functions first.",
+    "blockers": "<math.h>.",
+    "est_min": "C99"
+  },
+  {
+    "priority": 49,
+    "header": "<fenv.h>",
+    "summary": "C99 floating-point environment. Present on the major hosted libraries, but GCC does not implement #pragma STDC FENV_ACCESS (it has -frounding-math instead), so flags read after optimisation can be stale. Platform-specific by nature; a library can only document it.",
+    "blockers": "—",
+    "est_min": "C99"
+  },
+  {
+    "priority": 50,
+    "header": "<iso646.h>",
+    "summary": "C95 alternative operator spellings (and, or, not, ...). Universal and trivial; nothing to do.",
+    "blockers": "—",
+    "est_min": "C95"
+  },
+  {
+    "priority": 80,
+    "header": "<stdcountof.h>",
+    "summary": "C2y working draft (N3469): countof(array) over the new _Countof operator. GCC and Clang ship the header for -std=c2y. The back-port is a macro over sizeof with an array-only check (__builtin_types_compatible_p on GCC / Clang, none elsewhere) -- cheap, and a real safety gain, since sizeof(a) / sizeof(a[0]) on a pointer compiles and lies.",
+    "blockers": "Compiler intrinsics for the array check.",
+    "est_min": "C2y (draft)"
+  },
+  {
+    "priority": 81,
+    "header": "<stdmchar.h>",
+    "summary": "C2y working draft (N3366): restartable conversions between execution, wide and UTF-8 / 16 / 32 encodings with the encoding explicit -- the fix for <uchar.h>'s locale coupling. No C library implements it yet (GCC tracks it as bug 117020). Wait for ratification and a first implementation.",
+    "blockers": "—",
+    "est_min": "C2y (draft)"
+  },
+  {
+    "priority": 82,
+    "header": "C2y additions to existing headers",
+    "summary": "strnlen / wcsnlen, the <stdbit.h> additions, uabs / ulabs / ullabs / umaxabs, 0o prefixes for strtol and family, fopen mode changes (N3247). Each is folded into its header's entry above; this row tracks the draft as a whole, which can change before ratification.",
+    "blockers": "—",
+    "est_min": "C2y (draft)"
+  },
+  {
+    "priority": 9999,
+    "header": "(meta)",
+    "summary": "DECIDE FIRST: how a back-ported FUNCTION is spelled. dstdint.h's rule -- the standard's names, global, defined exactly where absent -- works for types and macros, which a header may define and #ifdef can test. Functions differ: the library's external names are always reserved for external linkage whether or not the header is included (C17 7.1.3), and the future library directions reserve str*, mem*, wcs*, is* and to* ahead of standardisation (\"potentially reserved\" in C23), so re_std cannot define strdup on a C99 platform. Options: (a) re_std_ functions that forward to the platform's where it conforms, keeping identity where it exists; (b) static inline wrappers in the header; (c) an opt-in macro mapping the standard name onto re_std's. djinterp's d_ wrappers are option (a) under another prefix.",
+    "blockers": "—",
+    "est_min": "—"
+  },
+  {
+    "priority": 9999,
+    "header": "(meta)",
+    "summary": "DECIDE: the C workbook's floor. It starts at C90, matching the C++ workbook's C++98, so every shipped row currently reads as a floor question. Measured: dstdint.h's one obstacle in strict C90 is its // comments, which the style guides require; with // accepted (gcc -std=gnu89) its harness passes in full. djinterp's own C floor is C99. Either accept C90 as a non-goal and say so in the failure reasons, or start the axis at C99 and lose the seven-column symmetry with the C++ workbook.",
+    "blockers": "—",
+    "est_min": "—"
+  },
+  {
+    "priority": 9999,
+    "header": "(meta)",
+    "summary": "MIGRATION: djinterp's C core already wraps most of the hotspots above under d_ names -- dio.h (snprintf family, *_s I/O), string_fn.h (strdup, strndup, strnlen, strtok_r, strerror_r, *_s string functions), dmemory.h (memcpy_s, memset_s), dtime.h (timespec_get, timegm, gmtime / localtime, strftime_s, monotonic time), sync/dmutex.h (the <threads.h> surface plus rwlocks), sync/datomic.h (a <stdatomic.h> subset), filesys/ (fopen_s, 64-bit seek and tell). Each standard-named piece is a candidate to move into re_std once the naming policy is settled, with djinterp re-pointed at it -- the path dstdint.h took out of djinterp's c/re_std/. The non-standard pieces (POSIX, rwlocks, monotonic time) stay djinterp's.",
+    "blockers": "—",
+    "est_min": "—"
+  },
+  {
+    "priority": 9999,
+    "header": "(meta)",
+    "summary": "TESTING: for C the library, not the language level, is the axis that breaks things -- glibc, musl, Microsoft's UCRT, msvcrt.dll through MinGW, Apple's libc, the BSDs, newlib / picolibc, Bionic, wasi-libc, avr-libc. The workbook's version columns cannot show that, so per-library facts live in each row's notes and detection macro. dstdint.c and t_dstdint.c are the model (compile-time claims plus a runtime round trip, per backend, per library); ci/check_dstdint.sh, which t_dstdint.c names as the matrix runner, is not in the tree and belongs at scripts/ci/.",
+    "blockers": "—",
+    "est_min": "—"
+  }
+]
