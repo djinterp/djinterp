@@ -1,0 +1,25 @@
+{
+  "header": "<version>",
+  "subtitle": "std::<version> — the C++20 header that aggregates every __cpp_lib_* library feature-test macro and nothing else (no types, functions, or objects). re_std surfaces those macros by including the platform <version> when the language is C++20 or later: the __cpp_lib_* macros describe std's library and cannot be reimplemented, so they are re-exported unchanged (identity preserved). Before C++20 there is no aggregator — the per-feature __cpp_lib_* macros (added to individual headers in C++17) have no umbrella — and re_std's own capability signalling is its D_RE_STD_* / D_ENV_* detection table (see <djinterp>), not __cpp_lib_*; re_std's <version> is intentionally a no-op there. Because the header is macro-only, it has a single catalogued row standing for the whole __cpp_lib_* set rather than per-symbol coverage. No unmet re_std dependencies.",
+  "legend_blurb": "Coverage of the C++20 <version> header — a macro-only feature-test aggregator. re_std re-exports std's __cpp_lib_* macros by including <version> on C++20+ (identity preserved; they describe std and cannot be reimplemented). No pre-C++20 aggregator exists; re_std's own capability macros are the D_RE_STD_*/D_ENV_* table, not __cpp_lib_*.",
+  "symbols": [
+    {
+      "name": "__cpp_lib_* feature-test macros",
+      "group": "feature-test macros",
+      "primary_in": "C++20",
+      "secondary_min": "C++20",
+      "constexpr_in_primary": null,
+      "constexpr_in_secondary": null,
+      "intrinsic_required": false,
+      "intrinsic_names": "",
+      "detection_macro": "",
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "The entire __cpp_lib_* macro set, surfaced as an identity-preserving re-export: re_std's <version> includes the platform <version> on C++20+ (gated on D_ENV_LANG_IS_CPP20_OR_HIGHER, guarded by __has_include). These macros describe std's library, so re_std cannot define or reimplement them — it surfaces std's unchanged. constexpr is not applicable (preprocessor macros). One row stands for the whole set since the header is macro-only. Pre-C++20, re_std exposes its own D_RE_STD_*/D_ENV_* detection table instead (documented in <djinterp>), which is re_std-authored and tracked separately, not here.",
+      "depends_on": [],
+      "failure_reason": "Cannot reach below C++20. <version> is the C++20 aggregator of the __cpp_lib_* macros; before C++20 those macros live in their individual feature headers (C++17) with no umbrella header to surface, and re_std will not fabricate __cpp_lib_* values (they describe std's library, not re_std's). re_std's pre-C++20 capability signalling uses its own D_RE_STD_*/D_ENV_* macros.",
+      "reexport": true
+    }
+  ]
+}

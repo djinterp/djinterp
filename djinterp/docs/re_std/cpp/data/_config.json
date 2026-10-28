@@ -1,0 +1,21 @@
+{
+  "project_name": "re_std",
+  "workbook_title": "re_std coverage matrix",
+  "workbook_subtitle": "Per-std-header coverage of re_std across C++ versions. Green = re_std covers it, yellow = only std has it (a coverage gap), red = no coverage. A \"cx\" in a cell marks versions where the symbol is usable in a constant expression.",
+  "unit_label": "Std Header",
+  "unit_label_plural": "std headers",
+  "tiers": {
+    "primary": {
+      "label": "std"
+    },
+    "secondary": {
+      "label": "re_std"
+    }
+  },
+  "support_coloring": "coverage",
+  "category_case": "lower",
+  "columns": {
+    "constexpr_matrix": false,
+    "support_shows_constexpr": true
+  }
+}
