@@ -5,8 +5,8 @@
 # as a CMake script, for a system with no shell.
 #   tests/dawk/fixtures/<sheet>/.../<name>.<c|h|cpp|hpp> is a fixture, and
 # the file of the same name with .expected after it holds its findings,
-# exactly. The sheet is sheets/<sheet>.dss. A fixture with an empty golden is
-# a negative case: the rules must stay silent on it. A fixture that does not
+# exactly. The sheet is res/sheets/<sheet>.dss. A fixture with an empty golden
+# is a negative case: the rules must stay silent on it. A fixture that does not
 # match is named, with what was expected and what came; and so is a sheet
 # with a rule that fires on none of its fixtures, since a selector naming
 # what nothing emits matches nothing, silently.
@@ -87,7 +87,7 @@ foreach(_fixture IN LISTS _fixtures)
     # the harness exits 1 when it has findings, so a run is judged by what
     # it printed; a status that is no number means it did not run at all
     execute_process(
-        COMMAND ${_run} "sheets/${_sheet}.dss" "${_fixture}"
+        COMMAND ${_run} "res/sheets/${_sheet}.dss" "${_fixture}"
         WORKING_DIRECTORY "${ROOT}"
         OUTPUT_VARIABLE   _actual
         ERROR_VARIABLE    _errors
@@ -129,7 +129,7 @@ endif()
 # every rule of a sheet must fire on some fixture of that sheet
 foreach(_sheet IN LISTS _sheets)
     execute_process(
-        COMMAND ${_run} --uncovered "sheets/${_sheet}.dss"
+        COMMAND ${_run} --uncovered "res/sheets/${_sheet}.dss"
                 ${_fixtures_of_${_sheet}}
         WORKING_DIRECTORY "${ROOT}"
         OUTPUT_VARIABLE   _actual
@@ -137,7 +137,7 @@ foreach(_sheet IN LISTS _sheets)
         RESULT_VARIABLE   _status)
 
     if(NOT _status EQUAL 0)
-        message("FAIL sheets/${_sheet}.dss has rules no fixture exercises")
+        message("FAIL res/sheets/${_sheet}.dss has rules no fixture exercises")
         message("${_actual}${_errors}")
 
         math(EXPR _failed "${_failed} + 1")

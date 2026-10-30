@@ -52,7 +52,7 @@ djinterp_add_test_executable(c_file_tests
 
 # The standalone half of the suite: its sections under the standalone driver,
 # which supplies main() and the test-object model the D_ASSERT_* macros build.
-set(_driver "${DJINTERP_TESTS_ROOT}/djinterp/test/c/test_standalone_min.c")
+set(_driver "${DJINTERP_TESTS_ROOT}/djinterp/c/modules/test/test_standalone_min.c")
 file(GLOB _standalone CONFIGURE_DEPENDS "${_tests_dir}/file_tests_sa*.c")
 
 djinterp_add_test_executable(c_file_tests_sa

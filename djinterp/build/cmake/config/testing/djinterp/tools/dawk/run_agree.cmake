@@ -91,7 +91,7 @@ foreach(_sheet IN LISTS _directories)
 
     execute_process(
         COMMAND ${_run} --source.files=all --report.findings=1000000
-                "sheets/${_sheet}.dss" "${_root}"
+                "res/sheets/${_sheet}.dss" "${_root}"
         WORKING_DIRECTORY "${ROOT}"
         OUTPUT_VARIABLE   _printed
         ERROR_VARIABLE    _errors
@@ -145,7 +145,7 @@ foreach(_sheet IN LISTS _directories)
     math(EXPR _sheets "${_sheets} + 1")
 
     if(NOT "${_driver}" STREQUAL "${_goldens}")
-        message("FAIL sheets/${_sheet}.dss: the driver and the goldens "
+        message("FAIL res/sheets/${_sheet}.dss: the driver and the goldens "
                 "differ")
         message("  the goldens hold:\n${_goldens}")
         message("  the driver lists:\n${_driver}")

@@ -90,7 +90,7 @@ option(DJINTERP_DAWK_WARNINGS
 # where the sources, the suites and the sheets are
 set(_tool  "${DJINTERP_DAWK_ROOT}/src/djinterp/tools/dawk")
 set(_ext   "${_tool}/ext")
-set(_parse "${DJINTERP_DAWK_ROOT}/src/djinterp/parse")
+set(_parse "${DJINTERP_DAWK_ROOT}/src/djinterp/c/modules/parse")
 set(_mine  "${DJINTERP_DAWK_ROOT}/tests/dawk")
 set(_unit  "${DJINTERP_DAWK_ROOT}/tests/djinterp/tools/dawk")
 
@@ -235,8 +235,8 @@ add_library(djinterp_dawk_checker STATIC
     "${_tool}/dxml.c"
     ${_extensions}
     ${_lexer}
-    "${_parse}/c/diagnostic.c"
-    "${_parse}/c/storage.c")
+    "${_parse}/diagnostic.c"
+    "${_parse}/storage.c")
 
 djinterp_dawk_flags(djinterp_dawk_checker)
 
@@ -533,7 +533,7 @@ djinterp_dawk_script(djinterp_dawk_cmake_values run_cmake_values.cmake
 
 # the sheet parser over every sheet the tree has: each must parse
 file(GLOB _sheets CONFIGURE_DEPENDS
-     "${DJINTERP_DAWK_ROOT}/sheets/*.dss")
+     "${DJINTERP_DAWK_ROOT}/res/sheets/*.dss")
 
 foreach(_sheet IN LISTS _sheets)
     get_filename_component(_stem "${_sheet}" NAME_WE)

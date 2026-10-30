@@ -1,0 +1,46 @@
+# djinterp [tools]                                         expected_sections.txt
+#
+# How many sections the command-line kit's suites run in each build, in the
+# default configuration (testing mode, every knob at its default): the C
+# suites at each C level, the allocation sweep at the C floor (`-sweep`),
+# the C++ suite at each C++ level, and the C++ suite without exceptions
+# (`-noexc`) at the lowest and the highest.
+#   A suite is a table of sections, and a section is the unit a configuration
+# knob removes. A section that silently stopped being compiled would
+# otherwise read as a smaller pass; these are the counts that make it a
+# failure instead.
+#   Both builds read this file -- CMakeLists.txt and run_cli_tests.sh, beside
+# it -- so there is one place to change when a section is added. A line is
+# `<build> <sections>`; anything else is a comment.
+#   A build under a configuration knob runs fewer sections, by design, and is
+# not held to these counts: DJINTERP_CLI_EXPECT_COUNTS in CMakeLists.txt.
+#
+# path:      /build/cmake/config/testing/djinterp/tools/cli/expected_sections.txt
+# link(s):   TBA
+# author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
+#                                                            revised: 2026.10.27
+
+# the C suites: streams and files 8, help 5, the program 18, commands that
+# change a file 4, operands that name no file 2, plugins 8
+c99 45
+c11 45
+c17 45
+c23 45
+
+# the allocation sweep, at the C floor: making, endings, work, files,
+# plugins
+c99-sweep 5
+
+# the C++ suite -- at C++98; from C++11 -- the program 3, exceptions 1, the
+# lambdas none, 1; a module's program 1, files 1, edits 1, plugins 1, the
+# version 1
+c++98 9
+c++11 10
+c++14 10
+c++17 10
+c++20 10
+c++23 10
+
+# without exceptions the exceptions' section goes: 1 fewer
+c++98-noexc 8
+c++23-noexc 9

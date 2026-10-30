@@ -1,0 +1,290 @@
+#!/usr/bin/env bash
+#*******************************************************************************
+# vparse [cl_standin]                                                         cl
+#
+# A stand-in for cl 19.51 that CMake can drive, for a machine with no MSVC.
+#   It takes cl's command line, as CMake writes it for MSVC, and compiles the
+# unit with a MinGW-w64 Clang for 64-bit Windows. In front of the unit it
+# puts the standard library, read under the real compiler's identity, and
+# then identity.h, which swaps that identity for cl's. So CMake identifies
+# the compiler as MSVC 19.51 and takes every branch of every list file that
+# it takes for cl, and djinterp's env takes the branches it takes under cl --
+# and what they select is compiled, linked and run.
+#   THE LIBRARY IS READ FIRST because it does not compile as cl's: libstdc++
+# asks which compiler it is under. A header read before the swap is not read
+# again -- its guard sees to that. So the lists below must name every
+# standard header a unit includes; one that is missing is read as cl's, and
+# the errors say so loudly. <windows.h> is not in them and must not be: its
+# macros would reach every unit, ERROR among them, which djinterp's LR family
+# uses as a name.
+#   WHAT IT IS NOT is cl: the parser and the warnings are Clang's, and the
+# library is libstdc++ over the MinGW-w64 runtime, not Microsoft's. It shows
+# that the build is right for cl, and that the code cl is handed compiles
+# and runs; it cannot show that cl accepts it.
+#   Flags that say how cl is to read, check or emit (/Zc:..., /permissive-,
+# /EHsc, /W4, /MD, ...) are taken for what they mean here or dropped; a flag
+# this script does not know stops it, so that nothing is silently ignored.
+# Whether a unit was given /Zc:preprocessor is carried into the unit, as
+# _MSVC_TRADITIONAL, as cl carries it.
+#
+#   env:  CL_STANDIN_LOG         a file to append one line per unit to: its
+#                                language, level, preprocessor and source
+#         CL_STANDIN_REAL_ROOTS  directories, colon-separated, whose sources
+#                                keep the real identity. Dear ImGui's must:
+#                                they include <windows.h>, which the MinGW-w64
+#                                headers will not read as cl's
+#
+# path:      /build/cmake/config/djinterp/tools/vparse/cl_standin/cl
+# link(s):   TBA
+# author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.06
+#                                                            revised: 2026.10.15
+#*******************************************************************************
+set -u
+
+HERE="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+TARGET="x86_64-w64-mingw32"
+
+# the C library, for a C unit
+C_HEADERS=(assert.h ctype.h errno.h float.h inttypes.h limits.h locale.h
+           math.h setjmp.h signal.h stdarg.h stdbool.h stddef.h stdint.h
+           stdio.h stdlib.h string.h time.h wchar.h wctype.h)
+
+# the C++ library, for a C++ unit: what every level has, what C++17 added,
+# what C++20 added, and the C headers a unit may name in their C spelling
+CXX_HEADERS=(algorithm array cassert cctype cerrno cfloat chrono cinttypes
+             climits cmath cstdarg cstddef cstdint cstdio cstdlib cstring
+             ctime cwchar deque exception fstream functional
+             initializer_list iomanip iostream iterator limits list map
+             memory new numeric ostream set sstream stdexcept string tuple
+             type_traits typeinfo unordered_map unordered_set utility vector)
+CXX17_HEADERS=(any optional string_view variant)
+CXX20_HEADERS=(compare concepts span version)
+CXX_C_HEADERS=(inttypes.h limits.h stdbool.h stddef.h stdint.h stdio.h
+               stdlib.h string.h)
+
+language=""
+level=""
+traditional=1
+compile_only=0
+show_includes=0
+object=""
+executable=""
+pending=""
+sources=()
+passed=()
+
+fail()
+{
+    echo "cl stand-in: $*" >&2
+
+    exit 2
+}
+
+# cl's command line, an argument at a time. An argument that begins with a
+# slash is an option unless it names a file, which an absolute path does.
+for argument in "$@"; do
+    if [ -n "${pending}" ]; then
+        passed+=("${pending}" "${argument}")
+        pending=""
+
+        continue
+    fi
+
+    case "${argument}" in
+        # the language, and what to produce
+        /TP|-TP)                      language="c++" ;;
+        /TC|-TC)                      language="c" ;;
+        /c|-c)                        compile_only=1 ;;
+        /std:*|-std:*)                level="${argument#*:}" ;;
+        /Fo*)                         object="${argument#/Fo}" ;;
+        /Fe*)                         executable="${argument#/Fe}" ;;
+        /showIncludes|-showIncludes)  show_includes=1 ;;
+
+        # the preprocessor: remembered, and carried into the unit
+        /Zc:preprocessor|-Zc:preprocessor)  traditional=0 ;;
+
+        # definitions and include paths
+        /D|-D)                        pending="-D" ;;
+        /D*)                          passed+=("-D${argument#/D}") ;;
+        -D*)                          passed+=("${argument}") ;;
+        /U*)                          passed+=("-U${argument#/U}") ;;
+        /I|-I)                        pending="-I" ;;
+        /I*)                          passed+=("-I${argument#/I}") ;;
+        -I*)                          passed+=("${argument}") ;;
+        /external:I|-external:I)      pending="-isystem" ;;
+        /external:I*|-external:I*)
+            passed+=("-isystem" "${argument#*external:I}") ;;
+        /FI*)                         passed+=("-include" "${argument#/FI}") ;;
+
+        # optimization and warnings, for what they mean here
+        /O2|-O2|/Ox|-Ox)              passed+=("-O2") ;;
+        /O1|-O1)                      passed+=("-O1") ;;
+        /Od|-Od)                      passed+=("-Og") ;;
+        /W4|-W4)                      passed+=("-Wall" "-Wextra") ;;
+        /W3|-W3|/W2|-W2|/W1|-W1)      passed+=("-Wall") ;;
+        /W0|-W0|/w|-w)                passed+=("-w") ;;
+        /WX|-WX)                      passed+=("-Werror") ;;
+
+        # the debug runtime defines this, and code may ask
+        /MDd|-MDd|/MTd|-MTd)          passed+=("-D_DEBUG") ;;
+
+        # how cl reads, checks and emits: nothing to do here
+        /nologo|-nologo)              ;;
+        /Zc:*|-Zc:*)                  ;;
+        /permissive-|-permissive-)    ;;
+        /utf-8|-utf-8)                ;;
+        /EH*|-EH*|/GR*|-GR*)          ;;
+        /MD|-MD|/MT|-MT)              ;;
+        /Zi|-Zi|/Z7|-Z7|/ZI|-ZI)      ;;
+        /Ob*|-Ob*|/RTC*|-RTC*)        ;;
+        /GS*|-GS*|/Gd|/Gm-|/fp:*)     ;;
+        /Fd*|/FS|-FS|/FC|-FC)         ;;
+        /wd*|-wd*)                    ;;
+        /MP*|-MP*)                    ;;
+        /diagnostics:*|-diagnostics:*) ;;
+        /external:W*|-external:W*)    ;;
+        /bigobj|-bigobj)              ;;
+
+        *)
+            if [ -f "${argument}" ]; then
+                sources+=("${argument}")
+            else
+                fail "an argument it does not know: '${argument}'"
+            fi
+            ;;
+    esac
+done
+
+if [ "${#sources[@]}" -ne 1 ]; then
+    fail "one source at a time; this command line has ${#sources[@]}"
+fi
+
+source="${sources[0]}"
+
+if [ -z "${language}" ]; then
+    case "${source}" in
+        *.c) language="c" ;;
+        *)   language="c++" ;;
+    esac
+fi
+
+# a source under one of CL_STANDIN_REAL_ROOTS keeps the real identity
+real=0
+resolved="$(readlink -f "${source}")"
+
+IFS=':' read -r -a roots <<< "${CL_STANDIN_REAL_ROOTS:-}"
+
+for root in "${roots[@]}"; do
+    if [ -n "${root}" ]; then
+        case "${resolved}" in
+            "$(readlink -f "${root}")"/*) real=1 ;;
+        esac
+    fi
+done
+
+# Clang and libstdc++ disagree, on this target, about whether a type_info is
+# compared inline: GCC says not, its library defines the comparison, and a
+# second definition from a unit is a duplicate at link time. The macro is
+# GCC's own answer. At C++23 the header defines it inline whatever the macro
+# says, which is why /Od above is -Og and not -O0: optimized at all, the
+# call is inlined and no second definition is emitted.
+command=(clang "--target=${TARGET}" -fms-extensions
+         -D__GXX_TYPEINFO_EQUALITY_INLINE=0
+         -Wno-builtin-macro-redefined -Wno-unknown-pragmas -Wno-pragma-pack)
+
+# the level: the one asked for, or the one cl has when none is. cl's default
+# C mode is read as C99, which is how djinterp reads it
+if [ "${language}" = "c++" ]; then
+    case "${level}" in
+        ""|c++14)                dialect="c++14"; msvc_lang="201402L" ;;
+        c++17)                   dialect="c++17"; msvc_lang="201703L" ;;
+        c++20)                   dialect="c++20"; msvc_lang="202002L" ;;
+        c++latest|c++23preview)  dialect="c++23"; msvc_lang="202400L" ;;
+        *)
+            fail "a level it does not know: /std:${level}"
+            ;;
+    esac
+
+    command+=(-x c++ "-std=${dialect}")
+
+    if [ "${real}" -eq 0 ]; then
+        headers=("${CXX_HEADERS[@]}")
+
+        case "${dialect}" in
+            c++17)        headers+=("${CXX17_HEADERS[@]}") ;;
+            c++20|c++23)  headers+=("${CXX17_HEADERS[@]}"
+                                    "${CXX20_HEADERS[@]}") ;;
+        esac
+
+        headers+=("${CXX_C_HEADERS[@]}")
+
+        command+=("-DCL_STANDIN_MSVC_LANG=${msvc_lang}"
+                  "-DCL_STANDIN_TRADITIONAL=${traditional}")
+    fi
+else
+    default=()
+
+    case "${level}" in
+        "")       dialect="c99"; default=("-DCL_STANDIN_C_DEFAULT=1") ;;
+        c11)      dialect="c11" ;;
+        c17)      dialect="c17" ;;
+        clatest)  dialect="c2x" ;;
+        *)
+            fail "a level it does not know: /std:${level}"
+            ;;
+    esac
+
+    command+=(-x c "-std=${dialect}")
+
+    if [ "${real}" -eq 0 ]; then
+        headers=("${C_HEADERS[@]}")
+
+        command+=("${default[@]}"
+                  "-DCL_STANDIN_TRADITIONAL=${traditional}")
+    fi
+fi
+
+# the library first, under the real identity, and then the swap. -include
+# looks in the working directory before the include path, and a build
+# directory has no file by a standard header's name
+if [ "${real}" -eq 0 ]; then
+    for header in "${headers[@]}"; do
+        command+=(-include "${header}")
+    done
+
+    command+=(-include "${HERE}/identity.h")
+fi
+
+# the dependencies in cl's form, which is what Ninja reads for an MSVC build
+if [ "${show_includes}" -eq 1 ]; then
+    command+=(-Xclang --show-includes)
+fi
+
+if [ -n "${CL_STANDIN_LOG:-}" ]; then
+    echo "${language} level=${level:-default} traditional=${traditional}" \
+         "real=${real} ${source}" >> "${CL_STANDIN_LOG}"
+fi
+
+stem="$(basename "${source%.*}")"
+
+if [ "${compile_only}" -eq 1 ]; then
+    if [ -z "${object}" ]; then
+        object="${stem}.obj"
+    fi
+
+    # /Fo may name a directory
+    case "${object}" in
+        */) object="${object}${stem}.obj" ;;
+    esac
+
+    exec "${command[@]}" "${passed[@]}" -c "${source}" -o "${object}"
+fi
+
+# no /c: compile and link, which CMake asks for when it identifies a compiler
+if [ -z "${executable}" ]; then
+    executable="${stem}.exe"
+fi
+
+"${command[@]}" "${passed[@]}" -c "${source}" -o "${stem}.obj" || exit 1
+
+exec "${HERE}/link" "${stem}.obj" -o "${executable}"

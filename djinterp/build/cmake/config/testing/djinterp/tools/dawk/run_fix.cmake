@@ -72,7 +72,7 @@ while( (_runs LESS 8)  AND
 
     foreach(_sheet IN LISTS _sheets)
         execute_process(
-            COMMAND ${_run} --fix "sheets/${_sheet}.dss" "${_tree}"
+            COMMAND ${_run} --fix "res/sheets/${_sheet}.dss" "${_tree}"
             WORKING_DIRECTORY "${ROOT}"
             OUTPUT_VARIABLE   _printed
             ERROR_VARIABLE    _errors
@@ -87,7 +87,7 @@ while( (_runs LESS 8)  AND
         if(_printed MATCHES "(^|\n) *([0-9]+) lines repaired")
             math(EXPR _last "${_last} + ${CMAKE_MATCH_2}")
         else()
-            message("FAIL fix: sheets/${_sheet}.dss printed no count of "
+            message("FAIL fix: res/sheets/${_sheet}.dss printed no count of "
                     "repairs")
             message("${_printed}${_errors}")
 

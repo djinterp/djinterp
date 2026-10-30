@@ -24,11 +24,7 @@
 #include "file_tests.h"
 
 
-int
-main
-(
-    void
-)
+int main(void)
 {
     dtest_suite*   suite;
     dtest_summary  summary;

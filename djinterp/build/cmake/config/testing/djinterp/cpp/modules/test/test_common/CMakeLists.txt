@@ -1,0 +1,16 @@
+# djinterp/test/test_common — test leaf (recipe R1). Builds test_common_tests and registers CTest.
+#   runner (this dir) + section TUs (tests/djinterp/test).  Output dir is computed:
+#   bin/<arch>-<Config>/testing/djinterp/test/test_common/.
+set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/cpp/modules/test")
+
+file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/test_common_tests_*.cpp")
+list(FILTER _sources EXCLUDE REGEX "_tests_(runner|main)\.cpp$")
+
+djinterp_add_test_executable(test_common_tests
+    SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/test_common_tests_runner.cpp"
+        ${_sources}
+    INCLUDES
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test"
+        "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test/output"
+        "${_tests_dir}")
