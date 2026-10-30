@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+#*******************************************************************************
+# vparse [cl_standin]                                                       link
+#
+# Links what the stand-in for cl compiled -- a program, or, given -shared, a
+# module (a DLL) -- with the MinGW-w64 runtime and libstdc++, statically,
+# through lld -- which, unlike GNU ld, has nothing to say about a type's
+# information emitted by two compilers.
+#   The command line is not link.exe's: override.cmake gives CMake a rule for
+# this script in the usual form, objects and libraries and -o. A library is
+# named as CMake names one for cl, foo.lib: one that is a file is an archive
+# this build made, and is linked as it is; one that is not is a system
+# library, and is linked as -lfoo, from the MinGW-w64 runtime.
+#   Dear ImGui names imm32 in a pragma that only cl reads, so it is named
+# here. So is winpthreads: a MinGW-w64 GCC with the posix thread model has a
+# libstdc++ that calls it, and its own driver names it where Clang's does not.
+#   What the Universal CRT has and msvcrt does not, ucrt.c beside this script
+# has, and it is compiled into every program and module, since cl's runtime
+# is the Universal CRT: a unit read as cl's may call _dupenv_s. lld then says
+# that a symbol the unit imports is defined in the program (LNK4217), which
+# is what was meant, so that warning is not shown.
+#
+# path:      /build/cmake/config/djinterp/tools/vparse/cl_standin/link
+# link(s):   TBA
+# author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.06
+#                                                            revised: 2026.10.26
+#*******************************************************************************
+arguments=()
+
+for argument in "$@"; do
+    if [[ "${argument}" == *.lib && ! -e "${argument}" ]]; then
+        arguments+=("-l${argument%.lib}")
+    else
+        arguments+=("${argument}")
+    fi
+done
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ucrt="$(mktemp --suffix=.o)"
+
+if ! clang --target=x86_64-w64-mingw32 -O2 -Wno-inconsistent-dllimport \
+           -c "${here}/ucrt.c" -o "${ucrt}"; then
+    rm -f "${ucrt}"
+    exit 1
+fi
+
+clang++ --target=x86_64-w64-mingw32 -static -fuse-ld=lld \
+        "${arguments[@]}" "${ucrt}" -limm32 -lpthread \
+        -Wl,-Xlink=/ignore:4217
+status=$?
+
+rm -f "${ucrt}"
+exit ${status}

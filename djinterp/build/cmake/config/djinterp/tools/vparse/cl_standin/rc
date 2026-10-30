@@ -1,0 +1,13 @@
+#!/bin/sh
+#*******************************************************************************
+# vparse [cl_standin]                                                         rc
+#
+# A stand-in for the resource compiler and the manifest tool, which CMake
+# looks for under MSVC and this build never has work for.
+#
+# path:      /build/cmake/config/djinterp/tools/vparse/cl_standin/rc
+# link(s):   TBA
+# author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.06
+#                                                            revised: 2026.10.15
+#*******************************************************************************
+exit 0

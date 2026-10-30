@@ -1,0 +1,399 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/out/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}",
+            "cacheVariables": {
+                "DJINTERP_ROOT": "${sourceDir}/../../../../..",
+                "VPARSE_UI_BUILD_TESTS": "ON"
+            }
+        },
+        {
+            "name": "msvc",
+            "displayName": "MSVC (cl, Ninja Multi-Config)",
+            "description": "Run from a Developer Command Prompt so cl is on PATH.",
+            "inherits": "base",
+            "generator": "Ninja Multi-Config",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl",
+                "CMAKE_CXX_COMPILER": "cl"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "clang-cl",
+            "displayName": "clang-cl (Ninja Multi-Config)",
+            "description": "Run from a Developer Command Prompt; needs the LLVM toolset installed.",
+            "inherits": "base",
+            "generator": "Ninja Multi-Config",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang-cl",
+                "CMAKE_CXX_COMPILER": "clang-cl"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "vs2026",
+            "displayName": "Visual Studio 2026 (MSVC)",
+            "description": "For opening the solution in the IDE; needs no command prompt setup. The generator needs CMake 4.2 or later.",
+            "inherits": "base",
+            "generator": "Visual Studio 18 2026",
+            "architecture": {
+                "value": "x64",
+                "strategy": "set"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "vs2026-clangcl",
+            "displayName": "Visual Studio 2026 (clang-cl toolset)",
+            "inherits": "vs2026",
+            "toolset": {
+                "value": "ClangCL",
+                "strategy": "set"
+            }
+        },
+        {
+            "name": "vs2022",
+            "displayName": "Visual Studio 2022 (MSVC)",
+            "description": "For opening the solution in the IDE; needs no command prompt setup.",
+            "inherits": "base",
+            "generator": "Visual Studio 17 2022",
+            "architecture": {
+                "value": "x64",
+                "strategy": "set"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "vs2022-clangcl",
+            "displayName": "Visual Studio 2022 (clang-cl toolset)",
+            "inherits": "vs2022",
+            "toolset": {
+                "value": "ClangCL",
+                "strategy": "set"
+            }
+        },
+        {
+            "name": "strict",
+            "displayName": "clang-cl, warnings as errors",
+            "description": "The loudest configuration on Windows: clang-cl with warnings as errors.",
+            "inherits": "clang-cl",
+            "cacheVariables": {
+                "VPARSE_WARNINGS_AS_ERRORS": "ON"
+            }
+        },
+        {
+            "name": "gcc",
+            "displayName": "GCC (Ninja Multi-Config)",
+            "description": "Linux, WSL or CI. uxoxo is looked for two directories above djinterp's root; pass -DUXOXO_ROOT otherwise.",
+            "inherits": "base",
+            "generator": "Ninja Multi-Config",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++"
+            },
+            "condition": {
+                "type": "notEquals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "clang",
+            "displayName": "Clang (Ninja Multi-Config)",
+            "description": "Linux, WSL or CI. uxoxo is looked for two directories above djinterp's root; pass -DUXOXO_ROOT otherwise.",
+            "inherits": "base",
+            "generator": "Ninja Multi-Config",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++"
+            },
+            "condition": {
+                "type": "notEquals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "clang-strict",
+            "displayName": "Clang, warnings as errors",
+            "description": "The loudest configuration off Windows: the style guide's whole baseline on this project's own sources, as errors.",
+            "inherits": "base",
+            "generator": "Ninja Multi-Config",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "VPARSE_WARNINGS_AS_ERRORS": "ON"
+            },
+            "condition": {
+                "type": "notEquals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "mingw-cross",
+            "displayName": "MinGW-w64, for 64-bit Windows (cross)",
+            "description": "From Linux: vparse, and the module vparse gui loads with the Win32 + Direct3D 11 window. The tests are Windows programs, so they are left off; with Wine, -DVPARSE_UI_BUILD_TESTS=ON and -DCMAKE_CROSSCOMPILING_EMULATOR=wine64 run them.",
+            "inherits": "base",
+            "generator": "Ninja Multi-Config",
+            "toolchainFile": "${sourceDir}/../../djinterp/tools/vparse/cmake/toolchains/mingw-w64-x86_64.cmake",
+            "cacheVariables": {
+                "VPARSE_UI_BUILD_TESTS": "OFF"
+            },
+            "condition": {
+                "type": "notEquals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "msvc-debug",
+            "configurePreset": "msvc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "msvc-release",
+            "configurePreset": "msvc",
+            "configuration": "Release"
+        },
+        {
+            "name": "clang-cl-debug",
+            "configurePreset": "clang-cl",
+            "configuration": "Debug"
+        },
+        {
+            "name": "clang-cl-release",
+            "configurePreset": "clang-cl",
+            "configuration": "Release"
+        },
+        {
+            "name": "vs2026-debug",
+            "configurePreset": "vs2026",
+            "configuration": "Debug"
+        },
+        {
+            "name": "vs2026-release",
+            "configurePreset": "vs2026",
+            "configuration": "Release"
+        },
+        {
+            "name": "vs2026-clangcl-debug",
+            "configurePreset": "vs2026-clangcl",
+            "configuration": "Debug"
+        },
+        {
+            "name": "vs2026-clangcl-release",
+            "configurePreset": "vs2026-clangcl",
+            "configuration": "Release"
+        },
+        {
+            "name": "vs2022-debug",
+            "configurePreset": "vs2022",
+            "configuration": "Debug"
+        },
+        {
+            "name": "vs2022-release",
+            "configurePreset": "vs2022",
+            "configuration": "Release"
+        },
+        {
+            "name": "vs2022-clangcl-debug",
+            "configurePreset": "vs2022-clangcl",
+            "configuration": "Debug"
+        },
+        {
+            "name": "vs2022-clangcl-release",
+            "configurePreset": "vs2022-clangcl",
+            "configuration": "Release"
+        },
+        {
+            "name": "strict",
+            "configurePreset": "strict",
+            "configuration": "Release"
+        },
+        {
+            "name": "gcc-debug",
+            "configurePreset": "gcc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "gcc-release",
+            "configurePreset": "gcc",
+            "configuration": "Release"
+        },
+        {
+            "name": "clang-debug",
+            "configurePreset": "clang",
+            "configuration": "Debug"
+        },
+        {
+            "name": "clang-release",
+            "configurePreset": "clang",
+            "configuration": "Release"
+        },
+        {
+            "name": "clang-strict",
+            "configurePreset": "clang-strict",
+            "configuration": "Release"
+        },
+        {
+            "name": "mingw-cross-release",
+            "configurePreset": "mingw-cross",
+            "configuration": "Release"
+        },
+        {
+            "name": "mingw-cross-debug",
+            "configurePreset": "mingw-cross",
+            "configuration": "Debug"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": false
+            }
+        },
+        {
+            "name": "msvc-debug",
+            "inherits": "base",
+            "configurePreset": "msvc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "msvc-release",
+            "inherits": "base",
+            "configurePreset": "msvc",
+            "configuration": "Release"
+        },
+        {
+            "name": "clang-cl-debug",
+            "inherits": "base",
+            "configurePreset": "clang-cl",
+            "configuration": "Debug"
+        },
+        {
+            "name": "clang-cl-release",
+            "inherits": "base",
+            "configurePreset": "clang-cl",
+            "configuration": "Release"
+        },
+        {
+            "name": "vs2026-debug",
+            "inherits": "base",
+            "configurePreset": "vs2026",
+            "configuration": "Debug"
+        },
+        {
+            "name": "vs2026-release",
+            "inherits": "base",
+            "configurePreset": "vs2026",
+            "configuration": "Release"
+        },
+        {
+            "name": "vs2026-clangcl-debug",
+            "inherits": "base",
+            "configurePreset": "vs2026-clangcl",
+            "configuration": "Debug"
+        },
+        {
+            "name": "vs2026-clangcl-release",
+            "inherits": "base",
+            "configurePreset": "vs2026-clangcl",
+            "configuration": "Release"
+        },
+        {
+            "name": "vs2022-debug",
+            "inherits": "base",
+            "configurePreset": "vs2022",
+            "configuration": "Debug"
+        },
+        {
+            "name": "vs2022-release",
+            "inherits": "base",
+            "configurePreset": "vs2022",
+            "configuration": "Release"
+        },
+        {
+            "name": "vs2022-clangcl-debug",
+            "inherits": "base",
+            "configurePreset": "vs2022-clangcl",
+            "configuration": "Debug"
+        },
+        {
+            "name": "vs2022-clangcl-release",
+            "inherits": "base",
+            "configurePreset": "vs2022-clangcl",
+            "configuration": "Release"
+        },
+        {
+            "name": "strict",
+            "inherits": "base",
+            "configurePreset": "strict",
+            "configuration": "Release"
+        },
+        {
+            "name": "gcc-debug",
+            "inherits": "base",
+            "configurePreset": "gcc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "gcc-release",
+            "inherits": "base",
+            "configurePreset": "gcc",
+            "configuration": "Release"
+        },
+        {
+            "name": "clang-debug",
+            "inherits": "base",
+            "configurePreset": "clang",
+            "configuration": "Debug"
+        },
+        {
+            "name": "clang-release",
+            "inherits": "base",
+            "configurePreset": "clang",
+            "configuration": "Release"
+        },
+        {
+            "name": "clang-strict",
+            "inherits": "base",
+            "configurePreset": "clang-strict",
+            "configuration": "Release"
+        }
+    ]
+}

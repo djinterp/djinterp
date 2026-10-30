@@ -1,0 +1,2 @@
+# build trees: every preset configures into out/<preset>
+out/
